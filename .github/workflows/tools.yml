@@ -1,0 +1,37 @@
+name: tools
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "What to run"
+        type: choice
+        options:
+          - zones-report
+          - replay-50-days
+        default: zones-report
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Zones report
+        if: ${{ inputs.task == 'zones-report' }}
+        run: python show_zones.py
+        env:
+          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
+      - name: Replay last 50 days
+        if: ${{ inputs.task == 'replay-50-days' }}
+        run: python replay.py --days 50
+        env:
+          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
