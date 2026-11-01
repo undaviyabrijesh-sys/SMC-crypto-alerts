@@ -1,4 +1,4 @@
-from . import config as C
+import config as C
 
 
 def build_setup(zone, price, atr1, zones, tips):

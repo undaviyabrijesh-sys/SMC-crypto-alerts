@@ -1,6 +1,6 @@
 import pandas as pd
 
-from . import config as C
+import config as C
 
 
 def atr(df, n: int = C.ATR_LEN):

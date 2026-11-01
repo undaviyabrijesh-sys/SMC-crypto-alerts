@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 import requests
 
-from . import config as C
+import config as C
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (advance-alerts)"}
 CAL_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"

@@ -23,17 +23,17 @@ Two-stage Discord alerts for BTC, ETH and XAUUSD (no LLM or API key needed).
 7. TP = nearest opposing zone edge or unswept swing tip (liquidity). SL = beyond the tip + 0.25 ATR.
 
 ## Setup
-1. Copy this folder's contents into your repo (keep `.github/workflows/alerts.yml`).
+1. Put all these files at the top level of your repo, then create `.github/workflows/alerts.yml` from `alerts.yml`.
 2. Create two Discord webhooks and add repo secrets `DISCORD_WATCH_WEBHOOK` and `DISCORD_TRIGGER_WEBHOOK`.
    (A single `DISCORD_WEBHOOK` also works.)
 3. Optional Kronos hook: have your Kronos job write `kronos_bias.json` in the repo root:
    `{"BTC": "up", "ETH": "down", "XAU": "flat"}`. When a bias exists it is a hard filter (flat or opposite = skip).
    With no bias file the filter is not applied and the WATCH message says so.
-4. Try it: `pip install -r requirements.txt && DRY_RUN=1 python -m advance_alerts.main`
-5. Offline logic tests: `python -m tests.test_synthetic`
+4. Try it: `pip install -r requirements.txt && DRY_RUN=1 python main.py`
+5. Offline logic tests: `python test_synthetic.py`
 
 ## See how often it fires (needs internet)
-`python -m advance_alerts.replay --days 50` replays the last ~50 days and prints WATCH/TRIGGER counts, trades per
+`python replay.py --days 50` replays the last ~50 days and prints WATCH/TRIGGER counts, trades per
 day, win rate and average R per symbol. Past news, calendar blackouts and Kronos forecasts are not replayed, so
 live counts will be lower. Same-candle SL/TP hits count as losses.
 
@@ -41,7 +41,7 @@ live counts will be lower. Same-candle SL/TP hits count as losses.
 - Gates: Kronos agreement (when available), min R:R 2.5 at WATCH and 2.0 at TRIGGER, high-impact USD event
   blackout (60 min before, 30 after), one active watch per symbol, gold skipped when its market is closed.
 - Score (0-100, threshold 60): impulse strength, FVG size, swing-tip zone, distance, R:R, past retest reaction, plus Kronos,
-  funding (crypto) and headline sentiment. All settings are in `advance_alerts/config.py`.
+  funding (crypto) and headline sentiment. All settings are in `config.py`.
 
 ## Known limits
 - Cron runs are delayed or skipped sometimes, so this suits 1h zones with 15m confirmation, not 3m scalping.
@@ -50,3 +50,8 @@ live counts will be lower. Same-candle SL/TP hits count as losses.
 - Yahoo, the calendar feed, Google News RSS and OKX funding could not be tested from the build sandbox. If one
   fails the run logs a warning and continues.
 - Every alert is logged in `state.json`. Check the real hit rate per symbol before trusting the thresholds.
+
+## Where is the workflow file?
+`.github/workflows/alerts.yml` is in a hidden folder (names starting with a dot are hidden on phones and some
+file managers). A visible copy is in `github_workflow/alerts.yml`. In GitHub, create the file at the path
+`.github/workflows/alerts.yml` (use "Add file > Create new file" and type that path) and paste it in.

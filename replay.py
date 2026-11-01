@@ -1,6 +1,6 @@
 """History replay: run the same WATCH/TRIGGER logic over past candles and score the outcomes.
 
-    python -m advance_alerts.replay --days 50
+    python replay.py --days 50
 
 Limits: Yahoo only serves ~60 days of 15m data. Past news, calendar blackouts, funding and Kronos
 forecasts are NOT replayed, so real alert counts will be a little lower than what this shows
@@ -10,8 +10,8 @@ import argparse
 
 import pandas as pd
 
-from . import config as C
-from . import data, discord, main, news
+import config as C
+import data, discord, main, news
 
 
 def _outcome(m15, t, w, max_hours=48):

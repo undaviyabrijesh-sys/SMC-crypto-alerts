@@ -3,10 +3,10 @@ import os
 
 import pandas as pd
 
-from . import config as C
-from . import data, discord, news, state as st
-from .score import build_setup, score_setup
-from .zones import atr, find_zones
+import config as C
+import data, discord, news, state as st
+from score import build_setup, score_setup
+from zones import atr, find_zones
 
 
 def load_kronos():

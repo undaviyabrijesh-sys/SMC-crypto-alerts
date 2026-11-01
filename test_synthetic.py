@@ -1,4 +1,4 @@
-"""Offline end-to-end tests on synthetic candles. Run: python -m tests.test_synthetic"""
+"""Offline end-to-end tests on synthetic candles. Run: python test_synthetic.py"""
 import json
 import os
 import tempfile
@@ -10,8 +10,8 @@ import pandas as pd
 os.environ["STATE_PATH"] = os.path.join(tempfile.mkdtemp(), "state.json")
 os.environ["DRY_RUN"] = "1"
 
-from advance_alerts import config as C, discord, main, news, state as st  # noqa: E402
-from advance_alerts.zones import find_zones, zigzag  # noqa: E402
+import config as C, discord, main, news, state as st  # noqa: E402
+from zones import find_zones, zigzag  # noqa: E402
 
 st.PATH = os.environ["STATE_PATH"]
 
@@ -189,7 +189,7 @@ def test_same_zone_alerts_again_only_after_price_leaves_and_returns():
 
 
 def test_replay_scores_outcome():
-    from advance_alerts import replay
+    import replay
     h1, m15 = make_1h(), make_15m(REACT + [("2026-11-02 13:15", 101.2, 104.0, 101.1, 103.9)])
     patch([])
     events, trig = replay.replay(fetcher=lambda y, i, p: h1 if i == "1h" else m15, days=1, verbose=False)
