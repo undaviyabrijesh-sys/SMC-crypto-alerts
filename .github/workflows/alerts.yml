@@ -1,0 +1,32 @@
+name: advance-alerts
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # GitHub may delay or skip runs; 5 min is the minimum
+  workflow_dispatch:
+
+concurrency:
+  group: advance-alerts
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      # state.json (active watches, history) is carried between runs via the Actions cache
+      - uses: actions/cache@v4
+        with:
+          path: state.json
+          key: alerts-state-${{ github.run_id }}
+          restore-keys: alerts-state-
+      - run: python main.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
