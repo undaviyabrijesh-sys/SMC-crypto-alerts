@@ -188,6 +188,14 @@ def test_same_zone_alerts_again_only_after_price_leaves_and_returns():
     assert got == [["WATCH"] * 3, ["TRIGGER"] * 3, [], ["WATCH"] * 3, ["TRIGGER"] * 3], got
 
 
+def test_zones_report_lists_zone_and_liquidity():
+    import show_zones
+    h1, m15 = make_1h(retest=True), make_15m()
+    blocks = show_zones.report(fetcher=lambda y, i, p: h1 if i == "1h" else m15, now=pd.Timestamp("2026-11-02 12:05", tz="UTC"))
+    assert len(blocks) == 3 and "DEMAND" in blocks[0] and "99.5 - 100.6" in blocks[0], blocks[0]
+    assert "tested 1x" in blocks[0] and "liquidity above" in blocks[0], blocks[0]
+
+
 def test_replay_scores_outcome():
     import replay
     h1, m15 = make_1h(), make_15m(REACT + [("2026-11-02 13:15", 101.2, 104.0, 101.1, 103.9)])

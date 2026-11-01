@@ -9,6 +9,9 @@ from score import build_setup, score_setup
 from zones import atr, find_zones
 
 
+_ZC = {}
+
+
 def load_kronos():
     """Optional hook: your Kronos job writes {"BTC": "up", "ETH": "down", "XAU": "flat"} to this file."""
     path = os.environ.get("KRONOS_BIAS_FILE", "kronos_bias.json")
@@ -103,7 +106,10 @@ def process(sym, cfg, state, now, blackout, cal_ok, kronos, fetcher):
     active = [x for x in state["watches"].values() if x["sym"] == sym]
     if len(active) >= C.MAX_ACTIVE_PER_SYMBOL:
         return
-    zones, tips = find_zones(h1, sym)
+    key = (sym, len(h1), h1.index[-1], float(h1["close"].sum()), float(h1["low"].sum()))
+    if _ZC.get(sym, (None,))[0] != key:
+        _ZC[sym] = (key, find_zones(h1, sym))
+    zones, tips = _ZC[sym][1]
     known = set(state["watches"]) | set(state["rearm"])
     ctx = None
     for z in zones:

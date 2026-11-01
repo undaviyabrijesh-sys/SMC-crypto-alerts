@@ -69,18 +69,21 @@ def replay(fetcher=data.fetch, days=50, step_min=15, verbose=True):
     cancels = len([e for e in events if e[1] == "CANCEL"])
 
     if verbose:
-        print(f"\nReplay {start:%Y-%m-%d} -> {end:%Y-%m-%d} ({days} days)")
-        print(f"WATCH alerts: {sum(watches.values())} {watches} | CANCEL: {cancels}")
+        out = [f"Replay {start:%Y-%m-%d} -> {end:%Y-%m-%d} ({days} days)",
+               f"WATCH alerts: {sum(watches.values())} {watches} | CANCEL: {cancels}"]
         if trig.empty:
-            print("TRIGGER alerts: 0")
+            out.append("TRIGGER alerts: 0")
         else:
             done = trig[trig.result != "OPEN"]
             for name, g in [("ALL", done)] + list(done.groupby("sym")):
                 if g.empty:
                     continue
                 wins = (g.result == "TP").sum()
-                print(f"{name:>4}: {len(g)} trades ({len(g)/days:.2f}/day) | TP {wins} SL {(g.result=='SL').sum()} "
-                      f"timeout {(g.result=='TIMEOUT').sum()} | win rate {wins/len(g):.0%} | avg R {g.R.mean():+.2f}")
+                out.append(f"{name:>4}: {len(g)} trades ({len(g)/days:.2f}/day) | TP {wins} SL {(g.result=='SL').sum()} "
+                           f"timeout {(g.result=='TIMEOUT').sum()} | win rate {wins/len(g):.0%} | avg R {g.R.mean():+.2f}")
+        text = "\n".join(out)
+        print("\n" + text)
+        discord.post_text("```\n" + text + "\n```")
     return events, trig
 
 

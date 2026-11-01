@@ -47,3 +47,16 @@ def send(stage, sym, w, fmt, lines=None, note=None):
         requests.post(url, json={"embeds": [embed]}, timeout=15).raise_for_status()
     except Exception as ex:
         print(f"[warn] discord post failed: {ex}")
+
+
+def post_text(text):
+    """Plain text post for reports (zones list, replay summary). Returns True if sent."""
+    url = os.environ.get("DISCORD_ZONES_WEBHOOK") or os.environ.get("DISCORD_WATCH_WEBHOOK") or os.environ.get("DISCORD_WEBHOOK")
+    if os.environ.get("DRY_RUN") or not url:
+        return False
+    try:
+        requests.post(url, json={"content": text[:1900]}, timeout=15).raise_for_status()
+        return True
+    except Exception as ex:
+        print(f"[warn] discord post failed: {ex}")
+        return False
