@@ -145,6 +145,26 @@ def _extract_output_text(response_json):
     return "\n".join(chunks)
 
 
+def _validate_symbol_coverage(parsed, expected):
+    """Require exactly one model analysis for each requested symbol."""
+    analyses = parsed.get("analyses")
+    if not isinstance(analyses, list):
+        raise ValueError("Responses API returned an invalid analyses list")
+    symbols = []
+    for item in analyses:
+        if not isinstance(item, dict) or not isinstance(item.get("symbol"), str):
+            raise ValueError("Responses API returned an analysis without a valid symbol")
+        symbols.append(item["symbol"])
+    if (
+        len(symbols) != len(expected)
+        or len(set(symbols)) != len(symbols)
+        or set(symbols) != expected
+    ):
+        raise ValueError(
+            f"Model symbols mismatch: expected {sorted(expected)}, got {symbols}"
+        )
+
+
 def analyse(chart_images, market_context, active_positions=None, model=None):
     """Send all available symbol charts in one multimodal request and return schema-validated JSON."""
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -199,8 +219,5 @@ def analyse(chart_images, market_context, active_positions=None, model=None):
     payload = response.json()
     text = _extract_output_text(payload)
     parsed = json.loads(text)
-    expected = set(chart_images)
-    returned = {item.get("symbol") for item in parsed.get("analyses", [])}
-    if returned != expected:
-        raise ValueError(f"Model symbols mismatch: expected {sorted(expected)}, got {sorted(returned)}")
+    _validate_symbol_coverage(parsed, set(chart_images))
     return parsed, {"model": chosen_model, "response_id": payload.get("id"), "usage": payload.get("usage", {})}
