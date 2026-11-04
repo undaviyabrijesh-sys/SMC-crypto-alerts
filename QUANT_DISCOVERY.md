@@ -78,3 +78,12 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Current architecture review: six Delta candle timeframes feed six-panel chart images and exact OHLCV context to the visual Responses API analyst. Multiple setup families remain in the prompt; old coded zone/scoring modules remain unused by `main.py`. Mechanical gates remain confidence >=75, R:R >=2, entry deviation <=0.35%, valid direction/levels, and one open paper position per symbol. Discord posts execution alerts only and separate TP/SL/TIME outcomes.
 - Still unverified: real OpenAI API call/model access, Discord webhook delivery, authenticated Delta key check, persistent worker deployment. No live alert or order has been sent; no strategy performance claim is made.
 - Next steps: verify CI for the new lifecycle regression; then build the bounded historical-data bootstrap and deterministic cost-aware Quant Discovery runner with chronological/walk-forward validation. Preserve missing historical spread/funding as explicit unavailable inputs; do not silently set them to zero.
+
+### Follow-up: entry-zone and Discord alert quality
+
+- Added a strict selected_entry_zone object to the visual analyst output. For TRADE, the AI must identify one meaningful price band, source timeframe and evidence; for NO_TRADE it returns null.
+- validate_trade now rejects missing/invalid zones and rejects a latest price more than the existing 0.35% tolerance away from the selected band. This is a validation gate only; the model still makes the visual setup decision.
+- Discord execution alerts now show the selected entry band and optional Target 2 alongside entry, stop, Target 1, validated R:R, timeframe alignment, rationale and invalidation.
+- Added tests for zone proximity rejection and Discord entry-band/TP2 formatting.
+- Final code head 49d68876ff9b8aa6b5dcbe4aea0390f573f6aa46 passed both push CI [41904264877](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41904264877) and PR CI [41904271682](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41904271682), including compilation, offline visual-pipeline tests and live public Delta OHLCV smoke tests.
+- Next: bootstrap durable historical OHLCV and implement the independent deterministic research runner. OpenAI live analysis, Discord webhook delivery, authenticated Delta check and persistent worker deployment remain unverified.
