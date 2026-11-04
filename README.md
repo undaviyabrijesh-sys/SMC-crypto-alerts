@@ -17,7 +17,8 @@ This development branch replaces the old coded SMC decision path with a vision-f
 - BTC: Delta Exchange BTCUSD perpetual.
 - ETH: Delta Exchange ETHUSD perpetual.
 - Gold: Delta Exchange XAUTUSD Tether Gold perpetual.
-- The public historical candle endpoint is used; no Delta API key is needed for market data.
+- The public historical candle endpoint is used; no Delta API key is needed for market data. Delta's documentation explicitly marks `GET /history/candles` as unauthenticated, so adding an API key does not itself improve candle quality or historical coverage.
+- An optional, strictly read-only Delta client signs a `GET /v2/users/trading_preferences` request at worker startup to verify the credentials. The client exposes no order, transfer, or account-mutation methods and logs only a pass/fail marker, not account preference contents.
 - The six native resolutions are fetched directly from Delta (5m, 15m, 1h, 4h, 1d, 1w). Each request is deliberately kept below the API's 2,000-candle response cap.
 - These are traded-price candles for the configured Delta contracts, not Yahoo proxies or an unrelated spot/futures feed.
 
@@ -42,11 +43,14 @@ For Docker, use .env:
 - DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK)
 
 Optional:
+- DELTA_API_KEY
+- DELTA_API_SECRET
+- DELTA_API_BASE_URL (defaults to https://api.india.delta.exchange)
 - OPENAI_MODEL (defaults to gpt-6.1-terra)
 - OPENAI_REASONING_EFFORT (defaults to high)
 - WORKER_INTERVAL_SECONDS (defaults to 300)
 
-For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK) as repository secrets. Set repository variable ENABLE_GITHUB_SCHEDULE=true only when the Docker worker is not running.
+For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK) as repository secrets. The optional Delta key is not checked on GitHub-hosted runners because Delta IP-whitelisting must match the runner's egress IP; use the authenticated smoke test from the whitelisted deployment host instead. Set repository variable ENABLE_GITHUB_SCHEDULE=true only when the Docker worker is not running.
 
 ## Alert behaviour
 
@@ -73,8 +77,9 @@ For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or 
     pip install -r requirements.txt
     python test_visual_pipeline.py
     python smoke_delta_feed.py
+    python smoke_delta_auth.py
 
-The offline test suite does not call the OpenAI API. The Delta smoke test uses the public market-data API.
+The offline test suite does not call the OpenAI API. The Delta feed smoke test uses the public market-data API. The authenticated smoke test requires DELTA_API_KEY and DELTA_API_SECRET to be set in the private environment and the machine's public IP to be included in the Delta key's whitelist. It makes one read-only request and does not place orders.
 
 ## Legacy modules
 
