@@ -1,32 +1,57 @@
-name: advance-alerts
+name: salty-quant-visual-desk
+
 on:
   schedule:
-    - cron: "*/10 * * * *"   # GitHub may delay or skip runs; 5 min is the minimum
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 concurrency:
-  group: advance-alerts
+  group: salty-quant-visual-desk
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  run:
+  analyse:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
-      # state.json (active watches, history) is carried between runs via the Actions cache
-      - uses: actions/cache@v4
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore rolling analysis state
+        uses: actions/cache@v4
         with:
           path: state.json
-          key: alerts-state-${{ github.run_id }}
-          restore-keys: alerts-state-
-      - run: python main.py
+          key: salty-quant-state-\${{ runner.os }}-\${{ github.run_id }}
+          restore-keys: |
+            salty-quant-state-\${{ runner.os }}-
+      - name: Restore rolling OHLCV and research history
+        uses: actions/cache@v4
+        with:
+          path: |
+            market_data/
+            research/
+          key: salty-quant-market-\${{ runner.os }}-\${{ github.run_id }}
+          restore-keys: |
+            salty-quant-market-\${{ runner.os }}-
+      - name: Run offline pipeline tests
+        run: python test_visual_pipeline.py
+      - name: Download data, render charts, and ask AI analyst
+        run: python main.py
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
-          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: \${{ vars.OPENAI_MODEL }}
+          OPENAI_REASONING_EFFORT: high
+          DISCORD_WEBHOOK: \${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: \${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DATA_DIR: market_data
+          STATE_PATH: state.json
+          RESEARCH_PATH: research/visual_decisions.jsonl
