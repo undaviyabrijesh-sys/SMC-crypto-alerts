@@ -11,6 +11,8 @@ def load():
     except Exception:
         s = {}
     s.setdefault("watches", {})
+    s.setdefault("positions", {})
+    s.setdefault("trade_history", [])
     s.setdefault("rearm", {})
     s.setdefault("seen", [])
     s.setdefault("log", [])
