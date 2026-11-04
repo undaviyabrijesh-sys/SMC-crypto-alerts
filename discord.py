@@ -23,6 +23,8 @@ def send(stage, sym, w, fmt, lines=None, note=None):
         {"name": "TP", "value": fmt(w["tp"]), "inline": True},
         {"name": "R:R", "value": f"{w['rr']:.1f}", "inline": True},
     ]
+    if w.get("signal_id"):
+        fields.append({"name": "Signal ID", "value": w["signal_id"], "inline": True})
     if "score" in w:
         fields.append({"name": "Score", "value": f"{w['score']}/100", "inline": True})
     desc = []
@@ -60,3 +62,20 @@ def post_text(text):
     except Exception as ex:
         print(f"[warn] discord post failed: {ex}")
         return False
+
+
+def send_outcome(trade, fmt):
+    outcome = trade["status"]
+    icon = "🟢" if outcome == "TP" else ("🔴" if outcome == "SL" else "⚪")
+    label = {"TP": "TAKE PROFIT HIT", "SL": "STOP LOSS HIT", "TIME": "TIME EXIT"}[outcome]
+    direction = "LONG" if trade["dir"] == "long" else "SHORT"
+    message = (
+        f"{icon} **SMC SIGNAL CLOSED — {label}**\\n"
+        f"Signal ID: `{trade['signal_id']}`\\n"
+        f"{trade['sym']} {direction}\\n"
+        f"Entry: {fmt(float(trade['entry']))} | Exit: {fmt(float(trade['exit']))}\\n"
+        f"SL: {fmt(float(trade['sl']))} | TP: {fmt(float(trade['tp']))}\\n"
+        f"Result: **{outcome}** | P&L: {trade['gross_pnl_pct']:+.3f}% "
+        f"({trade['gross_R']:+.2f}R)"
+    )
+    post_text(message)
