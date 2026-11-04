@@ -12,6 +12,7 @@ def load():
     except Exception:
         state = {}
     state.setdefault("positions", {})
+    state.setdefault("pending_alerts", {})
     state.setdefault("trade_history", [])
     state.setdefault("last_ai_candle", {})
     state.setdefault("last_analysis_at", None)
