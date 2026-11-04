@@ -86,7 +86,7 @@ def test_fetch_bundle_uses_all_five_native_timeframes():
 
 def test_visual_chart_png_contains_all_panels():
     frames = {
-        "1d": candles("1D", 110), "4h": candles("4h", 110),
+        "1w": candles("7D", 80), "1d": candles("1D", 110), "4h": candles("4h", 110),
         "1h": candles("1h", 130), "15m": candles("15min", 130),
         "5m": candles("5min", 130)
     }
