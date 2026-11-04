@@ -41,6 +41,41 @@ def test_normalize_retains_volume_and_utc():
     assert str(normalized.index.tz) == "UTC"
 
 
+def test_normalize_rejects_invalid_or_nonfinite_ohlc():
+    invalid = candles("5min", 3)
+    invalid.iloc[0, invalid.columns.get_loc("high")] = invalid.iloc[0]["close"] - 1
+    try:
+        data.normalize(invalid)
+    except ValueError as exc:
+        assert "OHLC invariants failed" in str(exc)
+    else:
+        raise AssertionError("inconsistent high/low values must be rejected")
+
+    nonfinite = candles("5min", 3)
+    nonfinite.iloc[0, nonfinite.columns.get_loc("open")] = float("inf")
+    try:
+        data.normalize(nonfinite)
+    except ValueError as exc:
+        assert "non-finite" in str(exc)
+    else:
+        raise AssertionError("non-finite OHLC values must be rejected")
+
+
+def test_normalize_handles_missing_volume_and_rejects_negative_volume():
+    frame = candles("5min", 3)
+    frame.iloc[0, frame.columns.get_loc("volume")] = float("nan")
+    normalized = data.normalize(frame)
+    assert normalized.volume.iloc[0] == 0.0
+
+    frame.iloc[1, frame.columns.get_loc("volume")] = -1.0
+    try:
+        data.normalize(frame)
+    except ValueError as exc:
+        assert "negative values" in str(exc)
+    else:
+        raise AssertionError("negative volume must be rejected")
+
+
 def test_closed_only_drops_forming_bar():
     df = candles("5min", 3, start="2026-11-04 10:00")
     now = pd.Timestamp("2026-11-04 10:14", tz="UTC")
