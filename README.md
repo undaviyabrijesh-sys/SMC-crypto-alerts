@@ -1,72 +1,55 @@
-# advance_alerts
+# Salty Quant AI — Visual Market Desk
 
-Two-stage Discord alerts for BTC, ETH and XAUUSD (no LLM or API key needed).
+This development branch replaces the old coded SMC decision path with a vision-first AI analyst.
 
-- **WATCH**: price is approaching a zone and the confluence score is high enough. Not an entry.
-- **TRIGGER**: price entered the zone and a 15m candle closed back beyond it. Final entry, SL, TP.
-- **CANCEL**: zone broken, R:R gone, or the watch expired.
+## Core design
 
-## How zones are found (market structure, no trend filter)
-1. An ATR zigzag on 1h candles marks real swing tips. A tip only counts after price moved 2 ATR away from it,
-   so minor swings never create zones.
-2. Demand = the lowest candle at the origin of an up-leg whose impulse leaves a fair value gap (FVG) within
-   3 candles. Supply is the mirror at swing highs. Zone box = that tip candle's high to low.
-3. Strength = how far the leg went in ATR (more impulse = stronger zone), plus FVG size.
-4. **A zone stays tradable until a body close breaks it.** Retests do not use it up, and a zone from a week ago
-   works as long as it has not broken (zones up to 14 days old are scanned, `ZONE_MAX_AGE_BARS`). Each retest's
-   reaction (how far price moved away, in ATR) is measured, and bigger reactions add to the score.
-   The same zone can alert again after a WATCH closes, but only once price has moved 1.5 ATR away and come back
-   (`REARM_ATR`), so you don't get repeat alerts while price sits at the zone.
-5. **Role reversal**: a body close through a zone with 1.5+ ATR follow-through flips it (broken support becomes
-   resistance and the reverse). Its first retest from the other side is tradable like any zone.
-6. Buy at support, sell at resistance regardless of bias. There is no trend gate.
-7. TP = nearest opposing zone edge or unswept swing tip (liquidity). SL = beyond the tip + 0.25 ATR.
+1. GitHub Actions wakes every 5 minutes.
+2. The data layer downloads native OHLCV candles for BTC, ETH and COMEX gold futures, removes still-forming candles, and carries a rolling raw-data store.
+3. The chart renderer creates one five-panel image per symbol: Daily, 4H, 1H, 15m and 5m, including candle wicks/bodies, price scale, timestamps and volume.
+4. The images and a compact exact OHLCV snapshot are sent together in one multimodal OpenAI Responses API call.
+5. The model visually identifies demand/supply bands, RBS/SBR, structure, liquidity, sweeps, imbalances and the trade idea. The old ATR zigzag/FVG zone finder and score engine are not called.
+6. A deterministic safety layer checks the AI's proposed direction, entry freshness, stop/target ordering, minimum R:R and confidence threshold. It cannot create zones or trading setups.
+7. Only validated actionable trade alerts are sent to Discord. The paper tracker reports TP, SL or TIME as a separate update.
 
-## Setup
-1. Put all these files at the top level of your repo, then create `.github/workflows/alerts.yml` from `alerts.yml`.
-2. Create two Discord webhooks and add repo secrets `DISCORD_WATCH_WEBHOOK` and `DISCORD_TRIGGER_WEBHOOK`.
-   (A single `DISCORD_WEBHOOK` also works.)
-3. Optional Kronos hook: have your Kronos job write `kronos_bias.json` in the repo root:
-   `{"BTC": "up", "ETH": "down", "XAU": "flat"}`. When a bias exists it is a hard filter (flat or opposite = skip).
-   With no bias file the filter is not applied and the WATCH message says so.
-4. Try it: `pip install -r requirements.txt && DRY_RUN=1 python main.py`
-5. Offline logic tests: `python test_synthetic.py`
+## Required GitHub settings
 
-## See how often it fires (needs internet)
-`python replay.py --days 50` replays the last ~50 days and prints WATCH/TRIGGER counts, trades per
-day, win rate and average R per symbol. Past news, calendar blackouts and Kronos forecasts are not replayed, so
-live counts will be lower. Same-candle SL/TP hits count as losses.
+Add repository secrets:
+- OPENAI_API_KEY
+- DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK)
 
-## Score and gates
-- Gates: Kronos agreement (when available), min R:R 2.5 at WATCH and 2.0 at TRIGGER, high-impact USD event
-  blackout (60 min before, 30 after), one active watch per symbol, gold skipped when its market is closed.
-- Score (0-100, threshold 60): impulse strength, FVG size, swing-tip zone, distance, R:R, past retest reaction, plus Kronos,
-  funding (crypto) and headline sentiment. All settings are in `config.py`.
+Optional repository variable:
+- OPENAI_MODEL (defaults to gpt-6.1-terra)
 
-## Known limits
-- Cron runs are delayed or skipped sometimes, so this suits 1h zones with 15m confirmation, not 3m scalping.
-- Headline sentiment is a crude keyword count and only a mild nudge.
-- Repeated retests of one zone can weaken it in practice. There is no cap yet; use the replay to see if one is needed.
-- Yahoo, the calendar feed, Google News RSS and OKX funding could not be tested from the build sandbox. If one
-  fails the run logs a warning and continues.
-- Every alert is logged in `state.json`. Check the real hit rate per symbol before trusting the thresholds.
+The default model is selected for visual reasoning and frequent chart analysis. Model and reasoning effort can be changed without changing strategy logic.
 
-## Where is the workflow file?
-`.github/workflows/alerts.yml` is in a hidden folder (names starting with a dot are hidden on phones and some
-file managers). A visible copy is in `github_workflow/alerts.yml`. In GitHub, create the file at the path
-`.github/workflows/alerts.yml` (use "Add file > Create new file" and type that path) and paste it in.
+## Alert behaviour
 
+- No WATCH or generic market commentary messages are sent to Discord.
+- No repeat AI analysis is performed for a symbol unless its latest fully closed 5m candle has changed.
+- All available symbols are analysed together in one model call.
+- One open paper position per symbol is allowed.
+- The first release supports immediate MARKET entries only. A proposed entry must be within the configured tolerance of the last closed 5m price. Limit orders are not silently treated as fills.
+- Trade tracking is paper tracking, not a broker fill and not an exchange order. The entry is assumed at the last closed 5m price so the signal lifecycle can be measured consistently.
+- Same-candle TP/SL ambiguity is resolved conservatively as SL first.
+- Trade outcomes are sent as separate Discord messages.
 
-## Triggered signal lifecycle
+## Data notes and limitations
 
-A WATCH remains a candidate and is not counted as a trade. When the 15m rejection
-confirmation creates a TRIGGER, the bot assigns a unique Signal ID and stores an
-OPEN paper position with its actual entry, stop, target and trigger-candle timestamp.
-On later runs, candles strictly after that trigger candle are checked for TP/SL.
-A gap through a level is filled at the candle open; if both TP and SL are inside one
-candle range, SL is conservatively assumed first. The first confirmed outcome sends
-a separate Discord closure message and is saved to trade_history. If neither level
-is reached within TRADE_MAX_HOURS (default 48), the position is closed as TIME
-using the latest available close. New WATCH signals for a symbol are held while it
-has an open triggered position. State is persisted through the existing GitHub
-Actions cache. This is paper tracking only; it does not place exchange orders.
+- Initial feed adapter is Yahoo Finance: BTC-USD, ETH-USD and GC=F. GC=F is COMEX gold futures, not spot XAUUSD.
+- Intraday data quality and exact timestamps must be monitored. A stale or incomplete timeframe blocks analysis for that symbol.
+- market_data/ and research/ are carried between GitHub Actions runs through Actions cache. This is a rolling development store, not a permanent database. Cache eviction or workflow inactivity can remove it; a durable database/object store is a later production task.
+- Scheduled GitHub Actions workflows run from the repository's default branch. This development branch will not run on its five-minute schedule until the workflow is merged to the default branch. It can be tested manually where workflow dispatch is available.
+- GitHub's schedule is best-effort and may be delayed. The pipeline also deduplicates by closed candle, so delayed invocations do not create repeated analyses.
+- No strategy hit rate or backtest performance is claimed. First collect and label AI decisions, then build a replay/evaluation harness from preserved charts, candle data, prompts and outcomes.
+
+## Local validation
+
+    pip install -r requirements.txt
+    python test_visual_pipeline.py
+
+The tests are offline and do not call the OpenAI API.
+
+## Legacy modules
+
+zones.py, score.py, news.py, replay.py and the original test_synthetic.py remain in the repository for reference. The new main.py does not import the old zone finder, old confluence scorer, or old WATCH/TRIGGER pipeline.
