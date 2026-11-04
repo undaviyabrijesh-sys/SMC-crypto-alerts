@@ -1,33 +1,45 @@
-"""OHLCV ingestion and rolling raw-data store for the visual analysis pipeline."""
+"""Delta Exchange OHLCV ingestion and rolling raw-data store for visual analysis."""
 from pathlib import Path
 import os
 
 import pandas as pd
+import requests
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "market_data"))
-PERIODS = {"5m": "5d", "15m": "60d", "1h": "60d", "1d": "1y"}
+BASE_URL = "https://api.india.delta.exchange"
+HEADERS = {"Accept": "application/json", "User-Agent": "SaltyQuantAI/1.0"}
+# All requested windows stay below Delta's 2,000-candle response limit.
+PERIODS = {"5m": "4d", "15m": "14d", "1h": "45d", "4h": "120d", "1d": "365d"}
 MINUTES = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
 MAX_ROWS = {"5m": 5000, "15m": 6000, "1h": 6000, "4h": 4000, "1d": 3000}
 
 
 def fetch(symbol: str, interval: str, period: str):
-    """Fetch native OHLCV candles. Yahoo is the initial adapter; provider can be swapped later."""
-    import yfinance as yf
-
-    df = yf.download(symbol, interval=interval, period=period, progress=False,
-                     auto_adjust=False, prepost=True, threads=False)
-    if df is None or df.empty:
+    """Fetch public traded-price OHLCV candles from Delta Exchange; no API key is required."""
+    days = int(period[:-1]) if period.endswith("d") else int(period)
+    end = int(pd.Timestamp.now(tz="UTC").timestamp())
+    start = end - days * 86400
+    response = requests.get(
+        f"{BASE_URL}/v2/history/candles",
+        params={"resolution": interval, "symbol": symbol, "start": start, "end": end},
+        headers=HEADERS,
+        timeout=25
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if payload.get("success") is not True:
+        raise RuntimeError(f"Delta candle API returned an unsuccessful response for {symbol} {interval}: {payload}")
+    candles = payload.get("result") or []
+    if not candles:
         return None
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    df = df.rename(columns=str.lower)
-    required = ["open", "high", "low", "close"]
+    df = pd.DataFrame(candles)
+    required = ["time", "open", "high", "low", "close"]
     if not all(col in df.columns for col in required):
-        raise ValueError(f"OHLC columns missing for {symbol} {interval}")
+        raise ValueError(f"Delta candle response missing required fields for {symbol} {interval}")
     if "volume" not in df.columns:
         df["volume"] = 0.0
-    df = df[required + ["volume"]].apply(pd.to_numeric, errors="coerce").dropna(subset=required)
-    df.index = pd.to_datetime(df.index, utc=True)
+    df.index = pd.to_datetime(pd.to_numeric(df.pop("time"), errors="coerce"), unit="s", utc=True)
+    df = df[["open", "high", "low", "close", "volume"]]
     return normalize(df)
 
 
@@ -91,47 +103,24 @@ def _persist(symbol, timeframe, frame):
     return merged
 
 
-def _resample_4h(hourly):
-    if hourly is None or hourly.empty:
-        return None
-    rule = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
-    out = hourly.resample("4h", label="left", closed="left").agg(rule).dropna(subset=["open", "high", "low", "close"])
-    return out
-
-
 def fetch_bundle(cfg, now, fetcher=fetch, symbol="UNKNOWN"):
-    """Fetch all native intervals, derive 4h candles, persist the rolling OHLCV history."""
-    raw = {}
-    for interval, period in PERIODS.items():
+    """Fetch all five native Delta resolutions and persist rolling OHLCV history."""
+    instrument = cfg.get("delta_symbol") or cfg.get("yf")
+    frames = {}
+    for timeframe, period in PERIODS.items():
         try:
-            raw[interval] = fetcher(cfg["yf"], interval, period)
+            raw = fetcher(instrument, timeframe, period)
         except Exception as exc:
-            print(f"[warn] {symbol} {interval} download failed: {exc}")
-            raw[interval] = None
+            print(f"[warn] {symbol} {timeframe} Delta download failed: {exc}")
+            raw = None
+        frames[timeframe] = closed_only(raw, MINUTES[timeframe], now) if raw is not None else None
 
-    closed = {
-        "5m": closed_only(raw.get("5m"), 5, now),
-        "15m": closed_only(raw.get("15m"), 15, now),
-        "1h": closed_only(raw.get("1h"), 60, now),
-        "1d": closed_only(raw.get("1d"), 1440, now),
-    }
-    # Fall back to the rolling CSV when a provider temporarily returns an empty response.
-    for tf in ["5m", "15m", "1h", "1d"]:
-        if closed[tf] is None or closed[tf].empty:
-            closed[tf] = _load_stored(symbol, tf)
-
-    closed["4h"] = closed_only(_resample_4h(closed["1h"]), 240, now)
-    if closed["4h"] is None or closed["4h"].empty:
-        closed["4h"] = _load_stored(symbol, "4h")
-
-    stored = {}
-    for tf, frame in closed.items():
+    for timeframe, frame in list(frames.items()):
         try:
-            stored[tf] = _persist(symbol, tf, frame)
+            frames[timeframe] = _persist(symbol, timeframe, frame)
         except Exception as exc:
-            print(f"[warn] {symbol} {tf} persistence failed: {exc}")
-            stored[tf] = frame
-    return stored
+            print(f"[warn] {symbol} {timeframe} persistence failed: {exc}")
+    return frames
 
 
 def freshness(frames, now):
