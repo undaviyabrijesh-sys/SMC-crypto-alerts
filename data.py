@@ -105,7 +105,7 @@ def _persist(symbol, timeframe, frame):
 
 
 def fetch_bundle(cfg, now, fetcher=fetch, symbol="UNKNOWN"):
-    """Fetch all five native Delta resolutions and persist rolling OHLCV history."""
+    """Fetch all six native Delta resolutions and persist rolling OHLCV history."""
     instrument = cfg.get("delta_symbol") or cfg.get("yf")
     frames = {}
     # Each timeframe is an independent public OHLCV request; fetch them concurrently per instrument.
