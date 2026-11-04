@@ -1,6 +1,7 @@
 """Delta Exchange OHLCV ingestion and rolling raw-data store for visual analysis."""
 from pathlib import Path
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 import requests
@@ -107,13 +108,19 @@ def fetch_bundle(cfg, now, fetcher=fetch, symbol="UNKNOWN"):
     """Fetch all five native Delta resolutions and persist rolling OHLCV history."""
     instrument = cfg.get("delta_symbol") or cfg.get("yf")
     frames = {}
-    for timeframe, period in PERIODS.items():
-        try:
-            raw = fetcher(instrument, timeframe, period)
-        except Exception as exc:
-            print(f"[warn] {symbol} {timeframe} Delta download failed: {exc}")
-            raw = None
-        frames[timeframe] = closed_only(raw, MINUTES[timeframe], now) if raw is not None else None
+    # Each timeframe is an independent public OHLCV request; fetch them concurrently per instrument.
+    with ThreadPoolExecutor(max_workers=len(PERIODS)) as pool:
+        futures = {
+            timeframe: pool.submit(fetcher, instrument, timeframe, period)
+            for timeframe, period in PERIODS.items()
+        }
+        for timeframe, future in futures.items():
+            try:
+                raw = future.result()
+            except Exception as exc:
+                print(f"[warn] {symbol} {timeframe} Delta download failed: {exc}")
+                raw = None
+            frames[timeframe] = closed_only(raw, MINUTES[timeframe], now) if raw is not None else None
 
     for timeframe, frame in list(frames.items()):
         try:
