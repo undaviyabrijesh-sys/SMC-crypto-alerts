@@ -38,6 +38,52 @@ def test_closed_only_drops_forming_bar():
     assert closed.index[-1] == pd.Timestamp("2026-11-04 10:05", tz="UTC")
 
 
+def test_delta_public_candle_adapter_parses_ohlcv():
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+        def json(self):
+            return {"success": True, "result": [{
+                "time": 1793790000, "open": 100, "high": 102, "low": 99,
+                "close": 101, "volume": 1234
+            }]}
+    original = data.requests.get
+    seen = {}
+    def fake_get(url, params, headers, timeout):
+        seen.update({"url": url, "params": params, "headers": headers})
+        return FakeResponse()
+    data.requests.get = fake_get
+    try:
+        frame = data.fetch("BTCUSD", "5m", "1d")
+    finally:
+        data.requests.get = original
+    assert seen["params"]["symbol"] == "BTCUSD"
+    assert seen["params"]["resolution"] == "5m"
+    assert list(frame.columns) == ["open", "high", "low", "close", "volume"]
+    assert float(frame.volume.iloc[0]) == 1234
+
+
+def test_fetch_bundle_uses_all_five_native_timeframes():
+    minutes = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
+    now = pd.Timestamp.now(tz="UTC").floor("5min")
+    calls = []
+    def fake_fetch(symbol, timeframe, period):
+        calls.append((symbol, timeframe, period))
+        step = minutes[timeframe]
+        last_open = now.floor(f"{step}min") - pd.Timedelta(minutes=step)
+        idx = pd.date_range(end=last_open, periods=40, freq=f"{step}min")
+        return pd.DataFrame({
+            "open": [100.0] * len(idx), "high": [101.0] * len(idx),
+            "low": [99.0] * len(idx), "close": [100.5] * len(idx),
+            "volume": [1000.0] * len(idx)
+        }, index=idx)
+    frames = data.fetch_bundle({"delta_symbol": "BTCUSD"}, now, fetcher=fake_fetch, symbol="BTC")
+    assert {call[1] for call in calls} == set(minutes)
+    assert all(call[0] == "BTCUSD" for call in calls)
+    assert all(frames[tf] is not None and not frames[tf].empty for tf in minutes)
+    assert data.freshness(frames, now)[0]
+
+
 def test_visual_chart_png_contains_all_panels():
     frames = {
         "1d": candles("1D", 110), "4h": candles("4h", 110),
