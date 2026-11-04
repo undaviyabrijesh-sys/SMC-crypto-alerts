@@ -283,6 +283,43 @@ def test_late_tp_after_expiry_is_recorded_as_time_exit():
     assert result["exit_time"] == "2026-11-02T23:55:00+00:00"
 
 
+def test_first_post_entry_candle_is_included_in_trade_tracking():
+    triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
+    m5 = pd.DataFrame({
+        "open": [100.0],
+        "high": [111.0],
+        "low": [99.0],
+        "close": [110.0],
+        "volume": [1000.0]
+    }, index=pd.DatetimeIndex([triggered_at]))
+    state = {
+        "positions": {
+            "TEST124": {
+                "signal_id": "TEST124", "sym": "BTC", "dir": "long",
+                "triggered_at": triggered_at.isoformat(),
+                "entry": 100.0, "sl": 95.0, "tp": 110.0
+            }
+        },
+        "trade_history": [],
+        "pending_outcomes": {}
+    }
+    original_send = main.discord.send_outcome
+    main.discord.send_outcome = lambda trade, fmt: True
+    try:
+        manage_positions(
+            state, "BTC", m5,
+            triggered_at + pd.Timedelta(minutes=5),
+            lambda value: str(value)
+        )
+    finally:
+        main.discord.send_outcome = original_send
+
+    assert "TEST124" not in state["positions"]
+    assert len(state["trade_history"]) == 1
+    assert state["trade_history"][0]["status"] == "TP"
+    assert state["trade_history"][0]["exit_time"] == triggered_at.isoformat()
+
+
 def test_corrupt_state_fails_closed_instead_of_resetting_positions():
     import json
     with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:
