@@ -323,8 +323,6 @@ def test_first_post_entry_candle_is_included_in_trade_tracking():
 def test_discord_execution_alert_includes_optional_second_target():
     captured = {}
     original_post = main.discord._post
-    main.discord._post = lambda content: captured.setdefault("content", content) is None
-    # Use an explicit capture function while keeping the production formatter untouched.
     def capture(content):
         captured["content"] = content
         return True
