@@ -5,37 +5,57 @@ import config as C
 import data, discord, main, news
 
 
-def _outcome(m15, trigger_time, trade, max_hours=48, cost_bps=5.0):
-    future = m15[m15.index > trigger_time]
-    long = trade["dir"]=="long"
-    risk = abs(float(trade["entry"])-float(trade["sl"]))
-    if risk<=0:
-        return "INVALID",0.0
-    cost = float(trade["entry"])*cost_bps/10000.0
-    for ts,bar in future.iterrows():
-        op,hi,lo = float(bar.open),float(bar.high),float(bar.low)
-        sl,tp = float(trade["sl"]),float(trade["tp"])
-        if long:
-            if op<=sl: exit_price,result=op,"SL"
-            elif op>=tp: exit_price,result=op,"TP"
-            elif lo<=sl: exit_price,result=sl,"SL"
-            elif hi>=tp: exit_price,result=tp,"TP"
-            else: continue
-            pnl=exit_price-float(trade["entry"])-cost
-        else:
-            if op>=sl: exit_price,result=op,"SL"
-            elif op<=tp: exit_price,result=op,"TP"
-            elif hi>=sl: exit_price,result=sl,"SL"
-            elif lo<=tp: exit_price,result=tp,"TP"
-            else: continue
-            pnl=float(trade["entry"])-exit_price-cost
-        return result,pnl/risk
-    if not future.empty and future.index[-1]-trigger_time>=pd.Timedelta(hours=max_hours):
-        exit_price=float(future.iloc[-1].close)
-        pnl=(exit_price-float(trade["entry"]))*(1 if long else -1)-cost
-        return "TIME",pnl/risk
-    return "OPEN",0.0
+def _outcome(m15, trigger_time, trade, max_hours=48, cost_bps=5.0, asof=None):
+    """Return net R using a round-trip cost assumption and a strict time horizon.
 
+    Yahoo 15m timestamps are candle-open times, so the final eligible bar must
+    start at least 15 minutes before the as-of/expiry timestamp.
+    """
+    trigger_time = pd.Timestamp(trigger_time)
+    expiry = trigger_time + pd.Timedelta(hours=max_hours)
+    asof = pd.Timestamp(asof) if asof is not None else m15.index[-1] + pd.Timedelta(minutes=15)
+    cutoff = min(asof, expiry) - pd.Timedelta(minutes=15)
+    future = m15[(m15.index > trigger_time) & (m15.index <= cutoff)]
+    long = trade["dir"] == "long"
+    entry = float(trade["entry"])
+    risk = abs(entry - float(trade["sl"]))
+    if risk <= 0:
+        return "INVALID", 0.0
+    # cost_bps is the total round-trip allowance (fees + slippage), charged once.
+    cost = entry * cost_bps / 10000.0
+    for ts, bar in future.iterrows():
+        op, hi, lo = float(bar.open), float(bar.high), float(bar.low)
+        sl, tp = float(trade["sl"]), float(trade["tp"])
+        if long:
+            if op <= sl:
+                exit_price, result = op, "SL"
+            elif op >= tp:
+                exit_price, result = op, "TP"
+            elif lo <= sl:
+                exit_price, result = sl, "SL"
+            elif hi >= tp:
+                exit_price, result = tp, "TP"
+            else:
+                continue
+            pnl = exit_price - entry - cost
+        else:
+            if op >= sl:
+                exit_price, result = op, "SL"
+            elif op <= tp:
+                exit_price, result = op, "TP"
+            elif hi >= sl:
+                exit_price, result = sl, "SL"
+            elif lo <= tp:
+                exit_price, result = tp, "TP"
+            else:
+                continue
+            pnl = entry - exit_price - cost
+        return result, pnl / risk
+    if asof >= expiry and not future.empty:
+        exit_price = float(future.iloc[-1].close)
+        pnl = (exit_price - entry) * (1 if long else -1) - cost
+        return "TIME", pnl / risk
+    return "OPEN", 0.0
 
 def replay(fetcher=data.fetch,days=50,step_min=15,verbose=True,cost_bps=5.0):
     frames={}
@@ -83,13 +103,13 @@ def replay(fetcher=data.fetch,days=50,step_min=15,verbose=True,cost_bps=5.0):
         if stage!="TRIGGER":
             continue
         trigger=pd.Timestamp(trade.get("trigger_time",ts))
-        result,r=_outcome(frames[sym][1],trigger,trade,C.TRADE_MAX_HOURS,cost_bps)
+        result,r=_outcome(frames[sym][1],trigger,trade,C.TRADE_MAX_HOURS,cost_bps,end)
         rows.append({"sym":sym,"time":trigger,"dir":trade["dir"],"score":trade.get("score"),
                      "trend":trade.get("trend"),"result":result,"R":r})
     trades=pd.DataFrame(rows)
     done=trades[trades.result!="OPEN"] if not trades.empty else trades
     if verbose:
-        print(f"Replay: {start} -> {end} UTC | assumed cost {cost_bps:.1f} bps")
+        print(f"Replay: {start} -> {end} UTC | assumed round-trip cost {cost_bps:.1f} bps")
         print(f"WATCH={sum(e[1]=='WATCH' for e in events)} | TRIGGER={len(trades)}")
         if done.empty:
             print("No completed trades")
