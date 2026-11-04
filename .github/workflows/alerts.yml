@@ -30,28 +30,28 @@ jobs:
         uses: actions/cache@v4
         with:
           path: state.json
-          key: salty-quant-state-\${{ runner.os }}-\${{ github.run_id }}
+          key: salty-quant-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-state-\${{ runner.os }}-
+            salty-quant-state-${{ runner.os }}-
       - name: Restore rolling OHLCV and research history
         uses: actions/cache@v4
         with:
           path: |
             market_data/
             research/
-          key: salty-quant-market-\${{ runner.os }}-\${{ github.run_id }}
+          key: salty-quant-market-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-market-\${{ runner.os }}-
+            salty-quant-market-${{ runner.os }}-
       - name: Run offline pipeline tests
         run: python test_visual_pipeline.py
       - name: Download data, render charts, and ask AI analyst
         run: python main.py
         env:
-          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: \${{ vars.OPENAI_MODEL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           OPENAI_REASONING_EFFORT: high
-          DISCORD_WEBHOOK: \${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_TRIGGER_WEBHOOK: \${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
           STATE_PATH: state.json
           RESEARCH_PATH: research/visual_decisions.jsonl
