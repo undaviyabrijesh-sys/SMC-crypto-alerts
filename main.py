@@ -114,7 +114,9 @@ def manage_watches(state, sym, m15, atr1, now, blackout, fmt):
             reactions = after[(after["close"] > w["hi"]) & (after["close"] > after["open"])]
         else:
             reactions = after[(after["close"] < w["lo"]) & (after["close"] < after["open"])]
-        if reactions.empty:
+        # Never publish a rejection from an old candle as a live entry. If the
+        # latest closed 15m bar is no longer the rejection, the setup has gone stale.
+        if reactions.empty or reactions.index[-1] != bars.index[-1]:
             continue
 
         trigger_time = reactions.index[-1]
@@ -170,7 +172,10 @@ def manage_positions(state, sym, m15, now, fmt):
         if trade["sym"] != sym:
             continue
         t0 = pd.Timestamp(trade["triggered_at"])
-        future = m15[m15.index > t0]
+        expiry = t0 + pd.Timedelta(hours=C.TRADE_MAX_HOURS)
+        # Candle timestamps are candle-open times. Only use bars that closed by
+        # the configured expiry; a later TP/SL must not override a TIME exit.
+        future = m15[(m15.index > t0) & (m15.index <= expiry - pd.Timedelta(minutes=15))]
         if future.empty:
             continue
         long = trade["dir"] == "long"
@@ -191,7 +196,7 @@ def manage_positions(state, sym, m15, now, fmt):
             if outcome:
                 exit_ts = ts
                 break
-        if not outcome and now-t0 > pd.Timedelta(hours=C.TRADE_MAX_HOURS):
+        if not outcome and now >= expiry:
             exit_ts, exit_price, outcome = future.index[-1], float(future.iloc[-1]["close"]), "TIME"
         if not outcome:
             continue
