@@ -27,3 +27,5 @@ jobs:
         run: python -m compileall -q .
       - name: Run offline visual pipeline tests
         run: python test_visual_pipeline.py
+      - name: Verify live public Delta OHLCV data
+        run: python smoke_delta_feed.py
