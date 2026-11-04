@@ -139,7 +139,11 @@ def manage_positions(state, sym, m5, now, fmt):
         if trade.get("sym") != sym:
             continue
         triggered_at = pd.Timestamp(trade["triggered_at"])
-        future = m5[m5.index > triggered_at]
+        expiry_at = triggered_at + pd.Timedelta(hours=C.TRADE_MAX_HOURS)
+        # Candle timestamps are bar-open times. Only bars that close by expiry
+        # may trigger TP/SL; a later bar must not retroactively change the exit.
+        latest_eligible_open = expiry_at - pd.Timedelta(minutes=5)
+        future = m5[(m5.index > triggered_at) & (m5.index <= latest_eligible_open)]
         if future.empty:
             continue
         is_long = trade["dir"] == "long"
@@ -170,7 +174,7 @@ def manage_positions(state, sym, m5, now, fmt):
             if outcome:
                 exit_ts = ts
                 break
-        if not outcome and _utc_now(now) - triggered_at > pd.Timedelta(hours=C.TRADE_MAX_HOURS):
+        if not outcome and _utc_now(now) >= expiry_at:
             exit_ts = future.index[-1]
             exit_price = float(future.iloc[-1].close)
             outcome = "TIME"
