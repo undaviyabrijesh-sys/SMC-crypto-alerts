@@ -339,7 +339,7 @@ def test_expired_trade_with_no_eligible_candles_closes_at_first_post_expiry_open
 
 def test_trade_is_not_time_closed_before_expiry_when_no_post_entry_candle_exists():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
-    last_pre_entry = pd.Timestamp("2026-11-03 11:55:00", tz="UTC")
+    last_pre_entry = triggered_at - pd.Timedelta(minutes=5)
     m5 = pd.DataFrame({
         "open": [100.0], "high": [101.0], "low": [99.0],
         "close": [100.5], "volume": [1000.0]
