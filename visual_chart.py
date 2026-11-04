@@ -19,7 +19,7 @@ PANELS = [
 
 
 def render_symbol_chart(symbol, frames, now=None):
-    """Return one PNG with five aligned-timeframe candlestick + volume panels."""
+    """Return one PNG with six aligned-timeframe candlestick + volume panels."""
     fig, axes = plt.subplots(
         nrows=len(PANELS), ncols=1, figsize=(17, 17),
         gridspec_kw={"height_ratios": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
