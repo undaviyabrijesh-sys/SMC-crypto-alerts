@@ -185,7 +185,7 @@ def test_same_zone_alerts_again_only_after_price_leaves_and_returns():
         m15 = make_15m(extra)
         main.run(now=pd.Timestamp(now, tz="UTC"), fetcher=lambda y, i, p: h1 if i == "1h" else m15)
         got.append([x[0] for x in sent])
-    assert got == [["WATCH"] * 3, ["TRIGGER"] * 3, [], ["WATCH"] * 3, ["TRIGGER"] * 3], got
+    assert got == [["WATCH"] * 3, ["TRIGGER"] * 3, [], [], []], got
 
 
 def test_zones_report_lists_zone_and_liquidity():
@@ -211,6 +211,35 @@ def test_no_new_watch_in_blackout():
     h1, m15 = make_1h(), make_15m()
     main.run(now=pd.Timestamp("2026-11-02 12:05", tz="UTC"), fetcher=lambda s, i, p: h1 if i == "1h" else m15)
     assert sent == [], sent
+
+
+def test_triggered_signal_lifecycle_tp_and_conservative_sl():
+    sent = []
+    original = discord.send_outcome
+    discord.send_outcome = lambda trade, fmt: sent.append(trade["status"])
+    try:
+        t0 = pd.Timestamp("2026-11-04 10:00", tz="UTC")
+        idx = pd.date_range(t0, periods=3, freq="15min")
+        fmt = lambda x: f"{x:.2f}"
+        for signal_id, candle, expected in [
+            ("TPTEST", (100.0, 111.0, 99.0, 108.0), "TP"),
+            ("SLTEST", (100.0, 111.0, 94.0, 108.0), "SL"),
+        ]:
+            state = {"positions": {
+                signal_id: {"signal_id": signal_id, "sym": "BTC", "dir": "long",
+                            "entry": 100.0, "sl": 95.0, "tp": 110.0,
+                            "triggered_at": idx[0].isoformat(), "status": "OPEN"}
+            }, "trade_history": []}
+            bars = pd.DataFrame([
+                (100.0, 101.0, 99.0, 100.0), candle,
+                (108.0, 109.0, 107.0, 108.0)
+            ], index=idx, columns=["open", "high", "low", "close"])
+            main.manage_positions(state, "BTC", bars, idx[-1] + pd.Timedelta(minutes=15), fmt)
+            assert signal_id not in state["positions"], state
+            assert state["trade_history"][-1]["status"] == expected, state
+        assert sent == ["TP", "SL"], sent
+    finally:
+        discord.send_outcome = original
 
 
 if __name__ == "__main__":
