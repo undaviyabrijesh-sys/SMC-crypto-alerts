@@ -63,8 +63,8 @@ def test_delta_public_candle_adapter_parses_ohlcv():
     assert float(frame.volume.iloc[0]) == 1234
 
 
-def test_fetch_bundle_uses_all_five_native_timeframes():
-    minutes = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
+def test_fetch_bundle_uses_all_six_native_timeframes():
+    minutes = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
     now = pd.Timestamp.now(tz="UTC").floor("5min")
     calls = []
     def fake_fetch(symbol, timeframe, period):
