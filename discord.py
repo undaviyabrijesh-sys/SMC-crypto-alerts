@@ -26,7 +26,7 @@ def send_ai_trade(sym, trade, fmt):
     icon = "🟢" if direction == "LONG" else "🔴"
     lines = [
         f"{icon} **SALTY QUANT AI — {direction} {sym}**",
-        f"Signal ID: \`{trade['signal_id']}\`",
+        f"Signal ID: {trade['signal_id']}",
         f"Setup: **{trade.get('setup_type', 'OTHER')}** | Confidence: **{trade.get('confidence', 0)}/100**",
         f"Entry: **{fmt(trade['entry'])}**",
         f"Stop-loss: **{fmt(trade['sl'])}**",
