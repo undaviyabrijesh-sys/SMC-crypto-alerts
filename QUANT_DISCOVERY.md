@@ -64,5 +64,6 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Draft PR: [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1) (open, not merged).
 - Latest code commit when this note was authored: `c71bd2602a1f4847d29575bbdf272de22cda80c0`.
 - Recent safety change: `state.py` now refuses to silently replace unreadable/corrupt state with an empty dictionary and writes state via an atomic temporary-file replacement. Regression tests were added to `test_visual_pipeline.py`.
-- CI for the latest commit was running when this note was authored; re-check the run before relying on it.
-- Next step: verify that CI completes successfully, then build the historical-data bootstrap and deterministic Quant Discovery harness. Do not deploy, merge, enable live trading or claim a strategy edge.
+- Follow-up verification: CI run [41886874010](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41886874010) completed successfully on 2026-11-04. Python compilation, the offline visual-pipeline suite (including the new state-persistence regressions), and the live public Delta OHLCV smoke test all passed.
+- Repository head at this follow-up: `94e4df878a0930eaa9f9aca5c958c3e82cb64e46` on `ai-quant-rebuild`; PR #1 remains open, draft and unmerged.
+- Next step: build the historical-data bootstrap and deterministic Quant Discovery harness. No historical experiment or strategy edge is claimed. Do not deploy, merge or enable live trading.
