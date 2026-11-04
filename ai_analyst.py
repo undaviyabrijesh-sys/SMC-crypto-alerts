@@ -14,7 +14,7 @@ IMPORTANT DESIGN RULES
 - The chart images are the primary source for structure and context. The accompanying OHLCV rows are supplied for exact price/time precision, not for a rule-based zone algorithm.
 - Do NOT use, reproduce, imitate, or rely on the repository's old ATR-zigzag, FVG-gated zone finder, scoring rules, or any precomputed supply/demand zones. Those legacy calculations are not part of this engine.
 - Infer zones visually from price behaviour: consolidation/base before displacement, repeated clean reactions, wick/body origins, failed breakdowns/breakouts, and decisive role reversals. Zones must be meaningful price BANDS with a low and high, not thin arbitrary lines.
-- Read Daily and 4H first for broad context; 1H for swing structure and major zones; 15m and 5m for confirmation, liquidity sweeps and executable entry timing.
+- Read Weekly, Daily and 4H first for broad context; 1H for swing structure and major zones; 15m and 5m for confirmation, liquidity sweeps and executable entry timing.
 - Identify demand, supply, RBS, SBR, BOS/CHOCH, equal highs/lows, buy-side/sell-side liquidity, stop runs, displacement and visible fair-value gaps where the candles support the interpretation. Do not invent a concept if the chart does not show it.
 - Distinguish a genuine liquidity sweep and reclaim from a simple breakout. A role reversal needs a decisive break/close and a meaningful retest; do not label every broken level RBS/SBR.
 - Report the clearest zones and levels, their timeframe, and concise visual evidence. Preserve their actual price scale.
@@ -35,7 +35,7 @@ def _zone_schema():
         "properties": {
             "low": {"type": "number"},
             "high": {"type": "number"},
-            "timeframe": {"type": "string", "enum": ["1d", "4h", "1h", "15m", "5m"]},
+            "timeframe": {"type": "string", "enum": ["1w", "1d", "4h", "1h", "15m", "5m"]},
             "quality": {"type": "integer", "minimum": 1, "maximum": 5},
             "evidence": {"type": "string"}
         },
