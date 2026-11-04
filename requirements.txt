@@ -1,4 +1,5 @@
 pandas>=2.0
-numpy
-requests
-yfinance
+numpy>=1.26
+requests>=2.31
+yfinance>=0.2.50
+matplotlib>=3.8
