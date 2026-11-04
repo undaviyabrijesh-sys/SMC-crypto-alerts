@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -55,15 +56,39 @@ def normalize(df):
     else:
         out.index = out.index.tz_convert("UTC")
     out.index.name = "timestamp"
+    out = out[~out.index.isna()]
     out = out[~out.index.duplicated(keep="last")].sort_index()
-    for col in ["open", "high", "low", "close"]:
+    ohlc = ["open", "high", "low", "close"]
+    for col in ohlc:
         if col not in out:
             raise ValueError(f"Missing candle field: {col}")
     if "volume" not in out:
         out["volume"] = 0.0
-    return out[["open", "high", "low", "close", "volume"]].apply(pd.to_numeric, errors="coerce").dropna(
-        subset=["open", "high", "low", "close"]
+
+    out = out[ohlc + ["volume"]].apply(pd.to_numeric, errors="coerce")
+    out = out.dropna(subset=ohlc)
+    if out.empty:
+        return out
+
+    prices = out[ohlc].to_numpy(dtype=float)
+    if not np.isfinite(prices).all():
+        raise ValueError("OHLC contains non-finite values")
+    if (out[ohlc] <= 0).any().any():
+        raise ValueError("OHLC contains non-positive prices")
+    invalid = (
+        (out["high"] < out[["open", "close", "low"]].max(axis=1))
+        | (out["low"] > out[["open", "close", "high"]].min(axis=1))
     )
+    if invalid.any():
+        raise ValueError(f"OHLC invariants failed for {int(invalid.sum())} candle(s)")
+
+    # Missing volume is non-directional metadata; represent it explicitly as zero.
+    # Non-finite or negative volume is malformed and must not enter chart/research data.
+    volume = out["volume"].fillna(0.0).to_numpy(dtype=float)
+    if not np.isfinite(volume).all() or (volume < 0).any():
+        raise ValueError("Volume contains non-finite or negative values")
+    out["volume"] = volume
+    return out[ohlc + ["volume"]]
 
 
 def closed_only(df, minutes: int, now):
