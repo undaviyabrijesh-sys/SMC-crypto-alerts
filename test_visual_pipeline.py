@@ -320,6 +320,34 @@ def test_first_post_entry_candle_is_included_in_trade_tracking():
     assert state["trade_history"][0]["exit_time"] == triggered_at.isoformat()
 
 
+def test_discord_execution_alert_includes_optional_second_target():
+    captured = {}
+    original_post = main.discord._post
+    main.discord._post = lambda content: captured.setdefault("content", content) is None
+    # Use an explicit capture function while keeping the production formatter untouched.
+    def capture(content):
+        captured["content"] = content
+        return True
+    main.discord._post = capture
+    trade = {
+        "signal_id": "FORMAT01", "dir": "long", "setup_type": "TREND_PULLBACK",
+        "confidence": 86, "entry": 100.0, "sl": 95.0, "tp": 110.0, "tp2": 115.0,
+        "rr": 2.0, "bias": "BULLISH", "timeframes_in_agreement": ["4h", "1h", "15m"],
+        "rationale": "Higher-timeframe trend aligned with a confirmed pullback.",
+        "invalidation": "A close below the structural swing low."
+    }
+    try:
+        assert main.discord.send_ai_trade("BTC", trade, lambda value: f"{value:.1f}")
+    finally:
+        main.discord._post = original_post
+
+    message = captured["content"]
+    assert "Target 1: **110.0**" in message
+    assert "Target 2: **115.0**" in message
+    assert "Why: Higher-timeframe trend aligned" in message
+    assert "Invalidation: A close below" in message
+
+
 def test_corrupt_state_fails_closed_instead_of_resetting_positions():
     import json
     with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:
