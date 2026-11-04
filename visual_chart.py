@@ -9,6 +9,7 @@ from matplotlib.ticker import FuncFormatter, MaxNLocator
 import pandas as pd
 
 PANELS = [
+    ("1w", "Weekly", 80),
     ("1d", "Daily", 100),
     ("4h", "4-hour", 100),
     ("1h", "1-hour", 120),
@@ -20,8 +21,8 @@ PANELS = [
 def render_symbol_chart(symbol, frames, now=None):
     """Return one PNG with five aligned-timeframe candlestick + volume panels."""
     fig, axes = plt.subplots(
-        nrows=len(PANELS), ncols=1, figsize=(17, 15),
-        gridspec_kw={"height_ratios": [1.0, 1.0, 1.0, 1.0, 1.0]},
+        nrows=len(PANELS), ncols=1, figsize=(17, 17),
+        gridspec_kw={"height_ratios": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
         constrained_layout=True
     )
     fig.patch.set_facecolor("#101722")
@@ -38,7 +39,7 @@ def render_symbol_chart(symbol, frames, now=None):
             continue
         df = df.tail(limit).copy()
         dates = mdates.date2num(df.index.to_pydatetime())
-        interval_days = {"1d": 1.0, "4h": 4 / 24, "1h": 1 / 24, "15m": 15 / 1440, "5m": 5 / 1440}[key]
+        interval_days = {"1w": 7.0, "1d": 1.0, "4h": 4 / 24, "1h": 1 / 24, "15m": 15 / 1440, "5m": 5 / 1440}[key]
         candle_width = interval_days * 0.62
         for x, (_, row) in zip(dates, df.iterrows()):
             o, h, l, c = map(float, (row.open, row.high, row.low, row.close))
