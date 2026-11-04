@@ -5,7 +5,7 @@ matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 import pandas as pd
 
 PANELS = [
@@ -77,7 +77,7 @@ def render_symbol_chart(symbol, frames, now=None):
             f"{label}  |  {len(df)} closed candles  |  last close {close:,.6g}  |  {df.index[-1]:%Y-%m-%d %H:%M} UTC",
             loc="left", color="#edf2f7", fontsize=9, pad=3
         )
-        ax.xaxis.set_major_locator(mdates.MaxNLocator(6))
+        ax.xaxis.set_major_locator(MaxNLocator(6))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b %H:%M", tz=df.index.tz))
 
     stamp = pd.Timestamp(now) if now is not None else pd.Timestamp.now(tz="UTC")
