@@ -112,3 +112,17 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Runtime limitation remains: no worker is deployed and the repository does not contain current chart-image artifacts for this cycle. Therefore no fresh AI visual analysis or market setup was evaluated, and no Discord alert was sent.
 - Quant Discovery remains design-only: no tracked historical dataset, no dedicated experiment/backtest runner and no completed historical experiment. The next engineering task remains bounded historical OHLCV bootstrap with coverage/hash metadata, followed by a deterministic event-driven backtester with realistic costs and chronological/walk-forward validation.
 - No deployment, secret change, merge, live order or performance claim was made.
+
+
+## Supervisor verification — 2026-11-05 (symbol coverage guard)
+
+- Rechecked the current private-repository branch and PR #1 through GitHub. Latest code head: `81659436a4b394027085014a7db2a9f9f3aefd6b` on `ai-quant-rebuild`. PR #1 remains open, draft, unmerged, and mergeable; base is `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. No review submissions or inline review threads were present.
+- Found a response-validation edge case in `ai_analyst.py`: set comparison accepted duplicate model analyses if every expected symbol was also present (for example BTC, BTC, ETH for BTC/ETH). Added `_validate_symbol_coverage` to require exactly one well-formed analysis per requested symbol and reject duplicates, missing symbols, unexpected symbols, or malformed symbol entries.
+- Added offline regression tests for exact one-per-symbol acceptance and duplicate-symbol rejection.
+- Commits: `04890d0d8233512fb6059c114ee54a9e848da6cd` (guard), `81659436a4b394027085014a7db2a9f9f3aefd6b` (tests).
+- Final code head CI run [41927585515](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41927585515) completed successfully: dependency installation, Python compilation, all offline visual-pipeline tests including both new symbol-coverage regressions, and live public Delta OHLCV checks for all 18 BTCUSD/ETHUSD/XAUTUSD × six-timeframe combinations passed.
+- Visual-first architecture, multi-setup prompt, NO_TRADE option, selected-entry-zone gate, confidence >=75, minimum 2R, 0.35% market-entry deviation, one open paper position per symbol, and TP/SL/TIME lifecycle remain unchanged. No coded zone engine was reintroduced and no thresholds were weakened.
+- Runtime remains undeployed: no persistent worker or fresh chart images were available for this cycle; actual OpenAI chart analysis and Discord delivery remain unverified. No alert or order was sent.
+- Quant Discovery remains at protocol stage: no tracked historical OHLCV archive, dedicated backtest runner, or completed experiment. Current public-feed smoke checks prove current candle availability/integrity only. Historical spread/funding inputs remain unavailable and must not be silently set to zero.
+- Exact next steps: bootstrap bounded, rate-limited historical Delta OHLCV with per-file hashes and coverage metadata; test data integrity and missing intervals; then implement the deterministic event-driven cost-aware research runner with chronological splits, purge/embargo and walk-forward folds. Keep research candidates out of production alerts until untouched out-of-sample and robustness checks pass.
+- No deployment, secret change, merge, live order, or performance claim was made.
