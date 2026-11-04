@@ -55,3 +55,18 @@ live counts will be lower. Same-candle SL/TP hits count as losses.
 `.github/workflows/alerts.yml` is in a hidden folder (names starting with a dot are hidden on phones and some
 file managers). A visible copy is in `github_workflow/alerts.yml`. In GitHub, create the file at the path
 `.github/workflows/alerts.yml` (use "Add file > Create new file" and type that path) and paste it in.
+
+
+## Triggered signal lifecycle
+
+A WATCH remains a candidate and is not counted as a trade. When the 15m rejection
+confirmation creates a TRIGGER, the bot assigns a unique Signal ID and stores an
+OPEN paper position with its actual entry, stop, target and trigger-candle timestamp.
+On later runs, candles strictly after that trigger candle are checked for TP/SL.
+A gap through a level is filled at the candle open; if both TP and SL are inside one
+candle range, SL is conservatively assumed first. The first confirmed outcome sends
+a separate Discord closure message and is saved to trade_history. If neither level
+is reached within TRADE_MAX_HOURS (default 48), the position is closed as TIME
+using the latest available close. New WATCH signals for a symbol are held while it
+has an open triggered position. State is persisted through the existing GitHub
+Actions cache. This is paper tracking only; it does not place exchange orders.
