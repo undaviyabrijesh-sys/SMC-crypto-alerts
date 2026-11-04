@@ -197,6 +197,19 @@ def _append_research(record):
 def run(now=None, fetcher=data.fetch, analyzer=None):
     now = _utc_now(now)
     state = st.load()
+    # Retry an unsent execution alert briefly; never silently paper-track a signal that Discord did not receive.
+    pending = state.setdefault("pending_alerts", {})
+    for signal_id, trade in list(pending.items()):
+        age = now - pd.Timestamp(trade.get("analysis_time", now.isoformat()))
+        if age > pd.Timedelta(minutes=10):
+            print(f"[drop] {trade.get('sym')} {signal_id}: Discord alert stayed undelivered for over 10 minutes")
+            del pending[signal_id]
+            continue
+        sent = discord.send_ai_trade(trade["sym"], trade, _fmt(trade["sym"], trade["entry"]))
+        if sent:
+            state.setdefault("positions", {})[signal_id] = trade
+            del pending[signal_id]
+            print(f"[alert-delivered] {trade['sym']} {signal_id}")
     frames_by_symbol = {}
     chart_images = {}
     last_candle = {}
@@ -226,12 +239,13 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         return
 
     market_context = build_context({s: frames_by_symbol[s] for s in chart_images})
+    active_trades = list(state.get("positions", {}).values()) + list(state.get("pending_alerts", {}).values())
     active = {
-        s: {
+        t.get("sym"): {
             "direction": t["dir"], "entry": t["entry"], "stop_loss": t["sl"],
             "take_profit": t["tp"], "signal_id": t["signal_id"]
         }
-        for s, t in ((x.get("sym"), x) for x in state.get("positions", {}).values())
+        for t in active_trades
     }
     call_analyser = analyzer or ai_analyst.analyse
     try:
@@ -258,7 +272,10 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         plan, reason = validate_trade(
             analysis,
             current_price,
-            has_open_position=any(p.get("sym") == symbol for p in state.get("positions", {}).values())
+            has_open_position=(
+                any(p.get("sym") == symbol for p in state.get("positions", {}).values())
+                or any(p.get("sym") == symbol for p in state.get("pending_alerts", {}).values())
+            )
         )
         print(f"[AI] {symbol}: {analysis.get('action')} {analysis.get('direction')} | {reason}")
         if plan is not None:
@@ -274,9 +291,13 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
                 "model": meta.get("model"),
                 "analysis_time": now.isoformat()
             }
-            state.setdefault("positions", {})[signal_id] = trade
-            discord.send_ai_trade(symbol, trade, _fmt(symbol, current_price))
-            print(f"[signal] {symbol} {plan['dir'].upper()} {signal_id} at {_fmt(symbol, current_price)} | {plan['rr']:.2f}R")
+            delivered = discord.send_ai_trade(symbol, trade, _fmt(symbol, current_price))
+            if delivered:
+                state.setdefault("positions", {})[signal_id] = trade
+                print(f"[signal] {symbol} {plan['dir'].upper()} {signal_id} at {_fmt(symbol, current_price)} | {plan['rr']:.2f}R")
+            else:
+                state.setdefault("pending_alerts", {})[signal_id] = trade
+                print(f"[pending] {symbol} {signal_id}: Discord delivery pending; not yet paper-tracked")
 
     # Mark only successfully analysed candles. A transient API failure retries next workflow run.
     for symbol, candle_ts in last_candle.items():
