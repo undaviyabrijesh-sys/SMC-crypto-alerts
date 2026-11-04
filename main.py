@@ -138,12 +138,14 @@ def manage_positions(state, sym, m5, now, fmt):
     for signal_id, trade in list(positions.items()):
         if trade.get("sym") != sym:
             continue
+        # triggered_at is the actual entry time: the close of the signal candle.
+        # The next 5m candle opens at that exact timestamp and is eligible for tracking.
         triggered_at = pd.Timestamp(trade["triggered_at"])
         expiry_at = triggered_at + pd.Timedelta(hours=C.TRADE_MAX_HOURS)
         # Candle timestamps are bar-open times. Only bars that close by expiry
         # may trigger TP/SL; a later bar must not retroactively change the exit.
         latest_eligible_open = expiry_at - pd.Timedelta(minutes=5)
-        future = m5[(m5.index > triggered_at) & (m5.index <= latest_eligible_open)]
+        future = m5[(m5.index >= triggered_at) & (m5.index <= latest_eligible_open)]
         if future.empty:
             continue
         is_long = trade["dir"] == "long"
@@ -303,12 +305,14 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         print(f"[AI] {symbol}: {analysis.get('action')} {analysis.get('direction')} | {reason}")
         if plan is not None:
             signal_id = uuid.uuid4().hex[:12].upper()
-            signal_ts = last_candle[symbol]
+            # Delta candle indices are bar-open times; the paper entry is at
+            # the latest closed candle's close, i.e. five minutes after its index.
+            signal_ts = pd.Timestamp(last_candle[symbol]) + pd.Timedelta(minutes=5)
             trade = {
                 **plan,
                 "signal_id": signal_id,
                 "sym": symbol,
-                "triggered_at": signal_ts,
+                "triggered_at": signal_ts.isoformat(),
                 "status": "OPEN",
                 "entry_source": "AI_VISUAL_PAPER",
                 "model": meta.get("model"),
