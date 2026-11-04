@@ -257,6 +257,25 @@ def test_visual_analyst_compares_multiple_setup_families():
     assert "return no_trade" in prompt
 
 
+def test_analyst_accepts_exactly_one_analysis_per_requested_symbol():
+    ai_analyst._validate_symbol_coverage(
+        {"analyses": [{"symbol": "BTC"}, {"symbol": "ETH"}]},
+        {"BTC", "ETH"}
+    )
+
+
+def test_analyst_rejects_duplicate_symbol_analyses():
+    try:
+        ai_analyst._validate_symbol_coverage(
+            {"analyses": [{"symbol": "BTC"}, {"symbol": "BTC"}]},
+            {"BTC", "ETH"}
+        )
+    except ValueError as exc:
+        assert "Model symbols mismatch" in str(exc)
+    else:
+        raise AssertionError("duplicate model analyses must be rejected")
+
+
 def test_late_tp_after_expiry_is_recorded_as_time_exit():
     triggered_at = pd.Timestamp("2026-11-01 00:00:00", tz="UTC")
     index = pd.to_datetime(
