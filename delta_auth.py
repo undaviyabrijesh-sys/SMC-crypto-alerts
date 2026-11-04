@@ -63,8 +63,8 @@ class DeltaReadOnlyClient:
         )
 
     def _signed_get(self, path: str, params=None):
-        if not path.startswith("/v2/") or "?" in path or "#" in path:
-            raise ValueError("Delta request path must be a clean /v2/ path")
+        if path != "/v2/users/trading_preferences":
+            raise ValueError("This read-only client only permits GET /v2/users/trading_preferences")
 
         request = requests.Request(
             method="GET",
