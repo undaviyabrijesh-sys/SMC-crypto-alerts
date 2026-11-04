@@ -24,6 +24,13 @@ def candles(freq, count=140, start="2026-10-20"):
     }, index=idx)
 
 
+def test_worker_scheduler_aligns_to_five_minute_boundaries():
+    from worker import seconds_until_next_tick
+    assert seconds_until_next_tick(601, 300) == 299
+    assert seconds_until_next_tick(600, 300) == 300
+    assert abs(seconds_until_next_tick(900.25, 300) - 299.75) < 1e-9
+
+
 def test_normalize_retains_volume_and_utc():
     normalized = data.normalize(candles("5min", 10))
     assert list(normalized.columns) == ["open", "high", "low", "close", "volume"]
