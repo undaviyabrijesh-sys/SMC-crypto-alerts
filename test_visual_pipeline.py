@@ -7,7 +7,9 @@ os.environ["DATA_DIR"] = tempfile.mkdtemp(prefix="salty-quant-data-")
 
 import data
 import delta_auth
-from main import validate_trade
+import main
+from main import validate_trade, manage_positions
+import ai_analyst
 from visual_chart import render_symbol_chart
 
 
@@ -225,6 +227,59 @@ def test_delta_client_rejects_non_allowlisted_api_paths():
     else:
         raise AssertionError("read-only Delta client must reject non-allowlisted endpoints")
 
+
+
+def test_visual_analyst_compares_multiple_setup_families():
+    setup_types = set(ai_analyst.ANALYSIS_ITEM["properties"]["setup_type"]["enum"])
+    assert {"DEMAND_REJECTION", "LIQUIDITY_SWEEP_REVERSAL", "TREND_PULLBACK",
+            "MOMENTUM_CONTINUATION", "RANGE_BREAKOUT", "MEAN_REVERSION",
+            "VOLATILITY_EXPANSION"} <= setup_types
+    prompt = ai_analyst.SYSTEM_PROMPT.lower()
+    assert "compare candidate setups" in prompt
+    assert "single clearest, highest-conviction" in prompt
+    assert "return no_trade" in prompt
+
+
+def test_late_tp_after_expiry_is_recorded_as_time_exit():
+    triggered_at = pd.Timestamp("2026-11-01 00:00:00", tz="UTC")
+    index = pd.to_datetime(
+        ["2026-11-02 23:55:00+00:00", "2026-11-03 00:00:00+00:00"]
+    )
+    m5 = pd.DataFrame({
+        "open": [100.0, 108.0],
+        "high": [105.0, 111.0],  # TP is touched only after the 48h expiry.
+        "low": [99.0, 107.0],
+        "close": [102.0, 110.0],
+        "volume": [1000.0, 1200.0]
+    }, index=index)
+    state = {
+        "positions": {
+            "TEST123": {
+                "signal_id": "TEST123", "sym": "BTC", "dir": "long",
+                "triggered_at": triggered_at.isoformat(),
+                "entry": 100.0, "sl": 95.0, "tp": 110.0
+            }
+        },
+        "trade_history": [],
+        "pending_outcomes": {}
+    }
+    original_send = main.discord.send_outcome
+    main.discord.send_outcome = lambda trade, fmt: True
+    try:
+        manage_positions(
+            state, "BTC", m5,
+            pd.Timestamp("2026-11-03 01:00:00", tz="UTC"),
+            lambda value: str(value)
+        )
+    finally:
+        main.discord.send_outcome = original_send
+
+    assert "TEST123" not in state["positions"]
+    assert len(state["trade_history"]) == 1
+    result = state["trade_history"][0]
+    assert result["status"] == "TIME"
+    assert result["exit"] == 102.0
+    assert result["exit_time"] == "2026-11-02T23:55:00+00:00"
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
