@@ -11,7 +11,6 @@ services:
       RESEARCH_PATH: /data/research/visual_decisions.jsonl
       HEARTBEAT_PATH: /data/worker_heartbeat.json
       WORKER_INTERVAL_SECONDS: "300"
-      OPENAI_MODEL: \${OPENAI_MODEL:-gpt-6.1-terra}
       OPENAI_REASONING_EFFORT: high
     volumes:
       - ./salty_data:/data
