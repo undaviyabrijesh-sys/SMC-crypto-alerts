@@ -2,7 +2,7 @@
 
 Two-stage Discord alerts for BTC, ETH and a COMEX gold-futures proxy (GC=F).
 - WATCH: price approaches a higher-timeframe zone; not an entry.
-- TRIGGER: closed 15m rejection with executable entry, SL and TP.
+- TRIGGER: latest closed 15m rejection with executable entry, SL and TP; stale rejections are skipped.
 - CANCEL: zone invalidated, stale setup, excessive entry drift, or poor confirmed R:R.
 - Closure update: paper-tracked TP / SL / TIME outcome.
 
@@ -32,5 +32,5 @@ Set Discord secrets `DISCORD_WATCH_WEBHOOK`, `DISCORD_TRIGGER_WEBHOOK` (or `DISC
 
 Install: `pip install -r requirements.txt`
 Dry run: `DRY_RUN=1 python main.py`
-Tests: `python test_synthetic.py && python test_quality.py`
-Replay: `python replay.py --days 50 --cost-bps 5`
+Tests: `python test_synthetic.py && python test_quality.py && python test_signal_safety.py`
+Replay: `python replay.py --days 50 --cost-bps 5` (5 bps is an assumed total round-trip cost, not venue-calibrated).
