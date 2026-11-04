@@ -111,6 +111,7 @@ def test_valid_long_trade_is_repriced_to_latest_close():
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100.05, "stop_loss": 95, "take_profit_1": 110,
         "take_profit_2": 115, "confidence": 82, "setup_type": "DEMAND_REJECTION",
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Demand reclaim band."},
         "bias": "BULLISH", "rationale": "Demand held and 5m reclaim.", "invalidation": "Close below demand."
     }
     plan, reason = validate_trade(analysis, 100.0)
@@ -124,7 +125,8 @@ def test_bad_risk_reward_is_rejected():
     analysis = {
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100, "stop_loss": 95, "take_profit_1": 109,
-        "take_profit_2": None, "confidence": 90
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."}
     }
     plan, reason = validate_trade(analysis, 100)
     assert plan is None and "only 1.80R" in reason
@@ -134,7 +136,8 @@ def test_wrong_side_or_stale_entry_is_rejected():
     analysis = {
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100, "stop_loss": 101, "take_profit_1": 110,
-        "take_profit_2": None, "confidence": 90
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."}
     }
     plan, reason = validate_trade(analysis, 100)
     assert plan is None and "not ordered" in reason
@@ -142,6 +145,17 @@ def test_wrong_side_or_stale_entry_is_rejected():
     analysis["entry"] = 102
     plan, reason = validate_trade(analysis, 100)
     assert plan is None and "away" in reason
+
+
+def test_trade_without_nearby_selected_entry_zone_is_rejected():
+    analysis = {
+        "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 98.0, "high": 99.0, "timeframe": "1h", "evidence": "Distant demand band."}
+    }
+    plan, reason = validate_trade(analysis, 100.0)
+    assert plan is None and "away from the AI selected entry zone" in reason
 
 
 def test_duplicate_open_position_is_rejected():
@@ -235,8 +249,10 @@ def test_visual_analyst_compares_multiple_setup_families():
     assert {"DEMAND_REJECTION", "LIQUIDITY_SWEEP_REVERSAL", "TREND_PULLBACK",
             "MOMENTUM_CONTINUATION", "RANGE_BREAKOUT", "MEAN_REVERSION",
             "VOLATILITY_EXPANSION"} <= setup_types
+    assert "selected_entry_zone" in ai_analyst.ANALYSIS_ITEM["required"]
     prompt = ai_analyst.SYSTEM_PROMPT.lower()
     assert "compare candidate setups" in prompt
+    assert "selected_entry_zone" in prompt
     assert "single clearest, highest-conviction" in prompt
     assert "return no_trade" in prompt
 
@@ -330,6 +346,7 @@ def test_discord_execution_alert_includes_optional_second_target():
     trade = {
         "signal_id": "FORMAT01", "dir": "long", "setup_type": "TREND_PULLBACK",
         "confidence": 86, "entry": 100.0, "sl": 95.0, "tp": 110.0, "tp2": 115.0,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Reclaim band."},
         "rr": 2.0, "bias": "BULLISH", "timeframes_in_agreement": ["4h", "1h", "15m"],
         "rationale": "Higher-timeframe trend aligned with a confirmed pullback.",
         "invalidation": "A close below the structural swing low."
@@ -342,6 +359,7 @@ def test_discord_execution_alert_includes_optional_second_target():
     message = captured["content"]
     assert "Target 1: **110.0**" in message
     assert "Target 2: **115.0**" in message
+    assert "Entry zone (15m): **99.8 – 100.2**" in message
     assert "Why: Higher-timeframe trend aligned" in message
     assert "Invalidation: A close below" in message
 
