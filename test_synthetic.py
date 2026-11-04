@@ -80,6 +80,23 @@ def patch(sent, events=()):
         os.remove(st.PATH)
 
 
+def disable_new_quality_gates():
+    names = ("TREND_FILTER_ENABLED", "MAX_ENTRY_DRIFT_ATR", "MIN_STOP_ATR_TRIGGER",
+             "MAX_STOP_ATR_TRIGGER", "MIN_RR_TRIGGER")
+    previous = {name: getattr(C, name) for name in names}
+    C.TREND_FILTER_ENABLED = False
+    C.MAX_ENTRY_DRIFT_ATR = 10.0
+    C.MIN_STOP_ATR_TRIGGER = 0.0
+    C.MAX_STOP_ATR_TRIGGER = 100.0
+    C.MIN_RR_TRIGGER = 0.0
+    return previous
+
+
+def restore_new_quality_gates(previous):
+    for name, value in previous.items():
+        setattr(C, name, value)
+
+
 def run_case(m15_extra, now2, kronos=None, h1=None):
     sent = []
     patch(sent)
@@ -90,8 +107,7 @@ def run_case(m15_extra, now2, kronos=None, h1=None):
     h1 = h1 if h1 is not None else make_1h()
     holder = {"m15": make_15m()}
     fetch = lambda sym, interval, period: h1 if interval == "1h" else holder["m15"]
-    trend_filter = C.TREND_FILTER_ENABLED
-    C.TREND_FILTER_ENABLED = False  # these cases test zone/trigger mechanics, not trend gating
+    gate_state = disable_new_quality_gates()  # these cases test the legacy mechanics in isolation
     try:
         main.run(now=pd.Timestamp("2026-11-02 12:05", tz="UTC"), fetcher=fetch)
         stage1 = list(sent); sent.clear()
@@ -99,7 +115,7 @@ def run_case(m15_extra, now2, kronos=None, h1=None):
         main.run(now=pd.Timestamp(now2, tz="UTC"), fetcher=fetch)
         return stage1, list(sent)
     finally:
-        C.TREND_FILTER_ENABLED = trend_filter
+        restore_new_quality_gates(gate_state)
 
 
 REACT = [("2026-11-02 12:15", 100.95, 101.0, 100.65, 100.7), ("2026-11-02 12:30", 100.7, 100.75, 100.2, 100.5),
@@ -185,8 +201,7 @@ def test_same_zone_alerts_again_only_after_price_leaves_and_returns():
     steps = [("2026-11-02 12:05", []), ("2026-11-02 13:20", REACT), ("2026-11-02 13:35", REACT + later[:1]),
              ("2026-11-02 14:35", REACT + later), ("2026-11-02 15:35", REACT + later + second)]
     got = []
-    trend_filter = C.TREND_FILTER_ENABLED
-    C.TREND_FILTER_ENABLED = False  # preserve this test's focus on rearming behaviour
+    gate_state = disable_new_quality_gates()  # preserve this test's focus on rearming behaviour
     try:
         for now, extra in steps:
             sent.clear()
@@ -194,7 +209,7 @@ def test_same_zone_alerts_again_only_after_price_leaves_and_returns():
             main.run(now=pd.Timestamp(now, tz="UTC"), fetcher=lambda y, i, p: h1 if i == "1h" else m15)
             got.append([x[0] for x in sent])
     finally:
-        C.TREND_FILTER_ENABLED = trend_filter
+        restore_new_quality_gates(gate_state)
     assert got == [["WATCH"] * 3, ["TRIGGER"] * 3, [], [], []], got
 
 
@@ -210,12 +225,11 @@ def test_replay_scores_outcome():
     import replay
     h1, m15 = make_1h(), make_15m(REACT + [("2026-11-02 13:15", 101.2, 104.0, 101.1, 103.9)])
     patch([])
-    trend_filter = C.TREND_FILTER_ENABLED
-    C.TREND_FILTER_ENABLED = False  # replay this fixture without the separate trend gate
+    gate_state = disable_new_quality_gates()  # replay this fixture without the separate quality gates
     try:
         events, trig = replay.replay(fetcher=lambda y, i, p: h1 if i == "1h" else m15, days=1, verbose=False)
     finally:
-        C.TREND_FILTER_ENABLED = trend_filter
+        restore_new_quality_gates(gate_state)
     assert len(trig) == 3 and set(trig.result) == {"TP"}, trig
 
 
