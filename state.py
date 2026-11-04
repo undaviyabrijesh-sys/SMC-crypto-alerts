@@ -13,6 +13,7 @@ def load():
         state = {}
     state.setdefault("positions", {})
     state.setdefault("pending_alerts", {})
+    state.setdefault("pending_outcomes", {})
     state.setdefault("trade_history", [])
     state.setdefault("last_ai_candle", {})
     state.setdefault("last_analysis_at", None)
