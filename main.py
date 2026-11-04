@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 
 import pandas as pd
 
@@ -84,8 +85,71 @@ def manage_watches(state, sym, m15, atr1, now, blackout, fmt):
             discord.send("CANCEL", sym, w, fmt, note=f"Reaction came but R:R is only {rr:.1f}. Skip.")
             _log(state, now, "CANCEL", sym, w); _close(state, w, now); continue
         t = dict(w, entry=entry, sl=sl, rr=rr)
+        signal_id = uuid.uuid4().hex[:12].upper()
+        t["signal_id"] = signal_id
+        trigger_time = react.index[-1]
         discord.send("TRIGGER", sym, t, fmt, lines=["Rejection at zone confirmed on 15m close"])
+        state.setdefault("positions", {})[signal_id] = {
+            "signal_id": signal_id, "sym": sym, "dir": t["dir"],
+            "entry": float(entry), "sl": float(sl), "tp": float(t["tp"]),
+            "rr": float(rr), "triggered_at": trigger_time.isoformat(),
+            "zone_id": t["id"], "zone_lo": float(t["lo"]), "zone_hi": float(t["hi"]),
+            "score": t.get("score"), "status": "OPEN",
+        }
         _log(state, now, "TRIGGER", sym, t); _close(state, w, now)
+
+
+
+def manage_positions(state, sym, m15, now, fmt):
+    """Resolve triggered paper signals from candles strictly after the trigger candle."""
+    positions = state.setdefault("positions", {})
+    for signal_id, trade in list(positions.items()):
+        if trade["sym"] != sym:
+            continue
+        triggered_at = pd.Timestamp(trade["triggered_at"])
+        future = m15[m15.index > triggered_at]
+        if future.empty:
+            continue
+        long = trade["dir"] == "long"
+        exit_price = None
+        outcome = None
+        exit_ts = None
+        for ts, bar in future.iterrows():
+            op, hi, lo = float(bar["open"]), float(bar["high"]), float(bar["low"])
+            sl, tp = float(trade["sl"]), float(trade["tp"])
+            if long:
+                if op <= sl: exit_price, outcome = op, "SL"
+                elif op >= tp: exit_price, outcome = op, "TP"
+                elif lo <= sl: exit_price, outcome = sl, "SL"
+                elif hi >= tp: exit_price, outcome = tp, "TP"
+            else:
+                if op >= sl: exit_price, outcome = op, "SL"
+                elif op <= tp: exit_price, outcome = op, "TP"
+                elif hi >= sl: exit_price, outcome = sl, "SL"
+                elif lo <= tp: exit_price, outcome = tp, "TP"
+            if outcome:
+                exit_ts = ts
+                break
+        if not outcome and now - triggered_at > pd.Timedelta(hours=C.TRADE_MAX_HOURS):
+            exit_ts = future.index[-1]
+            exit_price = float(future.iloc[-1]["close"])
+            outcome = "TIME"
+        if not outcome:
+            continue
+        entry = float(trade["entry"])
+        risk = abs(entry - float(trade["sl"]))
+        direction = 1 if long else -1
+        pnl_r = ((float(exit_price) - entry) / risk * direction) if risk else 0.0
+        result = {
+            **trade, "status": outcome, "exit": float(exit_price),
+            "exit_time": str(exit_ts), "gross_R": round(pnl_r, 4),
+            "gross_pnl_pct": round((float(exit_price) - entry) / entry * direction * 100, 4),
+        }
+        state.setdefault("trade_history", []).append(result)
+        state["trade_history"] = state["trade_history"][-1000:]
+        del positions[signal_id]
+        discord.send_outcome(result, fmt)
+        print(f"[closed] {sym} {signal_id}: {outcome} {pnl_r:+.2f}R")
 
 
 def process(sym, cfg, state, now, blackout, cal_ok, kronos, fetcher):
@@ -98,12 +162,15 @@ def process(sym, cfg, state, now, blackout, cal_ok, kronos, fetcher):
     atr1 = float(atr(h1).iloc[-1])
     price = float(m15["close"].iloc[-1])
 
+    manage_positions(state, sym, m15, now, fmt)
     manage_watches(state, sym, m15, atr1, now, blackout, fmt)
     check_rearm(state, sym, m15, atr1, now)
 
     if blackout:
         return
     active = [x for x in state["watches"].values() if x["sym"] == sym]
+    if any(x["sym"] == sym for x in state.setdefault("positions", {}).values()):
+        return
     if len(active) >= C.MAX_ACTIVE_PER_SYMBOL:
         return
     key = (sym, len(h1), h1.index[-1], float(h1["close"].sum()), float(h1["low"].sum()))
