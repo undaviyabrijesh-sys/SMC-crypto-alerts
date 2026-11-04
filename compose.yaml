@@ -1,0 +1,17 @@
+services:
+  salty-quant-visual-desk:
+    build: .
+    container_name: salty-quant-visual-desk
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /data/market_data
+      STATE_PATH: /data/state.json
+      RESEARCH_PATH: /data/research/visual_decisions.jsonl
+      HEARTBEAT_PATH: /data/worker_heartbeat.json
+      WORKER_INTERVAL_SECONDS: "300"
+      OPENAI_MODEL: \${OPENAI_MODEL:-gpt-6.1-terra}
+      OPENAI_REASONING_EFFORT: high
+    volumes:
+      - ./salty_data:/data
