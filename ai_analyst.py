@@ -19,7 +19,7 @@ IMPORTANT DESIGN RULES
 - Distinguish a genuine liquidity sweep and reclaim from a simple breakout. A role reversal needs a decisive break/close and a meaningful retest; do not label every broken level RBS/SBR.
 - Report the clearest zones and levels, their timeframe, and concise visual evidence. Preserve their actual price scale.
 - Prefer no trade when price is in the middle of a range, zones conflict, price has not reached an actionable area, confirmation is absent, or a clean plan cannot be formed.
-- Return TRADE only when the setup is actionable now, with a realistic entry, stop beyond structural invalidation, and first target offering at least 2R. Otherwise return NO_TRADE. There is no WATCH state because Discord is reserved for execution alerts.
+- Return TRADE only when the setup is actionable at the latest closed 5m price as an immediate MARKET entry, with a realistic entry, stop beyond structural invalidation, and first target offering at least 2R. The proposed entry must be within 0.35% of the latest closed 5m price. If price must first retrace to a limit zone or wait for confirmation, return NO_TRADE. Otherwise return NO_TRADE. There is no WATCH state because Discord is reserved for execution alerts.
 - Never force a trade to fill a quota. It is valid to return NO_TRADE for every symbol.
 - Never claim a setup has a proven win rate. Confidence is a qualitative setup-quality estimate, not a probability.
 - Use only the symbols present in the input. No external quotes or assumptions.
