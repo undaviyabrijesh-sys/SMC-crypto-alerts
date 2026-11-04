@@ -1,37 +1,55 @@
-name: tools
+name: quant-desk-tools
+
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: "What to run"
+        description: "Select a task"
         type: choice
         options:
-          - zones-report
-          - replay-50-days
-        default: zones-report
+          - visual-tests
+          - visual-desk-run
+        default: visual-tests
+
+concurrency:
+  group: quant-desk-tools
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
-      - name: Zones report
-        if: ${{ inputs.task == 'zones-report' }}
-        run: python show_zones.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore state and raw data
+        uses: actions/cache@v4
+        with:
+          path: |
+            state.json
+            market_data/
+            research/
+          key: salty-quant-manual-\${{ runner.os }}-\${{ github.run_id }}
+          restore-keys: |
+            salty-quant-state-\${{ runner.os }}-
+            salty-quant-market-\${{ runner.os }}-
+      - name: Run offline visual pipeline tests
+        if: \${{ inputs.task == 'visual-tests' }}
+        run: python test_visual_pipeline.py
+      - name: Run one AI visual desk cycle
+        if: \${{ inputs.task == 'visual-desk-run' }}
+        run: python main.py
         env:
-          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
-      - name: Replay last 50 days
-        if: ${{ inputs.task == 'replay-50-days' }}
-        run: python replay.py --days 50
-        env:
-          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
+          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: \${{ vars.OPENAI_MODEL }}
+          OPENAI_REASONING_EFFORT: high
+          DISCORD_WEBHOOK: \${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: \${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DATA_DIR: market_data
+          STATE_PATH: state.json
+          RESEARCH_PATH: research/visual_decisions.jsonl
