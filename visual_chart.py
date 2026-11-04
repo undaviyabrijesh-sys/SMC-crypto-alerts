@@ -66,7 +66,7 @@ def render_symbol_chart(symbol, frames, now=None):
         last_price = close
         last_time = df.index[-1]
         ax.axhline(close, color="#f5c451", linewidth=0.8, linestyle=(0, (4, 3)), alpha=0.75)
-        ax.set_xlim(dates[0] - 0.03, dates[-1] + (dates[-1] - dates[0]) * 0.08 + 0.002)
+        ax.set_xlim(dates[0] - candle_width, dates[-1] + (dates[-1] - dates[0]) * 0.08 + candle_width * 8)
         ax.yaxis.tick_right()
         ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:,.4f}" if abs(value) < 10 else f"{value:,.2f}"))
         ax.tick_params(axis="y", colors="#d9e2ef", labelsize=8)
