@@ -187,7 +187,6 @@ def manage_positions(state, sym, m15, now, fmt):
                 if op >= sl: exit_price, outcome = op, "SL"
                 elif op <= tp: exit_price, outcome = op, "TP"
                 elif hi >= sl: exit_price, outcome = sl, "SL"
-                elif lo <= tp: exit_price, outcome = sl, "SL"
                 elif lo <= tp: exit_price, outcome = tp, "TP"
             if outcome:
                 exit_ts = ts
