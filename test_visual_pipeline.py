@@ -6,6 +6,7 @@ import pandas as pd
 os.environ["DATA_DIR"] = tempfile.mkdtemp(prefix="salty-quant-data-")
 
 import data
+import delta_auth
 from main import validate_trade
 from visual_chart import render_symbol_chart
 
@@ -148,6 +149,71 @@ def test_duplicate_open_position_is_rejected():
     }
     plan, reason = validate_trade(analysis, 100, has_open_position=True)
     assert plan is None and "already exists" in reason
+
+
+def test_delta_signature_uses_hmac_sha256():
+    import hashlib
+    import hmac
+    message = "GET1700000000/v2/users/trading_preferences"
+    expected = hmac.new(b"unit-test-secret", message.encode("utf-8"), hashlib.sha256).hexdigest()
+    assert delta_auth.sign_message("unit-test-secret", message) == expected
+
+
+def test_delta_read_only_client_signs_exact_prepared_request():
+    import hashlib
+    import hmac
+    import requests
+
+    class FakeResponse:
+        status_code = 200
+        ok = True
+        def json(self):
+            return {"success": True, "result": {"user_id": 12345, "private": "must-not-be-returned"}}
+
+    class RecordingSession(requests.Session):
+        def send(self, prepared, timeout=None, **kwargs):
+            self.last_prepared = prepared
+            self.last_timeout = timeout
+            return FakeResponse()
+
+    session = RecordingSession()
+    client = delta_auth.DeltaReadOnlyClient(
+        "dummy-api-key",
+        "dummy-api-secret",
+        session=session,
+        clock=lambda: 1700000000
+    )
+    result = client._signed_get("/v2/users/trading_preferences", {"note": "BTC USD"})
+    prepared = session.last_prepared
+    message = "GET1700000000/v2/users/trading_preferences?note=BTC+USD"
+    expected = hmac.new(b"dummy-api-secret", message.encode("utf-8"), hashlib.sha256).hexdigest()
+    assert prepared.headers["signature"] == expected
+    assert prepared.headers["api-key"] == "dummy-api-key"
+    assert prepared.headers["timestamp"] == "1700000000"
+    assert prepared.headers["User-Agent"] == delta_auth.USER_AGENT
+    assert session.last_timeout == 15.0
+    assert result["user_id"] == 12345
+
+
+def test_delta_read_only_client_returns_only_authentication_marker():
+    import requests
+
+    class FakeResponse:
+        status_code = 200
+        ok = True
+        def json(self):
+            return {"success": True, "result": {"user_id": 12345, "notification_preferences": {"adl": True}}}
+
+    class RecordingSession(requests.Session):
+        def send(self, prepared, timeout=None, **kwargs):
+            return FakeResponse()
+
+    client = delta_auth.DeltaReadOnlyClient(
+        "dummy-api-key", "dummy-api-secret", session=RecordingSession(),
+        clock=lambda: 1700000000
+    )
+    result = client.get_trading_preferences()
+    assert result == {"authenticated": True}
 
 
 if __name__ == "__main__":
