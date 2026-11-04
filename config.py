@@ -1,10 +1,9 @@
-"""All tunable settings. Visual SMC zones are inferred by the vision model, not generated here."""
+"""Delta Exchange instruments and post-analysis validation thresholds."""
 
 SYMBOLS = {
-    "BTC": {"yf": "BTC-USD", "kind": "crypto", "dp": 1},
-    "ETH": {"yf": "ETH-USD", "kind": "crypto", "dp": 2},
-    # GC=F is COMEX gold futures, not spot XAUUSD; the source is clearly labelled in the chart.
-    "XAU": {"yf": "GC=F", "kind": "gold", "dp": 2},
+    "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1},
+    "ETH": {"delta_symbol": "ETHUSD", "kind": "crypto", "dp": 2},
+    "XAU": {"delta_symbol": "XAUTUSD", "kind": "gold", "dp": 2},
 }
 
 # Mechanical post-analysis safety checks only. These do not identify supply/demand or create entries.
