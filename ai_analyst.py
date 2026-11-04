@@ -140,7 +140,7 @@ def analyse(chart_images, market_context, active_positions=None, model=None):
         content.append({"type": "input_text", "text": f"VISUAL CHART: {symbol}"})
         content.append({"type": "input_image", "image_url": data_url, "detail": "high"})
 
-    chosen_model = model or os.environ.get("OPENAI_MODEL", MODEL_DEFAULT)
+    chosen_model = model or os.environ.get("OPENAI_MODEL") or MODEL_DEFAULT
     body = {
         "model": chosen_model,
         "store": False,
