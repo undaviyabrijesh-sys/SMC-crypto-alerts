@@ -216,6 +216,16 @@ def test_delta_read_only_client_returns_only_authentication_marker():
     assert result == {"authenticated": True}
 
 
+def test_delta_client_rejects_non_allowlisted_api_paths():
+    client = delta_auth.DeltaReadOnlyClient("dummy-key", "dummy-secret")
+    try:
+        client._signed_get("/v2/orders")
+    except ValueError as exc:
+        assert "only permits GET" in str(exc)
+    else:
+        raise AssertionError("read-only Delta client must reject non-allowlisted endpoints")
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
