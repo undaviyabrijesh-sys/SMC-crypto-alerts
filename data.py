@@ -10,9 +10,9 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", "market_data"))
 BASE_URL = "https://api.india.delta.exchange"
 HEADERS = {"Accept": "application/json", "User-Agent": "SaltyQuantAI/1.0"}
 # All requested windows stay below Delta's 2,000-candle response limit.
-PERIODS = {"5m": "4d", "15m": "14d", "1h": "45d", "4h": "120d", "1d": "365d"}
-MINUTES = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
-MAX_ROWS = {"5m": 20000, "15m": 12000, "1h": 12000, "4h": 8000, "1d": 4000}
+PERIODS = {"5m": "4d", "15m": "14d", "1h": "45d", "4h": "120d", "1d": "365d", "1w": "1825d"}
+MINUTES = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
+MAX_ROWS = {"5m": 20000, "15m": 12000, "1h": 12000, "4h": 8000, "1d": 4000, "1w": 1000}
 
 
 def fetch(symbol: str, interval: str, period: str):
@@ -134,8 +134,8 @@ def freshness(frames, now):
     """Return (usable, reason). Freshness uses candle close time, not its opening timestamp."""
     now = pd.Timestamp(now)
     now = now.tz_localize("UTC") if now.tzinfo is None else now.tz_convert("UTC")
-    limits = {"5m": 15, "15m": 35, "1h": 150, "4h": 540, "1d": 3 * 1440}
-    for tf in ["5m", "15m", "1h", "4h", "1d"]:
+    limits = {"5m": 15, "15m": 35, "1h": 150, "4h": 540, "1d": 3 * 1440, "1w": 21 * 1440}
+    for tf in ["5m", "15m", "1h", "4h", "1d", "1w"]:
         frame = frames.get(tf)
         if frame is None or frame.empty:
             return False, f"missing {tf} candles"
