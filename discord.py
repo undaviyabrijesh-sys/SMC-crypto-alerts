@@ -32,6 +32,8 @@ def send_ai_trade(sym, trade, fmt):
         f"Stop-loss: **{fmt(trade['sl'])}**",
         f"Target 1: **{fmt(trade['tp'])}**",
     ]
+    if trade.get("tp2") is not None:
+        lines.append(f"Target 2: **{fmt(trade['tp2'])}**")
     lines.extend([
         f"Validated R:R to T1: **{trade['rr']:.2f}R**",
         f"Bias: {trade.get('bias', 'UNCLEAR')} | Timeframes: {', '.join(trade.get('timeframes_in_agreement', [])) or 'mixed'}",
