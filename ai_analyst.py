@@ -126,7 +126,7 @@ def analyse(chart_images, market_context, active_positions=None, model=None):
         "type": "input_text",
         "text": (
             "Analyse this market snapshot as one cross-market quant desk. All chart timestamps are UTC. "
-            "Each image contains Daily, 4H, 1H, 15m and 5m candlestick panels. "
+            "Each image contains Weekly, Daily, 4H, 1H, 15m and 5m candlestick panels. "
             "The JSON below contains exact recent OHLCV candles and feed timestamps. "
             "Inspect each chart visually; use exact rows to pin price levels. "
             "Return one analysis for every symbol included, in the same order. "
