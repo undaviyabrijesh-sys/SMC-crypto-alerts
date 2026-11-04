@@ -50,7 +50,7 @@ def send_outcome(trade, fmt):
     label = {"TP": "TAKE PROFIT HIT", "SL": "STOP LOSS HIT", "TIME": "TIME EXIT"}.get(outcome, outcome)
     message = (
         f"{icon} **SALTY QUANT AI — {label}**\n"
-        f"Signal ID: \`{trade['signal_id']}\`\n"
+        f"Signal ID: `{trade['signal_id']}`\n"
         f"{trade['sym']} {trade['dir'].upper()}\n"
         f"Entry: {fmt(float(trade['entry']))} | Exit: {fmt(float(trade['exit']))}\n"
         f"SL: {fmt(float(trade['sl']))} | TP1: {fmt(float(trade['tp']))}\n"
