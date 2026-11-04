@@ -35,6 +35,7 @@ MIN_RR_TRIGGER = 2.0
 # Alert lifecycle
 WATCH_MIN_SCORE = 60
 WATCH_EXPIRY_HOURS = 24
+TRADE_MAX_HOURS = 48       # close still-open paper signals at this horizon
 MAX_ACTIVE_PER_SYMBOL = 1
 
 # News / calendar
