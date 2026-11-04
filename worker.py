@@ -51,8 +51,28 @@ def _check_required_environment():
         raise RuntimeError("Missing required environment settings: " + ", ".join(missing))
 
 
+def _check_optional_delta_auth():
+    """Check a configured Delta read-only key once at worker startup; never place orders."""
+    api_key = os.environ.get("DELTA_API_KEY", "").strip()
+    api_secret = os.environ.get("DELTA_API_SECRET", "").strip()
+    if not api_key and not api_secret:
+        print("[worker] Delta API key not configured; public candle data remains enabled", flush=True)
+        return
+    if not api_key or not api_secret:
+        print("[worker] WARNING: both DELTA_API_KEY and DELTA_API_SECRET are required; skipping authenticated check", flush=True)
+        return
+    try:
+        from delta_auth import DeltaReadOnlyClient
+        DeltaReadOnlyClient.from_env().get_trading_preferences()
+        print("[worker] Delta authenticated read-only connection passed", flush=True)
+    except Exception as exc:
+        # Public historical OHLCV remains available without authentication.
+        print(f"[worker] WARNING: Delta authenticated read-only check failed: {exc}", flush=True)
+
+
 def run_forever():
     _check_required_environment()
+    _check_optional_delta_auth()
     signal.signal(signal.SIGTERM, _handle_stop)
     signal.signal(signal.SIGINT, _handle_stop)
 
