@@ -370,6 +370,78 @@ def test_trade_is_not_time_closed_before_expiry_when_no_post_entry_candle_exists
     assert state["trade_history"] == []
 
 
+
+def test_time_exit_uses_first_post_expiry_open_when_last_eligible_candle_is_stale():
+    triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
+    last_eligible = pd.Timestamp("2026-11-03 11:50:00", tz="UTC")
+    post_expiry = pd.Timestamp("2026-11-03 12:10:00", tz="UTC")
+    m5 = pd.DataFrame({
+        "open": [105.0, 108.0], "high": [106.0, 109.0],
+        "low": [104.0, 107.0], "close": [105.5, 108.5],
+        "volume": [1000.0, 1100.0]
+    }, index=pd.DatetimeIndex([last_eligible, post_expiry]))
+    state = {
+        "positions": {
+            "GAP127": {
+                "signal_id": "GAP127", "sym": "BTC", "dir": "long",
+                "triggered_at": triggered_at.isoformat(),
+                "entry": 100.0, "sl": 95.0, "tp": 110.0
+            }
+        },
+        "trade_history": [],
+        "pending_outcomes": {}
+    }
+    original_send = main.discord.send_outcome
+    main.discord.send_outcome = lambda trade, fmt: True
+    try:
+        manage_positions(
+            state, "BTC", m5,
+            pd.Timestamp("2026-11-03 12:15:00", tz="UTC"),
+            lambda value: str(value)
+        )
+    finally:
+        main.discord.send_outcome = original_send
+
+    assert "GAP127" not in state["positions"]
+    result = state["trade_history"][0]
+    assert result["status"] == "TIME"
+    assert result["exit"] == 108.0
+    assert result["exit_time"] == post_expiry.isoformat()
+
+
+def test_expired_trade_waits_for_a_price_if_no_candle_reaches_expiry():
+    triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
+    last_eligible = pd.Timestamp("2026-11-03 11:50:00", tz="UTC")
+    m5 = pd.DataFrame({
+        "open": [105.0], "high": [106.0], "low": [104.0],
+        "close": [105.5], "volume": [1000.0]
+    }, index=pd.DatetimeIndex([last_eligible]))
+    state = {
+        "positions": {
+            "GAP128": {
+                "signal_id": "GAP128", "sym": "BTC", "dir": "long",
+                "triggered_at": triggered_at.isoformat(),
+                "entry": 100.0, "sl": 95.0, "tp": 110.0
+            }
+        },
+        "trade_history": [],
+        "pending_outcomes": {}
+    }
+    original_send = main.discord.send_outcome
+    main.discord.send_outcome = lambda trade, fmt: True
+    try:
+        manage_positions(
+            state, "BTC", m5,
+            pd.Timestamp("2026-11-03 12:15:00", tz="UTC"),
+            lambda value: str(value)
+        )
+    finally:
+        main.discord.send_outcome = original_send
+
+    assert "GAP128" in state["positions"]
+    assert state["trade_history"] == []
+
+
 def test_first_post_entry_candle_is_included_in_trade_tracking():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
     m5 = pd.DataFrame({
