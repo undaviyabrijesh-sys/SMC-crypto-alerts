@@ -100,6 +100,25 @@ def validate_trade(analysis, current_price, has_open_position=False):
     if confidence < C.MIN_AI_CONFIDENCE:
         return None, f"confidence {confidence} is below the configured gate"
 
+    selected_zone = analysis.get("selected_entry_zone")
+    if not isinstance(selected_zone, dict):
+        return None, "AI trade is missing its selected entry zone"
+    try:
+        zone_low = float(selected_zone["low"])
+        zone_high = float(selected_zone["high"])
+        zone_timeframe = selected_zone["timeframe"]
+        zone_evidence = str(selected_zone["evidence"])
+    except (TypeError, ValueError, KeyError):
+        return None, "AI selected entry zone is incomplete"
+    if not (0 < zone_low < zone_high):
+        return None, "AI selected entry zone has invalid price bounds"
+    if zone_timeframe not in ("1w", "1d", "4h", "1h", "15m", "5m"):
+        return None, "AI selected entry zone has an invalid timeframe"
+    zone_gap = max(zone_low - entry, entry - zone_high, 0.0)
+    zone_gap_pct = zone_gap / entry * 100
+    if zone_gap_pct > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
+        return None, f"latest price is {zone_gap_pct:.2f}% away from the AI selected entry zone"
+
     tp2 = analysis.get("take_profit_2")
     if tp2 is not None:
         try:
@@ -121,6 +140,12 @@ def validate_trade(analysis, current_price, has_open_position=False):
         "bias": analysis.get("bias", "UNCLEAR"),
         "rationale": analysis.get("rationale", ""),
         "invalidation": analysis.get("invalidation", ""),
+        "selected_entry_zone": {
+            "low": zone_low,
+            "high": zone_high,
+            "timeframe": zone_timeframe,
+            "evidence": zone_evidence
+        },
         "zones": {
             "demand": analysis.get("demand_zones", []),
             "supply": analysis.get("supply_zones", []),
