@@ -26,7 +26,7 @@ def _fmt(symbol, value):
 
 def build_context(frames_by_symbol):
     """Compact exact recent OHLCV accompanies the images for price-level precision."""
-    limits = {"1d": 18, "4h": 24, "1h": 30, "15m": 24, "5m": 24}
+    limits = {"1w": 12, "1d": 18, "4h": 24, "1h": 30, "15m": 24, "5m": 24}
     context = {}
     for symbol, frames in frames_by_symbol.items():
         current = frames["5m"].iloc[-1]
