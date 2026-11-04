@@ -8,6 +8,7 @@ os.environ["DATA_DIR"] = tempfile.mkdtemp(prefix="salty-quant-data-")
 import data
 import delta_auth
 import main
+import state as state_module
 from main import validate_trade, manage_positions
 import ai_analyst
 from visual_chart import render_symbol_chart
@@ -280,6 +281,45 @@ def test_late_tp_after_expiry_is_recorded_as_time_exit():
     assert result["status"] == "TIME"
     assert result["exit"] == 102.0
     assert result["exit_time"] == "2026-11-02T23:55:00+00:00"
+
+
+def test_corrupt_state_fails_closed_instead_of_resetting_positions():
+    import json
+    with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:
+        path = os.path.join(folder, "state.json")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write('{"positions": ')
+        original_path = state_module.PATH
+        state_module.PATH = path
+        try:
+            try:
+                state_module.load()
+            except RuntimeError as exc:
+                assert "refusing to start with empty state" in str(exc)
+            else:
+                raise AssertionError("corrupt state must not silently reset open positions")
+        finally:
+            state_module.PATH = original_path
+
+
+def test_state_save_is_atomic_and_round_trips():
+    with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:
+        path = os.path.join(folder, "nested", "state.json")
+        original_path = state_module.PATH
+        state_module.PATH = path
+        sample = {
+            "positions": {"S1": {"sym": "BTC", "dir": "long"}},
+            "trade_history": [{"signal_id": "S0"}]
+        }
+        try:
+            state_module.save(sample)
+            loaded = state_module.load()
+            assert loaded["positions"] == sample["positions"]
+            assert loaded["trade_history"] == sample["trade_history"]
+            assert not os.path.exists(path + ".tmp")
+        finally:
+            state_module.PATH = original_path
+
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
