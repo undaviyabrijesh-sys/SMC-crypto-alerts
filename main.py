@@ -44,7 +44,16 @@ def build_context(frames_by_symbol):
                     round(float(row.volume), 4)
                 ])
             tf_data[tf] = rows
+        instrument = C.SYMBOLS[symbol]["delta_symbol"]
+        descriptions = {
+            "BTC": "Bitcoin perpetual contract",
+            "ETH": "Ethereum perpetual contract",
+            "XAU": "Tether Gold Token perpetual contract (not spot XAUUSD)"
+        }
         context[symbol] = {
+            "venue": "Delta Exchange India",
+            "instrument": instrument,
+            "instrument_description": descriptions.get(symbol, "Delta perpetual contract"),
             "last_price": float(current.close),
             "last_closed_5m_candle": frames["5m"].index[-1].isoformat(),
             "timeframes": tf_data
@@ -229,7 +238,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
             last_candle[symbol] = candle_ts
             previous = state.setdefault("last_ai_candle", {}).get(symbol)
             if previous != candle_ts:
-                chart_images[symbol] = render_symbol_chart(symbol, frames, now)
+                chart_images[symbol] = render_symbol_chart(f"{symbol} · {cfg['delta_symbol']}", frames, now)
         except Exception as exc:
             print(f"[error] {symbol} data/chart: {exc}")
 
