@@ -65,7 +65,6 @@ def run_forever():
 
     # Run immediately at boot; subsequent cycles align to the next five-minute boundary.
     while not STOP.is_set():
-        started = time.monotonic()
         try:
             main.run()
             _heartbeat("ok")
