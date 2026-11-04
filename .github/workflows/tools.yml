@@ -18,7 +18,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,16 +27,21 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Restore state and raw data
+      - name: Restore rolling analysis state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: salty-quant-state-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            salty-quant-state-${{ runner.os }}-
+      - name: Restore rolling OHLCV and research data
         uses: actions/cache@v4
         with:
           path: |
-            state.json
             market_data/
             research/
-          key: salty-quant-manual-${{ runner.os }}-${{ github.run_id }}
+          key: salty-quant-market-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-state-${{ runner.os }}-
             salty-quant-market-${{ runner.os }}-
       - name: Run offline visual pipeline tests
         if: ${{ inputs.task == 'visual-tests' }}
