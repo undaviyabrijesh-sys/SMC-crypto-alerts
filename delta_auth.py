@@ -103,10 +103,11 @@ class DeltaReadOnlyClient:
             body = {}
 
         if response.status_code in (401, 403):
-            error = body.get("error") if isinstance(body, dict) else {}
-            error = error if isinstance(error, dict) else {}
+            raw_error = body.get("error") if isinstance(body, dict) else ""
+            error = raw_error if isinstance(raw_error, dict) else {}
             status_text = body.get("status") if isinstance(body, dict) else ""
-            code = str(error.get("code") or status_text or "").lower()
+            error_text = raw_error if isinstance(raw_error, str) else ""
+            code = str(error.get("code") or status_text or error_text or "").lower()
             if "ip" in code or "whitelist" in code:
                 advice = "The request IP is not on this API key's whitelist."
             elif "signature" in code:
