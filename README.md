@@ -6,7 +6,7 @@ This development branch replaces the old coded SMC decision path with a vision-f
 
 1. GitHub Actions wakes every 5 minutes.
 2. The data layer downloads native OHLCV candles directly from Delta Exchange for BTCUSD, ETHUSD and XAUTUSD, removes still-forming candles, and carries a rolling raw-data store.
-3. The chart renderer creates one five-panel image per symbol: Daily, 4H, 1H, 15m and 5m, including candle wicks/bodies, price scale, timestamps and volume.
+3. The chart renderer creates one six-panel image per symbol: Weekly, Daily, 4H, 1H, 15m and 5m, including candle wicks/bodies, price scale, timestamps and volume.
 4. The images and a compact exact OHLCV snapshot are sent together in one multimodal OpenAI Responses API call.
 5. The model visually identifies demand/supply bands, RBS/SBR, structure, liquidity, sweeps, imbalances and the trade idea. The old ATR zigzag/FVG zone finder and score engine are not called.
 6. A deterministic safety layer checks the AI's proposed direction, entry freshness, stop/target ordering, minimum R:R and confidence threshold. It cannot create zones or trading setups.
@@ -18,7 +18,7 @@ This development branch replaces the old coded SMC decision path with a vision-f
 - ETH: Delta Exchange ETHUSD perpetual.
 - Gold: Delta Exchange XAUTUSD Tether Gold perpetual.
 - The public historical candle endpoint is used; no Delta API key is needed for market data.
-- Each of the five native resolutions is fetched directly from Delta (5m, 15m, 1h, 4h, 1d). Each request is deliberately kept below the API's 2,000-candle response cap.
+- Each of the six native resolutions is fetched directly from Delta (5m, 15m, 1h, 4h, 1d, 1w). Each request is deliberately kept below the API's 2,000-candle response cap.
 - These are traded-price candles for the configured Delta contracts, not Yahoo proxies or an unrelated spot/futures feed.
 
 ## Required GitHub settings
