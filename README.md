@@ -4,7 +4,7 @@ This development branch replaces the old coded SMC decision path with a vision-f
 
 ## Core design
 
-1. GitHub Actions wakes every 5 minutes.
+1. A single persistent worker wakes on aligned five-minute boundaries. GitHub Actions is available as a best-effort fallback/manual run, not the preferred clock.
 2. The data layer downloads native OHLCV candles directly from Delta Exchange for BTCUSD, ETHUSD and XAUTUSD, removes still-forming candles, and carries a rolling raw-data store.
 3. The chart renderer creates one six-panel image per symbol: Weekly, Daily, 4H, 1H, 15m and 5m, including candle wicks/bodies, price scale, timestamps and volume.
 4. The images and a compact exact OHLCV snapshot are sent together in one multimodal OpenAI Responses API call.
@@ -18,19 +18,35 @@ This development branch replaces the old coded SMC decision path with a vision-f
 - ETH: Delta Exchange ETHUSD perpetual.
 - Gold: Delta Exchange XAUTUSD Tether Gold perpetual.
 - The public historical candle endpoint is used; no Delta API key is needed for market data.
-- Each of the six native resolutions is fetched directly from Delta (5m, 15m, 1h, 4h, 1d, 1w). Each request is deliberately kept below the API's 2,000-candle response cap.
+- The six native resolutions are fetched directly from Delta (5m, 15m, 1h, 4h, 1d, 1w). Each request is deliberately kept below the API's 2,000-candle response cap.
 - These are traded-price candles for the configured Delta contracts, not Yahoo proxies or an unrelated spot/futures feed.
 
-## Required GitHub settings
+## Recommended persistent worker deployment
 
-Add repository secrets:
+Use one always-on Docker host (a small VPS or an always-on container service). Do not run multiple worker replicas because state and paper-position files are shared.
+
+1. Copy .env.example to .env.
+2. Add a valid OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK to .env.
+3. Start the worker with: docker compose up -d --build
+4. Inspect logs with: docker compose logs -f
+5. The persistent ./salty_data volume stores state, rolling OHLCV, AI decision history and a heartbeat file across restarts.
+
+The worker runs immediately at startup, then aligns subsequent cycles to five-minute wall-clock boundaries. It never overlaps its own cycles. If one run overruns a boundary, it skips missed ticks rather than launching parallel analyses.
+
+**Use exactly one scheduler.** The GitHub Actions schedule is disabled by default unless the repository variable ENABLE_GITHUB_SCHEDULE=true is explicitly set. Leave it unset when the Docker worker is running, or both runtimes could create duplicate independent paper signals. GitHub schedule is best-effort and may be substantially delayed; it should be treated as a fallback, not a precise five-minute service.
+
+## Required runtime secrets
+
+For Docker, use .env:
 - OPENAI_API_KEY
 - DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK)
 
-Optional repository variable:
+Optional:
 - OPENAI_MODEL (defaults to gpt-6.1-terra)
+- OPENAI_REASONING_EFFORT (defaults to high)
+- WORKER_INTERVAL_SECONDS (defaults to 300)
 
-The default model is selected for visual reasoning and frequent chart analysis. Model and reasoning effort can be changed without changing strategy logic.
+For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK) as repository secrets. Set repository variable ENABLE_GITHUB_SCHEDULE=true only when the Docker worker is not running.
 
 ## Alert behaviour
 
@@ -44,20 +60,22 @@ The default model is selected for visual reasoning and frequent chart analysis. 
 - Same-candle TP/SL ambiguity is resolved conservatively as SL first.
 - Trade outcomes are sent as separate Discord messages.
 
-## Data persistence and rollout
+## Data persistence and validation
 
-- market_data/ and research/ are carried between GitHub Actions runs through Actions cache. This is a rolling development store, not a permanent database. Cache eviction or workflow inactivity can remove it; a durable database/object store is a later production task.
-- Scheduled GitHub Actions workflows run from the repository's default branch. This development branch will not run on its five-minute schedule until the workflow is merged to the default branch. It can be tested manually where workflow dispatch is available.
-- GitHub's schedule is best-effort and may be delayed. The pipeline deduplicates by closed 5m candle, so delayed invocations do not create repeated analyses.
+- salty_data/ (Docker) stores state and raw data persistently. The GitHub Actions fallback uses Actions cache, which is a rolling development store and not a durable database.
+- The live Delta feed was tested from GitHub Actions for BTCUSD, ETHUSD and XAUTUSD across all six intervals. The test also checks candle integrity, UTC timestamps, closed-bar filtering and the production freshness gate.
+- CI runs Python compilation, offline rendering/signal-gate tests and the live public Delta feed smoke test.
+- CI success does not prove that OpenAI API credentials are configured, that Discord webhooks deliver, or that any trading setup has positive expectancy.
 - No strategy hit rate or backtest performance is claimed. First collect and label AI decisions, then build a replay/evaluation harness from preserved charts, candle data, prompts and outcomes.
 
 ## Local validation
 
     pip install -r requirements.txt
     python test_visual_pipeline.py
+    python smoke_delta_feed.py
 
-The tests are offline and do not call the OpenAI API.
+The offline test suite does not call the OpenAI API. The Delta smoke test uses the public market-data API.
 
 ## Legacy modules
 
-zones.py, score.py, news.py, replay.py and the original test_synthetic.py remain in the repository for reference. The new main.py does not import the old zone finder, old confluence scorer, or old WATCH/TRIGGER pipeline.
+zones.py, score.py, news.py, replay.py and legacy_synthetic_tests.py remain for reference. The new main.py does not import the old zone finder, old confluence scorer, or old WATCH/TRIGGER pipeline.
