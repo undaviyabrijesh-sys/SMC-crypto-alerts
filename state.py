@@ -1,3 +1,4 @@
+"""Small persistent state for duplicate prevention and paper trade lifecycle."""
 import json
 import os
 
@@ -6,21 +7,19 @@ PATH = os.environ.get("STATE_PATH", "state.json")
 
 def load():
     try:
-        with open(PATH) as f:
-            s = json.load(f)
+        with open(PATH, encoding="utf-8") as handle:
+            state = json.load(handle)
     except Exception:
-        s = {}
-    s.setdefault("watches", {})
-    s.setdefault("positions", {})
-    s.setdefault("trade_history", [])
-    s.setdefault("rearm", {})
-    s.setdefault("seen", [])
-    s.setdefault("log", [])
-    return s
+        state = {}
+    state.setdefault("positions", {})
+    state.setdefault("trade_history", [])
+    state.setdefault("last_ai_candle", {})
+    state.setdefault("last_analysis_at", None)
+    state.setdefault("last_market_commentary", "")
+    return state
 
 
-def save(s):
-    s["seen"] = s["seen"][-300:]
-    s["log"] = s["log"][-1000:]
-    with open(PATH, "w") as f:
-        json.dump(s, f, indent=1)
+def save(state):
+    state["trade_history"] = state.get("trade_history", [])[-2000:]
+    with open(PATH, "w", encoding="utf-8") as handle:
+        json.dump(state, handle, indent=2, ensure_ascii=False)
