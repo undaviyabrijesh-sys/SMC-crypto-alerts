@@ -192,7 +192,9 @@ def manage_positions(state, sym, m5, now, fmt):
         state.setdefault("trade_history", []).append(result)
         state["trade_history"] = state["trade_history"][-2000:]
         del positions[signal_id]
-        discord.send_outcome(result, lambda x: fmt(sym, x))
+        delivered = discord.send_outcome(result, lambda x: fmt(sym, x))
+        if not delivered:
+            state.setdefault("pending_outcomes", {})[signal_id] = result
         print(f"[closed] {sym} {signal_id}: {outcome} {pnl_r:+.2f}R")
 
 
@@ -206,6 +208,11 @@ def _append_research(record):
 def run(now=None, fetcher=data.fetch, analyzer=None):
     now = _utc_now(now)
     state = st.load()
+    # Retry trade-closure messages until Discord confirms delivery.
+    for signal_id, outcome in list(state.setdefault("pending_outcomes", {}).items()):
+        sym = outcome.get("sym")
+        if sym in C.SYMBOLS and discord.send_outcome(outcome, lambda x, s=sym: _fmt(s, x)):
+            del state["pending_outcomes"][signal_id]
     # Retry an unsent execution alert briefly; never silently paper-track a signal that Discord did not receive.
     pending = state.setdefault("pending_alerts", {})
     for signal_id, trade in list(pending.items()):
@@ -242,6 +249,9 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         except Exception as exc:
             print(f"[error] {symbol} data/chart: {exc}")
 
+    if not frames_by_symbol:
+        st.save(state)
+        raise RuntimeError("No symbol has a fresh, complete OHLCV bundle; refusing to report a successful analysis run")
     if not chart_images:
         st.save(state)
         print("[skip] no new closed 5m candle; no repeated AI analysis")
@@ -262,7 +272,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
     except Exception as exc:
         print(f"[error] AI analysis failed; candle timestamps were not advanced: {exc}")
         st.save(state)
-        return
+        raise
 
     _append_research({
         "timestamp": now.isoformat(),
