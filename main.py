@@ -171,40 +171,52 @@ def manage_positions(state, sym, m5, now, fmt):
         # may trigger TP/SL; a later bar must not retroactively change the exit.
         latest_eligible_open = expiry_at - pd.Timedelta(minutes=5)
         future = m5[(m5.index >= triggered_at) & (m5.index <= latest_eligible_open)]
-        if future.empty:
-            continue
         is_long = trade["dir"] == "long"
         exit_price = None
         outcome = None
         exit_ts = None
-        for ts, bar in future.iterrows():
-            op, hi, lo = float(bar.open), float(bar.high), float(bar.low)
-            sl, tp = float(trade["sl"]), float(trade["tp"])
-            if is_long:
-                if op <= sl:
-                    exit_price, outcome = op, "SL"
-                elif op >= tp:
-                    exit_price, outcome = op, "TP"
-                elif lo <= sl:
-                    exit_price, outcome = sl, "SL"
-                elif hi >= tp:
-                    exit_price, outcome = tp, "TP"
+        if future.empty:
+            # A data gap can leave no candle inside the eligible holding window.
+            # Once expired, close at the first observed post-expiry bar open rather
+            # than keeping the paper position open forever or inventing a fill.
+            if _utc_now(now) >= expiry_at:
+                after_expiry = m5[m5.index >= expiry_at]
+                if after_expiry.empty:
+                    continue
+                exit_ts = after_expiry.index[0]
+                exit_price = float(after_expiry.iloc[0].open)
+                outcome = "TIME"
             else:
-                if op >= sl:
-                    exit_price, outcome = op, "SL"
-                elif op <= tp:
-                    exit_price, outcome = op, "TP"
-                elif hi >= sl:
-                    exit_price, outcome = sl, "SL"
-                elif lo <= tp:
-                    exit_price, outcome = tp, "TP"
-            if outcome:
-                exit_ts = ts
-                break
-        if not outcome and _utc_now(now) >= expiry_at:
-            exit_ts = future.index[-1]
-            exit_price = float(future.iloc[-1].close)
-            outcome = "TIME"
+                continue
+        else:
+            for ts, bar in future.iterrows():
+                op, hi, lo = float(bar.open), float(bar.high), float(bar.low)
+                sl, tp = float(trade["sl"]), float(trade["tp"])
+                if is_long:
+                    if op <= sl:
+                        exit_price, outcome = op, "SL"
+                    elif op >= tp:
+                        exit_price, outcome = op, "TP"
+                    elif lo <= sl:
+                        exit_price, outcome = sl, "SL"
+                    elif hi >= tp:
+                        exit_price, outcome = tp, "TP"
+                else:
+                    if op >= sl:
+                        exit_price, outcome = op, "SL"
+                    elif op <= tp:
+                        exit_price, outcome = op, "TP"
+                    elif hi >= sl:
+                        exit_price, outcome = sl, "SL"
+                    elif lo <= tp:
+                        exit_price, outcome = tp, "TP"
+                if outcome:
+                    exit_ts = ts
+                    break
+            if not outcome and _utc_now(now) >= expiry_at:
+                exit_ts = future.index[-1]
+                exit_price = float(future.iloc[-1].close)
+                outcome = "TIME"
         if not outcome:
             continue
 
