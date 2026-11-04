@@ -38,6 +38,8 @@ def render_symbol_chart(symbol, frames, now=None):
             continue
         df = df.tail(limit).copy()
         dates = mdates.date2num(df.index.to_pydatetime())
+        interval_days = {"1d": 1.0, "4h": 4 / 24, "1h": 1 / 24, "15m": 15 / 1440, "5m": 5 / 1440}[key]
+        candle_width = interval_days * 0.62
         for x, (_, row) in zip(dates, df.iterrows()):
             o, h, l, c = map(float, (row.open, row.high, row.low, row.close))
             up = c >= o
@@ -45,7 +47,7 @@ def render_symbol_chart(symbol, frames, now=None):
             ax.vlines(x, l, h, color=candle_color, linewidth=0.9, zorder=2)
             bottom = min(o, c)
             height = max(abs(c - o), max(abs(c), 1.0) * 0.000025)
-            ax.add_patch(Rectangle((x - 0.30 * (5 / 1440), bottom), 0.60 * (5 / 1440), height,
+            ax.add_patch(Rectangle((x - candle_width / 2, bottom), candle_width, height,
                                    facecolor=candle_color, edgecolor=candle_color, linewidth=0.5, zorder=3))
         # Volume is shown on a hidden secondary axis so price scale remains exact.
         vol = df["volume"].fillna(0).astype(float).to_numpy()
@@ -53,7 +55,7 @@ def render_symbol_chart(symbol, frames, now=None):
             vax = ax.twinx()
             colors = ["#27c18a" if float(r.close) >= float(r.open) else "#ef6262"
                       for _, r in df.iterrows()]
-            vax.bar(dates, vol, width=0.0012, color=colors, alpha=0.15, align="center")
+            vax.bar(dates, vol, width=candle_width, color=colors, alpha=0.15, align="center")
             vax.set_ylim(0, max(vol.max() * 5, 1))
             vax.set_yticks([])
             vax.set_zorder(0)
