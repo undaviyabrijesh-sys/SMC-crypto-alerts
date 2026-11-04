@@ -1,93 +1,112 @@
-"""History replay: run the same WATCH/TRIGGER logic over past candles and score the outcomes.
-
-    python replay.py --days 50
-
-Limits: Yahoo only serves ~60 days of 15m data. Past news, calendar blackouts, funding and Kronos
-forecasts are NOT replayed, so real alert counts will be a little lower than what this shows
-(Kronos hard filter and blackouts only remove alerts). Same-candle SL/TP hits count as SL.
-"""
+"""Chronological closed-candle replay; approximate, not tick-level execution simulation."""
 import argparse
-
 import pandas as pd
-
 import config as C
 import data, discord, main, news
 
 
-def _outcome(m15, t, w, max_hours=48):
-    bars = m15[m15.index >= t.floor("15min")]
-    long = w["dir"] == "long"
-    risk = abs(w["entry"] - w["sl"])
-    for ts, r in bars.iterrows():
-        hit_sl = r["low"] <= w["sl"] if long else r["high"] >= w["sl"]
-        hit_tp = r["high"] >= w["tp"] if long else r["low"] <= w["tp"]
-        if hit_sl:                       # includes the same-candle case: assume the worst
-            return "SL", -1.0
-        if hit_tp:
-            return "TP", w["rr"]
-        if ts - t > pd.Timedelta(hours=max_hours):
-            pnl = (r["close"] - w["entry"]) if long else (w["entry"] - r["close"])
-            return "TIMEOUT", pnl / risk
-    return "OPEN", 0.0
+def _outcome(m15, trigger_time, trade, max_hours=48, cost_bps=5.0):
+    future = m15[m15.index > trigger_time]
+    long = trade["dir"]=="long"
+    risk = abs(float(trade["entry"])-float(trade["sl"]))
+    if risk<=0:
+        return "INVALID",0.0
+    cost = float(trade["entry"])*cost_bps/10000.0
+    for ts,bar in future.iterrows():
+        op,hi,lo = float(bar.open),float(bar.high),float(bar.low)
+        sl,tp = float(trade["sl"]),float(trade["tp"])
+        if long:
+            if op<=sl: exit_price,result=op,"SL"
+            elif op>=tp: exit_price,result=op,"TP"
+            elif lo<=sl: exit_price,result=sl,"SL"
+            elif hi>=tp: exit_price,result=tp,"TP"
+            else: continue
+            pnl=exit_price-float(trade["entry"])-cost
+        else:
+            if op>=sl: exit_price,result=op,"SL"
+            elif op<=tp: exit_price,result=op,"TP"
+            elif hi>=sl: exit_price,result=sl,"SL"
+            elif lo<=tp: exit_price,result=tp,"TP"
+            else: continue
+            pnl=float(trade["entry"])-exit_price-cost
+        return result,pnl/risk
+    if not future.empty and future.index[-1]-trigger_time>=pd.Timedelta(hours=max_hours):
+        exit_price=float(future.iloc[-1].close)
+        pnl=(exit_price-float(trade["entry"]))*(1 if long else -1)-cost
+        return "TIME",pnl/risk
+    return "OPEN",0.0
 
 
-def replay(fetcher=data.fetch, days=50, step_min=15, verbose=True):
-    frames = {s: (fetcher(c["yf"], "1h", "120d"), fetcher(c["yf"], "15m", "60d")) for s, c in C.SYMBOLS.items()}
-    frames = {s: f for s, f in frames.items() if f[0] is not None and f[1] is not None}
-    end = min(f[1].index[-1] for f in frames.values()) + pd.Timedelta(minutes=15)
-    start = end - pd.Timedelta(days=days)
-
-    events, now_box = [], {}
-    orig = (discord.send, news.headline_sentiment, news.funding_rate)
-    discord.send = lambda stage, sym, w, fmt, lines=None, note=None: events.append((now_box["t"], stage, sym, dict(w)))
-    news.headline_sentiment = lambda *a, **k: (0.0, 0, [])
-    news.funding_rate = lambda *a, **k: None
+def replay(fetcher=data.fetch,days=50,step_min=15,verbose=True,cost_bps=5.0):
+    frames={}
+    for sym,cfg in C.SYMBOLS.items():
+        h1=fetcher(cfg["yf"],"1h","120d")
+        m15=fetcher(cfg["yf"],"15m","60d")
+        if h1 is None or m15 is None or h1.empty or m15.empty:
+            continue
+        frames[sym]=(h1,m15)
+    if not frames:
+        raise RuntimeError("No usable OHLC data returned")
+    end=min(v[1].index[-1] for v in frames.values())+pd.Timedelta(minutes=15)
+    start=end-pd.Timedelta(days=days)
+    events,box=[],{}
+    original=(discord.send,discord.send_outcome,news.headline_sentiment,news.funding_rate)
+    discord.send=lambda stage,sym,w,fmt,lines=None,note=None: events.append((box["now"],stage,sym,dict(w)))
+    discord.send_outcome=lambda *a,**k: None
+    news.headline_sentiment=lambda *a,**k:(0.0,0,[])
+    news.funding_rate=lambda *a,**k:None
     try:
-        state = {"watches": {}, "rearm": {}, "seen": [], "log": []}
-        t = start.ceil(f"{step_min}min") + pd.Timedelta(minutes=1)
-        while t <= end:
-            now_box["t"] = t
-            for sym, cfg in C.SYMBOLS.items():
+        state={"watches":{},"positions":{},"trade_history":[],"rearm":{},"seen":[],"log":[]}
+        main._ZC.clear()
+        t=start.ceil(f"{step_min}min")
+        while t<=end:
+            box["now"]=t
+            for sym,cfg in C.SYMBOLS.items():
                 if sym not in frames:
                     continue
-                fe = lambda y, i, p, s=sym: frames[s][0] if i == "1h" else frames[s][1]
-                try:
-                    main.process(sym, cfg, state, t, None, True, {}, fe)
-                except Exception as ex:
-                    print(f"[error] {sym} {t}: {ex}")
-            t += pd.Timedelta(minutes=step_min)
-    finally:
-        discord.send, news.headline_sentiment, news.funding_rate = orig
-
-    rows = []
-    for t, stage, sym, w in events:
-        if stage == "TRIGGER":
-            res, r = _outcome(frames[sym][1], t, w)
-            rows.append({"sym": sym, "time": t, "dir": w["dir"], "result": res, "R": r})
-    trig = pd.DataFrame(rows)
-    watches = pd.Series([e[2] for e in events if e[1] == "WATCH"], dtype=str).value_counts().to_dict()
-    cancels = len([e for e in events if e[1] == "CANCEL"])
-
-    if verbose:
-        out = [f"Replay {start:%Y-%m-%d} -> {end:%Y-%m-%d} ({days} days)",
-               f"WATCH alerts: {sum(watches.values())} {watches} | CANCEL: {cancels}"]
-        if trig.empty:
-            out.append("TRIGGER alerts: 0")
-        else:
-            done = trig[trig.result != "OPEN"]
-            for name, g in [("ALL", done)] + list(done.groupby("sym")):
-                if g.empty:
+                h1,m15=frames[sym]
+                hnow=h1[h1.index<=t-pd.Timedelta(hours=1)]
+                mnow=m15[m15.index<=t-pd.Timedelta(minutes=15)]
+                if len(hnow)<100 or len(mnow)<10:
                     continue
-                wins = (g.result == "TP").sum()
-                out.append(f"{name:>4}: {len(g)} trades ({len(g)/days:.2f}/day) | TP {wins} SL {(g.result=='SL').sum()} "
-                           f"timeout {(g.result=='TIMEOUT').sum()} | win rate {wins/len(g):.0%} | avg R {g.R.mean():+.2f}")
-        text = "\n".join(out)
-        print("\n" + text)
-        discord.post_text("```\n" + text + "\n```")
-    return events, trig
+                fetch_slice=lambda y,i,p,h=hnow,m=mnow: h if i=="1h" else m
+                try:
+                    main.process(sym,cfg,state,t,None,True,{},fetch_slice)
+                except Exception as ex:
+                    if verbose: print(f"[replay error] {sym} {t}: {ex}")
+            t+=pd.Timedelta(minutes=step_min)
+    finally:
+        discord.send,discord.send_outcome,news.headline_sentiment,news.funding_rate=original
+        main._ZC.clear()
+    rows=[]
+    for ts,stage,sym,trade in events:
+        if stage!="TRIGGER":
+            continue
+        trigger=pd.Timestamp(trade.get("trigger_time",ts))
+        result,r=_outcome(frames[sym][1],trigger,trade,C.TRADE_MAX_HOURS,cost_bps)
+        rows.append({"sym":sym,"time":trigger,"dir":trade["dir"],"score":trade.get("score"),
+                     "trend":trade.get("trend"),"result":result,"R":r})
+    trades=pd.DataFrame(rows)
+    done=trades[trades.result!="OPEN"] if not trades.empty else trades
+    if verbose:
+        print(f"Replay: {start} -> {end} UTC | assumed cost {cost_bps:.1f} bps")
+        print(f"WATCH={sum(e[1]=='WATCH' for e in events)} | TRIGGER={len(trades)}")
+        if done.empty:
+            print("No completed trades")
+        else:
+            for label,g in [("ALL",done)]+list(done.groupby("sym")):
+                wins=int((g.result=="TP").sum())
+                print(f"{label}: n={len(g)}, TP={wins}, SL={int((g.result=='SL').sum())}, "
+                      f"TIME={int((g.result=='TIME').sum())}, win rate={wins/len(g):.1%}, "
+                      f"expectancy={g.R.mean():+.2f}R")
+        print(f"Still open: {int((trades.result=='OPEN').sum()) if not trades.empty else 0}")
+        discord.post_text("Replay complete; inspect workflow logs for detailed results.")
+    return events,trades
 
 
-if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--days", type=int, default=50)
-    replay(days=ap.parse_args().days)
+if __name__=="__main__":
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--days",type=int,default=50)
+    parser.add_argument("--cost-bps",type=float,default=5.0)
+    args=parser.parse_args()
+    replay(days=args.days,cost_bps=args.cost_bps)
