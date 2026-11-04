@@ -63,21 +63,28 @@ def closed_only(df, minutes: int, now):
     return df[df.index + pd.Timedelta(minutes=minutes) <= now]
 
 
+def _load_stored(symbol, timeframe):
+    path = DATA_DIR / f"{symbol}_{timeframe}.csv"
+    if not path.exists():
+        return None
+    try:
+        stored = pd.read_csv(path, index_col=0, parse_dates=True)
+        return normalize(stored)
+    except Exception as exc:
+        print(f"[warn] ignoring unreadable cache {path}: {exc}")
+        return None
+
+
 def _persist(symbol, timeframe, frame):
     """Merge updates into a rolling CSV so Actions cache can carry recent raw candles between runs."""
     if frame is None or frame.empty:
-        return frame
+        return _load_stored(symbol, timeframe)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     path = DATA_DIR / f"{symbol}_{timeframe}.csv"
     parts = [frame]
-    if path.exists():
-        try:
-            old = pd.read_csv(path, index_col=0, parse_dates=True)
-            old = normalize(old)
-            if old is not None and not old.empty:
-                parts.insert(0, old)
-        except Exception as exc:
-            print(f"[warn] ignoring unreadable cache {path}: {exc}")
+    old = _load_stored(symbol, timeframe)
+    if old is not None and not old.empty:
+        parts.insert(0, old)
     merged = pd.concat(parts)
     merged = merged[~merged.index.duplicated(keep="last")].sort_index().tail(MAX_ROWS[timeframe])
     merged.to_csv(path, float_format="%.10g")
@@ -108,12 +115,19 @@ def fetch_bundle(cfg, now, fetcher=fetch, symbol="UNKNOWN"):
         "1h": closed_only(raw.get("1h"), 60, now),
         "1d": closed_only(raw.get("1d"), 1440, now),
     }
+    # Fall back to the rolling CSV when a provider temporarily returns an empty response.
+    for tf in ["5m", "15m", "1h", "1d"]:
+        if closed[tf] is None or closed[tf].empty:
+            closed[tf] = _load_stored(symbol, tf)
+
     closed["4h"] = closed_only(_resample_4h(closed["1h"]), 240, now)
+    if closed["4h"] is None or closed["4h"].empty:
+        closed["4h"] = _load_stored(symbol, "4h")
 
     stored = {}
     for tf, frame in closed.items():
         try:
-            stored[tf] = _persist(symbol, tf, frame) if frame is not None and not frame.empty else frame
+            stored[tf] = _persist(symbol, tf, frame)
         except Exception as exc:
             print(f"[warn] {symbol} {tf} persistence failed: {exc}")
             stored[tf] = frame
