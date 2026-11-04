@@ -34,22 +34,22 @@ jobs:
             state.json
             market_data/
             research/
-          key: salty-quant-manual-\${{ runner.os }}-\${{ github.run_id }}
+          key: salty-quant-manual-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-state-\${{ runner.os }}-
-            salty-quant-market-\${{ runner.os }}-
+            salty-quant-state-${{ runner.os }}-
+            salty-quant-market-${{ runner.os }}-
       - name: Run offline visual pipeline tests
-        if: \${{ inputs.task == 'visual-tests' }}
+        if: ${{ inputs.task == 'visual-tests' }}
         run: python test_visual_pipeline.py
       - name: Run one AI visual desk cycle
-        if: \${{ inputs.task == 'visual-desk-run' }}
+        if: ${{ inputs.task == 'visual-desk-run' }}
         run: python main.py
         env:
-          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: \${{ vars.OPENAI_MODEL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           OPENAI_REASONING_EFFORT: high
-          DISCORD_WEBHOOK: \${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_TRIGGER_WEBHOOK: \${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
           STATE_PATH: state.json
           RESEARCH_PATH: research/visual_decisions.jsonl
