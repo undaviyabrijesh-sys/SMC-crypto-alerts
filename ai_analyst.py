@@ -21,6 +21,7 @@ CORE APPROACH
   6. Range rejection and mean reversion only when the market is demonstrably balanced and the invalidation is clear.
   7. FVG/imbalance retraces only when visible and supported by surrounding structure.
 - Compare candidate setups for higher-timeframe context, timeframe alignment, location, confirmation, entry freshness, invalidation clarity, stop distance, realistic target, reward/risk and nearby opposing liquidity.
+- For a TRADE, provide one selected_entry_zone: a meaningful low/high price band supporting the immediate entry, with its source timeframe and brief evidence. This is the context/trigger band, not a future limit order; the latest closed 5m price must be inside or very near it. If no meaningful band supports an immediate entry, return NO_TRADE and selected_entry_zone=null. For NO_TRADE, always return selected_entry_zone=null.
 - Select only the single clearest, highest-conviction candidate for each symbol. Do not combine incompatible setups or choose a lower-quality setup merely because it is available. If candidates conflict, remain incomplete, or lack a clean immediate entry, return NO_TRADE.
 - A confidence score is a qualitative setup-quality ranking, not a probability or a proven win rate. Use it conservatively; the configured mechanical gate is 75/100.
 
@@ -56,6 +57,20 @@ def _zone_schema():
     }
 
 
+def _entry_zone_schema():
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "low": {"type": "number"},
+            "high": {"type": "number"},
+            "timeframe": {"type": "string", "enum": ["1w", "1d", "4h", "1h", "15m", "5m"]},
+            "evidence": {"type": "string"}
+        },
+        "required": ["low", "high", "timeframe", "evidence"]
+    }
+
+
 def _liquidity_schema():
     return {
         "type": "object",
@@ -87,6 +102,7 @@ ANALYSIS_ITEM = {
             "DEMAND_REJECTION", "SUPPLY_REJECTION", "RBS_RETEST", "SBR_RETEST",
             "LIQUIDITY_SWEEP_REVERSAL", "BREAKOUT_RETEST", "FVG_RETRACE", "TREND_PULLBACK", "MOMENTUM_CONTINUATION", "RANGE_BREAKOUT", "RANGE_REJECTION", "MEAN_REVERSION", "VOLATILITY_EXPANSION", "SUPPORT_RESISTANCE_RETEST", "OTHER", "NONE"
         ]},
+        "selected_entry_zone": {"anyOf": [_entry_zone_schema(), {"type": "null"}]},
         "entry_mode": {"type": "string", "enum": ["MARKET", "LIMIT", "NONE"]},
         "entry": {"anyOf": [{"type": "number"}, {"type": "null"}]},
         "stop_loss": {"anyOf": [{"type": "number"}, {"type": "null"}]},
@@ -100,7 +116,7 @@ ANALYSIS_ITEM = {
     "required": [
         "symbol", "bias", "structure_summary", "demand_zones", "supply_zones",
         "liquidity_levels", "key_observations", "action", "direction", "setup_type",
-        "entry_mode", "entry", "stop_loss", "take_profit_1", "take_profit_2",
+        "selected_entry_zone", "entry_mode", "entry", "stop_loss", "take_profit_1", "take_profit_2",
         "confidence", "rationale", "invalidation", "timeframes_in_agreement"
     ]
 }
