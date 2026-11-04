@@ -32,6 +32,12 @@ def send_ai_trade(sym, trade, fmt):
         f"Stop-loss: **{fmt(trade['sl'])}**",
         f"Target 1: **{fmt(trade['tp'])}**",
     ]
+    selected_zone = trade.get("selected_entry_zone")
+    if selected_zone:
+        lines.insert(
+            3,
+            f"Entry zone ({selected_zone['timeframe']}): **{fmt(selected_zone['low'])} – {fmt(selected_zone['high'])}**"
+        )
     if trade.get("tp2") is not None:
         lines.append(f"Target 2: **{fmt(trade['tp2'])}**")
     lines.extend([
