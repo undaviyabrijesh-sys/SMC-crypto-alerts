@@ -1,0 +1,9 @@
+.git
+.env
+salty_data/
+market_data/
+research/
+state.json
+__pycache__/
+*.py[cod]
+.venv/
