@@ -46,7 +46,7 @@ class OIExpansionScreenTests(unittest.TestCase):
         self.assertLess(result.iloc[-1].oi_q80, result.iloc[-1].oi_pct)
 
     def test_same_bar_stop_and_target_is_resolved_stop_first(self):
-        index = pd.date_range("2026-01-01T00:00:00Z", periods=10, freq="1h")
+        index = pd.date_range("2026-01-01T00:00:00Z", periods=10, freq="1h").as_unit("us")
         frame = pd.DataFrame({
             "open": [100.0] * 10, "high": [101.0] * 10,
             "low": [99.0] * 10, "close": [100.0] * 10,
@@ -63,7 +63,7 @@ class OIExpansionScreenTests(unittest.TestCase):
         self.assertLess(trades[0]["net_R"], -1.0)
 
     def test_higher_round_trip_cost_reduces_expectancy(self):
-        index = pd.date_range("2026-01-01T00:00:00Z", periods=10, freq="1h")
+        index = pd.date_range("2026-01-01T00:00:00Z", periods=10, freq="1h").as_unit("us")
         frame = pd.DataFrame({
             "open": [100.0] * 10, "high": [101.0] * 10,
             "low": [99.0] * 10, "close": [100.0] * 10,
