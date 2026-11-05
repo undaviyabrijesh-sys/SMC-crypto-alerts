@@ -1,7 +1,7 @@
 """Offline parser tests for Delta historical derivatives candles."""
 import unittest
 
-from smoke_derivatives_history import validate_payload
+from smoke_derivatives_history import SERIES, validate_payload, validate_results
 
 
 class DerivativesHistoryTests(unittest.TestCase):
@@ -33,6 +33,33 @@ class DerivativesHistoryTests(unittest.TestCase):
         frame = validate_payload({"success": True, "result": []},
                                  "funding:BTC", allow_negative=True)
         self.assertTrue(frame.empty)
+
+
+    def _complete_results(self):
+        return [
+            {"symbol_alias": symbol, "series": series_name,
+             "status": "available", "row_count": 1}
+            for symbol in ("BTC", "ETH", "XAU")
+            for series_name in SERIES
+        ]
+
+    def test_requires_every_expected_symbol_series_pair(self):
+        self.assertEqual(validate_results(self._complete_results()), [])
+
+    def test_rejects_one_empty_series_even_when_others_are_available(self):
+        results = self._complete_results()
+        results[0]["status"] = "empty"
+        results[0]["row_count"] = 0
+        errors = validate_results(results)
+        self.assertTrue(any("no usable historical candles" in error for error in errors))
+
+    def test_rejects_missing_or_duplicate_series_results(self):
+        results = self._complete_results()
+        results.pop()
+        results.append(dict(results[0]))
+        errors = validate_results(results)
+        self.assertTrue(any("duplicate" in error for error in errors))
+        self.assertTrue(any("missing symbol/series" in error for error in errors))
 
 
 if __name__ == "__main__":
