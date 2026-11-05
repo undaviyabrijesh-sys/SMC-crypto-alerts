@@ -18,7 +18,7 @@ MAX_HISTORY = 20
 
 
 def _path():
-    return Path(os.environ.get("DNS_MAP_PATH", "market_data/dns_map.json"))
+    return Path(os.environ.get("DNS_MAP_PATH", str(Path(os.environ.get("DATA_DIR", "market_data")) / "dns_map.json")))
 
 
 def _atomic_json(path, payload):
