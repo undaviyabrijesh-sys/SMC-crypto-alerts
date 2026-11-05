@@ -1178,11 +1178,37 @@ def test_trade_validator_accepts_confidence_boundary_and_enforces_minimum():
     assert "below the configured gate" in reason
 
 
-if __name__ == "__main__":
-    for name, fn in list(globals().items()):
-        if name.startswith("test_"):
-            fn()
-            print("PASS", name)
+
+def test_discord_outcome_alert_labels_gross_pnl_before_costs():
+    captured = {}
+    original_post = main.discord._post
+
+    def capture(content):
+        captured["content"] = content
+        return True
+
+    main.discord._post = capture
+    trade = {
+        "signal_id": "GROSS01",
+        "status": "TP",
+        "sym": "BTC",
+        "dir": "long",
+        "entry": 100.0,
+        "exit": 110.0,
+        "sl": 95.0,
+        "tp": 110.0,
+        "gross_pnl_pct": 10.0,
+        "gross_R": 2.0,
+    }
+    try:
+        assert main.discord.send_outcome(trade, lambda value: f"{value:.1f}")
+    finally:
+        main.discord._post = original_post
+
+    message = captured["content"]
+    assert "Gross paper P&L (before fees, spread, slippage and funding)" in message
+    assert "+10.000% (+2.00R)" in message
+    assert "Net P&L" not in message
 
 def test_discord_outcome_alert_labels_gross_pnl_before_costs():
     captured = {}
