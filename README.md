@@ -72,6 +72,30 @@ For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or 
 - CI success does not prove that OpenAI API credentials are configured, that Discord webhooks deliver, or that any trading setup has positive expectancy.
 - No strategy hit rate or backtest performance is claimed. First collect and label AI decisions, then build a replay/evaluation harness from preserved charts, candle data, prompts and outcomes.
 
+
+## Quant Discovery — historical data bootstrap
+
+The research archive is separate from the rolling market-data cache used by the visual analyst. It downloads public traded-price OHLCV for BTCUSD, ETHUSD and XAUTUSD on 5m, 15m, 1h, 4h, 1d and 1w. The default history window is three years; use explicit UTC dates to change it.
+
+    python bootstrap_historical_data.py --years 3
+
+A narrower first run can be used to validate connectivity and storage before a full archive:
+
+    python bootstrap_historical_data.py --start 2026-10-01 --end 2026-11-05 --symbols BTC --timeframes 5m 1h
+
+The collector:
+- Uses Delta's public GET /v2/history/candles endpoint and never needs exchange credentials.
+- Keeps each request within the documented 2,000-candle response cap and runs sequentially with a conservative delay.
+- Retries rate limits and transient server/network failures with bounded backoff.
+- Resumes interrupted symbol/timeframe downloads from local chunk checkpoints; completed, hash-verified archives are skipped on later runs.
+- Validates timestamps and OHLCV values, removes duplicate timestamps deterministically, and never fills missing candles.
+- Writes one CSV per symbol/timeframe plus manifest.json and coverage.csv. Reports include the requested-range and observed-span coverage, missing-bar/gap counts, empty request windows, row count and SHA-256.
+- Writes atomically and keeps temporary chunks under historical_data/.work/.
+
+The archive defaults to historical_data/ and is intentionally Git-ignored. Store this folder on durable local or mounted storage and back it up; do not commit large market datasets or treat a short-lived CI cache as the research archive. XAUTUSD is Delta's Tether Gold perpetual, not spot XAUUSD. This first collector records traded-price OHLCV only; it does not infer spread, order-book depth or funding costs. Those inputs must remain explicitly unavailable until separately collected and validated.
+
+Delta documents a maximum of 2,000 candles per historical-candle response. See the official [Delta historical OHLC candles API documentation](https://docs.delta.exchange/).
+
 ## Local validation
 
     pip install -r requirements.txt
