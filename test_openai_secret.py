@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from ai_analyst import _configured_api_key
+from ai_analyst import _configured_api_key, _model_settings
 
 
 class ApiKeyValidationTests(unittest.TestCase):
@@ -26,6 +26,21 @@ class ApiKeyValidationTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, "not configured"):
                 _configured_api_key()
+
+
+class ModelSettingsTests(unittest.TestCase):
+    def test_defaults_to_luna_with_low_reasoning(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(_model_settings(), ("gpt-6-luna", "low"))
+
+    def test_respects_explicit_model_and_effort(self):
+        with patch.dict(os.environ, {"OPENAI_MODEL": "gpt-6-luna", "OPENAI_REASONING_EFFORT": "medium"}, clear=True):
+            self.assertEqual(_model_settings(), ("gpt-6-luna", "medium"))
+
+    def test_rejects_unknown_reasoning_effort(self):
+        with patch.dict(os.environ, {"OPENAI_REASONING_EFFORT": "turbo"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "OPENAI_REASONING_EFFORT"):
+                _model_settings()
 
 
 if __name__ == "__main__":
