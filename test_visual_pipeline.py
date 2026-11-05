@@ -875,6 +875,27 @@ def test_historical_fetch_does_not_retry_permanent_client_errors():
     assert session.calls == 1
 
 
+def test_historical_checkpoint_and_manifest_reject_malformed_json_shapes():
+    with tempfile.TemporaryDirectory(prefix="salty-historical-state-") as folder:
+        root = __import__("pathlib").Path(folder)
+        progress = root / "progress.json"
+        manifest = root / "manifest.json"
+        progress.write_text("[]", encoding="utf-8")
+        manifest.write_text("[]", encoding="utf-8")
+        expected = {
+            "symbol_alias": "BTC", "contract_symbol": "BTCUSD",
+            "timeframe": "5m", "start_epoch": 0, "end_epoch": 900,
+            "max_candles": 2000
+        }
+        assert historical_data._read_progress(progress, expected) is None
+        try:
+            historical_data._load_manifest(manifest)
+        except historical_data.HistoricalDataError as exc:
+            assert "manifest is unreadable" in str(exc)
+        else:
+            raise AssertionError("a non-object manifest must fail closed")
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
