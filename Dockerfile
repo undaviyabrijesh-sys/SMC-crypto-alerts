@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED=1 \
     MPLCONFIGDIR=/tmp/matplotlib \
     DATA_DIR=/data/market_data \
     STATE_PATH=/data/state.json \
-    RESEARCH_PATH=/data/research/visual_decisions.jsonl \
+    QUANT_RESEARCH_PATH=/data/research/quant_signals.jsonl \
     HEARTBEAT_PATH=/data/worker_heartbeat.json \
     WORKER_INTERVAL_SECONDS=300
 
