@@ -141,7 +141,20 @@ def validate_trade(analysis, current_price, has_open_position=False):
     rr = reward / risk if risk else 0.0
     if rr < C.MIN_AI_RR:
         return None, f"validated reward/risk is only {rr:.2f}R"
-    confidence = int(analysis.get("confidence", 0))
+    confidence_raw = analysis.get("confidence")
+    if isinstance(confidence_raw, bool) or not isinstance(confidence_raw, (int, float)):
+        return None, "confidence must be an integer from 0 to 100"
+    try:
+        confidence_value = float(confidence_raw)
+    except (TypeError, ValueError, OverflowError):
+        return None, "confidence must be an integer from 0 to 100"
+    if (
+        not math.isfinite(confidence_value)
+        or not confidence_value.is_integer()
+        or not 0 <= confidence_value <= 100
+    ):
+        return None, "confidence must be an integer from 0 to 100"
+    confidence = int(confidence_value)
     if confidence < C.MIN_AI_CONFIDENCE:
         return None, f"confidence {confidence} is below the configured gate"
 
