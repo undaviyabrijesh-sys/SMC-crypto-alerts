@@ -11,6 +11,20 @@ import pandas as pd
 import quant_worker
 
 
+WORKER_MODE = os.environ.get("WORKER_MODE", "quant").strip().lower()
+if WORKER_MODE not in {"quant", "dns"}:
+    raise ValueError("WORKER_MODE must be either 'quant' or 'dns'")
+
+
+def _run_cycle():
+    """Select the deterministic quant lane or the visual DNS + agent lane."""
+    if WORKER_MODE == "dns":
+        import dns_worker
+        dns_worker.run()
+    else:
+        quant_worker.run()
+
+
 INTERVAL_SECONDS = max(60, int(os.environ.get("WORKER_INTERVAL_SECONDS", "300")))
 STOP = threading.Event()
 
@@ -72,8 +86,13 @@ def run_forever():
     signal.signal(signal.SIGINT, _handle_stop)
 
     print(
-        f"[worker] Salty Quant deterministic multi-strategy desk starting; interval={INTERVAL_SECONDS}s; "
-        "no AI API calls; research-only strategies require explicit OOS promotion; single worker only",
+        f"[worker] Salty Quant starting; mode={WORKER_MODE}; interval={INTERVAL_SECONDS}s; "
+        + (
+            "visual DNS maps refresh infrequently; local watcher scans every cycle; "
+            "optional Bull/Bear/Chief debate runs only after a DNS event; paper-only"
+            if WORKER_MODE == "dns"
+            else "deterministic multi-strategy research; no AI API calls; OOS promotion required; paper-only"
+        ),
         flush=True
     )
     _heartbeat("starting")
@@ -81,7 +100,7 @@ def run_forever():
     # Run immediately at boot; subsequent cycles align to the next five-minute boundary.
     while not STOP.is_set():
         try:
-            quant_worker.run()
+            _run_cycle()
             _heartbeat("ok")
             print("[worker] analysis cycle completed", flush=True)
         except Exception as exc:
