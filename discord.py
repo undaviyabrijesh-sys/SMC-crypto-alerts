@@ -1,4 +1,5 @@
 """Discord execution and paper-outcome notifications."""
+import math
 import os
 import requests
 
@@ -26,12 +27,16 @@ def send_ai_trade(sym, trade, fmt):
     direction = trade["dir"].upper()
     icon = "🟢" if direction == "LONG" else "🔴"
     setup_line = f"Setup: **{trade.get('setup_type', 'OTHER')}**"
-    try:
-        confidence = float(trade.get("confidence"))
-        if not 0 <= confidence <= 100:
-            confidence = None
-    except (TypeError, ValueError):
-        confidence = None
+    raw_confidence = trade.get("confidence")
+    confidence = None
+    # Match the validator's numeric contract: booleans, strings, fractional,
+    # non-finite and out-of-range values are not measured confidence scores.
+    if isinstance(raw_confidence, int) and not isinstance(raw_confidence, bool):
+        if 0 <= raw_confidence <= 100:
+            confidence = raw_confidence
+    elif isinstance(raw_confidence, float):
+        if math.isfinite(raw_confidence) and raw_confidence.is_integer() and 0 <= raw_confidence <= 100:
+            confidence = int(raw_confidence)
     if confidence is not None:
         setup_line += f" | Confidence: **{confidence:g}/100**"
     lines = [
