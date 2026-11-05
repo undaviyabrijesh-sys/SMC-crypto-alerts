@@ -4,13 +4,13 @@ This development branch replaces the old coded SMC decision path with a vision-f
 
 ## Core design
 
-1. A single persistent worker wakes on aligned five-minute boundaries. GitHub Actions is available as a best-effort fallback/manual run, not the preferred clock.
-2. The data layer downloads native OHLCV candles directly from Delta Exchange for BTCUSD, ETHUSD and XAUTUSD, removes still-forming candles, and carries a rolling raw-data store.
-3. The chart renderer creates one six-panel image per symbol: Weekly, Daily, 4H, 1H, 15m and 5m, including candle wicks/bodies, price scale, timestamps and volume.
-4. The images and a compact exact OHLCV snapshot are sent together in one multimodal OpenAI Responses API call.
-5. The model visually identifies demand/supply bands, RBS/SBR, structure, liquidity, sweeps, imbalances and the trade idea. The old ATR zigzag/FVG zone finder and score engine are not called.
-6. A deterministic safety layer checks the AI's proposed direction, entry freshness, stop/target ordering, minimum R:R and confidence threshold. It cannot create zones or trading setups.
-7. Only validated actionable trade alerts are sent to Discord. The paper tracker reports TP, SL or TIME as a separate update.
+1. A single persistent worker wakes on aligned five-minute boundaries.
+2. The data layer refreshes closed Delta OHLCV candles for BTCUSD, ETHUSD and XAUTUSD and persists the rolling market data.
+3. The local DNS engine loads the last AI-authored market map and monitors every new closed 5m candle without an AI call.
+4. A separate map-only multimodal AI request runs only when a map is missing, its four-hour refresh is due, or a confirmed 1h close breaks a mapped zone. All due symbols are batched into one request.
+5. AI returns demand/supply bands, quality, timeframe, visual evidence, liquidity, bias and structure only. It does not select entries or issue trade recommendations.
+6. The local engine's first deliberately narrow detector looks for a 5m liquidity sweep beyond an AI zone, reclaim close, confirming close beyond the sweep candle, and at least 2R room to the nearest opposing AI zone.
+7. Confirmed local candidates are paper-alerted to Discord; the existing closed-candle tracker reports TP, SL or TIME separately. No broker orders are placed.
 
 ## Demand and supply visual workflow
 
@@ -23,6 +23,17 @@ The latest review image for each symbol is atomically saved under `DATA_DIR/revi
 The mechanical trade gate now requires a LONG entry band to overlap an AI-mapped demand zone, or a SHORT entry band to overlap an AI-mapped supply zone, with zone quality at least 3/5 and current-price proximity within the existing threshold. Existing confidence, 2R, stop/target ordering, freshness and position limits remain unchanged. All other setup families remain secondary confirmations and cannot bypass DNS.
 
 Live visual verification requires a successful OpenAI API response. The last recorded real request reached the API but returned HTTP 429 `insufficient_quota / credit_balance_exhausted`; CI and synthetic chart tests do not establish that live AI zone detection is accurate or profitable. Restore API quota, run one manual paper-only cycle, then inspect the three latest review images and subsequent paper outcomes before making a performance claim.
+
+
+## AI map + local engine separation
+
+The active worker is `dns_worker.py`, not the former AI-per-candle `main.py` path. It refreshes OHLCV and runs the local watcher every five minutes. The AI map call is separate and only runs when a symbol has no map, the map reaches its configured age (default four hours), or the latest closed 1h candle invalidates a mapped zone.
+
+The persistent registry is `market_data/dns_map.json` (Docker volume: `/data/market_data/dns_map.json`). Every accepted AI map is versioned; previous maps are retained for audit. The AI response is map-only: demand/supply zones, quality, timeframe, evidence, liquidity, bias and structure. No entry, stop or target is requested from the model.
+
+The first local detector is intentionally conservative and narrow: it requires a 5m candle to sweep beyond a mapped zone and close back through the far edge, the next 5m candle to confirm beyond the sweep candle extreme, and at least 2R room to the nearest opposing AI zone. A confirmed 1h close beyond a zone's distal boundary blocks local triggers from that zone while a refresh is attempted. This is an initial testable detector, not a validated profitable strategy and not yet a complete implementation of every DNS sub-setup.
+
+The map refresh default is four hours and can be changed with `DNS_MAP_REFRESH_HOURS`. Local scanning makes no OpenAI request. If an AI refresh fails, the last map is retained, invalidated zones remain blocked, and the local watcher continues only where the map remains structurally valid. Trade alerts and outcomes are paper-only; no exchange orders are submitted.
 
 ## Data instruments
 
