@@ -287,6 +287,16 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
         except Exception as exc:
             print(f"[dns-local-error] {symbol}: {type(exc).__name__}: {exc}")
             continue
+        # Keep model cost bounded: debate at most one unseen DNS opportunity
+        # per symbol per five-minute cycle, preferring cleaner zones then higher R.
+        candidates = sorted(
+            candidates or [],
+            key=lambda item: (
+                -int(item.get("zone_quality", 0)),
+                -float(item.get("rr", 0.0)),
+                str(item.get("zone_id", "")),
+            ),
+        )
         for candidate in candidates:
             active_for_symbol = any(
                 item.get("sym") == symbol
@@ -355,7 +365,8 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
                     f"[dns-agent-veto] {symbol} {candidate['setup_type']}: "
                     f"{review.get('status')} {review.get('reason') or review.get('error') or review.get('decision')}"
                 )
-                continue
+                # Do not burn more agent calls debating lower-ranked candidates this cycle.
+                break
 
             signal_id = uuid.uuid4().hex[:12].upper()
             direction = candidate["direction"].lower()
