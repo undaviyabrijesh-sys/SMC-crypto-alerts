@@ -118,5 +118,25 @@ class TestDerivativesArchive(unittest.TestCase):
             self.assertEqual(len(frame), 0)
 
 
+    def test_resume_checkpoint_must_align_to_candle_boundary(self):
+        with tempfile.TemporaryDirectory(prefix="salty-derivatives-progress-") as folder:
+            path = Path(folder) / "progress.json"
+            expected = {
+                "symbol_alias": "BTC", "contract_symbol": "BTCUSD",
+                "api_symbol": "MARK:BTCUSD", "series": "mark",
+                "timeframe": "5m", "start_epoch": 0,
+                "end_epoch": 10000, "max_candles": 2000,
+            }
+            progress = {
+                **expected, "next_start": 301,
+                "request_count": 1, "empty_chunk_count": 0,
+            }
+            path.write_text(__import__("json").dumps(progress), encoding="utf-8")
+            self.assertIsNone(archive.read_progress(path, expected))
+            progress["next_start"] = 300
+            path.write_text(__import__("json").dumps(progress), encoding="utf-8")
+            self.assertEqual(archive.read_progress(path, expected), progress)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
