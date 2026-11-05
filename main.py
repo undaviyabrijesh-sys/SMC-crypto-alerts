@@ -266,7 +266,7 @@ def validate_trade(analysis, current_price, has_open_position=False):
 
 
 def manage_positions(state, sym, m5, now, fmt):
-    """Paper-track AI alerts on fully closed 5m candles; conservative SL-first same-bar handling."""
+    """Track closed 5m outcomes; never infer the first exit across missing bars."""
     positions = state.setdefault("positions", {})
     if m5 is None or m5.empty:
         return
