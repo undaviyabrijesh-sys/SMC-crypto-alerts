@@ -618,3 +618,8 @@ These near-zero linear associations do not support a simple standalone funding-c
 - EXP-001 remains rejected (30/30 baseline OOS combinations negative). OI screen candidates are also rejected. Historical funding event timing/units and actual spread/depth remain unresolved.
 - Next: restore API quota; redesign the visual analyst/schema/validator so multiple independent setup families can be compared without forcing a DNS anchor; connect that selection to the active worker; retain mechanical risk validation; then manually validate one paper-only six-timeframe chart cycle and confirm Discord delivery/outcome tracking. Resolve the legacy default-branch workflow before any cutover.
 - No `main` modification, PR merge, deployment, secret change, live trading or exchange order.
+
+
+### Final report refinement — 2026-11-05 16:12 IST
+- Expanded `quant_discovery/OI_EXPANSION_SCREEN.md` to include full OOS ranges across all eight parameter combinations per asset for trade count, win rate, expectancy, profit factor, max drawdown, losing streak, trade frequency and 20 bps stress. This prevents the best-row summary from obscuring the broader grid.
+- The code/test head `b56c3dcb` passed PR CI [42012178809](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42012178809). This report refinement is documentation-only; its CI run is checked separately.
