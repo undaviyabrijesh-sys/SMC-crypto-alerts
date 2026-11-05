@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import dns_worker
+import quant_worker
 
 
 INTERVAL_SECONDS = max(60, int(os.environ.get("WORKER_INTERVAL_SECONDS", "300")))
@@ -77,8 +77,8 @@ def run_forever():
     signal.signal(signal.SIGINT, _handle_stop)
 
     print(
-        f"[worker] Salty Quant AI DNS local-monitoring desk starting; interval={INTERVAL_SECONDS}s; "
-        f"model={os.environ.get('OPENAI_MODEL', 'gpt-6-luna')}; single worker only",
+        f"[worker] Salty Quant deterministic multi-strategy desk starting; interval={INTERVAL_SECONDS}s; "
+        "no AI API calls; research-only strategies require explicit OOS promotion; single worker only",
         flush=True
     )
     _heartbeat("starting")
@@ -86,7 +86,7 @@ def run_forever():
     # Run immediately at boot; subsequent cycles align to the next five-minute boundary.
     while not STOP.is_set():
         try:
-            dns_worker.run()
+            quant_worker.run()
             _heartbeat("ok")
             print("[worker] analysis cycle completed", flush=True)
         except Exception as exc:
