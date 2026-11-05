@@ -75,3 +75,11 @@ jobs:
           DATA_DIR: market_data
           STATE_PATH: state.json
           RESEARCH_PATH: research/visual_decisions.jsonl
+      - name: Upload raw and DNS-annotated chart review images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-dns-review-${{ github.run_id }}
+          path: market_data/review_charts/*_*.png
+          if-no-files-found: ignore
+          retention-days: 7
