@@ -449,3 +449,37 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 5. Continue discrete funding-event reconciliation; raw hourly funding candles remain unscaled and are not applied to P&L. EXP-001 remains rejected: all 30 OOS baseline cells negative under the documented cost/stress assumptions.
 
 No live trading, broker orders, infrastructure deployment, secret changes, PR merge or main-branch edits were performed.
+
+
+## Quant Discovery update — funding-series alignment and OI cross-check (2026-11-05)
+
+### Historical funding-series structure
+The verified derivatives archive (758,119 candles; ZIP SHA-256 `f16d0bc18eddcce7637c9643d9176590c8bb55fe9de6be1da9c717bdf7949a27`) was inspected at row level, not only by manifest hash.
+
+- The `FUNDING:<symbol>` datasets are stored as 1h OHLC candles, but the close value is stepwise and typically changes only at funding-boundary timestamps rather than each hour.
+- BTC: 1,387 observed rate changes after the initial value; all 1,387 timestamps aligned to UTC 00:00, 08:00 or 16:00 (the standard 05:30, 13:30, 21:30 IST schedule).
+- ETH: 1,114 changes; 1,113 aligned to the same 8h boundaries (99.91%). One change occurred at 2024-11-29 09:00 UTC and needs investigation rather than silent normalization.
+- XAUT: only two rate changes after its initial value; both happened on 4h-aligned UTC timestamps. The rate was otherwise almost constant at 0.005, so this sample alone is insufficient to establish its contract interval.
+- BTC and ETH median raw funding close is 0.01; XAUT median is 0.005. Delta's current public WebSocket sample exposes `fi` (interval seconds), `fr` (funding rate), `nfr` (next funding realisation timestamp) and `ts` (update timestamp). The BTC sample uses `fi=28800` and `fr=0.01`. The India guide describes a 0.01% per 8h interest-rate baseline and percentage-based funding formula; this strongly suggests 0.01 is 0.01%, not 1%, for that live sample. The historical-candle endpoint documents `FUNDING:<symbol>` but does not explicitly state candle-value units. Preserve raw units until a live value, product specification and known settlement reconcile.
+- The product API exposes `product_specs.rate_exchange_interval` in seconds; the live BTCUSD product response returned 28,800 seconds. Delta's India guide says standard funding is exchanged at 05:30, 13:30 and 21:30 IST, while some contracts use shorter intervals. A position is included only if present in the funding snapshot; payment is position value × funding rate.
+
+Official references: [Delta API historical funding symbols and WebSocket funding_rate fields](https://docs.delta.exchange/); [BTCUSD product specifications](https://api.india.delta.exchange/v2/products/BTCUSD); [Delta India perpetual funding calculation and settlement guide](https://guides.delta.exchange/delta-exchange-india-user-guide/derivatives-guide/docs).
+
+**Important unresolved timestamp question:** the hourly historical funding candle at a boundary may represent the rate just realised at that timestamp or the newly published rate for the next `nfr` event. The change-point alignment is strong evidence of event-boundary sampling, but does not prove whether the correct event attribution is same-boundary or one-interval-lagged. Do not book funding into trade P&L until this is reconciled against a timestamped live `fr/nfr/ts` sample and an independently known funding event. Do not prorate hourly values.
+
+### Exploratory funding / OI association screen — descriptive only
+A first alignment check sampled mark-price closes and open-interest closes on the candidate funding grid (BTC/ETH 8h; XAUT 4h), then compared the funding value and prior-interval OI percentage change with the subsequent mark-price return. This is a descriptive correlation screen, not a strategy backtest; nominal p-values ignore serial dependence, no fills/costs were simulated, and event-time funding attribution remains unresolved.
+
+| Contract | Aligned intervals | Funding vs next mark return (Pearson r) | Prior OI change vs next mark return (r) |
+|---|---:|---:|---:|
+| BTCUSD | 3,117 | -0.0132 | -0.0082 |
+| ETHUSD | 3,007 | +0.0166 | -0.0043 |
+| XAUTUSD | 1,208 | -0.0138 | +0.0008 |
+
+These near-zero linear associations do not support a simple standalone funding-contrarian or prior-OI-change signal. They do not rule out nonlinear, tail, volatility-regime or joint price/OI/funding effects. No candidate is promoted and no execution alert is affected.
+
+### Next research steps
+1. Capture read-only live product specifications and a timestamped `funding_rate` WebSocket sample for BTCUSD, ETHUSD and XAUTUSD, recording `fi/fr/nfr/ts` and contract interval.
+2. Reconcile one funding event per contract against a known payment/event record to establish historical candle unit, sign and same-boundary versus lagged attribution.
+3. Add reproducible funding-boundary and OI/mark feature experiments with chronological splits, block-aware uncertainty, costs and exact event attribution. Keep XAUT's short history and ETH's single non-aligned change explicit.
+4. Until that is complete, keep funding as a raw descriptive feature only; EXP-001 remains rejected and no research candidate enters production alerts.
