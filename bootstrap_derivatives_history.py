@@ -210,10 +210,20 @@ def read_progress(path: Path, expected: dict):
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
         keys = ("request_count", "empty_chunk_count")
+        next_start = value.get("next_start") if isinstance(value, dict) else None
+        step = SERIES[expected["series"]]["seconds"]
+        aligned = (
+            type(next_start) is int
+            and (
+                next_start == expected["end_epoch"]
+                or (next_start - expected["start_epoch"]) % step == 0
+            )
+        )
         if (isinstance(value, dict)
                 and all(value.get(k) == v for k, v in expected.items())
-                and type(value.get("next_start")) is int
-                and expected["start_epoch"] <= value["next_start"] <= expected["end_epoch"]
+                and type(next_start) is int
+                and expected["start_epoch"] <= next_start <= expected["end_epoch"]
+                and aligned
                 and all(type(value.get(k)) is int and value[k] >= 0 for k in keys)):
             return value
     except (OSError, json.JSONDecodeError):
