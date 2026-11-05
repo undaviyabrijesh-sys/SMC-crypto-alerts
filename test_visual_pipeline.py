@@ -434,16 +434,21 @@ def test_analyst_rejects_duplicate_symbol_analyses():
 
 def test_late_tp_after_expiry_is_recorded_as_time_exit():
     triggered_at = pd.Timestamp("2026-11-01 00:00:00", tz="UTC")
-    index = pd.to_datetime(
-        ["2026-11-02 23:55:00+00:00", "2026-11-03 00:00:00+00:00"]
-    )
+    expiry_at = triggered_at + pd.Timedelta(hours=48)
+    index = pd.date_range(start=triggered_at, periods=576, freq="5min")
     m5 = pd.DataFrame({
-        "open": [100.0, 108.0],
-        "high": [105.0, 111.0],  # TP is touched only after the 48h expiry.
-        "low": [99.0, 107.0],
-        "close": [102.0, 110.0],
-        "volume": [1000.0, 1200.0]
+        "open": [100.0] * len(index),
+        "high": [105.0] * len(index),
+        "low": [99.0] * len(index),
+        "close": [102.0] * len(index),
+        "volume": [1000.0] * len(index)
     }, index=index)
+    # This TP touch is after expiry and must not replace the confirmed TIME exit.
+    post_expiry = pd.DataFrame({
+        "open": [108.0], "high": [111.0], "low": [107.0],
+        "close": [110.0], "volume": [1200.0]
+    }, index=pd.DatetimeIndex([expiry_at]))
+    m5 = pd.concat([m5, post_expiry])
     state = {
         "positions": {
             "TEST123": {
@@ -459,8 +464,7 @@ def test_late_tp_after_expiry_is_recorded_as_time_exit():
     main.discord.send_outcome = lambda trade, fmt: True
     try:
         manage_positions(
-            state, "BTC", m5,
-            pd.Timestamp("2026-11-03 01:00:00", tz="UTC"),
+            state, "BTC", m5, expiry_at + pd.Timedelta(hours=1),
             lambda value: str(value)
         )
     finally:
@@ -471,17 +475,15 @@ def test_late_tp_after_expiry_is_recorded_as_time_exit():
     result = state["trade_history"][0]
     assert result["status"] == "TIME"
     assert result["exit"] == 102.0
-    assert result["exit_time"] == "2026-11-02T23:55:00+00:00"
+    assert result["exit_time"] == (expiry_at - pd.Timedelta(minutes=5)).isoformat()
 
-
-
-def test_expired_trade_with_no_eligible_candles_closes_at_first_post_expiry_open():
+def test_expired_trade_with_no_eligible_candles_remains_open():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
-    post_expiry = pd.Timestamp("2026-11-03 12:10:00", tz="UTC")
+    expiry_at = triggered_at + pd.Timedelta(hours=48)
     m5 = pd.DataFrame({
         "open": [108.0], "high": [109.0], "low": [107.0],
         "close": [108.5], "volume": [1000.0]
-    }, index=pd.DatetimeIndex([post_expiry]))
+    }, index=pd.DatetimeIndex([expiry_at]))
     state = {
         "positions": {
             "GAP125": {
@@ -493,24 +495,13 @@ def test_expired_trade_with_no_eligible_candles_closes_at_first_post_expiry_open
         "trade_history": [],
         "pending_outcomes": {}
     }
-    original_send = main.discord.send_outcome
-    main.discord.send_outcome = lambda trade, fmt: True
-    try:
-        manage_positions(
-            state, "BTC", m5,
-            pd.Timestamp("2026-11-03 12:15:00", tz="UTC"),
-            lambda value: str(value)
-        )
-    finally:
-        main.discord.send_outcome = original_send
-
-    assert "GAP125" not in state["positions"]
-    assert len(state["trade_history"]) == 1
-    result = state["trade_history"][0]
-    assert result["status"] == "TIME"
-    assert result["exit"] == 108.0
-    assert result["exit_time"] == post_expiry.isoformat()
-
+    manage_positions(
+        state, "BTC", m5, expiry_at + pd.Timedelta(minutes=5),
+        lambda value: str(value)
+    )
+    assert "GAP125" in state["positions"]
+    assert state["trade_history"] == []
+    assert state["pending_outcomes"] == [] or state["pending_outcomes"] == {}
 
 def test_trade_is_not_time_closed_before_expiry_when_no_post_entry_candle_exists():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
@@ -546,10 +537,11 @@ def test_trade_is_not_time_closed_before_expiry_when_no_post_entry_candle_exists
 
 
 
-def test_time_exit_uses_first_post_expiry_open_when_last_eligible_candle_is_stale():
+def test_time_exit_is_not_confirmed_when_trade_window_has_missing_bars():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
-    last_eligible = pd.Timestamp("2026-11-03 11:50:00", tz="UTC")
-    post_expiry = pd.Timestamp("2026-11-03 12:10:00", tz="UTC")
+    expiry_at = triggered_at + pd.Timedelta(hours=48)
+    last_eligible = expiry_at - pd.Timedelta(minutes=10)
+    post_expiry = expiry_at + pd.Timedelta(minutes=10)
     m5 = pd.DataFrame({
         "open": [105.0, 108.0], "high": [106.0, 109.0],
         "low": [104.0, 107.0], "close": [105.5, 108.5],
@@ -566,22 +558,40 @@ def test_time_exit_uses_first_post_expiry_open_when_last_eligible_candle_is_stal
         "trade_history": [],
         "pending_outcomes": {}
     }
-    original_send = main.discord.send_outcome
-    main.discord.send_outcome = lambda trade, fmt: True
-    try:
-        manage_positions(
-            state, "BTC", m5,
-            pd.Timestamp("2026-11-03 12:15:00", tz="UTC"),
-            lambda value: str(value)
-        )
-    finally:
-        main.discord.send_outcome = original_send
+    manage_positions(
+        state, "BTC", m5, expiry_at + pd.Timedelta(minutes=15),
+        lambda value: str(value)
+    )
+    assert "GAP127" in state["positions"]
+    assert state["trade_history"] == []
 
-    assert "GAP127" not in state["positions"]
-    result = state["trade_history"][0]
-    assert result["status"] == "TIME"
-    assert result["exit"] == 108.0
-    assert result["exit_time"] == post_expiry.isoformat()
+def test_tracker_does_not_accept_tp_after_a_gap_in_the_trade_window():
+    triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
+    later_bar = triggered_at + pd.Timedelta(minutes=10)
+    m5 = pd.DataFrame({
+        "open": [100.0, 108.0],
+        "high": [101.0, 111.0],
+        "low": [99.0, 107.0],
+        "close": [100.5, 110.0],
+        "volume": [1000.0, 1100.0]
+    }, index=pd.DatetimeIndex([triggered_at, later_bar]))
+    state = {
+        "positions": {
+            "GAP129": {
+                "signal_id": "GAP129", "sym": "BTC", "dir": "long",
+                "triggered_at": triggered_at.isoformat(),
+                "entry": 100.0, "sl": 95.0, "tp": 110.0
+            }
+        },
+        "trade_history": [],
+        "pending_outcomes": {}
+    }
+    manage_positions(
+        state, "BTC", m5, later_bar + pd.Timedelta(minutes=5),
+        lambda value: str(value)
+    )
+    assert "GAP129" in state["positions"]
+    assert state["trade_history"] == []
 
 
 def test_expired_trade_waits_for_a_price_if_no_candle_reaches_expiry():
