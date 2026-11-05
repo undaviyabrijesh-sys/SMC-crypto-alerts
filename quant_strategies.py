@@ -128,6 +128,19 @@ def _make_candidate(symbol, frames, strategy_id, setup_type, direction, stop, ra
     if not math.isfinite(rr) or rr < 2.0 or target <= 0:
         return None
 
+    # Reject a nominal 2R target that sits beyond a recent opposing 4h swing level.
+    h4_reference = frames["4h"].iloc[-21:-1]
+    if len(h4_reference) < 20:
+        return None
+    if direction == 1:
+        nearest_obstacle = float(h4_reference.high.max())
+        if entry < nearest_obstacle < target:
+            return None
+    else:
+        nearest_obstacle = float(h4_reference.low.min())
+        if target < nearest_obstacle < entry:
+            return None
+
     five_confirm = _five_min_confirm(m5, direction)
     if not five_confirm:
         return None
