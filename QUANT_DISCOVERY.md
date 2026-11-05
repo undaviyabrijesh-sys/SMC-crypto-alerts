@@ -544,3 +544,26 @@ These near-zero linear associations do not support a simple standalone funding-c
 - No new low-risk code defect was identified. No runtime code, thresholds, secrets, infrastructure or `main` files were changed in this verification.
 - Next: restore OpenAI quota; manually run one paper-only visual cycle and inspect chart artifacts/model output/validator/Discord result; redesign prompt/schema/validator/active worker together so independent evidence-supported setup families can be selected or return `NO_TRADE`; retain mechanical risk gates and local outcome tracking. Resolve the legacy default-branch workflow only after owner decision.
 - No PR merge, deployment, live trading or exchange order.
+
+
+## Supervisor update — 2026-11-05 15:43 IST (stale-map fail-closed fix)
+
+### Safety defect found and fixed
+- The DNS worker previously continued running local setup detection against the last saved map when a refresh was due but throttled by the 30-minute retry window, when the AI refresh raised an error (including quota failure), or when the batch response omitted a symbol. That was fail-open behaviour: a stale map could still produce a new paper entry.
+- The worker now blocks new setup detection for each symbol whose map requires refresh. The block is removed only after that symbol's refreshed map is successfully validated and saved. Existing paper positions continue to be managed for TP/SL/TIME while new entries are blocked.
+- Missing symbols in a batch response are handled explicitly and remain blocked; unknown/malformed response rows are ignored rather than being treated as a refreshed map.
+- Changes are on `ai-quant-rebuild` only: `8d89dcd` (fail-closed worker), `6bd99cc` (worker regression coverage and test runner), `6177b6a` (fixture correction).
+
+### Test-coverage defect found and fixed
+- CI invokes `python test_dns_engine.py`, but the file previously defined test functions without a `__main__` runner; direct script execution therefore defined the tests without executing them. Added a deterministic runner so this CI step actually executes the DNS tests.
+- Added four worker-level regressions: refresh throttled, AI refresh failure, refresh response omits symbol, and successful refresh resumes scanning.
+- The latest known PR CI before these changes was run [41994333863](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41994333863) and passed. New push/PR CI for the fixes must be checked before treating them as validated.
+
+### Current limitations and next steps
+- The PR CI run above had one test job and no uploaded chart artifacts. It does not establish a live visual-AI decision or Discord delivery.
+- The active worker remains DNS-only; the independent multi-family visual analyst is not yet wired into the worker. The system prompt and validator still require a directional DNS anchor for every trade.
+- The legacy `main` branch workflow `.github/workflows/alerts.yml` remains scheduled every 10 minutes and executes `python main.py`. It has not been changed; owner decision is required before pausing/cutting over.
+- Last known OpenAI quota blocker is HTTP 429 `insufficient_quota / credit_balance_exhausted`; not retried in this cycle.
+- EXP-001 remains rejected (30/30 baseline OOS cells negative under stated assumptions). Funding event unit/sign/timing reconciliation remains open; no candidate is promoted.
+- Next: verify both CI workflows on the new branch head; after API quota is restored, manually dispatch a paper-only visual cycle and inspect raw/annotated six-timeframe charts, model output, validator decisions and Discord delivery evidence. Do not enable scheduled visual runs or production cutover as part of this work.
+- No main-branch change, merge, deployment, secret change, live trading or exchange order.
