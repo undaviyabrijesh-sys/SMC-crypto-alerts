@@ -385,7 +385,7 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
             raise HistoricalDataError(f"No in-range candles for {symbol_alias} {timeframe}")
 
         atomic_write_csv(combined, final_path)
-        metrics = _coverage_metrics(combined, step)
+        metrics = _coverage_metrics(combined, step, int(start_epoch), int(end_epoch))
         metadata = {
             "dataset_key": dataset_key,
             "symbol_alias": symbol_alias,
