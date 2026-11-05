@@ -35,6 +35,14 @@ The first local detector is intentionally conservative and narrow: it requires a
 
 The map refresh default is four hours and can be changed with `DNS_MAP_REFRESH_HOURS`. Local scanning makes no OpenAI request. If an AI refresh fails, the last map is retained, invalidated zones remain blocked, and the local watcher continues only where the map remains structurally valid. Trade alerts and outcomes are paper-only; no exchange orders are submitted.
 
+## AI model and API-credit controls
+
+- GPT-6 Luna is the default vision analyst model. It supports image input, the Responses API and strict structured outputs used for DNS-map responses.
+- Start with `OPENAI_REASONING_EFFORT=low`; raise it only after comparing chart-map quality on a fixed set of labelled examples. The supported values are `none`, `low`, `medium`, `high`, `xhigh` and `max`.
+- The worker makes one batched map request for all symbols whose maps need refreshing. The five-minute local watcher does not call the AI on every candle. A refresh is normally due after four hours or when the map is structurally invalidated; failed refreshes are throttled.
+- Luna reduces per-token cost, but it does not create free API usage or fix an exhausted API balance. An OpenAI `429 insufficient_quota` response means the API project needs available billing/credits before fresh AI maps can be produced. Changing models will not bypass that restriction.
+- API rate limits depend on the account's usage tier. Keep a single worker instance and monitor API usage before increasing refresh frequency or adding markets.
+
 ## Data instruments
 
 - BTC: Delta Exchange BTCUSD perpetual.
@@ -69,8 +77,8 @@ Optional:
 - DELTA_API_KEY
 - DELTA_API_SECRET
 - DELTA_API_BASE_URL (defaults to https://api.india.delta.exchange)
-- OPENAI_MODEL (defaults to gpt-6.1-terra)
-- OPENAI_REASONING_EFFORT (defaults to high)
+- OPENAI_MODEL (defaults to gpt-6-luna)
+- OPENAI_REASONING_EFFORT (defaults to low)
 - WORKER_INTERVAL_SECONDS (defaults to 300)
 
 For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK) as repository secrets. The optional Delta key is not checked on GitHub-hosted runners because Delta IP-whitelisting must match the runner's egress IP; use the authenticated smoke test from the whitelisted deployment host instead. Set repository variable ENABLE_GITHUB_SCHEDULE=true only when the Docker worker is not running.
