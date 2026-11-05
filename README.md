@@ -110,3 +110,12 @@ The offline test suite does not call the OpenAI API. The Delta feed smoke test u
 ## Legacy modules
 
 zones.py, score.py, news.py, replay.py and legacy_synthetic_tests.py remain for reference. The new main.py does not import the old zone finder, old confluence scorer, or old WATCH/TRIGGER pipeline.
+
+
+### Quant Discovery initial screen
+
+After extracting the verified historical archive into historical_data/, run:
+
+    python quant_discovery/initial_screen.py --data-dir historical_data
+
+The script verifies all 18 CSV hashes/row counts before writing OOS, cost, regime, parameter-robustness and walk-forward summaries to quant_discovery/results/. Read quant_discovery/EXP001_INITIAL_SCREEN.md before interpreting results. The initial fixed-parameter screen rejected all baseline candidates at the stated cost scenario; no research result feeds production alerts.
