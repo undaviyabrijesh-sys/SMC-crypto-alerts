@@ -10,9 +10,9 @@ class DailyReportTests(unittest.TestCase):
         trades = [
             {"exit_time": "2026-11-05T17:00:00Z", "gross_R": 2.0, "status": "TP",
              "sym": "BTC", "setup_type": "SWEEP"},
-            {"exit_time": "2026-11-05T19:10:00Z", "gross_R": -1.0, "status": "SL",
+            {"exit_time": "2026-11-05T18:10:00Z", "gross_R": -1.0, "status": "SL",
              "sym": "ETH", "setup_type": "TREND"},
-            {"exit_time": "2026-11-06T18:40:00Z", "gross_R": 1.0, "status": "TP",
+            {"exit_time": "2026-11-05T18:40:00Z", "gross_R": 1.0, "status": "TP",
              "sym": "XAU", "setup_type": "BREAKOUT"},
         ]
         message = build_daily_report(date(2026, 11, 6), trades, {})
