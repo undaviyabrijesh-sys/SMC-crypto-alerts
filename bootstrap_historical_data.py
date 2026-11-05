@@ -396,7 +396,12 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
         combined = combined.sort_index()
         start = pd.to_datetime(int(start_epoch), unit="s", utc=True)
         end = pd.to_datetime(int(end_epoch), unit="s", utc=True)
-        combined = combined[(combined.index >= start) & (combined.index < end)]
+        # Keep only fully closed candles. The API may include the currently forming
+        # candle when the requested end falls inside its interval.
+        combined = combined[
+            (combined.index >= start)
+            & ((combined.index + pd.Timedelta(seconds=step)) <= end)
+        ]
         duplicate_count = int(combined.index.duplicated(keep="last").sum())
         combined = combined[~combined.index.duplicated(keep="last")].sort_index()
         if combined.empty:
