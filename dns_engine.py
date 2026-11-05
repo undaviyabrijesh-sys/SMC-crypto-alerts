@@ -179,7 +179,7 @@ def refresh_reasons(snapshot, now, frames):
 def _nearest_target(zones, entry, direction):
     candidates = []
     for zone in zones:
-        if zone.get("status") != "ACTIVE":
+        if zone.get("status") != "ACTIVE" or int(zone.get("quality", 0)) < MIN_ZONE_QUALITY:
             continue
         level = float(zone["low"] if direction == "LONG" else zone["high"])
         if direction == "LONG" and level > entry:
