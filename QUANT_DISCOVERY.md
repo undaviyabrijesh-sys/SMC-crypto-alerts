@@ -396,3 +396,26 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 3. Add a shared mechanical validator to the active DNS worker before any deployment; remove hard-coded confidence or other unmeasured alert metadata.
 4. Restore API quota and manually inspect raw/annotated multi-timeframe chart artifacts before judging visual mapping quality.
 5. Confirm funding-event semantics and realistic execution costs before extending Quant Discovery beyond the rejected EXP-001 baseline.
+
+
+## Quant Discovery funding-semantics update — 2026-11-05 10:22 IST
+
+### Fresh CI data-feed verification
+
+- Commit `b700a60a9ac86bd1850b571f51ea7be0250b79ce` passed push CI [41970160655](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41970160655) and PR CI [41970165574](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41970165574).
+- Both CI runs passed the new Discord regression, the offline visual/DNS/Quant Discovery suite, and live public Delta checks for all 18 BTC/ETH/XAUT timeframes. The feed smoke observed closed 5m/15m/1h/4h/1d/1w candles with no freshness failures.
+- The derivatives smoke returned 69 one-hour funding candles, 864 five-minute mark candles and 72 one-hour OI candles for each of BTCUSD, ETHUSD and XAUTUSD. The historical OHLCV pilot downloaded 1,051 BTC 5m candles with 100% coverage and zero gaps. These are availability/ingestion checks, not strategy or execution validation.
+
+### Funding-event interpretation
+
+- Delta's [historical candles API documentation](https://docs.delta.exchange/) explicitly supports `FUNDING:<symbol>`, `MARK:<symbol>` and `OI:<symbol>` as candle symbols, with up to 2,000 candles per response. It describes OHLC candles, but does not establish that every hourly FUNDING candle is a realised settlement event or specify the exact event timestamp semantics. Keep the hourly series as a sampled-rate research feature until this is resolved.
+- Delta's public WebSocket `funding_rate` example includes `fi` (funding interval in seconds), `fr` (funding rate), `nfr` (next funding realisation timestamp) and `ts` (update timestamp). The example has `fi=28800`; the contract's live `fi` / product `rate_exchange_interval` must be read rather than assuming every contract is 8-hourly.
+- Delta India's [perpetual-contract guide](https://guides.delta.exchange/delta-exchange-india-user-guide/derivatives-guide/docs) says standard 8-hour funding snapshots occur at 05:30, 13:30 and 21:30 IST, while some contracts can use shorter intervals. The position must be present in the funding snapshot; holding time between snapshots is not prorated. Payment is current position value × funding rate. Positive funding means longs pay shorts; negative funding means shorts pay longs. Backtests must therefore apply discrete contract-specific funding events only when a position is open at the event, not a continuous hourly carry approximation.
+- Unit hypothesis only: the API example's numeric `fr=0.01`, together with the guide's 0.01% standard interest-rate example and 0.05% clamp, suggests rates may be expressed in percentage-point units (0.01 meaning 0.01%), not decimal fractions (0.01 meaning 1%). This is not yet verified for the archived hourly candles or every contract. Preserve raw values and do not convert or book funding into PnL until a live product specification and a known funding event/payment reconcile the units, sign and timestamp.
+- Next funding research step: capture a timestamped read-only product specification and public funding-rate WebSocket sample for each contract, record `fi`, `fr`, `nfr`, `ts`, and reconcile one event against an independently observed funding transaction or authoritative event record. Until then, no historical funding PnL claim.
+
+### Supervisor state after this update
+
+- Branch: `ai-quant-rebuild`; code commit under review: `b700a60a9ac86bd1850b571f51ea7be0250b79ce`. The PR remains open, draft and unmerged. `main` remains unchanged.
+- The fake DNS confidence value was removed; Discord only prints confidence when a valid value is actually supplied. The new regression passed in both CI runs.
+- The default-branch legacy `advance-alerts` schedule finding and required user decision are recorded in the prior supervisor update above. No main-branch change or workflow setting change was made.
