@@ -205,6 +205,8 @@ def detect_local_setup(symbol, frames, snapshot, now=None):
     bars = m5.tail(3)
     sweep, confirm = bars.iloc[-2], bars.iloc[-1]
     out = []
+    h1 = frames.get("1h")
+    latest_h1_close = float(h1.iloc[-1].close) if h1 is not None and not h1.empty else None
     for side, zones, opposing, direction in (
         ("DEMAND", snapshot.get("demand_zones", []), snapshot.get("supply_zones", []), "LONG"),
         ("SUPPLY", snapshot.get("supply_zones", []), snapshot.get("demand_zones", []), "SHORT"),
@@ -213,6 +215,12 @@ def detect_local_setup(symbol, frames, snapshot, now=None):
             if zone.get("status") != "ACTIVE" or int(zone.get("quality", 0)) < MIN_ZONE_QUALITY:
                 continue
             low, high = float(zone["low"]), float(zone["high"])
+            # A confirmed 1h close through the distal edge invalidates the zone.
+            if latest_h1_close is not None and (
+                (side == "DEMAND" and latest_h1_close < low)
+                or (side == "SUPPLY" and latest_h1_close > high)
+            ):
+                continue
             if side == "DEMAND":
                 swept = float(sweep.low) < low and float(sweep.close) > high
                 confirmed = float(confirm.close) > float(sweep.high) and float(confirm.close) > float(confirm.open)
