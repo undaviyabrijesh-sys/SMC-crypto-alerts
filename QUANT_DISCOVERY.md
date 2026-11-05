@@ -806,3 +806,81 @@ These near-zero linear associations do not support a simple standalone funding-c
 3. Redesign the analyst prompt/schema/validator so independent evidence-supported setup families can compete and return NO_TRADE without a mandatory DNS anchor; wire this into the active worker only behind unchanged mechanical risk gates.
 4. Expand and hash-verify the historical datasets for BTC, ETH and XAUT across required timeframes; retain chronological train/validation/OOS and walk-forward testing with realistic costs and explicit unavailable funding/spread inputs.
 5. Obtain owner decision on the legacy main schedule before cutover. Do not modify main, merge PR #1, deploy, change secrets, enable live trading or place orders.
+
+## Supervisor handoff — 2026-11-05 (AI-free deterministic multi-strategy quant desk)
+
+### Architecture change on ai-quant-rebuild
+
+User approved replacing the OpenAI/visual-AI decision-maker with a fully quantitative, rule-based multi-strategy supervisor. The new active paper runtime on this branch is:
+
+worker.py -> quant_worker.py -> quant_strategies.py -> quant_supervisor.py
+
+It does not import or call ai_analyst.py, dns_worker.py, or legacy main.py. It has no OpenAI API key/model/credit requirement. Public Delta OHLCV is still the market-data source. trade_lifecycle.py independently tracks already-open paper positions on contiguous closed 5m candles.
+
+### Independent strategy families added
+
+- TREND_PULLBACK: 4h/1h EMA trend agreement, 15m EMA20 pullback/reclaim, 5m breakout confirmation.
+- BREAKOUT_RETEST: 1h 20-bar range break, 15m retest and close back through the level, 5m confirmation.
+- VOLATILITY_EXPANSION: 15m ATR expansion versus its preceding 48-bar median, 20-bar breakout, 4h/1h direction.
+- LIQUIDITY_SWEEP_REVERSAL: 15m sweep of the prior 20-bar high/low and close back inside the range, then 5m confirmation.
+- MEAN_REVERSION: 1h Bollinger/RSI excursion and re-entry, gated to a balanced 4h regime.
+- MOMENTUM_CONTINUATION: 1h directional return, 4h/1h alignment, 15m displacement and 5m follow-through.
+
+Each strategy is an independent hypothesis and emits its own candidate; the engines do not combine incompatible directions or labels.
+
+### Supervisor and paper safety
+
+- Latest closed 5m price is the only candidate entry reference; stale or off-price candidates are rejected.
+- Finite positive price levels and direction-specific SL/TP ordering are required.
+- Minimum R:R remains 2.0.
+- Stop distance must be between 0.35 and 2.5 ATR(15m).
+- Rule-quality points must be an integer >=75; this is a transparent deterministic rubric, not a win probability.
+- Reported R:R must match actual entry/stop/target geometry.
+- A nearby opposing 4h swing obstacle invalidates a nominal 2R target.
+- Opposing long/short candidates with less than an 8-point score separation yield NO_TRADE.
+- One open paper position per symbol.
+- All six timeframes must be fresh; the most recent 50 available bars (or all available bars when fewer exist) must be continuous. Weekly XAUT is allowed with its shorter listing history (20+ weekly bars); absence of a 50-week EMA is treated as no weekly trend, not fabricated context.
+- Paper lifecycle remains gap-safe; missing bars prevent declaring a later TP/SL/TIME as the first confirmed exit.
+- Discord execution formatting is quant-specific and labels the score as rule-quality points, not probability. No WATCH/status alerts.
+
+### Promotion remains deliberately disabled
+
+quant_supervisor.APPROVED_STRATEGIES remains an empty set. Existing EXP-001 and OI/volatility results were rejected and the new six rules have not yet completed a full historical out-of-sample/walk-forward/cost robustness run. Therefore candidates are logged as RESEARCH_ONLY; the quant worker sends no new execution alerts for them until a reviewed strategy promotion is recorded. Do not add strategy IDs to the allowlist based on synthetic tests or rule intuition.
+
+### Runtime and workflow
+
+- worker.py now runs the AI-free quant worker.
+- Docker Compose service/container is salty-quant-paper-desk; OpenAI variables removed from .env.example and runtime compose configuration.
+- .github/workflows/alerts.yml is now the branch paper desk workflow: manual dispatch or opt-in schedule (ENABLE_GITHUB_SCHEDULE=true); no OpenAI secret required; it runs quant_worker.py and uploads research/quant_signals.jsonl for 14 days.
+- The persistent worker requires one instance and a writable persistent /data volume. No deployment was performed; the workflow schedule was not enabled.
+- The legacy scheduled workflow on default main was not modified. Resolve that separately before any production cutover.
+
+### Code/tests added
+
+- trade_lifecycle.py
+- quant_strategies.py
+- quant_supervisor.py
+- quant_worker.py
+- test_quant_engine.py
+- discord.send_quant_trade()
+- Updated worker.py, Dockerfile, Compose, .env.example, README, CI and paper-desk workflow.
+
+Latest commits as of this handoff: 7867722 (weekly-history regression), 278fa1c (weekly XAUT eligibility), 5df165f (ATR test fixture correction), 71465a0 / 64ed438 (paper lifecycle tests), 1858b20 (AI-free scheduled/manual paper workflow), 9cbf08f (README rewrite), plus the new quant engine/supervisor/test additions in the preceding commits.
+
+### CI status at handoff
+
+- The initial CI run on head ca6a251, run 42060881086, failed one new unit test because its fixture changed the stop but did not update its reported R:R. All earlier visual, DNS and replay tests passed; the new quant suite had 13/14 passing. The fixture was corrected in 5df165f.
+- Another edge found during review: XAUT has only about 29 weeks of available weekly history. Requiring 55 weekly bars blocked all candidate evaluation for Gold despite sufficient 4h/1h/daily context. The minimum weekly context was lowered to 20 actual bars only; the weekly EMA50 remains unavailable and returns neutral/no trend. No missing bars were filled and no trade threshold was loosened.
+- Regression test test_short_gold_weekly_history_keeps_lower_timeframe_strategies_available was added in 7867722.
+- At the time of handoff, the latest new CI run for head 7867722 had not yet appeared in the GitHub workflow-runs endpoint. Re-check push and PR CI before further code edits; do not claim the new test suite is green until then.
+
+### Historical data constraints / next research
+
+- The Library archive salty_quant_historical_ohlcv_3y_verified.zip is available locally to the research operator and was previously verified at 926,209 candles across 18 BTC/ETH/XAUT datasets. Its manifest/coverage data must be rechecked before every experiment.
+- BTC 5m has large gaps (largest 911,100 seconds); ETH 5m has large gaps (largest 164,400 seconds); XAUT begins 2026-04-17 and has only ~6.6 months/29 weekly candles. Missing data must remain missing; candidate generation should skip relevant windows.
+- Next research task: build deterministic historical replay for each of the six strategy IDs against verified archives. Freeze each rule/config before chronological splits; use next-bar fills, same-bar SL-first handling, fees, spread/slippage stress and funding only after contract event-time attribution is independently verified. Report trade counts, win rate, expectancy, PF, max drawdown, longest loss streak, frequency, regime and robustness; all six strategy IDs stay research-only pending sufficient OOS/walk-forward evidence.
+- Historical spread/depth is still unavailable; funding raw-unit/event attribution remains unresolved. Use explicit stressed-cost scenarios rather than silently setting unknown costs to zero.
+
+### Safety boundaries
+
+No main modifications, PR merge, deployment, secrets change, scheduled-workflow enablement, live trading or exchange orders. PR #1 remains a draft and unmerged. The new system is a deterministic paper/shadow desk, not a validated profitable trading system.
