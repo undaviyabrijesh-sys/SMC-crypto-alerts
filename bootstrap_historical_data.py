@@ -130,7 +130,7 @@ def parse_candle_payload(payload: dict, symbol: str, timeframe: str,
     frame.index = pd.DatetimeIndex(index, name="timestamp")
     start = pd.to_datetime(int(start_epoch), unit="s", utc=True)
     end = pd.to_datetime(int(end_epoch), unit="s", utc=True)
-    frame = frame[(frame.index >= start) & (frame.index < end)]
+    frame = frame[(frame.index >= start) & (frame.index <= end)]
     frame.attrs["missing_volume_rows"] = missing_volume_rows
     return frame
 
