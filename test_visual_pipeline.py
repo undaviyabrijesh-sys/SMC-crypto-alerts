@@ -6,6 +6,7 @@ import pandas as pd
 os.environ["DATA_DIR"] = tempfile.mkdtemp(prefix="salty-quant-data-")
 
 import data
+import bootstrap_historical_data as historical_data
 import delta_auth
 import main
 import state as state_module
@@ -680,6 +681,154 @@ def test_discord_delivery_errors_do_not_log_webhook_secret():
     assert delivered is False
     assert webhook not in output.getvalue()
     assert "ConnectionError" in output.getvalue()
+
+
+def test_historical_chunk_planner_never_exceeds_api_limit_and_has_no_time_gaps():
+    step = historical_data.TIMEFRAME_SECONDS["5m"]
+    start = 0
+    end = step * 2001
+    chunks = list(historical_data.build_chunks(start, end, step, max_candles=2000))
+    assert len(chunks) == 2
+    assert chunks[0] == (0, step * 2000 - 1)
+    assert chunks[1] == (step * 2000, end - 1)
+    assert chunks[0][1] + 1 == chunks[1][0]
+    assert all(right - left + 1 <= step * 2000 for left, right in chunks)
+
+
+def test_historical_parser_validates_ohlcv_and_records_missing_volume():
+    payload = {"success": True, "result": [
+        {"time": 300, "open": 100, "high": 102, "low": 99, "close": 101},
+        {"time": 600, "open": 101, "high": 103, "low": 100, "close": 102, "volume": 50},
+    ]}
+    frame = historical_data.parse_candle_payload(payload, "BTCUSD", "5m", 0, 900, 2)
+    assert len(frame) == 2
+    assert frame.volume.iloc[0] == 0.0
+    assert frame.attrs["missing_volume_rows"] == 1
+    assert str(frame.index.tz) == "UTC"
+
+    malformed = {"success": True, "result": [
+        {"time": 300, "open": 100, "high": float("inf"), "low": 99, "close": 101, "volume": 1}
+    ]}
+    try:
+        historical_data.parse_candle_payload(malformed, "BTCUSD", "5m", 0, 900, 2)
+    except historical_data.HistoricalDataError as exc:
+        assert "non-finite OHLCV" in str(exc)
+    else:
+        raise AssertionError("non-finite historical candles must be rejected")
+
+
+def test_historical_fetch_retries_rate_limit_and_uses_bounded_request():
+    class FakeResponse:
+        def __init__(self, status_code, payload=None, headers=None):
+            self.status_code = status_code
+            self._payload = payload or {"success": True, "result": []}
+            self.headers = headers or {}
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                import requests
+                raise requests.HTTPError(f"HTTP {self.status_code}")
+        def json(self):
+            return self._payload
+
+    class FakeSession:
+        def __init__(self):
+            self.calls = []
+            self.responses = [
+                FakeResponse(429, headers={"Retry-After": "1"}),
+                FakeResponse(200, {"success": True, "result": [
+                    {"time": 300, "open": 100, "high": 102, "low": 99, "close": 101, "volume": 5}
+                ]})
+            ]
+        def get(self, url, params, headers, timeout):
+            self.calls.append((url, params, headers, timeout))
+            return self.responses.pop(0)
+
+    session = FakeSession()
+    sleeps = []
+    frame = historical_data.fetch_chunk(
+        session, "BTCUSD", "5m", 0, 599, max_candles=2,
+        retries=1, sleep=sleeps.append
+    )
+    assert len(frame) == 1
+    assert len(session.calls) == 2
+    assert sleeps == [1.0]
+    assert session.calls[0][1] == {
+        "resolution": "5m", "symbol": "BTCUSD", "start": "0", "end": "599"
+    }
+
+
+def test_historical_archive_persists_hash_coverage_and_resumes_after_interruption():
+    import json
+    import requests
+
+    class FakeResponse:
+        status_code = 200
+        headers = {}
+        def __init__(self, start, end):
+            self._start = int(start)
+            self._end = int(end)
+        def raise_for_status(self):
+            return None
+        def json(self):
+            rows = []
+            for stamp in (0, 300, 600, 900):
+                if self._start <= stamp <= self._end:
+                    rows.append({
+                        "time": stamp, "open": 100 + stamp / 1000,
+                        "high": 102 + stamp / 1000, "low": 99 + stamp / 1000,
+                        "close": 101 + stamp / 1000, "volume": 10
+                    })
+            return {"success": True, "result": rows}
+
+    class InterruptingSession:
+        def __init__(self):
+            self.calls = 0
+        def get(self, url, params, headers, timeout):
+            self.calls += 1
+            if self.calls == 2:
+                raise requests.ConnectionError("simulated interruption")
+            return FakeResponse(params["start"], params["end"])
+
+    class WorkingSession:
+        def __init__(self):
+            self.calls = []
+        def get(self, url, params, headers, timeout):
+            self.calls.append(params.copy())
+            return FakeResponse(params["start"], params["end"])
+
+    with tempfile.TemporaryDirectory(prefix="salty-historical-") as folder:
+        output = __import__("pathlib").Path(folder)
+        interrupted = InterruptingSession()
+        try:
+            historical_data.download_dataset(
+                "BTC", "BTCUSD", "5m", 0, 1200, output,
+                session=interrupted, request_delay=0, max_candles=2,
+                retries=0, sleep=lambda seconds: None
+            )
+        except requests.ConnectionError:
+            pass
+        else:
+            raise AssertionError("simulated connection failure should interrupt the first run")
+
+        resumed = WorkingSession()
+        result = historical_data.download_dataset(
+            "BTC", "BTCUSD", "5m", 0, 1200, output,
+            session=resumed, request_delay=0, max_candles=2,
+            retries=0, sleep=lambda seconds: None
+        )
+        assert len(resumed.calls) == 1
+        assert resumed.calls[0]["start"] == "600"
+        archive = output / "BTC_5m.csv"
+        assert archive.exists()
+        assert result["row_count"] == 4
+        assert result["missing_expected_candles"] == 0
+        assert result["gap_count"] == 0
+        assert len(result["sha256"]) == 64
+        assert historical_data.file_sha256(archive) == result["sha256"]
+        manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+        assert manifest["datasets"]["BTC_BTCUSD_5m"]["row_count"] == 4
+        assert (output / "coverage.csv").exists()
+        assert not (output / ".work" / "BTC_5m").exists()
 
 
 if __name__ == "__main__":
