@@ -89,7 +89,7 @@ The collector:
 - Retries rate limits and transient server/network failures with bounded backoff.
 - Resumes interrupted symbol/timeframe downloads from local chunk checkpoints; completed, hash-verified archives are skipped on later runs.
 - Validates timestamps and OHLCV values, removes duplicate timestamps deterministically, and never fills missing candles.
-- Writes one CSV per symbol/timeframe plus manifest.json and coverage.csv. Reports include the requested-range and observed-span coverage, missing-bar/gap counts, empty request windows, row count and SHA-256.
+- Writes one CSV per symbol/timeframe plus manifest.json and coverage.csv. Reports include duration-estimated requested-range coverage and observed-span coverage, missing-bar/gap counts, empty request windows, row count and SHA-256.
 - Writes atomically and keeps temporary chunks under historical_data/.work/.
 
 The archive defaults to historical_data/ and is intentionally Git-ignored. Store this folder on durable local or mounted storage and back it up; do not commit large market datasets or treat a short-lived CI cache as the research archive. XAUTUSD is Delta's Tether Gold perpetual, not spot XAUUSD. This first collector records traded-price OHLCV only; it does not infer spread, order-book depth or funding costs. Those inputs must remain explicitly unavailable until separately collected and validated.
