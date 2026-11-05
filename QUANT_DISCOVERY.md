@@ -267,3 +267,47 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Next operator action: manually run GitHub Actions workflow **Derivatives history archive (one-time)** on `ai-quant-rebuild`, or run `python bootstrap_derivatives_history.py --years 3 --output-dir derivatives_history` on durable storage. Then inspect all nine series' actual first/last timestamps, empty chunks, gaps, cadence, row counts and hashes; do not assume three years are available.
 - After the derivative archive is verified, implement event-time funding attribution and mark-price valuation in the research replay, add defensible spread/slippage scenarios, and run chronological/walk-forward validation. Pre-register the ETH 15m volatility-expansion/downtrend hypothesis before further testing; do not reuse its already-observed OOS slice as fresh holdout data.
 - Keep the visual-first multi-setup AI analyst and all production thresholds unchanged. No deployment, secret mutation, merge, live trading or order placement was performed.
+
+
+
+## Supervisor update — 2026-11-05 08:12 IST
+
+### Three-year derivatives archive completed
+
+- The guarded one-time GitHub Actions workflow completed successfully: [run 41955898516](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41955898516).
+- It verified nine non-empty series and their manifest SHA-256 values, with **758,119 candles total**. The compressed artifact is 16,854,903 bytes, artifact ID `13383865992`, ZIP digest `sha256:f16d0bc18eddcce7637c9643d9176590c8bb55fe9de6be1da9c717bdf7949a27`; retention expires **2026-11-19 02:37:57 UTC**. Download it from the run's Artifacts section and move it to durable storage before expiry.
+- Dataset results (requested-range coverage is a duration estimate; observed-span coverage is measured only between the first and last observed candle):
+
+| Series | Rows | Requested coverage | Observed-span coverage | Gaps | Largest gap |
+|---|---:|---:|---:|---:|---:|
+| BTC funding 1h | 25,170 | 95.7107% | 99.6398% | 13 | 8h |
+| BTC mark 5m | 303,136 | 96.0580% | 100.0000% | 0 | 0 |
+| BTC open interest 1h | 24,961 | 94.9160% | 99.8560% | 1 | 37h |
+| ETH funding 1h | 24,002 | 91.2693% | 99.6512% | 12 | 8h |
+| ETH mark 5m | 289,038 | 91.5906% | 100.0000% | 0 | 0 |
+| ETH open interest 1h | 24,066 | 91.5127% | 100.0000% | 0 | 0 |
+| XAUT funding 1h | 4,829 | 18.3626% | 99.8140% | 3 | 4h |
+| XAUT mark 5m | 58,077 | 18.4035% | 100.0000% | 0 | 0 |
+| XAUT open interest 1h | 4,840 | 18.4044% | 100.0000% | 0 | 0 |
+
+- Actual first-candle timestamps confirm different listing histories: BTC starts 2023-12-18 (OI 2023-12-29); ETH starts 2024-02-05/06; XAUT starts 2026-04-17. All series end at 2026-11-05 UTC in the archive. XAUT's roughly 6.6-month history remains insufficient for three-year conclusions.
+- The artifact came from the first collector workflow run on commit `b85a522`, before the later resume-alignment and empty-dataset validation hardening. All nine resulting datasets were non-empty and the workflow's SHA checks passed. The current branch has the additional checkpoint-alignment regression test and rejects empty archive datasets on future runs.
+- The three-day API probe and the full archive establish endpoint availability and file integrity, not the meaning/sign of funding payments, funding settlement timing, or executable bid/ask spread. Keep those semantic checks open; do not feed funding into PnL until they are verified.
+
+### Runtime validation and alert policy
+
+- The first one-cycle push validation [run 41956553584](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956553584) failed before AI analysis because the OpenAI secret contained outer whitespace in its HTTP header. The client now trims outer whitespace and rejects embedded whitespace/non-ASCII without logging the value; credential-format regression tests were added.
+- A later one-cycle run [41956757056](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956757056) passed header preparation and reached the OpenAI API, which returned HTTP 429 `insufficient_quota / credit_balance_exhausted`. No AI analysis or new execution alert was produced. **User action:** add OpenAI API credits or configure a key with available API quota at https://platform.openai.com/settings/organization/billing/; the ChatGPT subscription is separate from API billing.
+- Daily P&L summaries conflict with the execution-only Discord preference. They are now opt-in in code and explicitly disabled in `.env.example`, `compose.yaml` and GitHub Actions (`ENABLE_DAILY_PNL_REPORT=false`). The helper remains dormant unless explicitly enabled. The README now documents execution alerts plus confirmed TP/SL/TIME updates as the default.
+- The accidental push trigger on `.github/workflows/alerts.yml` / `ai_analyst.py` was removed. The visual-desk workflow now runs only by manual dispatch or when the opt-in repository variable `ENABLE_GITHUB_SCHEDULE=true` is set. Do not set that variable while the persistent Docker worker is running.
+- During the two push validation attempts, daily reporting was still enabled in the workflow configuration. Because it executes before the AI call, a daily summary may have been posted; the workflow logs do not expose webhook delivery success, so delivery cannot be confirmed. Future runs have the setting disabled.
+- No broker/exchange order was placed, no live trading was enabled, no secrets were changed, and no infrastructure was deployed.
+
+### Current handoff and next actions
+
+- Latest branch head at this handoff: `55cabb049fb13c9b5c2f6ad3537d28fc996f10bc` on `ai-quant-rebuild`; PR #1 remains open, draft, unmerged and mergeable, based on unchanged `main` `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. Latest CI for this head is still running at handoff; re-check its push and PR runs before further code changes.
+- First user action: download artifact `salty-quant-derivatives-3y-41955898516` from the linked Actions run before its 14-day expiry and store it durably.
+- Second user action: add OpenAI API credits / a valid quota-bearing key. Then manually dispatch the visual-desk workflow for one paper-only validation cycle; do not enable the scheduled variable by default.
+- After the artifact is available in the research runtime, validate all nine raw CSVs and their hashes again, inspect funding units/sign/settlement timestamps, then implement event-time funding attribution and mark-price valuation. Keep spread/depth as explicit missing/stress scenarios until defensible proxies exist.
+- Reconcile `quant_backtest.py` with EXP-001 before comparing results: align next-bar fills, gap and same-bar stop/target handling, 24-hour time exit, fee/slippage accounting, funding events and drawdown definitions. No new strategy performance claim is made from this archive.
+- The EXP-001 rejection still stands. Live setup feedback is observational tie-breaker context only; no unvalidated research candidate enters production. Keep the visual-first multi-setup analyst and all risk thresholds unchanged.
