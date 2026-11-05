@@ -6,6 +6,7 @@ on:
       - ai-quant-rebuild
     paths:
       - .github/workflows/alerts.yml
+      - ai_analyst.py
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
