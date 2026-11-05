@@ -134,6 +134,34 @@ class TestDeterministicReplay(unittest.TestCase):
         self.assertEqual(trade["exit_reason"], "TP")
         self.assertAlmostEqual(trade["net_r"], 1.5, places=8)
 
+    def test_long_target_gap_precedes_later_intrabar_stop_touch(self):
+        bars = make_bars([
+            [100, 102, 99, 101],
+            [101, 103, 100, 102],
+            [111, 112, 94, 100],
+            [100, 101, 99, 100],
+        ])
+        signals = make_signals(bars.index, [(0, 1, 95, 110)])
+        result = run_backtest(bars, signals, config())
+        trade = result["trades"].iloc[0]
+        self.assertEqual(trade["exit_reason"], "TP_GAP")
+        self.assertFalse(bool(trade["same_bar_ambiguous"]))
+        self.assertAlmostEqual(trade["exit_price_raw"], 110.0)
+
+    def test_short_target_gap_precedes_later_intrabar_stop_touch(self):
+        bars = make_bars([
+            [100, 101, 98, 99],
+            [99, 100, 96, 97],
+            [89, 106, 88, 100],
+            [100, 101, 99, 100],
+        ])
+        signals = make_signals(bars.index, [(0, -1, 105, 90)])
+        result = run_backtest(bars, signals, config())
+        trade = result["trades"].iloc[0]
+        self.assertEqual(trade["exit_reason"], "TP_GAP")
+        self.assertFalse(bool(trade["same_bar_ambiguous"]))
+        self.assertAlmostEqual(trade["exit_price_raw"], 90.0)
+
     def test_fees_and_slippage_are_charged_on_both_sides(self):
         bars = make_bars([
             [100, 102, 99, 101],

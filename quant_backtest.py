@@ -161,11 +161,22 @@ def _exit_candidate(position: dict[str, Any], row: pd.Series,
         target_hit = high >= target
         stop_raw = min(open_price, stop) if open_price <= stop else stop
         target_raw = target
+        # The opening print is the first known price in the bar. If it gaps
+        # through a resting target, that target was reached before any later
+        # intrabar move; do not misclassify a subsequent stop touch as ambiguous.
+        if open_price <= stop:
+            return _adverse_fill(stop_raw, -side, slippage_bps), "SL_GAP", False
+        if open_price >= target:
+            return _adverse_fill(target_raw, -side, slippage_bps), "TP_GAP", False
     else:
         stop_hit = high >= stop
         target_hit = low <= target
         stop_raw = max(open_price, stop) if open_price >= stop else stop
         target_raw = target
+        if open_price >= stop:
+            return _adverse_fill(stop_raw, -side, slippage_bps), "SL_GAP", False
+        if open_price <= target:
+            return _adverse_fill(target_raw, -side, slippage_bps), "TP_GAP", False
     if stop_hit and target_hit:
         # OHLC does not reveal which level was first: resolve against the strategy.
         return _adverse_fill(stop_raw, -side, slippage_bps), "SL_SAME_BAR_AMBIGUITY", True
