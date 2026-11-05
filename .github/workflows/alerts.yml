@@ -46,21 +46,7 @@ jobs:
             salty-quant-market-${{ runner.os }}-
       - name: Run offline tests
         run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py
-      - name: Check Discord delivery configuration without reading secrets into logs
-        id: runtime
-        run: |
-          if [ -z "${DISCORD_TRIGGER_WEBHOOK:-}" ] && [ -z "${DISCORD_WEBHOOK:-}" ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "A Discord webhook secret is not configured; outcome delivery is unavailable."
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "Discord delivery is configured. The quant engine remains paper-only."
-          fi
-        env:
-          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Fetch closed OHLCV and run deterministic strategy supervisor
-        if: steps.runtime.outputs.ready == 'true'
         run: python quant_worker.py
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
