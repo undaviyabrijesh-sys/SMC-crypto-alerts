@@ -765,3 +765,44 @@ These near-zero linear associations do not support a simple standalone funding-c
 2. Redesign analyst prompt/schema/validator so independent evidence-supported setup families can compete and return `NO_TRADE` without a mandatory DNS anchor; connect it to the active worker only behind the existing mechanical risk gates.
 3. Retain fail-closed map handling and contiguous 5m outcome coverage; unresolved positions remain open rather than generating unconfirmed exits.
 4. Obtain owner decision on the legacy `main` schedule before any cutover. Do not modify `main`, merge PR #1, deploy, change secrets, enable live trading or place orders.
+
+## Supervisor verification — 2026-11-05 21:07 IST (Discord confidence formatting)
+
+### Repository / PR / CI
+- Branch ai-quant-rebuild code/test head: 73da58f467b29ecbfc0c763b39221ef75b887b55. PR #1 remains open, draft, unmerged, mergeable; 292 commits ahead of main, 0 behind, 48 changed files. Main ref remains e93ee289b36d47ca774e9a285fc76a2f4cbb5795.
+- Push CI [42056574107](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42056574107) and PR CI [42056587041](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42056587041) both completed successfully on the exact code/test head. Compile, visual pipeline, DNS worker, lifecycle, replay, reports, feedback, secret format, derivatives, Quant Discovery, live Delta feed and historical pilot steps passed.
+- No open inline PR review threads were returned. The latest branch run did not upload chart-review artifacts; this was a CI test/feed run, not a visual-desk analysis cycle.
+
+### Low-risk Discord formatting fix
+- discord.send_ai_trade() previously used float(confidence), which treated booleans as numeric scores (True became 1/100), accepted numeric strings, and allowed fractional values even though the validator/schema require an integral score.
+- Updated the formatter to display confidence only for a finite integral numeric value from 0 through 100. Booleans, strings, fractional, non-finite and out-of-range values are omitted; an integral float such as 86.0 is rendered as 86/100.
+- Implementation commit: [d70db9c](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/d70db9c3e40552ee7b7bf7db5021bd628f214c4c).
+- Regression commit: [73da58f](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/73da58f467b29ecbfc0c763b39221ef75b887b55). CI explicitly passed test_discord_execution_alert_rejects_malformed_confidence on push and PR runs. No risk thresholds changed.
+
+### Fresh public market-data CI snapshot (2026-11-05 15:36:21 UTC)
+- All 18 closed-bar/freshness checks passed for BTCUSD, ETHUSD and XAUTUSD across 5m, 15m, 1h, 4h, 1d and 1w.
+- Latest closed 5m observations: BTCUSD 76,585.00; ETHUSD 2,284.35; XAUTUSD 4,094.78. These are CI observations, not current quotes or trade recommendations.
+- Funding availability: 72 hourly candles per contract; mark: 864 five-minute candles per contract; OI: 72 hourly candles per contract.
+- BTC historical pilot: 1,051 candles, 100% observed coverage, zero gaps. This pilot is a small archive smoke test, not the full research dataset.
+
+### Model and visual pipeline
+- Official OpenAI API documentation confirms gpt-6-luna is a valid Responses API model with image input and structured outputs. Sources: [Models](https://developers.openai.com/api/docs/models) and [GPT-6 Sol/Luna availability](https://openai.com/index/introducing-gpt-6-sol-and-luna/).
+- This confirms model identifier/feature support only. The repository's API key quota and an actual Responses request were not tested; the last known live failure remains HTTP 429 insufficient_quota / credit_balance_exhausted.
+- The active worker remains DNS-map + local sweep/reclaim. The analyst prompt requires every actionable candidate to be anchored to a directional DNS zone; trend pullback, momentum, breakout/retest and mean-reversion cannot compete independently. The broad multi-setup analyst is not yet wired into the active worker.
+- No raw/annotated multi-timeframe chart artifacts or fresh model decision were available in this cycle. No Discord execution delivery was verified.
+
+### Default-branch workflow
+- Latest observed scheduled main run in the Actions listing: [42047540852](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42047540852), created 2026-11-05 14:42:05 UTC (20:12:05 IST), successful and explicitly ran legacy python main.py. The job environment contained configured legacy Discord webhook secrets (values masked); logs do not prove a Discord message was delivered.
+- The preceding observed schedule run was [42039207590](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42039207590), created 13:49:34 UTC (19:19:34 IST). No later scheduled main run appeared in the first Actions page at this check; this is a schedule-gap observation, not proof the workflow is disabled.
+- main/.github/workflows/alerts.yml still schedules the legacy advance-alerts workflow every 10 minutes. No main change was made. Owner decision remains required before pausing/cutover.
+
+### Quant Discovery
+- EXP-001 remains rejected; the OI/volatility-expansion screen remains rejected for BTC, ETH and XAUT. No candidate has survived the required OOS and cost robustness checks.
+- Funding settlement-event attribution/units and historical spread/depth remain unresolved; no funding P&L conversion or profitability claim is permitted. The 1,051-candle BTC pilot is insufficient for the requested multi-year, multi-asset walk-forward research.
+
+### Exact next steps
+1. Keep the Discord confidence formatting fix; verify the latest documentation-only handoff commit's CI.
+2. Restore/confirm API project quota, then run one manually dispatched paper-only visual cycle when available; inspect raw and annotated BTC/ETH/XAUT six-timeframe charts, model outputs, candidate comparison, validator decisions and Discord delivery.
+3. Redesign the analyst prompt/schema/validator so independent evidence-supported setup families can compete and return NO_TRADE without a mandatory DNS anchor; wire this into the active worker only behind unchanged mechanical risk gates.
+4. Expand and hash-verify the historical datasets for BTC, ETH and XAUT across required timeframes; retain chronological train/validation/OOS and walk-forward testing with realistic costs and explicit unavailable funding/spread inputs.
+5. Obtain owner decision on the legacy main schedule before cutover. Do not modify main, merge PR #1, deploy, change secrets, enable live trading or place orders.
