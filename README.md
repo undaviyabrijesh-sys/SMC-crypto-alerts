@@ -1,152 +1,103 @@
-# Salty Quant AI — Visual Market Desk
+# Salty Quant — Deterministic Multi-Strategy Paper Desk
 
-This development branch replaces the old coded SMC decision path with a vision-first AI analyst.
+This branch replaces the OpenAI chart-decision path with a deterministic, AI-free quantitative supervisor. The active persistent worker is `worker.py → quant_worker.py`; it does not import or call the OpenAI client, the visual analyst, or the legacy DNS detector.
 
-## Core design
+## Current operating mode: shadow research only
 
-1. A single persistent worker wakes on aligned five-minute boundaries.
-2. The data layer refreshes closed Delta OHLCV candles for BTCUSD, ETHUSD and XAUTUSD and persists the rolling market data.
-3. The local DNS engine loads the last AI-authored market map and monitors every new closed 5m candle without an AI call.
-4. A separate map-only multimodal AI request runs only when a map is missing, its four-hour refresh is due, or a confirmed 1h close breaks a mapped zone. All due symbols are batched into one request.
-5. AI returns demand/supply bands, quality, timeframe, visual evidence, liquidity, bias and structure only. It does not select entries or issue trade recommendations.
-6. The local engine's first deliberately narrow detector looks for a 5m liquidity sweep beyond an AI zone, reclaim close, confirming close beyond the sweep candle, and at least 2R room to the nearest opposing AI zone.
-7. Confirmed local candidates are paper-alerted to Discord; the existing closed-candle tracker reports TP, SL or TIME separately. No broker orders are placed.
+The six strategy families are implemented and run independently on closed OHLCV candles. Candidates are scored, mechanically validated, compared, and written to a durable JSONL research log. They are **not** sent to Discord as execution alerts yet.
 
-## Demand and supply visual workflow
+`quant_supervisor.APPROVED_STRATEGIES` is intentionally empty. The existing EXP-001 and OI/volatility screens did not validate a production-ready edge, so no strategy is currently promoted. Do not populate that set until a frozen strategy version has passed the documented chronological out-of-sample, walk-forward, parameter-neighbourhood, regime and stressed-cost review. The quality score is a transparent rule rubric, not a probability or measured win rate.
 
-Demand and supply (DNS) is the primary location framework on this branch. The vision model first maps demand/supply bands from the raw six-timeframe chart photo. Liquidity sweeps, CHOCH/BOS, trend pullbacks, FVGs, RBS/SBR, breakout/retests, momentum and range/mean-reversion patterns are evaluated only as sub-setups or confirmations at a relevant DNS zone; a mid-range standalone pattern cannot qualify.
+The worker still manages any already-open paper positions in the shared state file and sends their confirmed TP/SL/TIME outcomes. It does not submit broker/exchange orders.
 
-After the AI response, the same six-panel chart is rendered a second time with the model-reported demand bands (green), supply bands (red), and selected entry band (yellow outline) drawn only on their source timeframe panels. The original raw image remains the model input, so overlays do not steer the model's own zone detection. The chart renderer preserves each panel's original price scale and does not calculate zones.
+## Runtime architecture
 
-The latest review image for each symbol is atomically saved under `DATA_DIR/review_charts/<SYMBOL>_latest.png` (default `market_data/review_charts/`). Every successful visual decision also records its zone output and review-image path/hash in the research JSONL log. These review images are audit aids, not signals and not a replacement for chart review.
+1. `data.py` fetches public, closed Delta Exchange India OHLCV for BTCUSD, ETHUSD and XAUTUSD on 5m, 15m, 1h, 4h, 1d and 1w, validates candle integrity/freshness, and maintains rolling cache files.
+2. `quant_strategies.py` evaluates six independent strategy families using only closed OHLCV:
+   - Trend pullback (4h/1h EMA trend, 15m EMA20 pullback/reclaim, 5m confirmation).
+   - Breakout/retest (1h 20-bar range break, 15m level retest, 5m confirmation).
+   - Volatility expansion (15m ATR expansion plus 20-bar breakout, aligned with 4h/1h trend).
+   - Liquidity sweep reversal (15m sweep and close back inside a prior 20-bar range, then 5m confirmation).
+   - Mean reversion (1h Bollinger re-entry and RSI extreme, only in a balanced 4h regime).
+   - Momentum continuation (1h directional move, 4h/1h trend alignment, 15m displacement and 5m follow-through).
+3. `quant_supervisor.py` validates finite prices, direction/level ordering, 2R minimum, stop distance between 0.35 and 2.5 ATR, a minimum 75/100 rule-quality score, signal-candle freshness and one open paper position per symbol. Near-equal opposite-side candidates cause NO_TRADE. The top candidate is only a research preview unless its strategy ID is explicitly promoted after validation.
+4. `quant_worker.py` runs once per new closed 5m candle, records all candidates and the supervisor decision in `research/quant_signals.jsonl`, and only sends an execution alert for a promoted strategy. No model calls or image interpretation are involved.
+5. `trade_lifecycle.py` independently tracks open paper positions from contiguous closed 5m candles. A data gap leaves the outcome unresolved; it cannot infer a first TP/SL across an unobserved interval. Same-candle ambiguity is resolved conservatively as SL first.
+6. `discord.py` formats deterministic quant execution alerts and separate confirmed TP/SL/TIME updates. There are no WATCH/status messages. Alert delivery failure does not open a paper position.
 
-The mechanical trade gate now requires a LONG entry band to overlap an AI-mapped demand zone, or a SHORT entry band to overlap an AI-mapped supply zone, with zone quality at least 3/5 and current-price proximity within the existing threshold. Existing confidence, 2R, stop/target ordering, freshness and position limits remain unchanged. All other setup families remain secondary confirmations and cannot bypass DNS.
+## Scoring and risk controls
 
-Live visual verification requires a successful OpenAI API response. The last recorded real request reached the API but returned HTTP 429 `insufficient_quota / credit_balance_exhausted`; CI and synthetic chart tests do not establish that live AI zone detection is accurate or profitable. Restore API quota, run one manual paper-only cycle, then inspect the three latest review images and subsequent paper outcomes before making a performance claim.
-
-
-## AI map + local engine separation
-
-The active worker is `dns_worker.py`, not the former AI-per-candle `main.py` path. It refreshes OHLCV and runs the local watcher every five minutes. The AI map call is separate and only runs when a symbol has no map, the map reaches its configured age (default four hours), or the latest closed 1h candle invalidates a mapped zone.
-
-The persistent registry is `market_data/dns_map.json` (Docker volume: `/data/market_data/dns_map.json`). Every accepted AI map is versioned; previous maps are retained for audit. The AI response is map-only: demand/supply zones, quality, timeframe, evidence, liquidity, bias and structure. No entry, stop or target is requested from the model.
-
-The first local detector is intentionally conservative and narrow: it requires a 5m candle to sweep beyond a mapped zone and close back through the far edge, the next 5m candle to confirm beyond the sweep candle extreme, and at least 2R room to the nearest opposing AI zone. A confirmed close on a zone's own timeframe beyond its distal boundary blocks local triggers from that zone while a refresh is attempted. This is an initial testable detector, not a validated profitable strategy and not yet a complete implementation of every DNS sub-setup.
-
-The map refresh default is four hours and can be changed with `DNS_MAP_REFRESH_HOURS`. Local scanning makes no OpenAI request. If an AI refresh fails, the last map is retained, invalidated zones remain blocked, and the local watcher continues only where the map remains structurally valid. Trade alerts and outcomes are paper-only; no exchange orders are submitted.
-
-## AI model and API-credit controls
-
-- GPT-6 Luna is the default vision analyst model. It supports image input, the Responses API and strict structured outputs used for DNS-map responses.
-- Start with `OPENAI_REASONING_EFFORT=low`; raise it only after comparing chart-map quality on a fixed set of labelled examples. The supported values are `none`, `low`, `medium`, `high`, `xhigh` and `max`.
-- The worker makes one batched map request for all symbols whose maps need refreshing. The five-minute local watcher does not call the AI on every candle. A refresh is normally due after four hours or when the map is structurally invalidated; failed refreshes are throttled.
-- Luna reduces per-token cost, but it does not create free API usage or fix an exhausted API balance. An OpenAI `429 insufficient_quota` response means the API project needs available billing/credits before fresh AI maps can be produced. Changing models will not bypass that restriction.
-- API rate limits depend on the account's usage tier. Keep a single worker instance and monitor API usage before increasing refresh frequency or adding markets.
-
-## Data instruments
-
-- BTC: Delta Exchange BTCUSD perpetual.
-- ETH: Delta Exchange ETHUSD perpetual.
-- Gold: Delta Exchange XAUTUSD Tether Gold perpetual.
-- The public historical candle endpoint is used; no Delta API key is needed for market data. Delta's documentation explicitly marks `GET /history/candles` as unauthenticated, so adding an API key does not itself improve candle quality or historical coverage.
-- An optional, strictly read-only Delta client signs a `GET /v2/users/trading_preferences` request at worker startup to verify the credentials. The client exposes no order, transfer, or account-mutation methods and logs only a pass/fail marker, not account preference contents.
-- The six native resolutions are fetched directly from Delta (5m, 15m, 1h, 4h, 1d, 1w). Each request is deliberately kept below the API's 2,000-candle response cap.
-- These are traded-price candles for the configured Delta contracts, not Yahoo proxies or an unrelated spot/futures feed.
-
-## Recommended persistent worker deployment
-
-Use one always-on Docker host (a small VPS or an always-on container service). Do not run multiple worker replicas because state and paper-position files are shared.
-
-1. Copy .env.example to .env.
-2. Add a valid OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK to .env.
-3. Start the worker with: docker compose up -d --build
-4. Inspect logs with: docker compose logs -f
-5. The persistent ./salty_data volume stores state, rolling OHLCV, AI decision history and a heartbeat file across restarts.
-
-The worker runs immediately at startup, then aligns subsequent cycles to five-minute wall-clock boundaries. It never overlaps its own cycles. If one run overruns a boundary, it skips missed ticks rather than launching parallel analyses.
-
-**Use exactly one scheduler.** The GitHub Actions schedule is disabled by default unless the repository variable ENABLE_GITHUB_SCHEDULE=true is explicitly set. Leave it unset when the Docker worker is running, or both runtimes could create duplicate independent paper signals. GitHub schedule is best-effort and may be substantially delayed; it should be treated as a fallback, not a precise five-minute service.
-
-## Required runtime secrets
-
-For Docker, use .env:
-- OPENAI_API_KEY
-- DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK)
-
-Optional:
-- DELTA_API_KEY
-- DELTA_API_SECRET
-- DELTA_API_BASE_URL (defaults to https://api.india.delta.exchange)
-- OPENAI_MODEL (defaults to gpt-6-luna)
-- OPENAI_REASONING_EFFORT (defaults to low)
-- WORKER_INTERVAL_SECONDS (defaults to 300)
-
-For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK) as repository secrets. The optional Delta key is not checked on GitHub-hosted runners because Delta IP-whitelisting must match the runner's egress IP; use the authenticated smoke test from the whitelisted deployment host instead. Set repository variable ENABLE_GITHUB_SCHEDULE=true only when the Docker worker is not running.
-
-## Alert behaviour
-
-- No WATCH or generic market commentary messages are sent to Discord.
-- The local watcher runs every five minutes without AI calls. AI map refreshes are age/event driven (four-hour default), batched across due symbols, and throttled to at most one failed refresh attempt per symbol every 30 minutes.
+- Strategy families produce separate candidates; incompatible long and short ideas are never blended.
+- A candidate must match the latest closed 5m price exactly and pass the mechanical level/ATR/2R checks.
+- Rule-quality points are assembled from higher-timeframe alignment, the setup trigger, 5m confirmation, volume confirmation and valid risk geometry. They are not calibrated probabilities.
+- Selection requires a clear winner. Near-tied opposing candidates result in NO_TRADE.
+- Only strategy IDs in `APPROVED_STRATEGIES` may send execution alerts. The set is empty today; research previews are logged only.
 - One open paper position per symbol is allowed.
-- The first local detector supports only a confirmed DNS liquidity-sweep/reclaim pattern, with entry at the confirming closed 5m candle and a target at the nearest opposing mapped zone. Other sub-setups are not yet wired into the local detector.
-- Trade tracking is paper tracking, not a broker fill and not an exchange order. The entry is assumed at the confirming closed 5m candle close so the signal lifecycle can be measured consistently.
-- If Discord delivery fails, the alert is retried briefly; undelivered signals are not silently marked as active paper trades.
-- Same-candle TP/SL ambiguity is resolved conservatively as SL first.
-- Trade outcomes are sent as separate Discord messages when TP, SL or TIME exits are confirmed from closed 5m candles.
-- A daily paper P&L summary helper exists but is disabled in the provided Docker and GitHub Actions configurations (`ENABLE_DAILY_PNL_REPORT=false`). Only enable it after an explicit request; the default Discord stream is execution alerts plus confirmed TP/SL/TIME outcomes.
+- No order, leverage change, account mutation or live-trading action exists in this worker.
 
-## Data persistence and validation
+## AI and legacy modules
 
-- salty_data/ (Docker) stores state and raw data persistently. The GitHub Actions fallback uses Actions cache, which is a rolling development store and not a durable database.
-- The live Delta feed was tested from GitHub Actions for BTCUSD, ETHUSD and XAUTUSD across all six intervals. The test also checks candle integrity, UTC timestamps, closed-bar filtering and the production freshness gate.
-- CI runs Python compilation, offline rendering/signal-gate tests and the live public Delta feed smoke test.
-- CI success does not prove that OpenAI API credentials are configured, that Discord webhooks deliver, or that any trading setup has positive expectancy.
-- No strategy hit rate or backtest performance is claimed. First collect and label AI decisions, then build a replay/evaluation harness from preserved charts, candle data, prompts and outcomes.
+The runtime no longer requires `OPENAI_API_KEY`, an OpenAI model, visual chart images or DNS map refreshes. The old visual modules and legacy workflows remain in the repository for history/tests, but they are not imported by `worker.py` and are not the active Docker worker path on this branch. Do not use the legacy default-branch workflow as evidence that this new quant worker is running.
 
+## Instruments and data
 
-## Quant Discovery — historical data bootstrap
+- BTC: Delta Exchange India BTCUSD perpetual.
+- ETH: Delta Exchange India ETHUSD perpetual.
+- Gold: Delta Exchange India XAUTUSD Tether Gold perpetual; this is not spot XAUUSD.
+- Public candle data needs no Delta credentials. Optional Delta credentials are used only by a strictly read-only startup check.
+- The six native resolutions are fetched directly. Missing intervals are not filled.
+- The worker checks the freshness of all six intervals before generating candidates.
 
-The research archive is separate from the rolling market-data cache used by the visual analyst. It downloads public traded-price OHLCV for BTCUSD, ETHUSD and XAUTUSD on 5m, 15m, 1h, 4h, 1d and 1w. The default history window is three years; use explicit UTC dates to change it.
+## Run locally
 
-    python bootstrap_historical_data.py --years 3
+1. Copy `.env.example` to `.env`.
+2. Configure `DISCORD_TRIGGER_WEBHOOK` (or `DISCORD_WEBHOOK`) for future promoted alerts and existing paper outcome delivery. OpenAI credentials are not needed.
+3. Install and test:
+   ```bash
+   pip install -r requirements.txt
+   python -m compileall -q .
+   python test_quant_engine.py
+   python test_quant_backtest.py
+   python test_dns_engine.py
+   python smoke_delta_feed.py
+   ```
+4. Run one paper/shadow cycle:
+   ```bash
+   python quant_worker.py
+   ```
+5. Run the aligned persistent worker:
+   ```bash
+   docker compose up -d --build
+   docker compose logs -f
+   ```
 
-A narrower first run can be used to validate connectivity and storage before a full archive:
+The persistent `./salty_data` volume stores state, rolling candles, quant candidate logs and the worker heartbeat. Use one worker instance only.
 
-    python bootstrap_historical_data.py --start 2026-10-01 --end 2026-11-05 --symbols BTC --timeframes 5m 1h
+## Configuration
 
-The collector:
-- Uses Delta's public GET /v2/history/candles endpoint and never needs exchange credentials.
-- Keeps each request within the documented 2,000-candle response cap and runs sequentially with a conservative delay.
-- Retries rate limits and transient server/network failures with bounded backoff.
-- Resumes interrupted symbol/timeframe downloads from local chunk checkpoints; completed, hash-verified archives are skipped on later runs.
-- Validates timestamps and OHLCV values, removes duplicate timestamps deterministically, and never fills missing candles.
-- Writes one CSV per symbol/timeframe plus manifest.json and coverage.csv. Reports include duration-estimated requested-range coverage and observed-span coverage, missing-bar/gap counts, empty request windows, row count and SHA-256.
-- Writes atomically and keeps temporary chunks under historical_data/.work/.
+- `WORKER_INTERVAL_SECONDS`: aligned worker cycle interval; default 300 seconds.
+- `DATA_DIR`: rolling OHLCV cache directory.
+- `STATE_PATH`: persistent paper position/state JSON.
+- `QUANT_RESEARCH_PATH`: append-only deterministic candidate/decision log; default `research/quant_signals.jsonl`.
+- `DISCORD_TRIGGER_WEBHOOK` or `DISCORD_WEBHOOK`: execution/outcome destination.
+- `DELTA_API_KEY`, `DELTA_API_SECRET`: optional read-only startup validation only.
 
-The archive defaults to historical_data/ and is intentionally Git-ignored. Store this folder on durable local or mounted storage and back it up; do not commit large market datasets or treat a short-lived CI cache as the research archive. XAUTUSD is Delta's Tether Gold perpetual, not spot XAUUSD. This first collector records traded-price OHLCV only; it does not infer spread, order-book depth or funding costs. Those inputs must remain explicitly unavailable until separately collected and validated.
+GitHub Actions schedule remains opt-in through `ENABLE_GITHUB_SCHEDULE=true`; leave it unset unless a single scheduler is deliberately selected. Manual dispatch performs one paper/shadow cycle. No deployment or schedule enablement is performed by code commits.
 
-A cloud collection workflow is available at `.github/workflows/historical-archive.yml`. Its output is a temporary GitHub Actions artifact (14-day retention), not permanent storage. Export verified archives to durable storage and keep the raw files out of Git. The workflow is guarded against accidental repeat downloads.
+## Quant Discovery and promotion protocol
 
-Delta documents a maximum of 2,000 candles per historical-candle response. See the official [Delta historical OHLC candles API documentation](https://docs.delta.exchange/).
+Research is separate from the runtime signal engine. Existing historical screens rejected the baseline candidates; no strategy is currently production-approved. New hypotheses must be tested on verified historical data with:
 
-## Local validation
+- Data hashes, coverage, gaps, UTC timestamps and contract provenance.
+- Closed-candle decisions and next-executable-bar fills in the backtester.
+- Chronological train/validation/untouched OOS splits, purge/embargo and at least three walk-forward folds where data permits.
+- Fees, spread, slippage and funding only when event semantics are verified; unavailable costs remain explicit stress assumptions, never silently zero.
+- Win rate, sample size, expectancy, profit factor, max drawdown, longest losing streak, trade frequency and regime dependence.
+- Parameter-neighbourhood and 1.5x/2x stressed-cost robustness.
+- A written promotion review before adding a strategy ID to `APPROVED_STRATEGIES`.
 
-    pip install -r requirements.txt
-    python test_visual_pipeline.py
-    python smoke_delta_feed.py
-    python smoke_delta_auth.py
+The verified archive and experiment outputs live outside Git where appropriate. XAUT has materially shorter history than BTC/ETH; its results must not be described as three-year evidence. A green CI run proves code and feed checks, not a profitable trading edge.
 
-The offline test suite does not call the OpenAI API. The Delta feed smoke test uses the public market-data API. The authenticated smoke test requires DELTA_API_KEY and DELTA_API_SECRET to be set in the private environment and the machine's public IP to be included in the Delta key's whitelist. It makes one read-only request and does not place orders.
+## Safety boundary
 
-## Legacy modules
-
-zones.py, score.py, news.py, replay.py and legacy_synthetic_tests.py remain for reference. The new main.py does not import the old zone finder, old confluence scorer, or old WATCH/TRIGGER pipeline.
-
-
-### Quant Discovery initial screen
-
-After extracting the verified historical archive into historical_data/, run:
-
-    python quant_discovery/initial_screen.py --data-dir historical_data
-
-The script verifies all 18 CSV hashes/row counts before writing OOS, cost, regime, parameter-robustness and walk-forward summaries to quant_discovery/results/. Read quant_discovery/EXP001_INITIAL_SCREEN.md before interpreting results. The initial fixed-parameter screen rejected all baseline candidates at the stated cost scenario; no research result feeds production alerts.
+This branch is paper-only. It does not place exchange orders, enable live trading, change credentials, deploy infrastructure, or modify the default `main` branch. The legacy default-branch scheduled workflow is separate and must be resolved explicitly before any production cutover.
