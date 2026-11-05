@@ -268,7 +268,7 @@ def _liquidity_sweep(symbol, frames):
         return None
     return _make_candidate(
         symbol, frames, "LIQUIDITY_SWEEP_REVERSAL", "LIQUIDITY_SWEEP_REVERSAL",
-        direction, stop, text, trigger_points=27,
+        direction, stop, text, trigger_points=40,
     )
 
 
