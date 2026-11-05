@@ -731,3 +731,37 @@ These near-zero linear associations do not support a simple standalone funding-c
 3. Connect that multi-family selection to the active worker behind paper-only validation; keep mechanical gates and contiguous-bar outcome handling.
 4. Only after quota is confirmed, manually run a paper-only cycle, inspect raw/annotated BTC/ETH/XAUT six-timeframe images, candidate comparisons and validator decisions, then verify Discord delivery and a complete paper outcome.
 5. Obtain owner decision on the legacy main schedule before cutover. Do not modify main, merge PR #1, deploy, change secrets, enable live trading or place orders.
+
+## Supervisor verification — 2026-11-05 20:20 IST (unreadable DNS-map resilience)
+
+### Repository and CI
+- Code/test head: `53bdde265fc6ed26f1b9aefd9e414daa826742c5`; PR #1 remains open, draft, unmerged and mergeable. The branch is 289 commits ahead of `main`, 0 behind, with 48 changed files.
+- Code fix commit: `db12fba273077642eb9a179f06f8ceca180f0c60`. Regression-test commit: `53bdde265fc6ed26f1b9aefd9e414daa826742c5`.
+- Exact-head workflow run [42048541172](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42048541172) completed successfully. Compilation, visual pipeline, DNS worker, replay, daily report, feedback, secret-format, derivatives parser/archive, Quant Discovery, live OHLCV, derivatives smoke and historical pilot steps all passed.
+- The DNS/local watcher runner explicitly passed 17 tests, including new `test_worker_keeps_managing_positions_when_dns_map_is_unreadable`. No PR review threads were returned.
+
+### Safety fix
+- `dns_worker.run()` previously called `dns_engine.load_map()` before downloading fresh candles and managing existing paper positions. If the map file was corrupt/unreadable, the exception aborted the cycle before TP/SL/TIME monitoring.
+- The worker now catches map-load failure, continues fetching fresh market candles and managing existing paper positions, but blocks pending/new entries for affected symbols. It does not automatically overwrite the unreadable map or invoke the AI mapper while the map is unavailable.
+- Regression asserts position management runs once, the local detector and execution alert are not called, and state is saved.
+- This is a fail-closed safety improvement; no entry threshold or live-trading capability changed.
+
+### Fresh feed evidence (PR CI at 2026-11-05 14:48:52 UTC)
+- All 18 BTCUSD / ETHUSD / XAUTUSD × 5m/15m/1h/4h/1d/1w closed-bar and freshness checks passed.
+- Latest closed 5m snapshots: BTCUSD 78,846.50; ETHUSD 2,362.20; XAUTUSD 4,085.34. These are CI observations, not current quotes.
+- Funding availability: 71 hourly candles per contract; mark: 864 five-minute candles per contract; OI: 72 hourly candles per contract.
+- BTC historical pilot: 1,051 candles, 100% observed coverage, zero gaps.
+- Workflow artifact list is empty; this CI run did not publish chart-review images and does not establish a live AI chart decision or Discord delivery.
+
+### Remaining blockers and research status
+- The active worker remains DNS-map + local sweep/reclaim only. The broad `ai_analyst.analyse()` multi-setup selector is not wired into the active worker, and actionable trades still require a DNS anchor. Independent trend/pullback, momentum, breakout/retest and mean-reversion candidates cannot yet compete independently.
+- Branch `.github/workflows/alerts.yml` schedules every five minutes but scheduled execution is gated by `vars.ENABLE_GITHUB_SCHEDULE == 'true'`; manual dispatch is permitted. Do not enable scheduled execution or dispatch an alerting run until API quota and paper-only prerequisites are confirmed.
+- Last known OpenAI quota blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`; no fresh API request was made. No new raw/annotated chart, AI decision or Discord webhook delivery is verified.
+- The default `main` workflow still contains the legacy 10-minute `advance-alerts` schedule running `python main.py` with legacy Discord webhook configuration. The last specifically documented successful scheduled run is [42039207590](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42039207590) at 13:49:34 UTC. No `main` changes were made; owner decision remains required before pausing/cutover.
+- EXP-001 and the OI/volatility expansion screen remain rejected. No validated edge or production-eligible research candidate exists. Funding event attribution/units and historical spread/depth remain unresolved.
+
+### Exact next steps
+1. Restore/confirm API project quota, then manually run one paper-only visual cycle and inspect raw/annotated BTC/ETH/XAUT six-timeframe images, model output, candidate comparisons, validator decisions and Discord delivery.
+2. Redesign analyst prompt/schema/validator so independent evidence-supported setup families can compete and return `NO_TRADE` without a mandatory DNS anchor; connect it to the active worker only behind the existing mechanical risk gates.
+3. Retain fail-closed map handling and contiguous 5m outcome coverage; unresolved positions remain open rather than generating unconfirmed exits.
+4. Obtain owner decision on the legacy `main` schedule before any cutover. Do not modify `main`, merge PR #1, deploy, change secrets, enable live trading or place orders.
