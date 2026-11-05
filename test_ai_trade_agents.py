@@ -102,6 +102,13 @@ class AgentReviewTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "ERROR")
 
+    def test_only_disabled_or_explicitly_approved_reviews_may_proceed(self):
+        for status in ("DISABLED", "APPROVED"):
+            self.assertTrue(ai_trade_agents.allows_candidate({"status": status}))
+        for status in ("REJECTED", "ERROR", "COOLDOWN", "UNKNOWN"):
+            self.assertFalse(ai_trade_agents.allows_candidate({"status": status}))
+        self.assertFalse(ai_trade_agents.allows_candidate(None))
+
     def test_evidence_packet_uses_last_three_closed_bars(self):
         candidate, snapshot, frames = _inputs()
         evidence = ai_trade_agents._market_evidence(candidate, snapshot, frames)
