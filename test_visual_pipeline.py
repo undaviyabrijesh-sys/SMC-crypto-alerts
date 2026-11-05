@@ -149,18 +149,50 @@ def test_visual_chart_draws_ai_dns_overlays_on_matching_panels():
         "5m": candles("5min", 130)
     }
     analysis = {
-        "demand_zones": [{"low": 101.0, "high": 102.0, "timeframe": "15m", "quality": 4, "evidence": "Bullish base."}],
-        "supply_zones": [{"low": 103.5, "high": 104.5, "timeframe": "4h", "quality": 5, "evidence": "Bearish base."}],
-        "selected_entry_zone": {"low": 101.2, "high": 101.7, "timeframe": "15m", "evidence": "Refined demand trigger."}
+        "demand_zones": [{"low": 102.8, "high": 103.4, "timeframe": "15m", "quality": 4, "evidence": "Bullish base."}],
+        "supply_zones": [{"low": 102.7, "high": 103.0, "timeframe": "4h", "quality": 5, "evidence": "Bearish base."}],
+        "selected_entry_zone": {"low": 102.95, "high": 103.15, "timeframe": "15m", "evidence": "Refined demand trigger."}
     }
     raw = render_symbol_chart("BTC", frames, pd.Timestamp("2026-11-04 12:00", tz="UTC"))
     reviewed = render_symbol_chart(
         "BTC", frames, pd.Timestamp("2026-11-04 12:00", tz="UTC"), annotations=analysis
     )
-    assert raw.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
-    assert reviewed.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+    assert raw.startswith(b"\x89PNG\r\n\x1a\n")
+    assert reviewed.startswith(b"\x89PNG\r\n\x1a\n")
     assert reviewed != raw
     assert len(reviewed) > 20_000
+
+
+def test_latest_dns_review_chart_is_saved_atomically():
+    import hashlib
+
+    frames = {
+        "1w": candles("7D", 80), "1d": candles("1D", 110), "4h": candles("4h", 110),
+        "1h": candles("1h", 130), "15m": candles("15min", 130),
+        "5m": candles("5min", 130)
+    }
+    analysis = {
+        "demand_zones": [{"low": 102.8, "high": 103.4, "timeframe": "15m", "quality": 4, "evidence": "Bullish base."}],
+        "supply_zones": [{"low": 102.7, "high": 103.0, "timeframe": "4h", "quality": 5, "evidence": "Bearish base."}]
+    }
+    with tempfile.TemporaryDirectory(prefix="salty-dns-review-") as folder:
+        old = os.environ.get("CHART_REVIEW_DIR")
+        os.environ["CHART_REVIEW_DIR"] = folder
+        try:
+            saved = main._save_zone_review_chart(
+                "BTC", frames, analysis, pd.Timestamp("2026-11-04 12:00", tz="UTC")
+            )
+        finally:
+            if old is None:
+                os.environ.pop("CHART_REVIEW_DIR", None)
+            else:
+                os.environ["CHART_REVIEW_DIR"] = old
+        with open(saved["path"], "rb") as handle:
+            image = handle.read()
+        assert image.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(image) == saved["bytes"]
+        assert hashlib.sha256(image).hexdigest() == saved["sha256"]
+        assert not os.path.exists(saved["path"] + ".tmp")
 
 
 def test_valid_long_trade_is_repriced_to_latest_close():
