@@ -63,7 +63,7 @@ For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or 
 - If Discord delivery fails, the alert is retried briefly; undelivered signals are not silently marked as active paper trades.
 - Same-candle TP/SL ambiguity is resolved conservatively as SL first.
 - Trade outcomes are sent as separate Discord messages when TP, SL or TIME exits are confirmed from closed 5m candles.
-- The daily paper P&L summary is enabled in the provided Docker and GitHub Actions runtime configurations. It is sent after 00:05 Asia/Kolkata for the prior IST day, grouped by instrument and selected setup, and reported in gross R (not INR account P&L).
+- A daily paper P&L summary helper exists but is disabled in the provided Docker and GitHub Actions configurations (`ENABLE_DAILY_PNL_REPORT=false`). Only enable it after an explicit request; the default Discord stream is execution alerts plus confirmed TP/SL/TIME outcomes.
 
 ## Data persistence and validation
 
