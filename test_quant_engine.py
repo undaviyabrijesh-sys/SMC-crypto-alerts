@@ -7,6 +7,7 @@ import pandas as pd
 import quant_strategies
 import quant_supervisor
 import quant_worker
+import discord
 
 
 def candidate(strategy_id="TREND_PULLBACK", direction="LONG", score=84):
@@ -144,6 +145,29 @@ class TestQuantSupervisor(unittest.TestCase):
         item["entry"] = float("nan")
         ok, _ = quant_supervisor.validate_candidate(item, 100.0, item["signal_candle"])
         self.assertFalse(ok)
+
+    def test_quant_discord_alert_is_execution_focused_and_does_not_claim_probability(self):
+        captured = {}
+        original = discord._post
+        discord._post = lambda message: captured.setdefault("message", message) and True
+        trade = {
+            "signal_id": "QNT001", "dir": "long", "setup_type": "TREND_PULLBACK",
+            "strategy_id": "TREND_PULLBACK", "quality_score": 84, "entry": 100.0,
+            "sl": 98.0, "tp": 104.4, "rr": 2.2,
+            "timeframes_in_agreement": ["4h", "1h", "15m", "5m"],
+            "rationale": "4h/1h trend with a confirmed 15m pullback.",
+            "invalidation": "Close below the pullback swing low.",
+        }
+        try:
+            self.assertTrue(discord.send_quant_trade("BTC", trade, lambda value: f"{value:.1f}"))
+        finally:
+            discord._post = original
+        message = captured["message"]
+        self.assertIn("SALTY QUANT — LONG BTC", message)
+        self.assertIn("Rule quality: **84/100** (rubric points, not probability)", message)
+        self.assertIn("Validated R:R: **2.20R**", message)
+        self.assertNotIn("Confidence", message)
+        self.assertNotIn("WATCH", message)
 
 
 if __name__ == "__main__":
