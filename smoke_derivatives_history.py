@@ -86,6 +86,9 @@ def probe(session, symbol, series_name, start_epoch, end_epoch):
     )
     response.raise_for_status()
     frame = validate_payload(response.json(), label, allow_negative=allow_negative)
+    sample = frame.tail(3).reset_index()
+    if not sample.empty:
+        sample["timestamp"] = sample["timestamp"].astype(str)
     return {
         "series": series_name,
         "symbol_alias": symbol,
@@ -96,7 +99,7 @@ def probe(session, symbol, series_name, start_epoch, end_epoch):
         "row_count": int(len(frame)),
         "first_timestamp_utc": frame.index[0].isoformat() if len(frame) else None,
         "last_timestamp_utc": frame.index[-1].isoformat() if len(frame) else None,
-        "sample": frame.tail(3).reset_index().to_dict(orient="records"),
+        "sample": sample.to_dict(orient="records"),
         "status": "available" if len(frame) else "empty",
     }
 
