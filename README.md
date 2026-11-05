@@ -12,6 +12,18 @@ This development branch replaces the old coded SMC decision path with a vision-f
 6. A deterministic safety layer checks the AI's proposed direction, entry freshness, stop/target ordering, minimum R:R and confidence threshold. It cannot create zones or trading setups.
 7. Only validated actionable trade alerts are sent to Discord. The paper tracker reports TP, SL or TIME as a separate update.
 
+## Demand and supply visual workflow
+
+Demand and supply (DNS) is the primary location framework on this branch. The vision model first maps demand/supply bands from the raw six-timeframe chart photo. Liquidity sweeps, CHOCH/BOS, trend pullbacks, FVGs, RBS/SBR, breakout/retests, momentum and range/mean-reversion patterns are evaluated only as sub-setups or confirmations at a relevant DNS zone; a mid-range standalone pattern cannot qualify.
+
+After the AI response, the same six-panel chart is rendered a second time with the model-reported demand bands (green), supply bands (red), and selected entry band (yellow outline) drawn only on their source timeframe panels. The original raw image remains the model input, so overlays do not steer the model's own zone detection. The chart renderer preserves each panel's original price scale and does not calculate zones.
+
+The latest review image for each symbol is atomically saved under `DATA_DIR/review_charts/<SYMBOL>_latest.png` (default `market_data/review_charts/`). Every successful visual decision also records its zone output and review-image path/hash in the research JSONL log. These review images are audit aids, not signals and not a replacement for chart review.
+
+The mechanical trade gate now requires a LONG entry band to overlap an AI-mapped demand zone, or a SHORT entry band to overlap an AI-mapped supply zone, with zone quality at least 3/5 and current-price proximity within the existing threshold. Existing confidence, 2R, stop/target ordering, freshness and position limits remain unchanged. All other setup families remain secondary confirmations and cannot bypass DNS.
+
+Live visual verification requires a successful OpenAI API response. The last recorded real request reached the API but returned HTTP 429 `insufficient_quota / credit_balance_exhausted`; CI and synthetic chart tests do not establish that live AI zone detection is accurate or profitable. Restore API quota, run one manual paper-only cycle, then inspect the three latest review images and subsequent paper outcomes before making a performance claim.
+
 ## Data instruments
 
 - BTC: Delta Exchange BTCUSD perpetual.
