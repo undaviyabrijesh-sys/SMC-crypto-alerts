@@ -1,6 +1,6 @@
 # Salty Quant — Deterministic Multi-Strategy Paper Desk
 
-This branch replaces the OpenAI chart-decision path with a deterministic, AI-free quantitative supervisor. The active persistent worker is `worker.py → quant_worker.py`; it does not import or call the OpenAI client, the visual analyst, or the legacy DNS detector.
+This branch keeps two selectable paper/research lanes. The default `WORKER_MODE=quant` runs the deterministic multi-strategy supervisor without AI calls. Set `WORKER_MODE=dns` to run the visual DNS mapper plus a local five-minute watcher; its optional Bull/Bear/Chief Trader debate is invoked only after a local DNS setup appears. Both lanes are paper-only and keep deterministic risk checks authoritative.
 
 ## Current operating mode: shadow research only
 
@@ -37,7 +37,9 @@ The worker still manages any already-open paper positions in the shared state fi
 
 ## AI and legacy modules
 
-The runtime no longer requires `OPENAI_API_KEY`, an OpenAI model, visual chart images or DNS map refreshes. The old visual modules and legacy workflows remain in the repository for history/tests, but they are not imported by `worker.py` and are not the active Docker worker path on this branch. Do not use the legacy default-branch workflow as evidence that this new quant worker is running.
+The default `quant` lane does not require `OPENAI_API_KEY`, chart images or DNS map refreshes. The optional `dns` lane reuses the visual DNS map pipeline: one batched map refresh when a symbol has no map, its refresh interval expires, or a mapped zone is invalidated. The local watcher then checks closed candles on every worker cycle without calling a model.
+
+For a rare confirmed DNS candidate, `ai_trade_agents.py` can run three separate roles in sequence: Bull Researcher, Bear Researcher and Chief Trader. This is opt-in through `AI_TRADE_DEBATE_ENABLED=true`; an explicit Chief Trader APPROVE is required when enabled. Missing API access, malformed output, REJECT or NO_TRADE blocks that candidate. The agents cannot change entry, stop or target. The deterministic DNS validation and paper position limits remain authoritative. See [TRADINGAGENTS_ADAPTATION.md](TRADINGAGENTS_ADAPTATION.md) for the design and setup.
 
 ## Instruments and data
 
@@ -58,6 +60,7 @@ The runtime no longer requires `OPENAI_API_KEY`, an OpenAI model, visual chart i
    python -m compileall -q .
    python test_quant_engine.py
    python test_quant_backtest.py
+   python test_ai_trade_agents.py
    python test_dns_engine.py
    python smoke_delta_feed.py
    ```
@@ -70,6 +73,8 @@ The runtime no longer requires `OPENAI_API_KEY`, an OpenAI model, visual chart i
    docker compose up -d --build
    docker compose logs -f
    ```
+
+The default worker uses the AI-free quant lane. For the visual DNS lane, set `WORKER_MODE=dns` in `.env`. To add the three-role candidate debate, also set `AI_TRADE_DEBATE_ENABLED=true` and configure `OPENAI_API_KEY`. Keep the debate disabled to use only the infrequent DNS map refresh and the local watcher.
 
 The persistent `./salty_data` volume stores state, rolling candles, quant candidate logs and the worker heartbeat. Use one worker instance only.
 
