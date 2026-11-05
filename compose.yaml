@@ -11,7 +11,7 @@ services:
       RESEARCH_PATH: /data/research/visual_decisions.jsonl
       HEARTBEAT_PATH: /data/worker_heartbeat.json
       WORKER_INTERVAL_SECONDS: "300"
-      ENABLE_DAILY_PNL_REPORT: "true"
+      ENABLE_DAILY_PNL_REPORT: "false"
       OPENAI_REASONING_EFFORT: high
     volumes:
       - ./salty_data:/data
