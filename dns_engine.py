@@ -69,7 +69,7 @@ def _clean_zones(zones, side):
         except (KeyError, TypeError, ValueError, OverflowError):
             continue
         if (not math.isfinite(low) or not math.isfinite(high) or low <= 0
-                or low >= high or quality < MIN_ZONE_QUALITY or quality > 5
+                or low >= high or quality < 1 or quality > 5
                 or timeframe not in TIMEFRAMES or not evidence):
             continue
         key = (round(low, 10), round(high, 10), timeframe)
