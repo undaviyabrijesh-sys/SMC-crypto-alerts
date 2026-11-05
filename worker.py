@@ -78,7 +78,7 @@ def run_forever():
 
     print(
         f"[worker] Salty Quant AI DNS local-monitoring desk starting; interval={INTERVAL_SECONDS}s; "
-        f"model={os.environ.get('OPENAI_MODEL', 'gpt-6.1-terra')}; single worker only",
+        f"model={os.environ.get('OPENAI_MODEL', 'gpt-6-luna')}; single worker only",
         flush=True
     )
     _heartbeat("starting")
