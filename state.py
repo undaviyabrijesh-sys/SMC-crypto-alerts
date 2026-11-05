@@ -30,6 +30,8 @@ def load():
     state.setdefault("last_ai_candle", {})
     state.setdefault("last_analysis_at", None)
     state.setdefault("last_market_commentary", "")
+    state.setdefault("daily_reports_sent", [])
+    state.setdefault("pending_daily_reports", {})
     return state
 
 
