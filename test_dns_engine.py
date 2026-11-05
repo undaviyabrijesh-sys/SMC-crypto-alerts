@@ -116,7 +116,7 @@ def test_zone_invalidation_uses_the_zone_own_timeframe():
     assert "DEMAND_ZONE_BROKEN" in reasons
 
 
-def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False, agent_reviewer=None):
+def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False, agent_reviewer=None, candidate_extra=None):
     """Run one isolated worker cycle and return detector/alert call counts."""
     import os
     import tempfile
@@ -178,7 +178,10 @@ def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False, agen
                  patch.object(dns_worker.main, "build_context", return_value={}), \
                  patch.object(dns_worker, "render_symbol_chart", return_value=b"test-png"), \
                  patch.object(dns_worker.main, "_save_zone_review_chart"), \
-                 patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[candidate]) as detector, \
+                 patch.object(
+                     dns_worker.dns_engine, "detect_local_setup",
+                     return_value=[candidate] + ([candidate_extra] if candidate_extra else [])
+                 ) as detector, \
                  patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert:
                 dns_worker.run(
                     now=now, fetcher=lambda *args, **kwargs: None,
@@ -203,6 +206,32 @@ def test_worker_allows_candidate_after_explicit_agent_approval():
     assert detector_calls == 1
     assert alert_calls == 1
     reviewer.assert_called_once()
+
+
+def test_worker_debates_only_the_highest_ranked_candidate_per_symbol_cycle():
+    from unittest.mock import Mock
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+    mapper = lambda *args, **kwargs: ({"analyses": [{"symbol": "BTC"}]}, {"model": "test"})
+    second = {
+        "zone_id": "ZONE2", "setup_type": "DNS_LIQUIDITY_SWEEP_RECLAIM",
+        "event_candle": "2026-11-05T14:55:00+00:00", "direction": "LONG",
+        "zone_side": "DEMAND", "zone_low": 99.7, "zone_high": 100.3,
+        "zone_timeframe": "4h", "zone_quality": 5,
+        "entry": 100.5, "stop_loss": 98.0, "take_profit": 105.5, "rr": 2.2,
+    }
+    reviewer = Mock(return_value={
+        "status": "APPROVED", "decision": "APPROVE",
+        "bull": {"stance": "SUPPORT"}, "bear": {"stance": "CHALLENGE"},
+        "trader": {"rationale": "Reviewed."},
+    })
+    detector_calls, alert_calls = _run_worker_refresh_case(
+        now, state, mapper, agent_reviewer=reviewer, candidate_extra=second
+    )
+    assert detector_calls == 1
+    assert alert_calls == 1
+    reviewer.assert_called_once()
+    assert reviewer.call_args.args[0]["zone_quality"] == 5
 
 
 def test_worker_vetoes_candidate_when_agents_reject_or_error():
