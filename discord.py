@@ -63,6 +63,14 @@ def send_ai_trade(sym, trade, fmt):
     ])
     if trade.get("tp2") is not None:
         lines.append(f"Target 2: **{fmt(trade['tp2'])}**")
+    agent_review = trade.get("agent_review")
+    if isinstance(agent_review, dict) and agent_review.get("status") == "APPROVED":
+        lines.append(
+            "AI desk debate: "
+            f"Bull {agent_review.get('bull_stance', '—')} · "
+            f"Bear {agent_review.get('bear_stance', '—')} · "
+            f"Chief {agent_review.get('decision', 'APPROVE')}"
+        )
     lines.extend([
         f"Validated R:R to T1: **{trade['rr']:.2f}R**",
         f"Bias: {trade.get('bias', 'UNCLEAR')} | Timeframes: {', '.join(trade.get('timeframes_in_agreement', [])) or 'mixed'}",
