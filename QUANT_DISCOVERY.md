@@ -483,3 +483,33 @@ These near-zero linear associations do not support a simple standalone funding-c
 2. Reconcile one funding event per contract against a known payment/event record to establish historical candle unit, sign and same-boundary versus lagged attribution.
 3. Add reproducible funding-boundary and OI/mark feature experiments with chronological splits, block-aware uncertainty, costs and exact event attribution. Keep XAUT's short history and ETH's single non-aligned change explicit.
 4. Until that is complete, keep funding as a raw descriptive feature only; EXP-001 remains rejected and no research candidate enters production alerts.
+
+
+## Supervisor handoff — 2026-11-05 12:52 IST
+
+### Exact repository state rechecked
+- Branch `ai-quant-rebuild` head before this handoff-only update: `b7e0c9e74506dd36e82bbfcb9df96c3504b537c8` (commit message: "Document funding boundary and OI exploratory findings", 2026-11-05 05:53:09 UTC).
+- Draft PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1) remains open, draft, mergeable and unmerged; base `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`; 250 commits / 45 changed files at this check.
+- Exact-head push CI [41976807017](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41976807017) and PR CI [41976811826](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41976811826) both completed successfully. The PR-triggered run for this SHA is the same successful PR CI run.
+- No review submissions or inline review threads were returned. No new code defect was found that justified a low-risk code change in this cycle; no code thresholds or runtime behaviour were changed.
+
+### Fresh operational evidence
+- Default-branch legacy scheduled run [41980193244](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41980193244) completed successfully on `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795` on 2026-11-05 06:24 UTC. Its job executed `python main.py`; the runner log showed the legacy Discord webhook environment variables present (values redacted). This proves the old scheduled code path ran, not that a Discord message was delivered.
+- `main/.github/workflows/alerts.yml` still schedules `advance-alerts` every 10 minutes and executes `python main.py`. The branch `.github/workflows/alerts.yml` defines `salty-quant-visual-desk` every five minutes but gates scheduled analysis on repository variable `ENABLE_GITHUB_SCHEDULE == 'true'`; it also supports manual dispatch. Because PR #1 is unmerged and scheduled workflows run from the default branch, the branch visual workflow is not the current default scheduled runner. No change was made to `main`, workflow settings or secrets.
+- The latest CI run checked all 18 BTCUSD/ETHUSD/XAUTUSD × six-timeframe public OHLCV combinations and the public funding/mark/OI probes. Last verified 5m closes at 2026-11-05 05:53 UTC were BTC 80407.0, ETH 2419.45 and XAUT 4098.27. This is a dated feed smoke test, not a quote for 12:52 IST.
+- The latest push CI and PR CI runs have no uploaded artifacts. The latest legacy scheduled run also has no uploaded artifacts. No current raw or AI-annotated chart images are available in GitHub artifacts for visual inspection during this cycle.
+- The active branch runtime remains `worker.py → dns_worker.py`. It builds six-timeframe chart images, but calls `ai_analyst.map_dns()` only when the map is missing/aged/broken, then lets the narrow local DNS sweep/reclaim detector generate paper candidates. The broader `ai_analyst.analyse()` path is not called by the active worker.
+- The analyst prompt still makes demand/supply mandatory for every trade and restricts trend, momentum, breakout/retest and mean-reversion candidates to DNS-anchored sub-setups. This is narrower than the supervisor requirement to compare independently suitable evidence-supported approaches rather than force DNS as the universal location framework. Do not describe multi-family analysis as active until the prompt, schema, mechanical validator and active worker are updated and tested together.
+- No fresh Responses API call was made because there was no manual visual-workflow run or current chart artifact to inspect. The last known OpenAI API blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`. Actual Discord delivery remains unverified.
+
+### Current safety / research status
+- Existing branch gates remain: AI confidence >=75, minimum 2R, selected-entry-zone proximity <=0.35%, quality >=3 for the DNS detector, directionally valid SL/TP, one open paper position per symbol, and closed-5m TP/SL/TIME tracking. Discord execution and separate outcome formatting are implemented; delivery is not verified.
+- EXP-001 remains rejected: all 30 OOS asset/timeframe/strategy cells had negative expectancy under the documented base cost/adverse-carry assumptions. Funding/OI findings remain descriptive; raw funding candle units and same-boundary versus lagged settlement attribution are not reconciled. No candidate is approved as an edge.
+- No deployment, secret change, live trading, broker order, PR merge, or `main` edit occurred.
+
+### Exact next steps
+1. Keep the legacy default-branch workflow unchanged until the owner makes an explicit decision; do not silently disable it.
+2. Restore OpenAI API quota, then manually dispatch one paper-only visual workflow cycle and inspect all raw/annotated BTC/ETH/XAUT multi-timeframe chart images, model outputs, validator decisions and any Discord delivery result.
+3. Redesign the visual analyst so it compares independent candidate families (SMC/structure, DNS, liquidity, S/R, trend pullback, momentum, breakout/retest and volatility/mean-reversion) where the chart evidence supports them; permit `NO_TRADE`. Remove the mandatory DNS anchor for non-DNS families without weakening numeric risk gates.
+4. Wire that analyst into the active worker only after schema and mechanical-validator tests cover every family; local code must validate prices/risk and track outcomes, not invent zones or decide market structure.
+5. Continue contract-specific funding event reconciliation; do not convert historical funding candles or book them into P&L until units, sign and event timing are independently verified.
