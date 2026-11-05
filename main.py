@@ -1,5 +1,6 @@
 """Salty Quant AI: raw OHLCV -> chart images -> visual AI analysis -> validated execution alerts."""
 import json
+import math
 import os
 import uuid
 from pathlib import Path
@@ -75,11 +76,13 @@ def validate_trade(analysis, current_price, has_open_position=False):
         model_entry = float(analysis["entry"])
         sl = float(analysis["stop_loss"])
         tp1 = float(analysis["take_profit_1"])
+        current_price = float(current_price)
     except (TypeError, ValueError, KeyError):
         return None, "entry, stop-loss or first target is missing"
-    if min(model_entry, sl, tp1, float(current_price)) <= 0:
+    if not all(math.isfinite(value) for value in (model_entry, sl, tp1, current_price)):
+        return None, "price levels must be finite"
+    if min(model_entry, sl, tp1, current_price) <= 0:
         return None, "non-positive price level"
-    current_price = float(current_price)
     deviation_pct = abs(model_entry - current_price) / current_price * 100
     if deviation_pct > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
         return None, f"AI entry is {deviation_pct:.2f}% away from the latest close"
@@ -110,7 +113,7 @@ def validate_trade(analysis, current_price, has_open_position=False):
         zone_evidence = str(selected_zone["evidence"])
     except (TypeError, ValueError, KeyError):
         return None, "AI selected entry zone is incomplete"
-    if not (0 < zone_low < zone_high):
+    if not all(math.isfinite(value) for value in (zone_low, zone_high)) or not (0 < zone_low < zone_high):
         return None, "AI selected entry zone has invalid price bounds"
     if zone_timeframe not in ("1w", "1d", "4h", "1h", "15m", "5m"):
         return None, "AI selected entry zone has an invalid timeframe"
@@ -123,7 +126,11 @@ def validate_trade(analysis, current_price, has_open_position=False):
     if tp2 is not None:
         try:
             tp2 = float(tp2)
-            if (direction == "LONG" and tp2 <= tp1) or (direction == "SHORT" and tp2 >= tp1):
+            if (
+                not math.isfinite(tp2)
+                or (direction == "LONG" and tp2 <= tp1)
+                or (direction == "SHORT" and tp2 >= tp1)
+            ):
                 tp2 = None
         except (TypeError, ValueError):
             tp2 = None
