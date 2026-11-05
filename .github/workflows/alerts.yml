@@ -1,6 +1,11 @@
 name: salty-quant-visual-desk
 
 on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - .github/workflows/alerts.yml
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -14,7 +19,7 @@ permissions:
 
 jobs:
   analyse:
-    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -45,12 +50,31 @@ jobs:
             salty-quant-market-${{ runner.os }}-
       - name: Run offline pipeline tests
         run: python test_visual_pipeline.py
+      - name: Check runtime secrets without exposing their values
+        id: runtime
+        run: |
+          if [ -z "${OPENAI_API_KEY:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "OPENAI_API_KEY is not configured; AI analysis will be skipped."
+          elif [ -z "${DISCORD_TRIGGER_WEBHOOK:-}" ] && [ -z "${DISCORD_WEBHOOK:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "A Discord webhook secret is not configured; AI analysis will be skipped."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Required AI and Discord secrets are configured."
+          fi
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Download data, render charts, and ask AI analyst
+        if: steps.runtime.outputs.ready == 'true'
         run: python main.py
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-6.1-terra' }}
           OPENAI_REASONING_EFFORT: high
+          ENABLE_DAILY_PNL_REPORT: "true"
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
