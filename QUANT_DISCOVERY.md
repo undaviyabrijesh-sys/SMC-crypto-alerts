@@ -557,7 +557,7 @@ These near-zero linear associations do not support a simple standalone funding-c
 ### Test-coverage defect found and fixed
 - CI invokes `python test_dns_engine.py`, but the file previously defined test functions without a `__main__` runner; direct script execution therefore defined the tests without executing them. Added a deterministic runner so this CI step actually executes the DNS tests.
 - Added four worker-level regressions: refresh throttled, AI refresh failure, refresh response omits symbol, and successful refresh resumes scanning.
-- The latest known PR CI before these changes was run [41994333863](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41994333863) and passed. New push/PR CI for the fixes must be checked before treating them as validated.
+- The earlier PR CI [41994333863](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41994333863) passed before the stale-map fixes. The subsequent PR CI [42009355459](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42009355459) passed on head `2490a1f`; the latest PR CI [42009630441](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42009630441) passed on head `122c26a` after adding the refresh-check exception regression.
 
 ### Current limitations and next steps
 - The PR CI run above had one test job and no uploaded chart artifacts. It does not establish a live visual-AI decision or Discord delivery.
@@ -567,3 +567,18 @@ These near-zero linear associations do not support a simple standalone funding-c
 - EXP-001 remains rejected (30/30 baseline OOS cells negative under stated assumptions). Funding event unit/sign/timing reconciliation remains open; no candidate is promoted.
 - Next: verify both CI workflows on the new branch head; after API quota is restored, manually dispatch a paper-only visual cycle and inspect raw/annotated six-timeframe charts, model output, validator decisions and Discord delivery evidence. Do not enable scheduled visual runs or production cutover as part of this work.
 - No main-branch change, merge, deployment, secret change, live trading or exchange order.
+
+
+## Final supervisor verification — 2026-11-05 15:49 IST
+
+- Latest code/test head verified by PR CI: `122c26a633dbc703e74dd01f2f1bd013decd39dc`. PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1) remains open, draft, unmerged and mergeable; `ai-quant-rebuild` is 259 commits ahead of `main`, 0 behind, with 45 changed files.
+- PR CI [42009630441](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42009630441) completed successfully on that exact head. The job log explicitly shows 11 DNS tests executed and passed, including refresh throttled, AI refresh failure, response omitting a symbol, refresh-check exception, and successful refresh resuming detection. This also confirms the previously missing `test_dns_engine.py` script runner now executes the tests under CI.
+- The same run passed compilation, visual pipeline, Quant replay, daily report, feedback, OpenAI-secret-format, derivatives parser/archive, Quant Discovery, all 18 BTC/ETH/XAUT timeframe freshness checks, public funding/mark/OI probes, and the BTC historical pilot.
+- Feed snapshot at 2026-11-05 10:19:16 UTC: BTCUSD 5m 80,374.00; ETHUSD 5m 2,417.80; XAUTUSD 5m 4,110.39. All 18 symbol/timeframe checks passed. Derivatives availability: funding 67 BTC / 67 ETH / 71 XAUT hourly candles; mark 864 five-minute candles per contract; OI 72 hourly candles per contract. BTC 5m pilot: 1,051 candles, 100% observed coverage, zero gaps.
+- No workflow artifacts were uploaded by this PR CI run. It is a validation workflow, not a live visual-desk run; no raw/annotated chart review or actual Discord delivery was verified.
+- The active worker now fails closed whenever a DNS map refresh is due but throttled, fails, omits the symbol, or the refresh/freshness check itself raises. Existing paper positions continue to be managed; new entries for the affected symbol are blocked until a valid map is saved.
+- Remaining architecture gap: active worker is still DNS sweep/reclaim only; the visual analyst/schema/validator require a DNS anchor for every candidate. Independent trend, breakout, momentum and mean-reversion setup families are not yet independently selectable in the active worker.
+- The legacy default-branch `main/.github/workflows/alerts.yml` remains scheduled every 10 minutes and runs `python main.py`; no changes were made to it. The branch visual schedule remains gated by `ENABLE_GITHUB_SCHEDULE`.
+- Last known OpenAI API quota blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`; no live visual cycle or Discord execution delivery is verified. Restore quota before manually dispatching one paper-only visual validation.
+- EXP-001 remains rejected; no new strategy edge is established. Funding candle units/sign/event timing remain unresolved; no historical funding P&L conversion is approved.
+- No `main` modification, PR merge, deployment, secret change, live trading or exchange order.
