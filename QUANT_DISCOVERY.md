@@ -623,3 +623,36 @@ These near-zero linear associations do not support a simple standalone funding-c
 ### Final report refinement — 2026-11-05 16:12 IST
 - Expanded `quant_discovery/OI_EXPANSION_SCREEN.md` to include full OOS ranges across all eight parameter combinations per asset for trade count, win rate, expectancy, profit factor, max drawdown, losing streak, trade frequency and 20 bps stress. This prevents the best-row summary from obscuring the broader grid.
 - The code/test head `b56c3dcb` passed PR CI [42012178809](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42012178809). This report refinement is documentation-only; its CI run is checked separately.
+
+## Supervisor verification — 2026-11-05 17:20 IST (strict validation and gap-safe outcomes)
+
+### Repository and CI
+- Branch head: `c1892cc8b5582c7a9a495f5e5ad9efbbaf329ffa`.
+- Draft PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1) remains open, draft, unmerged and mergeable; 277 commits / 48 changed files. Default branch remains `main`; no `main` edits were made.
+- Push CI [42022081161](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42022081161) and PR CI [42022085639](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42022085639) both passed on the exact final head. The full job passed compile, visual, DNS, paper lifecycle, Quant Discovery, derivatives and live Delta feed checks.
+- The prior code/test head `9083d36081d43777985ea6f0de883076c8472810` also passed PR CI [42022051699](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42022051699); the final head adds only a docstring clarification and a tightened test assertion after that run.
+
+### Safety fixes on `ai-quant-rebuild`
+- `main.validate_trade()` previously converted model confidence with bare `int(...)`. Malformed values such as `None`, strings, NaN/Infinity, booleans, fractional values, huge integers or out-of-range scores could raise or be silently truncated/accepted. It now requires a numeric, finite, integral score from 0–100 before applying the unchanged configured minimum confidence threshold. Regression tests cover invalid inputs and the 75/100 boundary. Commits: `8e8e457` and `f2f37cbe`.
+- Paper outcome tracking previously inferred TIME from sparse candles and could accept a later TP/SL after an unobserved 5m gap, despite not knowing whether the first exit happened inside the gap. `manage_positions()` now walks a contiguous 5m sequence from the actual entry timestamp. It stops at the first gap; later TP/SL cannot be called the first exit across missing data. TIME is emitted only when every expected 5m candle through expiry is present. Missing/incomplete coverage leaves the position unresolved rather than fabricating a confirmed exit. Commits: `296805c` and `9083d360`; follow-up clarity/test cleanup: `7a1d2e9` and `c1892cc`.
+- Tests explicitly cover a complete 48-hour window with a post-expiry TP (TIME remains correct), no in-window candles, a gap before a later TP, and a missing expiry window. CI passed all tests.
+
+### Fresh feed evidence (PR CI at 2026-11-05 11:50:18 UTC)
+- All 18 BTCUSD / ETHUSD / XAUTUSD timeframe checks passed (5m, 15m, 1h, 4h, 1d, 1w).
+- Latest closed 5m values: BTCUSD 80,365.50; ETHUSD 2,420.20; XAUTUSD 4,119.07. These are CI snapshots, not current quotes.
+- Funding candles available: 68 BTC / 68 ETH / 72 XAUT hourly; mark: 864 five-minute candles per contract; OI: 72 hourly candles per contract.
+- BTC historical pilot: 1,051 candles, 100% coverage, zero gaps.
+- PR CI uploaded no chart artifacts. This is not a visual-desk run and does not verify an AI chart decision or Discord delivery.
+
+### Active operational blockers
+- The active branch worker remains DNS-map + local sweep/reclaim only. `ai_analyst.analyse()` and its multi-setup comparison are not wired into the active worker; prompt/schema/validator still require a DNS anchor. Independent trend, momentum, breakout/retest and mean-reversion candidates are not yet eligible to compete independently.
+- The branch visual workflow `.github/workflows/alerts.yml` schedules every 5 minutes but the job is gated by `ENABLE_GITHUB_SCHEDULE == 'true'` for scheduled events. No branch visual workflow run or chart-review artifact was found. Manual dispatch remains the intended paper-only validation route; do not enable the schedule or cut over without approval.
+- Last observed legacy default-branch run [42020401643](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42020401643) at 2026-11-05 11:36:58 UTC succeeded on `main` and ran legacy `python main.py`. `.github/workflows/alerts.yml` on `main` still schedules every 10 minutes and has Discord webhook secrets configured. Logs did not establish an actual message delivery. No changes were made to `main`; owner decision is required before pausing/cutting over.
+- Last known OpenAI Responses request returned HTTP 429 `insufficient_quota / credit_balance_exhausted`; not retried. No fresh raw/annotated charts, AI decision or Discord execution delivery is verified.
+- EXP-001 remains rejected (30/30 baseline OOS combinations negative). OI + volatility-expansion screen candidates remain rejected; XAUT OOS is weak sample and ETH fails 20 bps stress. Funding event attribution and historical spread/depth remain unresolved. No research candidate is eligible for alerts.
+
+### Exact next steps
+1. Restore OpenAI API quota, then manually dispatch one paper-only visual cycle and inspect raw/annotated BTC/ETH/XAUT six-timeframe images, model output, candidate comparison, validator decisions and Discord delivery result.
+2. Redesign analyst prompt/schema/validator together so independent evidence-supported setup families can compete and return `NO_TRADE`; keep numeric safety gates and local outcome monitoring, but do not require a DNS anchor for non-DNS families.
+3. Retain the new contiguous-bar outcome rule; if data gaps remain unresolved, leave the paper position open for manual review rather than sending an unconfirmed TP/SL/TIME update.
+4. Resolve the legacy default-branch scheduled workflow only after owner decision. Do not change `main`, enable live trading, deploy or place orders.
