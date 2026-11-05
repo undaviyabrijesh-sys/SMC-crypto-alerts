@@ -1,8 +1,11 @@
 """Offline tests for persistent DNS maps and the local sweep/reclaim watcher."""
 import tempfile
+from unittest.mock import patch
+
 import pandas as pd
 
 import dns_engine
+import dns_worker
 
 
 def _analysis():
@@ -234,6 +237,126 @@ def test_worker_blocks_new_entries_when_refresh_check_raises():
     )
     assert detector_calls == 0
     assert alert_calls == 0
+
+
+def _pending_trade(direction="long"):
+    if direction == "long":
+        stop, target = 98.0, 104.0
+        primary_side = "DEMAND"
+    else:
+        stop, target = 102.0, 96.0
+        primary_side = "SUPPLY"
+    zone = {"low": 99.8, "high": 100.2, "timeframe": "1h", "evidence": "AI visual zone"}
+    return {
+        "signal_id": "PENDING1", "sym": "BTC", "dir": direction,
+        "entry": 100.0, "sl": stop, "tp": target, "rr": 2.0,
+        "analysis_time": "2026-11-05T15:10:00Z",
+        "triggered_at": "2026-11-05T15:10:00Z",
+        "selected_entry_zone": zone,
+        "primary_zone": {
+            "side": primary_side, "low": 99.8, "high": 100.2,
+            "timeframe": "1h", "quality": 4, "evidence": "AI visual zone",
+        },
+    }
+
+
+def _pending_snapshot(direction="long"):
+    zone = {
+        "low": 99.8, "high": 100.2, "timeframe": "1h",
+        "quality": 4, "evidence": "Current AI visual map",
+    }
+    return {
+        "demand_zones": [zone] if direction == "long" else [],
+        "supply_zones": [zone] if direction == "short" else [],
+    }
+
+
+def test_pending_alert_revalidation_reprices_only_if_still_actionable():
+    trade = _pending_trade("long")
+    snapshot = _pending_snapshot("long")
+    accepted = dns_worker._reprice_pending_alert(trade, 99.95, snapshot)
+    assert accepted is not None
+    assert accepted["entry"] == 99.95
+    assert accepted["rr"] >= 2.0
+    assert accepted["primary_zone"]["quality"] == 4
+
+    # A 0.5% move is beyond the existing entry-deviation limit.
+    assert dns_worker._reprice_pending_alert(trade, 100.5, snapshot) is None
+    # A small move can still destroy the required 2R even while near the zone.
+    assert dns_worker._reprice_pending_alert(trade, 100.1, snapshot) is None
+
+
+def test_pending_alert_revalidation_supports_short_side():
+    trade = _pending_trade("short")
+    accepted = dns_worker._reprice_pending_alert(
+        trade, 100.05, _pending_snapshot("short")
+    )
+    assert accepted is not None
+    assert accepted["entry"] == 100.05
+    assert accepted["rr"] >= 2.0
+    assert accepted["primary_zone"]["side"] == "SUPPLY"
+
+
+def test_pending_alert_revalidation_requires_current_directional_map_overlap():
+    trade = _pending_trade("long")
+    stale_map = {
+        "demand_zones": [{
+            "low": 101.0, "high": 102.0, "timeframe": "1h",
+            "quality": 5, "evidence": "Different zone",
+        }],
+        "supply_zones": [],
+    }
+    assert dns_worker._reprice_pending_alert(trade, 99.95, stale_map) is None
+
+
+def _run_pending_alert_case(current_price):
+    now = pd.Timestamp("2026-11-05T15:15:00Z")
+    index = pd.date_range("2026-11-05T15:00:00Z", periods=3, freq="5min")
+    frame = pd.DataFrame({
+        "open": [100.0, 100.0, current_price],
+        "high": [100.2, 100.2, current_price + 0.1],
+        "low": [99.8, 99.8, current_price - 0.1],
+        "close": [100.0, 100.0, current_price],
+        "volume": [10.0, 10.0, 10.0],
+    }, index=index)
+    trade = _pending_trade("long")
+    state = {
+        "positions": {}, "pending_alerts": {"PENDING1": trade},
+        "pending_outcomes": {}, "dns_refresh_attempts": {},
+    }
+    snapshot = _pending_snapshot("long")
+    map_state = {"symbols": {"BTC": snapshot}, "history": {}}
+
+    with patch.object(dns_worker.C, "SYMBOLS", {
+        "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}
+    }), patch.object(dns_worker.st, "load", return_value=state), \\
+         patch.object(dns_worker.st, "save"), \\
+         patch.object(dns_worker.dns_engine, "load_map", return_value=map_state), \\
+         patch.object(dns_worker.data, "fetch_bundle", return_value={"5m": frame}), \\
+         patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")), \\
+         patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=[]), \\
+         patch.object(dns_worker.main, "manage_positions"), \\
+         patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[]), \\
+         patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert:
+        dns_worker.run(now=now, fetcher=lambda *args, **kwargs: None)
+        return state, alert
+
+
+def test_worker_reprices_pending_alert_at_latest_closed_candle_before_delivery():
+    state, alert = _run_pending_alert_case(99.95)
+    assert alert.call_count == 1
+    sent_trade = alert.call_args.args[1]
+    assert sent_trade["entry"] == 99.95
+    assert sent_trade["rr"] >= 2.0
+    assert sent_trade["triggered_at"] == "2026-11-05T15:15:00+00:00"
+    assert state["positions"]["PENDING1"]["entry"] == 99.95
+    assert "PENDING1" not in state["pending_alerts"]
+
+
+def test_worker_discards_pending_alert_when_price_has_moved_too_far():
+    state, alert = _run_pending_alert_case(100.5)
+    assert alert.call_count == 0
+    assert "PENDING1" not in state["pending_alerts"]
 
 
 if __name__ == "__main__":
