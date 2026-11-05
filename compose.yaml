@@ -1,20 +1,15 @@
 services:
-  salty-quant-visual-desk:
+  salty-quant-paper-desk:
     build: .
-    container_name: salty-quant-visual-desk
+    container_name: salty-quant-paper-desk
     restart: unless-stopped
     env_file:
       - .env
     environment:
       DATA_DIR: /data/market_data
       STATE_PATH: /data/state.json
-      RESEARCH_PATH: /data/research/visual_decisions.jsonl
-      DNS_MAP_PATH: /data/market_data/dns_map.json
-      DNS_RESEARCH_PATH: /data/research/dns_maps.jsonl
-      DNS_MAP_REFRESH_HOURS: "4"
+      QUANT_RESEARCH_PATH: /data/research/quant_signals.jsonl
       HEARTBEAT_PATH: /data/worker_heartbeat.json
       WORKER_INTERVAL_SECONDS: "300"
-      ENABLE_DAILY_PNL_REPORT: "false"
-      OPENAI_REASONING_EFFORT: low
     volumes:
       - ./salty_data:/data
