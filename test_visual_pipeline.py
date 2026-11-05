@@ -913,6 +913,38 @@ def test_historical_coverage_metrics_count_missing_intervals():
     assert metrics["observed_coverage_pct"] == 75.0
 
 
+def test_historical_archive_excludes_currently_forming_last_candle():
+    class FakeResponse:
+        status_code = 200
+        headers = {}
+        def raise_for_status(self):
+            return None
+        def json(self):
+            return {"success": True, "result": [
+                {"time": stamp, "open": 100, "high": 102, "low": 99,
+                 "close": 101, "volume": 5}
+                for stamp in (0, 300, 600, 900)
+            ]}
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+    with tempfile.TemporaryDirectory(prefix="salty-closed-bars-") as folder:
+        output = __import__("pathlib").Path(folder)
+        result = historical_data.download_dataset(
+            "BTC", "BTCUSD", "5m", 0, 1000, output,
+            session=FakeSession(), request_delay=0, retries=0,
+            sleep=lambda seconds: None
+        )
+        archive = pd.read_csv(output / "BTC_5m.csv", parse_dates=["timestamp"])
+        assert result["row_count"] == 3
+        assert archive["timestamp"].max() == pd.Timestamp("1970-01-01T00:10:00Z")
+        assert pd.Timestamp(result["last_candle_close_utc"]) <= pd.Timestamp(
+            "1970-01-01T00:16:40Z"
+        )
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
