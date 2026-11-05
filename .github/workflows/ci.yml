@@ -29,3 +29,12 @@ jobs:
         run: python test_visual_pipeline.py
       - name: Verify live public Delta OHLCV data
         run: python smoke_delta_feed.py
+
+      - name: Exercise a small live historical archive pilot
+        run: |
+          python bootstrap_historical_data.py \\
+            --years 0.01 \\
+            --symbols BTC \\
+            --timeframes 5m \\
+            --output-dir "$RUNNER_TEMP/salty-historical-pilot" \\
+            --request-delay 0
