@@ -28,7 +28,7 @@ def test_ai_map_is_validated_versioned_and_persisted():
             state, "BTC", _analysis(), "2026-11-05T00:00:00Z", 105, path
         )
         assert first["revision"] == 1
-        assert len(first["demand_zones"]) == 1
+        assert len(first["demand_zones"]) == 2  # Preserve the full AI map, including weak zones.
         assert first["demand_zones"][0]["zone_id"]
         second = dns_engine.save_analysis(
             state, "BTC", _analysis(), "2026-11-05T04:00:00Z", 106, path
