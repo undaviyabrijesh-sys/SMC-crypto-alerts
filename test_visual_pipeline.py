@@ -719,6 +719,43 @@ def test_discord_execution_alert_omits_unmeasured_confidence():
     assert "Validated R:R to T1: **2.50R**" in message
 
 
+def test_discord_execution_alert_rejects_malformed_confidence():
+    captured = {}
+    original_post = main.discord._post
+
+    def capture(content):
+        captured["content"] = content
+        return True
+
+    main.discord._post = capture
+    trade = {
+        "signal_id": "BADCONF01", "dir": "long",
+        "setup_type": "DNS_LIQUIDITY_SWEEP_RECLAIM",
+        "entry": 100.0, "sl": 99.0, "tp": 102.5, "rr": 2.5,
+    }
+    invalid_values = (
+        True, False, "86", 75.5, float("nan"), float("inf"),
+        -1, 101, 10**10000,
+    )
+    try:
+        for value in invalid_values:
+            captured.clear()
+            trade["confidence"] = value
+            assert main.discord.send_ai_trade(
+                "BTC", trade, lambda price: f"{price:.1f}"
+            )
+            assert "Confidence:" not in captured["content"], repr(value)
+
+        captured.clear()
+        trade["confidence"] = 86.0
+        assert main.discord.send_ai_trade(
+            "BTC", trade, lambda price: f"{price:.1f}"
+        )
+        assert "Confidence: **86/100**" in captured["content"]
+    finally:
+        main.discord._post = original_post
+
+
 def test_corrupt_state_fails_closed_instead_of_resetting_positions():
     import json
     with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:
