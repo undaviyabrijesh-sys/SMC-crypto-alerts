@@ -823,6 +823,7 @@ def test_historical_archive_persists_hash_coverage_and_resumes_after_interruptio
         assert result["row_count"] == 4
         assert result["missing_expected_candles"] == 0
         assert result["gap_count"] == 0
+        assert result["largest_gap_seconds"] == 0
         assert result["requested_coverage_pct_estimate"] == 100.0
         assert result["observed_coverage_pct"] == 100.0
         assert len(result["sha256"]) == 64
@@ -894,6 +895,22 @@ def test_historical_checkpoint_and_manifest_reject_malformed_json_shapes():
             assert "manifest is unreadable" in str(exc)
         else:
             raise AssertionError("a non-object manifest must fail closed")
+
+
+def test_historical_coverage_metrics_count_missing_intervals():
+    index = pd.to_datetime([0, 300, 900], unit="s", utc=True)
+    frame = pd.DataFrame({
+        "open": [100.0, 101.0, 102.0],
+        "high": [102.0, 103.0, 104.0],
+        "low": [99.0, 100.0, 101.0],
+        "close": [101.0, 102.0, 103.0],
+        "volume": [1.0, 1.0, 1.0]
+    }, index=index)
+    metrics = historical_data._coverage_metrics(frame, 300, 0, 1200)
+    assert metrics["missing_expected_candles"] == 1
+    assert metrics["gap_count"] == 1
+    assert metrics["largest_gap_seconds"] == 600
+    assert metrics["observed_coverage_pct"] == 75.0
 
 
 if __name__ == "__main__":
