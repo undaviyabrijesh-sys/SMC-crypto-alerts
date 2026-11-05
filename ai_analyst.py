@@ -244,3 +244,100 @@ def analyse(chart_images, market_context, active_positions=None, model=None):
     parsed = json.loads(text)
     _validate_symbol_coverage(parsed, set(chart_images))
     return parsed, {"model": chosen_model, "response_id": payload.get("id"), "usage": payload.get("usage", {})}
+
+
+DNS_MAP_SYSTEM_PROMPT = """
+You are Salty Quant's visual demand-and-supply market mapper, not a trade caller.
+Inspect the supplied six-timeframe candlestick chart and exact OHLCV snapshot.
+Map meaningful demand and supply price BANDS only from visible basing, absorption,
+distribution, displacement and subsequent reactions. Use actual low/high bounds.
+For every zone report source timeframe, quality 1-5 and concise visual evidence.
+Prefer fresh, clean, decisive zones; downgrade tested, choppy, wide or invalidated
+zones. Do not force a zone or a fixed number of zones. Return an empty list when
+the chart does not support one. Also map meaningful liquidity levels (EQH/EQL,
+BSL/SSL, swing highs/lows), overall bias, structure summary and concise observations.
+Read Weekly/Daily/4H for context, 1H for structure, 15m/5m for current location.
+Use exact OHLCV only to pin prices; the image is primary evidence. Never output
+entries, stop-losses, targets, confidence scores or trade recommendations. Do not
+provide hidden chain-of-thought. The output is a reusable market map, not a signal.
+"""
+
+DNS_MAP_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "market_commentary": {"type": "string"},
+        "analyses": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "symbol": ANALYSIS_ITEM["properties"]["symbol"],
+                    "bias": ANALYSIS_ITEM["properties"]["bias"],
+                    "structure_summary": ANALYSIS_ITEM["properties"]["structure_summary"],
+                    "demand_zones": ANALYSIS_ITEM["properties"]["demand_zones"],
+                    "supply_zones": ANALYSIS_ITEM["properties"]["supply_zones"],
+                    "liquidity_levels": ANALYSIS_ITEM["properties"]["liquidity_levels"],
+                    "key_observations": ANALYSIS_ITEM["properties"]["key_observations"],
+                },
+                "required": [
+                    "symbol", "bias", "structure_summary", "demand_zones",
+                    "supply_zones", "liquidity_levels", "key_observations"
+                ],
+            },
+        },
+    },
+    "required": ["market_commentary", "analyses"],
+}
+
+
+def map_dns(chart_images, market_context, model=None):
+    """One multimodal request that returns only a reusable DNS market map."""
+    api_key = _configured_api_key()
+    content = [{
+        "type": "input_text",
+        "text": (
+            "Create a visual DNS market map for every supplied symbol. All timestamps are UTC. "
+            "Each image has Weekly, Daily, 4H, 1H, 15m and 5m panels. Inspect the images "
+            "and use exact OHLCV rows to pin price boundaries. Return exactly one map per "
+            "symbol, in input order. No trade ideas or execution levels.\\n\\n"
+            f"MARKET DATA:\\n{json.dumps(market_context, separators=(',', ':'), ensure_ascii=False)}"
+        )
+    }]
+    for symbol, png_bytes in chart_images.items():
+        data_url = "data:image/png;base64," + base64.b64encode(png_bytes).decode("ascii")
+        content.append({"type": "input_text", "text": f"VISUAL CHART: {symbol}"})
+        content.append({"type": "input_image", "image_url": data_url, "detail": "high"})
+
+    chosen_model = model or os.environ.get("OPENAI_MODEL") or MODEL_DEFAULT
+    body = {
+        "model": chosen_model,
+        "store": False,
+        "max_output_tokens": 4500,
+        "reasoning": {"effort": os.environ.get("OPENAI_REASONING_EFFORT", "medium")},
+        "input": [
+            {"role": "system", "content": [{"type": "input_text", "text": DNS_MAP_SYSTEM_PROMPT}]},
+            {"role": "user", "content": content},
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema", "name": "salty_quant_dns_market_map",
+                "strict": True, "schema": DNS_MAP_SCHEMA,
+            }
+        },
+    }
+    response = requests.post(
+        "https://api.openai.com/v1/responses",
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json=body, timeout=150,
+    )
+    if not response.ok:
+        raise RuntimeError(f"OpenAI API {response.status_code}: {response.text[:1200]}")
+    payload = response.json()
+    parsed = json.loads(_extract_output_text(payload))
+    _validate_symbol_coverage(parsed, set(chart_images))
+    return parsed, {
+        "model": chosen_model, "response_id": payload.get("id"),
+        "usage": payload.get("usage", {}),
+    }
