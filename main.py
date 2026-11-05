@@ -11,6 +11,7 @@ import ai_analyst
 import config as C
 import data
 import discord
+import daily_reports
 import state as st
 from visual_chart import render_symbol_chart
 
@@ -297,6 +298,9 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
                 chart_images[symbol] = render_symbol_chart(f"{symbol} · {cfg['delta_symbol']}", frames, now)
         except Exception as exc:
             print(f"[error] {symbol} data/chart: {exc}")
+
+    # Daily P&L reporting runs independently of whether a new chart is due.
+    daily_reports.maybe_send_daily_report(state, now, discord.send_daily_report)
 
     if not frames_by_symbol:
         st.save(state)
