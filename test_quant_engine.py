@@ -8,6 +8,8 @@ import quant_strategies
 import quant_supervisor
 import quant_worker
 import discord
+import trade_lifecycle
+from unittest.mock import patch
 
 
 def candidate(strategy_id="TREND_PULLBACK", direction="LONG", score=84):
@@ -168,6 +170,52 @@ class TestQuantSupervisor(unittest.TestCase):
         self.assertIn("Validated R:R: **2.20R**", message)
         self.assertNotIn("Confidence", message)
         self.assertNotIn("WATCH", message)
+
+    def test_quant_worker_lifecycle_closes_tp_on_contiguous_closed_candles(self):
+        triggered = pd.Timestamp("2026-11-05T12:00:00Z")
+        index = pd.date_range(triggered, periods=2, freq="5min")
+        bars = pd.DataFrame({
+            "open": [100.0, 104.0], "high": [104.5, 105.0],
+            "low": [99.0, 103.0], "close": [104.0, 104.5],
+            "volume": [10.0, 10.0],
+        }, index=index)
+        trade = {
+            "signal_id": "LIFECYCLE1", "sym": "BTC", "dir": "long",
+            "entry": 100.0, "sl": 98.0, "tp": 104.0,
+            "triggered_at": triggered.isoformat(),
+        }
+        state = {"positions": {"LIFECYCLE1": trade}, "trade_history": {}}
+        with patch.object(trade_lifecycle.discord, "send_outcome", return_value=True):
+            trade_lifecycle.manage_positions(
+                state, "BTC", bars, triggered + pd.Timedelta(minutes=10),
+                lambda value: f"{value:.1f}",
+            )
+        self.assertNotIn("LIFECYCLE1", state["positions"])
+        self.assertEqual(state["trade_history"][0]["status"], "TP")
+
+    def test_quant_worker_lifecycle_leaves_position_open_across_missing_5m_bar(self):
+        triggered = pd.Timestamp("2026-11-05T12:00:00Z")
+        index = pd.to_datetime(
+            ["2026-11-05T12:00:00Z", "2026-11-05T12:10:00Z"], utc=True
+        )
+        bars = pd.DataFrame({
+            "open": [100.0, 104.0], "high": [101.0, 105.0],
+            "low": [99.0, 103.0], "close": [100.5, 104.5],
+            "volume": [10.0, 10.0],
+        }, index=index)
+        trade = {
+            "signal_id": "GAPSAFE1", "sym": "BTC", "dir": "long",
+            "entry": 100.0, "sl": 98.0, "tp": 104.0,
+            "triggered_at": triggered.isoformat(),
+        }
+        state = {"positions": {"GAPSAFE1": trade}, "trade_history": []}
+        with patch.object(trade_lifecycle.discord, "send_outcome", return_value=True):
+            trade_lifecycle.manage_positions(
+                state, "BTC", bars, triggered + pd.Timedelta(minutes=15),
+                lambda value: f"{value:.1f}",
+            )
+        self.assertIn("GAPSAFE1", state["positions"])
+        self.assertEqual(state["trade_history"], [])
 
 
 if __name__ == "__main__":
