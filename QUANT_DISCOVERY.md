@@ -656,3 +656,38 @@ These near-zero linear associations do not support a simple standalone funding-c
 2. Redesign analyst prompt/schema/validator together so independent evidence-supported setup families can compete and return `NO_TRADE`; keep numeric safety gates and local outcome monitoring, but do not require a DNS anchor for non-DNS families.
 3. Retain the new contiguous-bar outcome rule; if data gaps remain unresolved, leave the paper position open for manual review rather than sending an unconfirmed TP/SL/TIME update.
 4. Resolve the legacy default-branch scheduled workflow only after owner decision. Do not change `main`, enable live trading, deploy or place orders.
+
+
+## Supervisor verification — 2026-11-05 17:57 IST (automation cycle)
+
+### Repository / PR / CI
+- Rechecked live GitHub state. PR #1 remains open, draft, unmerged and mergeable. Head is `e6af043f03a3be9abaf8864dd6eabef7f6cce725`; PR reports 278 commits and 48 changed files. Compare `main...ai-quant-rebuild`: 278 ahead, 0 behind. No new code commits since the 17:20 IST handoff.
+- Push CI [42022269265](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42022269265) and PR CI [42022278020](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42022278020) both completed successfully on the exact head. The PR job's 17 principal test/verification steps all passed. No review submissions or inline review threads were returned.
+- PR CI artifacts list is empty. This confirms the CI job did not publish chart-review PNGs; it is not a live visual-desk run. No new code defect or failing test was identified, so no code change was warranted.
+
+### Latest available data-feed evidence
+- The exact-head PR CI feed probe ran at 2026-11-05 11:51:42 UTC. All 18 BTCUSD / ETHUSD / XAUTUSD timeframes (5m, 15m, 1h, 4h, 1d, 1w) passed closed-bar and freshness checks.
+- At that probe: BTC 5m close 80,365.50; ETH 2,420.20; XAUT 4,119.07. Last 5m candle was reported closed 1.7 minutes before the probe. These are historical CI observations, not current quotes.
+- Funding availability: 68 BTC / 68 ETH / 72 XAUT hourly candles; mark: 864 five-minute candles per contract; OI: 72 hourly candles per contract. BTC historical pilot: 1,051 candles, 100% coverage, zero gaps.
+- No newer live feed check was run in this cycle; GitHub Actions dispatch is not exposed by the available GitHub connector actions.
+
+### Visual pipeline / signal safety / Discord
+- Branch `.github/workflows/alerts.yml` defines a 5-minute schedule but scheduled runs are gated by `vars.ENABLE_GITHUB_SCHEDULE == 'true'`; `workflow_dispatch` is allowed. Latest branch run listing contains CI push/PR runs only; no visual-desk workflow run or chart artifact was found.
+- The active worker remains `dns_worker.py`: AI-authored DNS map plus local sweep/reclaim watcher. It does not yet route independent trend-pullback, momentum, breakout/retest or mean-reversion candidates through a shared multi-setup selector. The analyst prompt still requires a demand/supply anchor for every actionable trade. Do not describe this as the requested full multi-family visual desk.
+- Existing safety protections remain: refresh fail-closed for affected symbols; DNS quality and invalidation; sweep/reclaim confirmation; 0.35% entry-to-zone proximity; minimum 2R; stale Discord retry revalidation; strict AI confidence validation in `main.validate_trade()`; contiguous 5m coverage required before confirmed TP/SL/TIME outcomes. The active DNS worker still does not call the separate `main.validate_trade()` validator, as previously documented.
+- Discord formatter includes setup, optional measured confidence, zone, rationale, invalidation, entry/SL/TP and paper disclaimer; closure messages are separate. No new Discord delivery was verified in this cycle.
+
+### Default-branch workflow observation
+- Queried the latest 10 scheduled runs on `main`. Most recent returned run is [42020401643](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42020401643), created 2026-11-05 11:36:58 UTC (17:06:58 IST), successful on `main` and running the legacy `advance-alerts` workflow. No later `main` run appeared in the latest-10 response as of 17:57 IST; this is a schedule gap observation, not proof that the workflow is disabled.
+- `main/.github/workflows/alerts.yml` still schedules every 10 minutes and runs legacy `python main.py` with legacy Discord webhook secrets configured. The default branch has not been modified. Actual Discord delivery is not established.
+- Owner decision remains required before pausing the legacy workflow or approving a cutover. Do not alter `main`, enable the branch schedule, deploy or enable live trading.
+
+### Quant Discovery
+- OI + volatility expansion screen remains rejected for BTC, ETH and XAUT; BTC all eight OOS rows negative at 10 bps, ETH's small positive best row fails 20 bps stress and has negative train/validation, XAUT is only 14 OOS trades and negative in train/validation and at 20 bps. No strategy edge is established and no candidate is eligible for production alerts.
+- Funding settlement event attribution/units and observed spread/depth remain unresolved; funding is not included in historical P&L.
+
+### Next steps
+1. Restore/confirm OpenAI API quota, then manually dispatch one paper-only visual-desk run from GitHub Actions and inspect raw/annotated six-timeframe charts, model output, candidate comparison, risk decisions and Discord delivery.
+2. Redesign the visual analyst/schema/validator so independent setup families can compete and return `NO_TRADE` without a mandatory DNS anchor; wire this into the active worker only after tests.
+3. Keep unresolved paper positions open when 5m coverage is incomplete; never infer an exit across a gap.
+4. Obtain owner decision on the legacy `main` schedule before any cutover. No `main` edits, PR merge, deployment, secret change, live trading or exchange orders.
