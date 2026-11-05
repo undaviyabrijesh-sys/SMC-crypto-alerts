@@ -62,7 +62,8 @@ For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or 
 - Trade tracking is paper tracking, not a broker fill and not an exchange order. The entry is assumed at the last closed 5m price so the signal lifecycle can be measured consistently.
 - If Discord delivery fails, the alert is retried briefly; undelivered signals are not silently marked as active paper trades.
 - Same-candle TP/SL ambiguity is resolved conservatively as SL first.
-- Trade outcomes are sent as separate Discord messages.
+- Trade outcomes are sent as separate Discord messages when TP, SL or TIME exits are confirmed from closed 5m candles.
+- The daily paper P&L summary is enabled in the provided Docker and GitHub Actions runtime configurations. It is sent after 00:05 Asia/Kolkata for the prior IST day, grouped by instrument and selected setup, and reported in gross R (not INR account P&L).
 
 ## Data persistence and validation
 
