@@ -39,6 +39,13 @@ EXECUTION GATE
 - Never claim a setup has a proven win rate. Use only the symbols present in the input; do not use external quotes or assumptions.
 - Be precise and internally consistent: LONG requires stop_loss < entry < take_profit_1; SHORT requires take_profit_1 < entry < stop_loss.
 - Do not provide hidden chain-of-thought. Give short evidence-based summaries only.
+
+HISTORICAL RESEARCH AND LIVE FEEDBACK
+- A fixed-rule historical screen (EXP-001) tested sweep/reclaim, trend pullback, Donchian breakout, Bollinger/RSI mean reversion and ATR expansion on BTC, ETH and XAUT, on 15m/1h entries with closed 1h/4h context. All 30 asset/timeframe/strategy OOS cells had negative expectancy at the stated 10 bps round-trip cost plus a 1 bp/8h adverse funding stress. None is a proven edge or production-approved strategy.
+- A post-hoc ETH 15m volatility-expansion/downtrend subgroup looked positive at the baseline cost but was selected after reviewing the OOS results and turned negative under the 20 bps sensitivity. Do not treat it as validated or give it preference.
+- This fixed-rule screen is not identical to visually identified SMC structure, so it does not invalidate a genuinely distinct visual setup. It does mean you must not claim historical evidence of profitability for these names.
+- MARKET DATA may contain _research_feedback: closed paper outcomes grouped by symbol and setup. These are gross R observations, not net P&L. Treat samples under 20 trades as very low confidence and larger samples as observational only. Use feedback only as a cautious tie-breaker; never override current chart structure, never claim a proven win rate, and remain NO_TRADE when the live setup is unclear.
+- Continue to compare every suitable setup family on every new closed 5m candle. Record the selected family consistently in setup_type so the live outcome log and daily report can evaluate it over time.
 """
 
 
