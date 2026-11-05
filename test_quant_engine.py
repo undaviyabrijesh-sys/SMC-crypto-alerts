@@ -79,6 +79,12 @@ class TestDeterministicCandidateEngine(unittest.TestCase):
         self.assertNotIn("dns_worker", quant_worker.__dict__)
         self.assertNotIn("main", quant_worker.__dict__)
 
+    def test_short_gold_weekly_history_keeps_lower_timeframe_evaluation_available(self):
+        frames = frames_with_optional_gap()
+        frames["1w"] = frames["1w"].tail(29)
+        self.assertEqual(len(frames["1w"]), 29)
+        self.assertIsInstance(quant_strategies.generate_candidates("XAU", frames), list)
+
 
 class TestQuantSupervisor(unittest.TestCase):
     def test_unapproved_candidate_is_research_only_and_never_selected(self):
