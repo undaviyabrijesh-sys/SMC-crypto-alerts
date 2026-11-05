@@ -362,6 +362,42 @@ def test_worker_discards_pending_alert_when_price_has_moved_too_far():
     assert "PENDING1" not in state["pending_alerts"]
 
 
+def test_worker_keeps_managing_positions_when_dns_map_is_unreadable():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    idx = pd.date_range(end=now - pd.Timedelta(minutes=5), periods=3, freq="5min")
+    frame = pd.DataFrame({
+        "open": [100.0, 100.0, 100.0],
+        "high": [101.0, 101.0, 101.0],
+        "low": [99.0, 99.0, 99.0],
+        "close": [100.5, 100.5, 100.5],
+        "volume": [10.0, 10.0, 10.0],
+    }, index=idx)
+    state = {
+        "positions": {"OPEN1": {"sym": "BTC", "signal_id": "OPEN1"}},
+        "pending_alerts": {}, "pending_outcomes": {}, "dns_refresh_attempts": {},
+    }
+
+    def mapper_must_not_run(*args, **kwargs):
+        raise AssertionError("an unreadable map must not be overwritten by an automatic refresh")
+
+    with patch.object(dns_worker.C, "SYMBOLS", {
+        "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}
+    }), patch.object(dns_worker.st, "load", return_value=state), \
+         patch.object(dns_worker.st, "save") as save_state, \
+         patch.object(dns_worker.dns_engine, "load_map", side_effect=RuntimeError("corrupt map")), \
+         patch.object(dns_worker.data, "fetch_bundle", return_value={"5m": frame}), \
+         patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")), \
+         patch.object(dns_worker.main, "manage_positions") as manage, \
+         patch.object(dns_worker.dns_engine, "detect_local_setup") as detector, \
+         patch.object(dns_worker.discord, "send_ai_trade") as alert:
+        dns_worker.run(now=now, fetcher=lambda *args, **kwargs: None, mapper=mapper_must_not_run)
+
+    manage.assert_called_once()
+    detector.assert_not_called()
+    alert.assert_not_called()
+    save_state.assert_called_once()
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
