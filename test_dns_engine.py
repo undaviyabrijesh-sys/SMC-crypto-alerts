@@ -192,7 +192,7 @@ def test_worker_blocks_new_entries_while_refresh_is_throttled():
 
 def test_worker_blocks_new_entries_when_ai_refresh_fails():
     now = pd.Timestamp("2026-11-05T15:00:00Z")
-    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes{}": {}}
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
     def failed_mapper(*args, **kwargs):
         raise RuntimeError("simulated API quota failure")
     detector_calls, alert_calls = _run_worker_refresh_case(now, state, failed_mapper)
