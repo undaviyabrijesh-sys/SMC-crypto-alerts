@@ -316,10 +316,10 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 
 ## Final verification handoff — 2026-11-05 08:17 IST
 
-- Latest branch head: `e1a333e58eed83a5ae3ae9a25eb34fa1c72f586f`.
-- Latest push CI [41956952971](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956952971) and PR CI [41956957920](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956957920) both completed successfully on this head.
+- Latest code/test head: `e1a333e58eed83a5ae3ae9a25eb34fa1c72f586f`; final documentation-only handoff commit: `287a516c892dfb59c926a17d258dfea09a34eaca`.
+- Latest push CI [41957057304](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41957057304) and PR CI [41957064310](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41957064310) both completed successfully on the final handoff commit.
 - The verified CI steps include compilation; visual pipeline; generic replay; daily-report opt-in; setup-feedback; OpenAI secret-format; derivatives parser/archive; Quant Discovery tests; 18 public Delta OHLCV checks; nine-series funding/mark/OI probe; and the short historical OHLCV pilot.
-- PR #1 is still open, draft, unmerged and mergeable; base `main` remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. The branch is 202 commits ahead and 0 behind. No changes were made to `main`.
+- PR #1 is still open, draft, unmerged and mergeable; base `main` remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. The branch is 203 commits ahead and 0 behind. No changes were made to `main`.
 - The alerts workflow push trigger has been removed. Since that change, no new `salty-quant-visual-desk` push run has been started. The workflow is manual-dispatch only unless the repository's explicit schedule variable is enabled.
 - Daily P&L reporting is disabled in both supplied runtime configurations and the example environment. Keep it disabled unless the user explicitly changes the execution-only Discord preference.
 - The OpenAI API quota blocker remains: the latest real request returned HTTP 429 `insufficient_quota / credit_balance_exhausted`. The API key header-format issue is handled and regression-tested; no secret was changed. Do not keep retrying until API credits are restored.
