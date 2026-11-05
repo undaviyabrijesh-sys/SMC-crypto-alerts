@@ -1,12 +1,6 @@
 name: salty-quant-visual-desk
 
 on:
-  push:
-    branches:
-      - ai-quant-rebuild
-    paths:
-      - .github/workflows/alerts.yml
-      - ai_analyst.py
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -20,7 +14,7 @@ permissions:
 
 jobs:
   analyse:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -75,7 +69,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-6.1-terra' }}
           OPENAI_REASONING_EFFORT: high
-          ENABLE_DAILY_PNL_REPORT: "true"
+          ENABLE_DAILY_PNL_REPORT: "false"
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
