@@ -501,7 +501,7 @@ def test_expired_trade_with_no_eligible_candles_remains_open():
     )
     assert "GAP125" in state["positions"]
     assert state["trade_history"] == []
-    assert state["pending_outcomes"] == [] or state["pending_outcomes"] == {}
+    assert state["pending_outcomes"] == {}
 
 def test_trade_is_not_time_closed_before_expiry_when_no_post_entry_candle_exists():
     triggered_at = pd.Timestamp("2026-11-01 12:00:00", tz="UTC")
