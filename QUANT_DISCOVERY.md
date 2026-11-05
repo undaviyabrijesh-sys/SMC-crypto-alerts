@@ -884,3 +884,10 @@ Latest commits as of this handoff: 7867722 (weekly-history regression), 278fa1c 
 ### Safety boundaries
 
 No main modifications, PR merge, deployment, secrets change, scheduled-workflow enablement, live trading or exchange orders. PR #1 remains a draft and unmerged. The new system is a deterministic paper/shadow desk, not a validated profitable trading system.
+
+
+---
+
+## Latest reproducible research handoff
+
+See [Quant Discovery first chronological multi-asset screen — 2026-11-05](quant_discovery/SCREEN_2026-11-05.md) for the verified archive hash, frozen hypotheses, OOS/walk-forward metrics, cost assumptions, decision and exact next steps.
