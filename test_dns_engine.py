@@ -41,7 +41,7 @@ def test_ai_map_is_validated_versioned_and_persisted():
 
 def test_refresh_due_on_missing_map_age_and_zone_break():
     now = pd.Timestamp("2026-11-05T08:00:00Z")
-    frames = {"1h": pd.DataFrame({"close": [98.5]})}
+    frames = {"1h": pd.DataFrame({"close": [100.2, 98.5]})}
     assert dns_engine.refresh_reasons(None, now, frames) == ["NO_EXISTING_MAP"]
     snap = dns_engine.validate_analysis("BTC", _analysis(), "2026-11-05T00:00:00Z", 105)
     reasons = dns_engine.refresh_reasons(snap, now, frames)
