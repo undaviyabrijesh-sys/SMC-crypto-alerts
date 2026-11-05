@@ -1240,3 +1240,9 @@ def test_discord_outcome_alert_labels_gross_pnl_before_costs():
     assert "Gross paper P&L (before fees, spread, slippage and funding)" in message
     assert "+10.000% (+2.00R)" in message
     assert "Net P&L" not in message
+
+if __name__ == "__main__":
+    for name, fn in list(globals().items()):
+        if name.startswith("test_"):
+            fn()
+            print("PASS", name)
