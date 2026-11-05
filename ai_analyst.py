@@ -5,7 +5,20 @@ import os
 
 import requests
 
-MODEL_DEFAULT = "gpt-6.1-terra"
+MODEL_DEFAULT = "gpt-6-luna"
+REASONING_EFFORTS = {"none", "low", "medium", "high", "xhigh", "max"}
+
+
+def _model_settings(model=None):
+    """Resolve a cost-conscious model/effort pair and reject invalid configuration."""
+    chosen_model = (model or os.environ.get("OPENAI_MODEL") or MODEL_DEFAULT).strip()
+    effort = os.environ.get("OPENAI_REASONING_EFFORT", "low").strip().lower()
+    if not chosen_model:
+        raise ValueError("OPENAI_MODEL cannot be empty")
+    if effort not in REASONING_EFFORTS:
+        allowed = ", ".join(sorted(REASONING_EFFORTS))
+        raise ValueError(f"OPENAI_REASONING_EFFORT must be one of: {allowed}")
+    return chosen_model, effort
 
 SYSTEM_PROMPT = """
 You are the visual demand-and-supply quant analyst for Salty Quant AI. Review the supplied multi-timeframe candlestick photographs as a disciplined discretionary trader. The image is the primary evidence; exact OHLCV is only for pinning prices and timestamps.
@@ -212,12 +225,12 @@ def analyse(chart_images, market_context, active_positions=None, model=None):
         content.append({"type": "input_text", "text": f"VISUAL CHART: {symbol}"})
         content.append({"type": "input_image", "image_url": data_url, "detail": "high"})
 
-    chosen_model = model or os.environ.get("OPENAI_MODEL") or MODEL_DEFAULT
+    chosen_model, reasoning_effort = _model_settings(model)
     body = {
         "model": chosen_model,
         "store": False,
         "max_output_tokens": 7000,
-        "reasoning": {"effort": os.environ.get("OPENAI_REASONING_EFFORT", "high")},
+        "reasoning": {"effort": reasoning_effort},
         "input": [
             {"role": "system", "content": [{"type": "input_text", "text": SYSTEM_PROMPT}]},
             {"role": "user", "content": content}
@@ -310,12 +323,12 @@ def map_dns(chart_images, market_context, model=None):
         content.append({"type": "input_text", "text": f"VISUAL CHART: {symbol}"})
         content.append({"type": "input_image", "image_url": data_url, "detail": "high"})
 
-    chosen_model = model or os.environ.get("OPENAI_MODEL") or MODEL_DEFAULT
+    chosen_model, reasoning_effort = _model_settings(model)
     body = {
         "model": chosen_model,
         "store": False,
         "max_output_tokens": 4500,
-        "reasoning": {"effort": os.environ.get("OPENAI_REASONING_EFFORT", "medium")},
+        "reasoning": {"effort": reasoning_effort},
         "input": [
             {"role": "system", "content": [{"type": "input_text", "text": DNS_MAP_SYSTEM_PROMPT}]},
             {"role": "user", "content": content},
