@@ -116,7 +116,7 @@ def test_zone_invalidation_uses_the_zone_own_timeframe():
     assert "DEMAND_ZONE_BROKEN" in reasons
 
 
-def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False):
+def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False, agent_reviewer=None):
     """Run one isolated worker cycle and return detector/alert call counts."""
     import os
     import tempfile
@@ -180,8 +180,48 @@ def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False):
                  patch.object(dns_worker.main, "_save_zone_review_chart"), \
                  patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[candidate]) as detector, \
                  patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert:
-                dns_worker.run(now=now, fetcher=lambda *args, **kwargs: None, mapper=mapper)
+                dns_worker.run(
+                    now=now, fetcher=lambda *args, **kwargs: None,
+                    mapper=mapper, agent_reviewer=agent_reviewer
+                )
                 return detector.call_count, alert.call_count
+
+
+def test_worker_allows_candidate_after_explicit_agent_approval():
+    from unittest.mock import Mock
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+    mapper = lambda *args, **kwargs: ({"analyses": [{"symbol": "BTC"}]}, {"model": "test"})
+    reviewer = Mock(return_value={
+        "status": "APPROVED", "decision": "APPROVE",
+        "bull": {"stance": "SUPPORT"}, "bear": {"stance": "CHALLENGE"},
+        "trader": {"rationale": "The setup survived the debate."},
+    })
+    detector_calls, alert_calls = _run_worker_refresh_case(
+        now, state, mapper, agent_reviewer=reviewer
+    )
+    assert detector_calls == 1
+    assert alert_calls == 1
+    reviewer.assert_called_once()
+
+
+def test_worker_vetoes_candidate_when_agents_reject_or_error():
+    from unittest.mock import Mock
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    mapper = lambda *args, **kwargs: ({"analyses": [{"symbol": "BTC"}]}, {"model": "test"})
+    for review in (
+        {"status": "REJECTED", "decision": "NO_TRADE"},
+        {"status": "ERROR", "error": "quota"},
+        {"status": "COOLDOWN", "reason": "cooldown"},
+    ):
+        state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+        reviewer = Mock(return_value=review)
+        detector_calls, alert_calls = _run_worker_refresh_case(
+            now, state, mapper, agent_reviewer=reviewer
+        )
+        assert detector_calls == 1
+        assert alert_calls == 0
+        reviewer.assert_called_once()
 
 
 def test_worker_blocks_new_entries_while_refresh_is_throttled():
