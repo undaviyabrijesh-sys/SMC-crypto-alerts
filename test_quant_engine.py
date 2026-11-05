@@ -287,5 +287,67 @@ class TestQuantSupervisor(unittest.TestCase):
         send.assert_not_called()
 
 
+    def test_time_exit_uses_last_eligible_bar_and_ignores_post_expiry_target(self):
+        triggered = pd.Timestamp("2026-11-01T00:00:00Z")
+        expiry = triggered + pd.Timedelta(hours=trade_lifecycle.C.TRADE_MAX_HOURS)
+        eligible_bars = int(trade_lifecycle.C.TRADE_MAX_HOURS * 12)
+        index = pd.date_range(triggered, periods=eligible_bars + 1, freq="5min")
+        bars = pd.DataFrame({
+            "open": np.full(eligible_bars + 1, 100.0),
+            "high": np.full(eligible_bars + 1, 100.5),
+            "low": np.full(eligible_bars + 1, 99.5),
+            "close": np.full(eligible_bars + 1, 100.0),
+            "volume": np.ones(eligible_bars + 1),
+        }, index=index)
+        # The final in-horizon candle closes at 101. The next candle opens at
+        # expiry and reaches TP, but that touch is outside the 48-hour contract.
+        bars.iloc[eligible_bars - 1, bars.columns.get_loc("high")] = 101.5
+        bars.iloc[eligible_bars - 1, bars.columns.get_loc("close")] = 101.0
+        bars.iloc[eligible_bars, bars.columns.get_loc("high")] = 105.0
+        bars.iloc[eligible_bars, bars.columns.get_loc("close")] = 105.0
+        trade = {
+            "signal_id": "TIMEBOUND1", "sym": "BTC", "dir": "long",
+            "entry": 100.0, "sl": 98.0, "tp": 104.0,
+            "triggered_at": triggered.isoformat(),
+        }
+        state = {"positions": {"TIMEBOUND1": trade}, "trade_history": []}
+        with patch.object(trade_lifecycle.discord, "send_outcome", return_value=True):
+            trade_lifecycle.manage_positions(
+                state, "BTC", bars, expiry + pd.Timedelta(minutes=5),
+                lambda value: f"{value:.1f}",
+            )
+        self.assertNotIn("TIMEBOUND1", state["positions"])
+        result = state["trade_history"][0]
+        self.assertEqual(result["status"], "TIME")
+        self.assertEqual(result["exit"], 101.0)
+        self.assertEqual(result["exit_time"], index[eligible_bars - 1].isoformat())
+
+    def test_time_exit_remains_unresolved_when_an_in_horizon_bar_is_missing(self):
+        triggered = pd.Timestamp("2026-11-01T00:00:00Z")
+        expiry = triggered + pd.Timedelta(hours=trade_lifecycle.C.TRADE_MAX_HOURS)
+        eligible_bars = int(trade_lifecycle.C.TRADE_MAX_HOURS * 12)
+        index = pd.date_range(triggered, periods=eligible_bars, freq="5min").delete(100)
+        bars = pd.DataFrame({
+            "open": np.full(len(index), 100.0),
+            "high": np.full(len(index), 100.5),
+            "low": np.full(len(index), 99.5),
+            "close": np.full(len(index), 100.0),
+            "volume": np.ones(len(index)),
+        }, index=index)
+        trade = {
+            "signal_id": "TIMEGAP1", "sym": "BTC", "dir": "long",
+            "entry": 100.0, "sl": 98.0, "tp": 104.0,
+            "triggered_at": triggered.isoformat(),
+        }
+        state = {"positions": {"TIMEGAP1": trade}, "trade_history": []}
+        with patch.object(trade_lifecycle.discord, "send_outcome", return_value=True):
+            trade_lifecycle.manage_positions(
+                state, "BTC", bars, expiry + pd.Timedelta(minutes=5),
+                lambda value: f"{value:.1f}",
+            )
+        self.assertIn("TIMEGAP1", state["positions"])
+        self.assertEqual(state["trade_history"], [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
