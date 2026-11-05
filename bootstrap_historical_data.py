@@ -229,10 +229,17 @@ def _read_chunk_files(work_dir: Path):
     return pd.concat(frames)
 
 
-def _coverage_metrics(frame: pd.DataFrame, step_seconds: int):
+def _coverage_metrics(frame: pd.DataFrame, step_seconds: int,
+                      requested_start_epoch: int, requested_end_epoch: int):
     count = int(len(frame))
+    requested_expected = max(
+        1, int(np.ceil((requested_end_epoch - requested_start_epoch) / step_seconds))
+    )
+    requested_coverage = round(100.0 * count / requested_expected, 4)
     if count == 0:
         return {
+            "requested_expected_candles": requested_expected,
+            "requested_coverage_pct": requested_coverage,
             "expected_candles_in_observed_span": 0,
             "missing_expected_candles": 0,
             "gap_count": 0,
@@ -246,6 +253,8 @@ def _coverage_metrics(frame: pd.DataFrame, step_seconds: int):
     gaps = deltas[deltas > step_seconds * 1.5]
     largest_gap = int(deltas.max()) if not deltas.empty else 0
     return {
+        "requested_expected_candles": requested_expected,
+        "requested_coverage_pct": requested_coverage,
         "expected_candles_in_observed_span": expected,
         "missing_expected_candles": missing,
         "gap_count": int(len(gaps)),
@@ -358,9 +367,10 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
 
         combined = _read_chunk_files(work_dir)
         if combined.empty:
+            shutil.rmtree(work_dir, ignore_errors=True)
             raise HistoricalDataError(
                 f"No historical candles returned for {symbol_alias} {timeframe}; "
-                "partial progress was retained for inspection/resume"
+                "the empty checkpoint was cleared so a later retry starts cleanly"
             )
         if not isinstance(combined.index, pd.DatetimeIndex):
             combined.index = pd.to_datetime(combined.index, utc=True)
@@ -398,7 +408,7 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
             "empty_chunk_count": int(progress["empty_chunk_count"]),
             "csv_path": final_path.name,
             "sha256": file_sha256(final_path),
-            **metrics,
+            **_coverage_metrics(combined, step, int(start_epoch), int(end_epoch)),
         }
         manifest.setdefault("datasets", {})[dataset_key] = metadata
         manifest["last_updated_utc"] = pd.Timestamp.now(tz="UTC").isoformat()
