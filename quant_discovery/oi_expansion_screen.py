@@ -142,8 +142,9 @@ def simulate(
         if last_index >= end:
             break
         future_index = frame.index[entry_index:last_index + 1]
-        if len(future_index) != hold_hours or not np.all(
-            np.diff(future_index.asi8) == pd.Timedelta(hours=1).value
+        if len(future_index) != hold_hours or not all(
+            gap == pd.Timedelta(hours=1)
+            for gap in future_index[1:] - future_index[:-1]
         ):
             i = entry_index + 1
             continue
