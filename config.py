@@ -9,6 +9,7 @@ SYMBOLS = {
 # Mechanical post-analysis safety checks only. These do not identify supply/demand or create entries.
 MIN_AI_CONFIDENCE = 75
 MIN_AI_RR = 2.0
+MIN_DNS_ZONE_QUALITY = 3  # AI-mapped visual zone quality floor (1-5).
 MAX_MARKET_ENTRY_DEVIATION_PCT = 0.35
 TRADE_MAX_HOURS = 48
 
