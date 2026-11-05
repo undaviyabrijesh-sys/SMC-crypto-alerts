@@ -11,6 +11,9 @@ APPROVED_STRATEGIES = frozenset()
 
 
 def _finite_positive(value):
+    # bool is a subclass of int in Python; never treat True/False as market prices.
+    if isinstance(value, bool):
+        return None
     try:
         number = float(value)
     except (TypeError, ValueError, OverflowError):

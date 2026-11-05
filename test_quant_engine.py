@@ -155,6 +155,33 @@ class TestQuantSupervisor(unittest.TestCase):
         ok, _ = quant_supervisor.validate_candidate(item, 100.0, item["signal_candle"])
         self.assertFalse(ok)
 
+    def test_boolean_price_fields_and_current_price_are_rejected(self):
+        # bool is a Python int subclass; float(True) == 1.0 must not pass price validation.
+        cases = [
+            ("entry", True, 1.0, "LONG", 0.5, 2.2, 0.25),
+            ("stop_loss", True, 2.0, "LONG", 1.0, 4.4, 0.5),
+            ("target", True, 0.5, "SHORT", 0.75, 1.0, 0.1),
+            ("atr_15m", True, 2.0, "LONG", 1.0, 4.4, 1.0),
+        ]
+        for field, bad_value, price, direction, stop, target, atr in cases:
+            with self.subTest(field=field):
+                item = candidate(direction=direction)
+                item.update({
+                    "entry": price, "stop_loss": stop, "take_profit": target,
+                    "rr": (target - price) / (price - stop) if direction == "LONG"
+                          else (price - target) / (stop - price),
+                    "atr_15m": atr,
+                })
+                item[field] = bad_value
+                ok, _ = quant_supervisor.validate_candidate(item, price, item["signal_candle"])
+                self.assertFalse(ok)
+
+        item = candidate()
+        item.update({"entry": 1.0, "stop_loss": 0.5, "take_profit": 2.2,
+                     "rr": 2.4, "atr_15m": 0.25})
+        ok, _ = quant_supervisor.validate_candidate(item, True, item["signal_candle"])
+        self.assertFalse(ok)
+
     def test_quant_discord_alert_is_execution_focused_and_does_not_claim_probability(self):
         captured = {}
         original = discord._post
