@@ -189,10 +189,14 @@ def atomic_write_text(path: Path, content: str):
     os.replace(temp_path, path)
 
 
-def atomic_write_csv(frame: pd.DataFrame, path: Path):
+def atomic_write_csv(frame: pd.DataFrame, path: Path, *,
+                     index: bool = True, index_label: str = "timestamp"):
     path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = path.with_name(path.name + ".tmp")
-    frame.to_csv(temp_path, index_label="timestamp", float_format="%.10g")
+    frame.to_csv(
+        temp_path, index=index, index_label=index_label if index else None,
+        float_format="%.10g",
+    )
     os.replace(temp_path, path)
 
 
@@ -210,7 +214,13 @@ def _read_progress(path: Path, expected: dict):
     try:
         state = json.loads(path.read_text(encoding="utf-8"))
         if all(state.get(key) == value for key, value in expected.items()):
-            return state
+            next_start = state.get("next_start")
+            counters = ("request_count", "empty_chunk_count", "missing_volume_rows")
+            if (isinstance(next_start, int)
+                    and expected["start_epoch"] <= next_start <= expected["end_epoch"]
+                    and all(isinstance(state.get(key), int) and state[key] >= 0
+                            for key in counters)):
+                return state
     except (OSError, json.JSONDecodeError):
         pass
     return None
@@ -284,7 +294,7 @@ def _write_reports(output_dir: Path, manifest: dict):
     rows = list(manifest.get("datasets", {}).values())
     if rows:
         report = pd.DataFrame(rows).sort_values(["symbol_alias", "timeframe"])
-        atomic_write_csv(report.set_index("dataset_key"), output_dir / "coverage.csv")
+        atomic_write_csv(report, output_dir / "coverage.csv", index=False)
 
 
 def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
