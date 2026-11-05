@@ -55,11 +55,13 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
         "open": [101, 99.5, 100.1],
         "high": [102, 100.2, 101.5],
         "low": [100.5, 98.8, 100.0],
-        "close": [101.2, 100.5, 101.4],
+        "close": [101.2, 100.6, 100.8],
         "volume": [10, 12, 11],
     }, index=idx)
-    # Ensure the confirming candle breaks the sweep candle high; target is 110.
-    snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 101.4)
+    # Keep the entry within the configured 0.35% distance of the mapped demand band.
+    snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 100.8)
+    snap["demand_zones"][0]["low"] = 100.0
+    snap["demand_zones"][0]["high"] = 100.5
     candidates = dns_engine.detect_local_setup("BTC", {"5m": frame}, snap)
     assert len(candidates) == 1
     candidate = candidates[0]
@@ -67,6 +69,20 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
     assert candidate["setup_type"] == "DNS_LIQUIDITY_SWEEP_RECLAIM"
     assert candidate["rr"] >= 2
     assert candidate["zone_side"] == "DEMAND"
+
+
+def test_local_watcher_rejects_confirmation_too_far_from_visual_zone():
+    idx = pd.date_range("2026-11-05T00:00:00Z", periods=3, freq="5min")
+    frame = pd.DataFrame({
+        "open": [101, 99.5, 100.1],
+        "high": [102, 100.2, 101.5],
+        "low": [100.5, 98.8, 100.0],
+        "close": [101.2, 100.5, 101.4],
+        "volume": [10, 12, 11],
+    }, index=idx)
+    snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 101.4)
+    # The existing demand band ends at 100.0: the confirmation is >0.35% away.
+    assert dns_engine.detect_local_setup("BTC", {"5m": frame}, snap) == []
 
 
 def test_local_watcher_does_not_signal_without_opposing_target():
