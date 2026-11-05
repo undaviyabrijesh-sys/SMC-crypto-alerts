@@ -6,3 +6,4 @@ state.json
 __pycache__/
 *.py[cod]
 .venv/
+historical_data/
