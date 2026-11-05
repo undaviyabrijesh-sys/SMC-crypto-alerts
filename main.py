@@ -1,4 +1,5 @@
 """Salty Quant AI: raw OHLCV -> chart images -> visual AI analysis -> validated execution alerts."""
+import hashlib
 import json
 import math
 import os
@@ -163,6 +164,53 @@ def validate_trade(analysis, current_price, has_open_position=False):
     if zone_gap_pct > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
         return None, f"latest price is {zone_gap_pct:.2f}% away from the AI selected entry zone"
 
+    # A sub-setup is not actionable unless its entry band overlaps a quality
+    # demand zone for LONG or a quality supply zone for SHORT.
+    expected_zone_side = "DEMAND" if direction == "LONG" else "SUPPLY"
+    directional_zones = analysis.get("demand_zones" if direction == "LONG" else "supply_zones")
+    if not isinstance(directional_zones, list):
+        directional_zones = []
+    primary_zone = None
+    for candidate in directional_zones:
+        if not isinstance(candidate, dict):
+            continue
+        try:
+            primary_low = float(candidate["low"])
+            primary_high = float(candidate["high"])
+            primary_quality = int(candidate.get("quality", 0))
+            primary_timeframe = str(candidate["timeframe"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        if (
+            not math.isfinite(primary_low)
+            or not math.isfinite(primary_high)
+            or not (0 < primary_low < primary_high)
+            or primary_timeframe not in ("1w", "1d", "4h", "1h", "15m", "5m")
+            or primary_quality < C.MIN_DNS_ZONE_QUALITY
+            or primary_quality > 5
+        ):
+            continue
+        overlap = min(zone_high, primary_high) - max(zone_low, primary_low)
+        if overlap <= 0:
+            continue
+        distance = max(primary_low - entry, entry - primary_high, 0.0) / entry * 100
+        if distance > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
+            continue
+        primary_zone = {
+            "side": expected_zone_side,
+            "low": primary_low,
+            "high": primary_high,
+            "timeframe": primary_timeframe,
+            "quality": primary_quality,
+            "evidence": str(candidate.get("evidence", "")),
+        }
+        break
+    if primary_zone is None:
+        return None, (
+            f"{direction} trade lacks a nearby quality >= {C.MIN_DNS_ZONE_QUALITY} "
+            f"{expected_zone_side.lower()} zone overlapping the selected entry band"
+        )
+
     tp2 = analysis.get("take_profit_2")
     if tp2 is not None:
         try:
@@ -194,6 +242,7 @@ def validate_trade(analysis, current_price, has_open_position=False):
             "timeframe": zone_timeframe,
             "evidence": zone_evidence
         },
+        "primary_zone": primary_zone,
         "zones": {
             "demand": analysis.get("demand_zones", []),
             "supply": analysis.get("supply_zones", []),
@@ -288,6 +337,36 @@ def manage_positions(state, sym, m5, now, fmt):
         print(f"[closed] {sym} {signal_id}: {outcome} {pnl_r:+.2f}R")
 
 
+def _save_zone_review_chart(symbol, frames, analysis, now):
+    """Persist one latest annotated chart per symbol for visual audit, not as a decision input."""
+    cfg = C.SYMBOLS[symbol]
+    png = render_symbol_chart(
+        f"{symbol} · {cfg['delta_symbol']}", frames, now, annotations=analysis
+    )
+    root = Path(os.environ.get(
+        "CHART_REVIEW_DIR", str(data.DATA_DIR / "review_charts")
+    ))
+    root.mkdir(parents=True, exist_ok=True)
+    target = root / f"{symbol}_latest.png"
+    temp = target.with_name(target.name + ".tmp")
+    try:
+        with temp.open("wb") as handle:
+            handle.write(png)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp, target)
+    finally:
+        try:
+            temp.unlink()
+        except FileNotFoundError:
+            pass
+    return {
+        "path": str(target),
+        "sha256": hashlib.sha256(png).hexdigest(),
+        "bytes": len(png),
+    }
+
+
 def _append_research(record):
     path = Path(os.environ.get("RESEARCH_PATH", "research/visual_decisions.jsonl"))
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -371,16 +450,27 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         st.save(state)
         raise
 
+    by_symbol = {item.get("symbol"): item for item in result.get("analyses", [])}
+    review_charts = {}
+    for symbol, analysis in by_symbol.items():
+        if symbol not in frames_by_symbol:
+            continue
+        try:
+            review_charts[symbol] = _save_zone_review_chart(
+                symbol, frames_by_symbol[symbol], analysis, now
+            )
+        except Exception as exc:
+            print(f"[warn] {symbol} DNS review chart could not be saved: {type(exc).__name__}")
+
     _append_research({
         "timestamp": now.isoformat(),
         "model": meta.get("model"),
         "response_id": meta.get("response_id"),
         "usage": meta.get("usage"),
         "market_context": market_context,
+        "zone_review_charts": review_charts,
         "analysis": result
     })
-
-    by_symbol = {item.get("symbol"): item for item in result.get("analyses", [])}
     for symbol, analysis in by_symbol.items():
         if symbol not in chart_images:
             continue
