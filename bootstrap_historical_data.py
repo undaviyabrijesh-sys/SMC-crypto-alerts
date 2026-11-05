@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import shutil
 import time
@@ -216,12 +217,13 @@ def _read_progress(path: Path, expected: dict):
         return None
     try:
         state = json.loads(path.read_text(encoding="utf-8"))
-        if all(state.get(key) == value for key, value in expected.items()):
+        if isinstance(state, dict) and all(
+                state.get(key) == value for key, value in expected.items()):
             next_start = state.get("next_start")
             counters = ("request_count", "empty_chunk_count", "missing_volume_rows")
-            if (isinstance(next_start, int)
+            if (type(next_start) is int
                     and expected["start_epoch"] <= next_start <= expected["end_epoch"]
-                    and all(isinstance(state.get(key), int) and state[key] >= 0
+                    and all(type(state.get(key)) is int and state[key] >= 0
                             for key in counters)):
                 return state
     except (OSError, json.JSONDecodeError):
@@ -248,7 +250,7 @@ def _coverage_metrics(frame: pd.DataFrame, step_seconds: int,
     requested_expected = max(
         1, int(np.ceil((requested_end_epoch - requested_start_epoch) / step_seconds))
     )
-    requested_coverage = round(100.0 * count / requested_expected, 4)
+    requested_coverage = min(100.0, round(100.0 * count / requested_expected, 4))
     if count == 0:
         return {
             "requested_expected_candles_estimate": requested_expected,
@@ -279,10 +281,11 @@ def _coverage_metrics(frame: pd.DataFrame, step_seconds: int,
 def _load_manifest(path: Path):
     if not path.exists():
         return {"schema_version": 1, "venue": "Delta Exchange India",
-                "api_endpoint": CANDLES_PATH, "datasets": {}}
+                "api_base_url": BASE_URL, "api_endpoint": CANDLES_PATH, "datasets": {}}
     try:
         manifest = json.loads(path.read_text(encoding="utf-8"))
-        if manifest.get("schema_version") != 1 or not isinstance(manifest.get("datasets"), dict):
+        if (not isinstance(manifest, dict) or manifest.get("schema_version") != 1
+                or not isinstance(manifest.get("datasets"), dict)):
             raise ValueError("unsupported manifest schema")
         return manifest
     except (OSError, json.JSONDecodeError, ValueError) as exc:
@@ -311,8 +314,10 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
     """Download/resume one symbol/timeframe archive, then atomically publish its CSV."""
     if timeframe not in TIMEFRAME_SECONDS:
         raise ValueError(f"Unsupported timeframe: {timeframe}")
-    if request_delay < 0:
-        raise ValueError("request_delay cannot be negative")
+    if not math.isfinite(float(request_delay)) or request_delay < 0:
+        raise ValueError("request_delay must be finite and non-negative")
+    if retries < 0:
+        raise ValueError("retries cannot be negative")
     if not 1 <= max_candles <= MAX_API_CANDLES:
         raise ValueError(f"max_candles must be between 1 and {MAX_API_CANDLES}")
     step = TIMEFRAME_SECONDS[timeframe]
@@ -398,12 +403,13 @@ def download_dataset(symbol_alias: str, contract_symbol: str, timeframe: str,
             raise HistoricalDataError(f"No in-range candles for {symbol_alias} {timeframe}")
 
         atomic_write_csv(combined, final_path)
-        metrics = _coverage_metrics(combined, step, int(start_epoch), int(end_epoch))
         metadata = {
             "dataset_key": dataset_key,
             "symbol_alias": symbol_alias,
             "contract_symbol": contract_symbol,
             "venue": "Delta Exchange India",
+            "api_base_url": BASE_URL,
+            "api_endpoint": CANDLES_PATH,
             "price_type": "traded_price",
             "timeframe": timeframe,
             "timeframe_seconds": step,
@@ -501,8 +507,8 @@ def build_parser():
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    if args.years <= 0:
-        raise SystemExit("--years must be positive")
+    if not math.isfinite(args.years) or args.years <= 0:
+        raise SystemExit("--years must be finite and positive")
     end = to_utc_timestamp(args.end or pd.Timestamp.now(tz="UTC"))
     start = to_utc_timestamp(args.start) if args.start else end - pd.Timedelta(days=365.25 * args.years)
     try:
