@@ -1,4 +1,4 @@
-name: salty-quant-visual-desk
+name: salty-quant-paper-desk
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: salty-quant-visual-desk
+  group: salty-quant-paper-desk
   cancel-in-progress: false
 
 permissions:
@@ -14,9 +14,10 @@ permissions:
 
 jobs:
   analyse:
+    # Scheduled runs remain explicitly opt-in. Manual dispatch is one paper-only cycle.
     if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +28,7 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Restore rolling analysis state
+      - name: Restore paper state
         uses: actions/cache@v4
         with:
           path: state.json
@@ -43,44 +44,35 @@ jobs:
           key: salty-quant-market-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             salty-quant-market-${{ runner.os }}-
-      - name: Run offline pipeline tests
-        run: python test_visual_pipeline.py && python test_dns_engine.py
-      - name: Check runtime secrets without exposing their values
+      - name: Run offline tests
+        run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py
+      - name: Check Discord delivery configuration without reading secrets into logs
         id: runtime
         run: |
           if [ -z "${DISCORD_TRIGGER_WEBHOOK:-}" ] && [ -z "${DISCORD_WEBHOOK:-}" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "A Discord webhook secret is not configured; local monitoring cannot deliver alerts."
+            echo "A Discord webhook secret is not configured; outcome delivery is unavailable."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
-            if [ -z "${OPENAI_API_KEY:-}" ]; then
-              echo "Discord is configured; local DNS monitoring will run and AI map refreshes will pause."
-            else
-              echo "Discord and AI credentials are configured."
-            fi
+            echo "Discord delivery is configured. The quant engine remains paper-only."
           fi
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      - name: Download data, refresh due DNS maps, and run local setup watcher
+      - name: Fetch closed OHLCV and run deterministic strategy supervisor
         if: steps.runtime.outputs.ready == 'true'
-        run: python dns_worker.py
+        run: python quant_worker.py
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-6-luna' }}
-          OPENAI_REASONING_EFFORT: low
-          ENABLE_DAILY_PNL_REPORT: "false"
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
           STATE_PATH: state.json
-          RESEARCH_PATH: research/visual_decisions.jsonl
-      - name: Upload raw and DNS-annotated chart review images
+          QUANT_RESEARCH_PATH: research/quant_signals.jsonl
+      - name: Upload deterministic candidate and decision log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: salty-quant-dns-review-${{ github.run_id }}
-          path: market_data/review_charts/*_*.png
+          name: salty-quant-research-${{ github.run_id }}
+          path: research/quant_signals.jsonl
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
