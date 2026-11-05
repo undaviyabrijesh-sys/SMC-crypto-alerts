@@ -311,3 +311,17 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - After the artifact is available in the research runtime, validate all nine raw CSVs and their hashes again, inspect funding units/sign/settlement timestamps, then implement event-time funding attribution and mark-price valuation. Keep spread/depth as explicit missing/stress scenarios until defensible proxies exist.
 - Reconcile `quant_backtest.py` with EXP-001 before comparing results: align next-bar fills, gap and same-bar stop/target handling, 24-hour time exit, fee/slippage accounting, funding events and drawdown definitions. No new strategy performance claim is made from this archive.
 - The EXP-001 rejection still stands. Live setup feedback is observational tie-breaker context only; no unvalidated research candidate enters production. Keep the visual-first multi-setup analyst and all risk thresholds unchanged.
+
+
+
+## Final verification handoff — 2026-11-05 08:17 IST
+
+- Latest branch head: `e1a333e58eed83a5ae3ae9a25eb34fa1c72f586f`.
+- Latest push CI [41956952971](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956952971) and PR CI [41956957920](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956957920) both completed successfully on this head.
+- The verified CI steps include compilation; visual pipeline; generic replay; daily-report opt-in; setup-feedback; OpenAI secret-format; derivatives parser/archive; Quant Discovery tests; 18 public Delta OHLCV checks; nine-series funding/mark/OI probe; and the short historical OHLCV pilot.
+- PR #1 is still open, draft, unmerged and mergeable; base `main` remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. The branch is 202 commits ahead and 0 behind. No changes were made to `main`.
+- The alerts workflow push trigger has been removed. Since that change, no new `salty-quant-visual-desk` push run has been started. The workflow is manual-dispatch only unless the repository's explicit schedule variable is enabled.
+- Daily P&L reporting is disabled in both supplied runtime configurations and the example environment. Keep it disabled unless the user explicitly changes the execution-only Discord preference.
+- The OpenAI API quota blocker remains: the latest real request returned HTTP 429 `insufficient_quota / credit_balance_exhausted`. The API key header-format issue is handled and regression-tested; no secret was changed. Do not keep retrying until API credits are restored.
+- The three-year derivatives archive artifact is available from [run 41955898516](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41955898516), artifact ID `13383865992`, expiring 2026-11-19 02:37:57 UTC. It contains 758,119 candles across nine datasets and passed the archive workflow's hash checks. Download it before expiry and retain it durably.
+- Next work is research-only: extract and independently revalidate that artifact, confirm funding units/sign/payment timestamps, then reconcile funding-aware replay and execution costs with EXP-001. The fixed-rule OOS rejection remains in force; no setup is promoted.
