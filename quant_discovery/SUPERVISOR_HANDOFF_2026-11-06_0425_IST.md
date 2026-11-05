@@ -4,9 +4,9 @@
 
 - Private repository: `undaviyabrijesh-sys/SMC-crypto-alerts`.
 - Working branch: `ai-quant-rebuild`.
-- Branch head immediately before this handoff: [`ab8de2c`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/ab8de2cc811f57ca5ce03fabc8fa9a24eaf6a0ec), documentation-only visual architecture spec.
-- PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1): open, draft, unmerged, base `main`. After the documentation commit, GitHub temporarily reported `mergeable=false` while the new push/PR CI checks were still in progress; re-check mergeability after checks complete.
-- Compare at prior code head: 358 commits ahead / 0 behind; base/main SHA remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. Adding this handoff will add one further branch-only commit.
+- Branch head immediately before this final handoff refresh: [`58f4c99`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/58f4c99fb9ad9707e1a963e3946978685cb7f2d1). Documentation-only commits since the last code/test head: visual analyst V2 spec [`ab8de2c`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/ab8de2cc811f57ca5ce03fabc8fa9a24eaf6a0ec), initial handoff `fde36d5`, and mergeability clarification `58f4c99`. This refresh becomes the next branch head; resolve its SHA from the live branch ref.
+- PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1): open, draft, unmerged, base `main`; latest metadata recheck returned `mergeable=true`. Latest push/PR CI for pre-refresh head `58f4c99` was still in progress at the time of this handoff refresh; re-check exact-head runs.
+- Compare at pre-refresh head `58f4c99`: 361 commits ahead / 0 behind; base/main SHA remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. This refresh adds one further branch-only commit.
 - Branch API reports `protected=false` and no required status checks. Do not change branch settings in this task.
 - No changes to `main`, no PR merge, deployment, secrets, live trading, exchange orders, or schedule activation.
 
@@ -15,7 +15,7 @@
 - Re-read live branch ref, PR #1, compare metadata, exact-head CI, workflow files, job steps/logs, data ingestion, chart rendering, visual analyst, workers, validator, lifecycle, Discord formatting and research reports.
 - No new failing test or sufficiently clear low-risk code defect was found. Existing Boolean-number validation fix remains present at `f9ef735`; the gross-P&L label correction remains present in history.
 - Added a design-only document: [`VISUAL_FIRST_INDEPENDENT_ANALYST_V2_SPEC.md`](./VISUAL_FIRST_INDEPENDENT_ANALYST_V2_SPEC.md), commit [`ab8de2c`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/ab8de2cc811f57ca5ce03fabc8fa9a24eaf6a0ec). It specifies independent setup families, a versioned candidate-comparison contract, unchanged mechanical safety gates, runtime separation, fail-closed behaviour, and required offline/integration tests. It is not wired into runtime and does not enable alerts.
-- Latest code/test CI before the two new documentation commits was exact-head success: push [42112855948](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42112855948) and PR [42112865809](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42112865809), both for `d25e8e55a6c7649e898ce850487cbedd9a5e83ab`. New docs commits trigger fresh CI; re-check after handoff commit.
+- Latest completed exact-head code/test CI: push [42112855948](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42112855948) and PR [42112865809](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42112865809), both success for `d25e8e55a6c7649e898ce850487cbedd9a5e83ab`. Documentation commits triggered new CI: push [42125416342](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42125416342) and PR [42125423897](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42125423897) were in progress on pre-refresh head `58f4c99`; this refresh triggers another pair. Re-check final exact-head CI.
 
 ## Current CI and data-feed evidence
 
