@@ -111,3 +111,117 @@ def test_zone_invalidation_uses_the_zone_own_timeframe():
     frames["4h"] = pd.DataFrame({"close": [98.5]})
     reasons = dns_engine.refresh_reasons(snap, now, frames)
     assert "DEMAND_ZONE_BROKEN" in reasons
+
+
+def _run_worker_refresh_case(now, state, mapper):
+    """Run one isolated worker cycle and return detector/alert call counts."""
+    import os
+    import tempfile
+    from unittest.mock import patch
+    import dns_worker
+
+    idx = pd.date_range(end=now - pd.Timedelta(minutes=5), periods=3, freq="5min")
+    frame = pd.DataFrame({
+        "open": [100.0, 100.0, 100.0],
+        "high": [101.0, 101.0, 101.0],
+        "low": [99.0, 99.0, 99.0],
+        "close": [100.5, 100.5, 100.5],
+        "volume": [10.0, 10.0, 10.0],
+    }, index=idx)
+    frames = {"5m": frame}
+    map_state = {
+        "schema_version": 1,
+        "symbols": {
+            "BTC": {
+                "symbol": "BTC", "bias": "BULLISH",
+                "mapped_at": (now - pd.Timedelta(hours=5)).isoformat(),
+                "revision": 1, "demand_zones": [], "supply_zones": [],
+            }
+        },
+        "history": {},
+    }
+    candidate = {
+        "zone_id": "ZONE1", "setup_type": "DNS_LIQUIDITY_SWEEP_RECLAIM",
+        "event_candle": idx[-1].isoformat(), "direction": "LONG",
+        "zone_side": "DEMAND", "zone_low": 99.8, "zone_high": 100.2,
+        "zone_timeframe": "1h", "zone_quality": 4,
+        "entry": 100.5, "stop_loss": 98.0, "take_profit": 105.5, "rr": 2.0,
+    }
+
+    def save_map(map_data, symbol, analysis, observed_at, price):
+        snapshot = {
+            "symbol": symbol, "bias": "BULLISH", "revision": 2,
+            "demand_zones": [], "supply_zones": [],
+        }
+        map_data.setdefault("symbols", {})[symbol] = snapshot
+        return snapshot
+
+    with tempfile.TemporaryDirectory(prefix="salty-worker-refresh-") as folder:
+        with patch.dict(os.environ, {"DNS_RESEARCH_PATH": os.path.join(folder, "maps.jsonl")}):
+            with patch.object(dns_worker.C, "SYMBOLS", {
+                "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}
+            }), patch.object(dns_worker.st, "load", return_value=state), \
+                 patch.object(dns_worker.st, "save"), \
+                 patch.object(dns_worker.dns_engine, "load_map", return_value=map_state), \
+                 patch.object(dns_worker.data, "fetch_bundle", return_value=frames), \
+                 patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")), \
+                 patch.object(dns_worker.main, "manage_positions"), \
+                 patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=["SCHEDULED_REFRESH"]), \
+                 patch.object(dns_worker.dns_engine, "save_analysis", side_effect=save_map), \
+                 patch.object(dns_worker.main, "build_context", return_value={}), \
+                 patch.object(dns_worker, "render_symbol_chart", return_value=b"test-png"), \
+                 patch.object(dns_worker.main, "_save_zone_review_chart"), \
+                 patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[candidate]) as detector, \
+                 patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert:
+                dns_worker.run(now=now, fetcher=lambda *args, **kwargs: None, mapper=mapper)
+                return detector.call_count, alert.call_count
+
+
+def test_worker_blocks_new_entries_while_refresh_is_throttled():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {
+        "positions": {}, "pending_alerts": {}, "pending_outcomes": {},
+        "dns_refresh_attempts": {"BTC": (now - pd.Timedelta(minutes=10)).isoformat()},
+    }
+    def mapper_must_not_run(*args, **kwargs):
+        raise AssertionError("refresh should be throttled in this test")
+    detector_calls, alert_calls = _run_worker_refresh_case(now, state, mapper_must_not_run)
+    assert detector_calls == 0
+    assert alert_calls == 0
+
+
+def test_worker_blocks_new_entries_when_ai_refresh_fails():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes{}": {}}
+    def failed_mapper(*args, **kwargs):
+        raise RuntimeError("simulated API quota failure")
+    detector_calls, alert_calls = _run_worker_refresh_case(now, state, failed_mapper)
+    assert detector_calls == 0
+    assert alert_calls == 0
+
+
+def test_worker_blocks_new_entries_when_refresh_omits_symbol():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+    def partial_mapper(*args, **kwargs):
+        return {"analyses": []}, {"model": "test"}
+    detector_calls, alert_calls = _run_worker_refresh_case(now, state, partial_mapper)
+    assert detector_calls == 0
+    assert alert_calls == 0
+
+
+def test_worker_scans_again_after_successful_map_refresh():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+    def successful_mapper(*args, **kwargs):
+        return {"analyses": [{"symbol": "BTC"}]}, {"model": "test"}
+    detector_calls, alert_calls = _run_worker_refresh_case(now, state, successful_mapper)
+    assert detector_calls == 1
+    assert alert_calls == 1
+
+
+if __name__ == "__main__":
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print("PASS", name)
