@@ -63,6 +63,46 @@ def build_context(frames_by_symbol):
     return context
 
 
+def build_recent_setup_feedback(trade_history, lookback_per_setup=30):
+    """Summarize only already-closed paper outcomes; this is context, not a trained edge."""
+    import math
+
+    grouped = {}
+    for trade in trade_history or []:
+        if not isinstance(trade, dict) or not trade.get("exit_time"):
+            continue
+        setup = str(trade.get("setup_type", "OTHER")).upper()
+        symbol = str(trade.get("sym", "UNKNOWN")).upper()
+        try:
+            value = float(trade.get("gross_R"))
+            exit_time = _utc_now(trade["exit_time"])
+        except (TypeError, ValueError, KeyError):
+            continue
+        if not math.isfinite(value):
+            continue
+        grouped.setdefault((symbol, setup), []).append(
+            (exit_time, value, str(trade.get("status", "UNKNOWN")).upper())
+        )
+
+    feedback = {}
+    for (symbol, setup), observations in grouped.items():
+        observations.sort(key=lambda item: item[0])
+        sample = observations[-lookback_per_setup:]
+        values = [item[1] for item in sample]
+        count = len(values)
+        feedback[f"{symbol}|{setup}"] = {
+            "closed_paper_trades": count,
+            "wins": sum(value > 0 for value in values),
+            "losses": sum(value < 0 for value in values),
+            "win_rate_pct": round(100.0 * sum(value > 0 for value in values) / count, 1),
+            "mean_gross_R": round(sum(values) / count, 3),
+            "sum_gross_R": round(sum(values), 3),
+            "sample_reliability": "LOW_SAMPLE" if count < 20 else "OBSERVATIONAL_ONLY",
+            "last_exit_utc": sample[-1][0].isoformat(),
+        }
+    return feedback
+
+
 def validate_trade(analysis, current_price, has_open_position=False):
     """Mechanical safety gate; it validates an AI plan but never creates a setup or zone."""
     if analysis.get("action") != "TRADE":
@@ -312,6 +352,9 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         return
 
     market_context = build_context({s: frames_by_symbol[s] for s in chart_images})
+    market_context["_research_feedback"] = build_recent_setup_feedback(
+        state.get("trade_history", [])
+    )
     active_trades = list(state.get("positions", {}).values()) + list(state.get("pending_alerts", {}).values())
     active = {
         t.get("sym"): {
