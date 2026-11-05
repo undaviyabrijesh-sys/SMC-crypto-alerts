@@ -275,7 +275,7 @@ def manage_positions(state, sym, m5, now, fmt):
             continue
         # triggered_at is the actual entry time: the close of the signal candle.
         # The next 5m candle opens at that exact timestamp and is eligible for tracking.
-        triggered_at = pd.Timestamp(trade["triggered_at"])
+        triggered_at = _utc_now(trade["triggered_at"])
         expiry_at = triggered_at + pd.Timedelta(hours=C.TRADE_MAX_HOURS)
         # Candle timestamps are bar-open times. Only bars that close by expiry
         # may trigger TP/SL; a later bar must not retroactively change the exit.
@@ -285,7 +285,14 @@ def manage_positions(state, sym, m5, now, fmt):
         exit_price = None
         outcome = None
         exit_ts = None
+        expected_next_open = triggered_at
+        data_gap = False
         for ts, bar in future.iterrows():
+            # A later TP/SL cannot be called the first exit if one or more
+            # 5m candles are missing earlier in the position's life.
+            if ts != expected_next_open:
+                data_gap = True
+                break
             op, hi, lo = float(bar.open), float(bar.high), float(bar.low)
             sl, tp = float(trade["sl"]), float(trade["tp"])
             if is_long:
@@ -309,22 +316,19 @@ def manage_positions(state, sym, m5, now, fmt):
             if outcome:
                 exit_ts = ts
                 break
-        if not outcome and _utc_now(now) >= expiry_at:
-            # Prefer the last eligible close only when that candle actually closes
-            # at expiry. If candles are missing near expiry, use the first observed
-            # post-expiry open; without either price, keep the trade unresolved.
-            last_eligible_close = (
-                future.index[-1] + pd.Timedelta(minutes=5) if not future.empty else None
-            )
-            if last_eligible_close == expiry_at:
-                exit_ts = future.index[-1]
-                exit_price = float(future.iloc[-1].close)
-            else:
-                after_expiry = m5[m5.index >= expiry_at]
-                if after_expiry.empty:
-                    continue
-                exit_ts = after_expiry.index[0]
-                exit_price = float(after_expiry.iloc[0].open)
+            expected_next_open += pd.Timedelta(minutes=5)
+
+        if (
+            not outcome
+            and not data_gap
+            and _utc_now(now) >= expiry_at
+            and not future.empty
+            and expected_next_open == expiry_at
+        ):
+            # TIME is confirmed only when every eligible 5m bar from entry
+            # through the expiry close is present; missing bars could hide SL/TP.
+            exit_ts = future.index[-1]
+            exit_price = float(future.iloc[-1].close)
             outcome = "TIME"
         if not outcome:
             continue
