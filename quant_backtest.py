@@ -386,21 +386,25 @@ def run_backtest(ohlcv: pd.DataFrame, signals: pd.DataFrame,
                 close_position(ts, raw_exit, exit_fill, reason, ambiguous)
 
         # A close-confirmed signal schedules an entry for the next available bar only.
-        if i < len(bars) - 1 and position is None and equity > 0:
+        if position is None and equity > 0:
             signal = sig.iloc[i]
             side = int(signal["side"])
             if side != 0:
-                close_price = float(row["close"])
-                stop = float(signal["stop_price"])
-                target = float(signal["target_price"])
-                valid_levels = (stop < close_price < target) if side == 1 else (target < close_price < stop)
-                if valid_levels:
-                    pending = {
-                        "side": side, "signal_time": ts,
-                        "stop_price": stop, "target_price": target,
-                    }
-                else:
+                if i == len(bars) - 1:
+                    # No following bar exists, so a close-confirmed signal cannot be filled.
                     skipped_entries += 1
+                else:
+                    close_price = float(row["close"])
+                    stop = float(signal["stop_price"])
+                    target = float(signal["target_price"])
+                    valid_levels = (stop < close_price < target) if side == 1 else (target < close_price < stop)
+                    if valid_levels:
+                        pending = {
+                            "side": side, "signal_time": ts,
+                            "stop_price": stop, "target_price": target,
+                        }
+                    else:
+                        skipped_entries += 1
 
         equity_rows.append({
             "timestamp": ts,
