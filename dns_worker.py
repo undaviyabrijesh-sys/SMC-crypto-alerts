@@ -55,8 +55,14 @@ def run(now=None, fetcher=data.fetch, mapper=None):
                 print(f"[dns-skip] {symbol}: {reason}")
                 continue
             frames_by_symbol[symbol] = frames
-            snapshot = dns_map.get("symbols", {}).get(symbol)
-            reasons = dns_engine.refresh_reasons(snapshot, now, frames)
+            try:
+                snapshot = dns_map.get("symbols", {}).get(symbol)
+                reasons = dns_engine.refresh_reasons(snapshot, now, frames)
+            except Exception:
+                # A malformed map or failed freshness/invalidation check must
+                # fail closed; the detector must not reuse an unverified map.
+                refresh_blocked_symbols.add(symbol)
+                raise
             if reasons:
                 refresh_blocked_symbols.add(symbol)
             last_attempt = refresh_attempts.get(symbol)
