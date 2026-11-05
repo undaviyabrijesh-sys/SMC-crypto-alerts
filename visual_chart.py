@@ -65,6 +65,7 @@ def _draw_dns_annotations(ax, timeframe, analysis):
         ("DEMAND", "demand_zones", "#27c18a", "D"),
         ("SUPPLY", "supply_zones", "#ef6262", "S"),
     ):
+        side_drawn = 0
         panel_zones = [
             zone for zone in _valid_zone_rows(analysis, key)
             if zone["timeframe"] == timeframe
@@ -82,7 +83,7 @@ def _draw_dns_annotations(ax, timeframe, analysis):
             )
             midpoint = (low + high) / 2.0
             label = (
-                f"{prefix}{drawn + 1} {timeframe} Q{zone['quality']} "
+                f"{prefix}{side_drawn + 1} {timeframe} Q{zone['quality']} "
                 f"{low:,.6g}-{high:,.6g}"
             )
             ax.text(
@@ -99,6 +100,7 @@ def _draw_dns_annotations(ax, timeframe, analysis):
                 },
             )
             drawn += 1
+            side_drawn += 1
 
     selected = analysis.get("selected_entry_zone") if isinstance(analysis, dict) else None
     if isinstance(selected, dict) and selected.get("timeframe") == timeframe:
