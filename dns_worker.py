@@ -3,10 +3,12 @@ import json
 import math
 import os
 import uuid
+from pathlib import Path
 
 import pandas as pd
 
 import ai_analyst
+import ai_trade_agents
 import config as C
 import data
 import dns_engine
@@ -14,6 +16,17 @@ import discord
 import main
 import state as st
 from visual_chart import render_symbol_chart
+
+
+def _append_dns_event(record):
+    """Append map and agent-review events to the same auditable research stream."""
+    path = Path(os.environ.get("DNS_RESEARCH_PATH", "research/dns_maps.jsonl"))
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    except OSError as exc:
+        print(f"[dns-research-log-error] {type(exc).__name__}: {exc}")
 
 
 def _reprice_pending_alert(trade, current_price, snapshot):
@@ -100,7 +113,7 @@ def _reprice_pending_alert(trade, current_price, snapshot):
     return {"entry": current, "rr": rr, "primary_zone": primary_zone}
 
 
-def run(now=None, fetcher=data.fetch, mapper=None):
+def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
     now = main._utc_now(now)
     state = st.load()
     # Retry confirmed outcomes and pending Discord deliveries before new monitoring.
@@ -288,6 +301,56 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             ])
             if event_key in seen_set:
                 continue
+
+            # One debate attempt per local event. API failures are rate-limited so
+            # a quota outage cannot trigger a request every five-minute candle.
+            reviewer = agent_reviewer or ai_trade_agents.review_candidate
+            cooldowns = state.setdefault("ai_review_cooldown_until", {})
+            cooldown_raw = cooldowns.get(symbol)
+            review = None
+            if cooldown_raw:
+                try:
+                    cooldown_until = pd.Timestamp(cooldown_raw)
+                    cooldown_until = (
+                        cooldown_until.tz_localize("UTC")
+                        if cooldown_until.tzinfo is None else cooldown_until.tz_convert("UTC")
+                    )
+                    if now < cooldown_until:
+                        review = {"status": "COOLDOWN", "reason": "AI review failure cooldown is active"}
+                except (TypeError, ValueError):
+                    cooldowns.pop(symbol, None)
+            if review is None:
+                try:
+                    review = reviewer(candidate, snapshot, frames)
+                    if not isinstance(review, dict):
+                        review = {"status": "ERROR", "error": "agent reviewer returned a non-object"}
+                except Exception as exc:
+                    review = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
+
+            if review.get("status") == "ERROR":
+                cooldown_minutes = max(5, int(os.environ.get("AI_TRADE_REVIEW_FAILURE_COOLDOWN_MINUTES", "30")))
+                cooldowns[symbol] = (now + pd.Timedelta(minutes=cooldown_minutes)).isoformat()
+
+            # Record every review outcome before deciding whether the event can proceed.
+            _append_dns_event({
+                "timestamp": now.isoformat(),
+                "kind": "DNS_AGENT_REVIEW",
+                "event_key": event_key,
+                "symbol": symbol,
+                "map_revision": snapshot.get("revision"),
+                "candidate": candidate,
+                "review": review,
+            })
+            seen.append(event_key)
+            seen_set.add(event_key)
+
+            if not ai_trade_agents.allows_candidate(review):
+                print(
+                    f"[dns-agent-veto] {symbol} {candidate['setup_type']}: "
+                    f"{review.get('status')} {review.get('reason') or review.get('error') or review.get('decision')}"
+                )
+                continue
+
             signal_id = uuid.uuid4().hex[:12].upper()
             direction = candidate["direction"].lower()
             primary_zone = {
@@ -317,6 +380,13 @@ def run(now=None, fetcher=data.fetch, mapper=None):
                 ).isoformat(),
                 "status": "OPEN", "entry_source": "LOCAL_DNS_PAPER",
                 "analysis_time": now.isoformat(),
+                "agent_review": {
+                    "status": review.get("status"),
+                    "decision": review.get("decision"),
+                    "bull_stance": (review.get("bull") or {}).get("stance") if isinstance(review.get("bull"), dict) else None,
+                    "bear_stance": (review.get("bear") or {}).get("stance") if isinstance(review.get("bear"), dict) else None,
+                    "trader_rationale": (review.get("trader") or {}).get("rationale") if isinstance(review.get("trader"), dict) else None,
+                },
             }
             if discord.send_ai_trade(symbol, trade, lambda value: main._fmt(symbol, value)):
                 state.setdefault("positions", {})[signal_id] = trade
@@ -327,9 +397,6 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             else:
                 state.setdefault("pending_alerts", {})[signal_id] = trade
                 print(f"[dns-pending] {symbol} {signal_id}: Discord delivery pending")
-            seen.append(event_key)
-            seen_set.add(event_key)
-
     state["seen_dns_events"] = seen[-5000:]
     state["last_local_dns_scan_at"] = now.isoformat()
     st.save(state)
