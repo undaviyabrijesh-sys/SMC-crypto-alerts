@@ -128,6 +128,7 @@ class TestQuantSupervisor(unittest.TestCase):
 
         item = candidate()
         item["stop_loss"] = 99.8
+        item["rr"] = 22.0  # Keep the fixture internally consistent so the ATR gate is reached.
         ok, reason = quant_supervisor.validate_candidate(item, 100.0, item["signal_candle"])
         self.assertFalse(ok)
         self.assertIn("ATR", reason)
