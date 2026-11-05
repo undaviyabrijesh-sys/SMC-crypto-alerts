@@ -582,3 +582,39 @@ These near-zero linear associations do not support a simple standalone funding-c
 - Last known OpenAI API quota blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`; no live visual cycle or Discord execution delivery is verified. Restore quota before manually dispatching one paper-only visual validation.
 - EXP-001 remains rejected; no new strategy edge is established. Funding candle units/sign/event timing remain unresolved; no historical funding P&L conversion is approved.
 - No `main` modification, PR merge, deployment, secret change, live trading or exchange order.
+
+
+## Supervisor handoff — 2026-11-05 16:08 IST
+
+### Repository and CI
+- Code/research head immediately before this handoff: `b56c3dcb3ebf33c2b54f9c00e210ecffe47fc514`. PR #1 remains open, draft, unmerged and mergeable; branch was 268 commits ahead of `main`, 0 behind, with 48 changed files.
+- PR CI [42012178809](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42012178809) passed on that exact head. It passed compilation, visual pipeline, DNS watcher, replay/lifecycle, report, feedback, secret-format, derivatives parser/archive and Quant Discovery tests, plus live Delta feed checks and the historical download pilot.
+- The first CI attempt for the new OI screen exposed a pandas 3 timestamp-resolution issue: `DatetimeIndex.asi8` may be microseconds while `Timedelta.value` is nanoseconds. Replaced the integer comparison with direct timedelta comparisons and changed simulation tests to microsecond-resolution indexes. The final PR CI passed.
+
+### Delayed Discord alert safety fix
+- Found that `dns_worker.py` retried pending Discord execution alerts before fetching current market data. A webhook failure followed by a delayed retry could therefore publish a stale entry even if price had moved through TP/SL or the required R:R had deteriorated.
+- Pending alerts are now retried only after fresh closed-bar data and DNS-map refresh checks. The retry re-prices at the latest closed 5m close, recalculates R:R, rechecks the existing 0.35% entry/zone deviation limits, requires correct SL/TP ordering and minimum 2R, and requires the selected band to overlap a current quality directional AI zone. If no longer actionable, the pending alert is discarded; if the symbol's refresh is blocked or data is stale, it is not sent. Successful retry tracking starts at the new close time.
+- Added long/short, price-drift, R:R erosion, current-map overlap and worker-delivery regressions. `test_dns_engine.py` now reports 17 passing tests in CI.
+
+### Quant Discovery — OI + volatility expansion screen
+- Added `quant_discovery/oi_expansion_screen.py`, `quant_discovery/test_oi_expansion_screen.py`, and `quant_discovery/OI_EXPANSION_SCREEN.md`.
+- Hypothesis: after a large 1h move, positive OI expansion may identify continuation. Entry is next 1h open; signal thresholds use prior 720 hours only (minimum 168); ATR14 stops 1.0/1.5x; targets 2R/3R; max hold 8h; stop-first same-bar handling; no overlapping positions.
+- Used complete 1h bars resampled from 5m traded-price OHLCV, aligned OI candle closes at timestamp +1h (explicit assumption still needing endpoint-semantic confirmation), and chronological 60/20/20 splits. No gap filling. Tested 10 bps all-in round-trip friction and 20 bps stress. Funding excluded pending settlement-event/unit reconciliation.
+- BTC best OOS grid row: 45 trades, 42.22% win rate, -0.0313R expectancy, 0.9337 PF, -7.8709R max DD, 6-loss streak; at 20 bps expectancy -0.1365R. All eight BTC OOS rows were negative at 10 bps.
+- ETH best OOS row: 67 trades, 43.28% win rate, +0.0493R, 1.0896 PF, -10.8919R max DD, 5-loss streak; 20 bps expectancy -0.0640R. Train and validation for this row were negative.
+- XAUT best OOS row: 14 trades, 71.43% win rate, +0.2863R, 1.7499 PF, -3.7874R max DD, 2-loss streak; 20 bps expectancy -0.0305R. OOS is only ~40 days; train/validation were negative. This is a weak sample, not an edge.
+- All candidates rejected; no walk-forward promotion stage is warranted until a candidate first survives chronological OOS and cost robustness with adequate sample size. No research output is connected to production alerts.
+- The new Quant Discovery test module reports five passing tests, including incomplete-hour exclusion, OI close alignment, lagged thresholds, stop-first ambiguity and higher-cost sensitivity.
+
+### Latest feed evidence
+- CI snapshot at 2026-11-05 10:37:38 UTC: BTCUSD 5m 80,382.50; ETHUSD 5m 2,418.80; XAUTUSD 5m 4,108.09. All 18 symbol/timeframe freshness checks passed.
+- Derivatives probe: funding 67 BTC / 67 ETH / 71 XAUT hourly candles; mark 864 five-minute candles per contract; OI 72 hourly candles per contract. BTC historical pilot: 1,051 candles, 100% observed coverage, zero gaps.
+- The PR CI run uploaded no chart-review artifacts. It does not establish a fresh visual-AI decision or actual Discord delivery.
+
+### Architecture and blockers
+- The active workflow still runs `python dns_worker.py`. It refreshes AI-authored DNS maps and the local watcher only detects DNS sweep/reclaim. The separate `ai_analyst.analyse()` multi-family candidate function is not wired into this worker, and the validator still requires a DNS anchor. Independent trend, momentum, breakout and mean-reversion candidates therefore cannot yet compete on equal terms.
+- The default `main` branch workflow `.github/workflows/alerts.yml` remains scheduled every 10 minutes and runs legacy `python main.py` with legacy Discord webhook secrets. No changes were made to `main`. The branch visual schedule is gated by `ENABLE_GITHUB_SCHEDULE`; manual dispatch is separate.
+- Last known OpenAI API blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`. No new chart-review images were available in CI and no live visual cycle was run.
+- EXP-001 remains rejected (30/30 baseline OOS combinations negative). OI screen candidates are also rejected. Historical funding event timing/units and actual spread/depth remain unresolved.
+- Next: restore API quota; redesign the visual analyst/schema/validator so multiple independent setup families can be compared without forcing a DNS anchor; connect that selection to the active worker; retain mechanical risk validation; then manually validate one paper-only six-timeframe chart cycle and confirm Discord delivery/outcome tracking. Resolve the legacy default-branch workflow before any cutover.
+- No `main` modification, PR merge, deployment, secret change, live trading or exchange order.
