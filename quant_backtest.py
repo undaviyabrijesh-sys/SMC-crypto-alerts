@@ -103,7 +103,11 @@ def validate_ohlcv(frame: pd.DataFrame, timeframe_seconds: int) -> pd.DataFrame:
 def validate_signals(signals: pd.DataFrame, bar_index: pd.DatetimeIndex) -> pd.DataFrame:
     """Signals are known only at their own bar close and fill no earlier than next bar open."""
     if signals is None:
-        return pd.DataFrame(index=bar_index, columns=["side", "stop_price", "target_price"])
+        empty = pd.DataFrame(index=bar_index, columns=["side", "stop_price", "target_price"])
+        empty["side"] = 0
+        empty["stop_price"] = np.nan
+        empty["target_price"] = np.nan
+        return empty
     if not isinstance(signals, pd.DataFrame):
         raise BacktestError("signals must be a DataFrame")
     required = {"side", "stop_price", "target_price"}
@@ -219,8 +223,8 @@ def _performance_metrics(trades: pd.DataFrame, equity: pd.DataFrame,
         "wins": wins,
         "losses": losses,
         "win_rate_pct": round(win_rate, 4),
-        "gross_profit_cash_units": round(gross_profit, 8),
-        "gross_loss_cash_units": round(gross_loss, 8),
+        "positive_net_pnl_cash_units": round(gross_profit, 8),
+        "negative_net_pnl_cash_units": round(gross_loss, 8),
         "net_profit_r_sum": round(net_r, 8),
         "average_r_per_trade": round(avg_r, 8),
         "expectancy_r_per_trade": round(expectancy, 8),
@@ -304,7 +308,7 @@ def run_backtest(ohlcv: pd.DataFrame, signals: pd.DataFrame,
             "quantity_price_units": quantity,
             "gross_pnl_cash_units": gross_cash,
             "fees_cash_units": fee_cash,
-            "net_pnl_cash": net_cash - fee_cash,
+            "net_pnl_cash": net_cash,
             "risk_cash_units": risk_cash,
             "gross_r": gross_cash / risk_cash if risk_cash else 0.0,
             "fees_r": fee_cash / risk_cash if risk_cash else 0.0,
