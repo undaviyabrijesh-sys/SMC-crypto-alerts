@@ -529,4 +529,6 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
 
 
 if __name__ == "__main__":
-    run()
+    # Keep the direct script entrypoint aligned with the active map-first architecture.
+    import dns_worker
+    dns_worker.run()
