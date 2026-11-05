@@ -94,8 +94,8 @@ def send_outcome(trade, fmt):
         f"{trade['sym']} {trade['dir'].upper()}\n"
         f"Entry: {fmt(float(trade['entry']))} | Exit: {fmt(float(trade['exit']))}\n"
         f"SL: {fmt(float(trade['sl']))} | TP1: {fmt(float(trade['tp']))}\n"
-        f"Result: **{outcome}** | Paper P&L: **{trade['gross_pnl_pct']:+.3f}% "
-        f"({trade['gross_R']:+.2f}R)**"
+        f"Result: **{outcome}** | Gross paper P&L (before fees, spread, slippage and funding): "
+        f"**{trade['gross_pnl_pct']:+.3f}% ({trade['gross_R']:+.2f}R)**"
     )
     return _post(message)
 
