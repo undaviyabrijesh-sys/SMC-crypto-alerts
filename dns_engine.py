@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pandas as pd
 
+import config as C
+
 TIMEFRAMES = {"1w", "1d", "4h", "1h", "15m", "5m"}
 MAP_REFRESH_HOURS = max(1, int(os.environ.get("DNS_MAP_REFRESH_HOURS", "4")))
 MIN_ZONE_QUALITY = max(1, min(5, int(os.environ.get("MIN_DNS_ZONE_QUALITY", "3"))))
@@ -238,7 +240,16 @@ def detect_local_setup(symbol, frames, snapshot, now=None):
                 target = _nearest_target(opposing, entry, direction)
                 risk = stop - entry
                 reward = entry - target if target is not None else 0
-            if not (swept and confirmed and risk > 0 and reward >= 2 * risk):
+            # Keep the local trigger inside the same configured proximity gate
+            # used for AI-selected market entries. A fast confirmation candle can
+            # otherwise chase price too far away from the visually mapped zone.
+            zone_gap = max(low - entry, entry - high, 0.0)
+            zone_gap_pct = zone_gap / entry * 100 if entry > 0 else math.inf
+            if not (
+                swept and confirmed and risk > 0 and reward >= 2 * risk
+                and math.isfinite(zone_gap_pct)
+                and zone_gap_pct <= C.MAX_MARKET_ENTRY_DEVIATION_PCT
+            ):
                 continue
             event_time = pd.Timestamp(bars.index[-1])
             event_time = event_time.tz_localize("UTC") if event_time.tzinfo is None else event_time.tz_convert("UTC")
