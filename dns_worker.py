@@ -126,6 +126,13 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             print(f"[dns-local-error] {symbol}: {type(exc).__name__}: {exc}")
             continue
         for candidate in candidates:
+            active_for_symbol = any(
+                item.get("sym") == symbol
+                for item in list(state.get("positions", {}).values())
+                + list(state.get("pending_alerts", {}).values())
+            )
+            if active_for_symbol:
+                continue
             event_key = "|".join([
                 symbol, str(candidate["zone_id"]), candidate["setup_type"],
                 candidate["event_candle"]
