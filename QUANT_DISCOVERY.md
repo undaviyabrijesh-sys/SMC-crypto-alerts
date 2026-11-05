@@ -139,3 +139,14 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Quant Discovery remains at protocol stage: no tracked long-term OHLCV archive, dedicated backtest runner, or completed experiment. Do not infer strategy performance from feed checks.
 - Next steps: bootstrap bounded historical Delta OHLCV with coverage/hash metadata; preserve contract/timeframe provenance; add deterministic gap and cost-model tests; then implement the event-driven backtester with explicit next-bar fills, fees/spread/slippage/funding flags, chronological splits, purge/embargo and walk-forward folds. Keep all candidates out of production alerts until untouched out-of-sample and robustness checks pass.
 - No deployment, secret change, merge, live order, threshold change, or performance claim was made.
+
+## Supervisor cycle — 2026-11-05 05:53 IST
+
+- Branch: `ai-quant-rebuild`; draft PR #1 remains open, unmerged, and targets `main`.
+- Latest code change: `053c730f96abfdb19b0ee91732b9d8091f9302ff` adds finite-number guards to required trade prices, current price, entry-zone bounds, and optional TP2 handling. This closes a validation edge case where NaN comparisons could bypass the entry-deviation check and an infinite zone bound could be accepted.
+- Regression tests: `8a8caa54c1d16a0993b89630570f5375178a2d19` adds two offline tests covering non-finite required prices/zone bounds and ignoring a non-finite optional second target.
+- Baseline CI on the preceding head `b34add5c44150590846f23a0d7ed139cfbdc85ac` passed in run [41933934867](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41933934867): compilation, 29 offline test functions, and live public Delta OHLCV checks for all 18 instrument/timeframe combinations. The new code/test commits triggered a fresh CI run; its result must be checked before treating these changes as verified.
+- Current architecture remains visual-first; old coded zone/scoring modules are not the decision path. Confidence, minimum R:R, entry-deviation and single-open-position controls were not weakened.
+- No running worker or production chart images were available in this cycle. OpenAI API access, Discord delivery, authenticated Delta access and deployment remain unverified; no alert/order was sent.
+- Quant Discovery remains design-only: no tracked long-term historical archive, dedicated deterministic backtest runner, or completed experiment. Next step is bounded historical OHLCV bootstrap with coverage/hash metadata, followed by cost-aware event-driven backtesting and chronological walk-forward validation.
+- Safety constraints unchanged: do not modify `main`, merge PR #1, deploy, change secrets, enable live trading, or place orders.
