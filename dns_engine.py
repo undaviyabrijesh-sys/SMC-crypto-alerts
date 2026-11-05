@@ -160,19 +160,20 @@ def refresh_reasons(snapshot, now, frames):
     reasons = []
     if current - stamp >= pd.Timedelta(hours=MAP_REFRESH_HOURS):
         reasons.append("SCHEDULED_REFRESH")
-    h1 = frames.get("1h")
-    if h1 is not None and len(h1) >= 2:
-        close = float(h1.iloc[-1].close)
-        zones = snapshot.get("demand_zones", []) + snapshot.get("supply_zones", [])
-        for zone in zones:
-            if zone.get("status") != "ACTIVE":
-                continue
-            if zone["side"] == "DEMAND" and close < float(zone["low"]):
-                reasons.append("DEMAND_ZONE_BROKEN")
-                break
-            if zone["side"] == "SUPPLY" and close > float(zone["high"]):
-                reasons.append("SUPPLY_ZONE_BROKEN")
-                break
+    zones = snapshot.get("demand_zones", []) + snapshot.get("supply_zones", [])
+    for zone in zones:
+        if zone.get("status") != "ACTIVE":
+            continue
+        zone_frame = frames.get(zone.get("timeframe"))
+        if zone_frame is None or zone_frame.empty:
+            continue
+        close = float(zone_frame.iloc[-1].close)
+        if zone["side"] == "DEMAND" and close < float(zone["low"]):
+            reasons.append("DEMAND_ZONE_BROKEN")
+            break
+        if zone["side"] == "SUPPLY" and close > float(zone["high"]):
+            reasons.append("SUPPLY_ZONE_BROKEN")
+            break
     return list(dict.fromkeys(reasons))
 
 
@@ -205,8 +206,6 @@ def detect_local_setup(symbol, frames, snapshot, now=None):
     bars = m5.tail(3)
     sweep, confirm = bars.iloc[-2], bars.iloc[-1]
     out = []
-    h1 = frames.get("1h")
-    latest_h1_close = float(h1.iloc[-1].close) if h1 is not None and not h1.empty else None
     for side, zones, opposing, direction in (
         ("DEMAND", snapshot.get("demand_zones", []), snapshot.get("supply_zones", []), "LONG"),
         ("SUPPLY", snapshot.get("supply_zones", []), snapshot.get("demand_zones", []), "SHORT"),
@@ -215,10 +214,12 @@ def detect_local_setup(symbol, frames, snapshot, now=None):
             if zone.get("status") != "ACTIVE" or int(zone.get("quality", 0)) < MIN_ZONE_QUALITY:
                 continue
             low, high = float(zone["low"]), float(zone["high"])
-            # A confirmed 1h close through the distal edge invalidates the zone.
-            if latest_h1_close is not None and (
-                (side == "DEMAND" and latest_h1_close < low)
-                or (side == "SUPPLY" and latest_h1_close > high)
+            # Invalidate only on a close of the zone's own timeframe.
+            zone_frame = frames.get(zone.get("timeframe"))
+            zone_close = float(zone_frame.iloc[-1].close) if zone_frame is not None and not zone_frame.empty else None
+            if zone_close is not None and (
+                (side == "DEMAND" and zone_close < low)
+                or (side == "SUPPLY" and zone_close > high)
             ):
                 continue
             if side == "DEMAND":
