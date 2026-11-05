@@ -37,6 +37,9 @@ def run(now=None, fetcher=data.fetch, mapper=None):
     frames_by_symbol = {}
     chart_images = {}
     refresh_due = {}
+    # A map that is due for refresh must not keep generating new entries if the
+    # AI refresh is throttled, fails, or omits that symbol from its response.
+    refresh_blocked_symbols = set()
 
     # Market data is refreshed locally every worker cycle; no AI request is made here.
     for symbol, cfg in C.SYMBOLS.items():
@@ -54,6 +57,8 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             frames_by_symbol[symbol] = frames
             snapshot = dns_map.get("symbols", {}).get(symbol)
             reasons = dns_engine.refresh_reasons(snapshot, now, frames)
+            if reasons:
+                refresh_blocked_symbols.add(symbol)
             last_attempt = refresh_attempts.get(symbol)
             if reasons and last_attempt:
                 last_attempt_ts = pd.Timestamp(last_attempt)
@@ -79,12 +84,21 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             refresh_attempts[symbol] = now.isoformat()
         try:
             result, meta = call_mapper(chart_images, market_context)
-            by_symbol = {item.get("symbol"): item for item in result.get("analyses", [])}
-            for symbol, analysis in by_symbol.items():
+            by_symbol = {
+                item.get("symbol"): item
+                for item in result.get("analyses", [])
+                if isinstance(item, dict) and item.get("symbol") in chart_images
+            }
+            for symbol in chart_images:
+                analysis = by_symbol.get(symbol)
+                if not isinstance(analysis, dict):
+                    print(f"[dns-map-error] {symbol}: refresh response omitted its map; skipping new entries")
+                    continue
                 price = float(frames_by_symbol[symbol]["5m"].iloc[-1].close)
                 snapshot = dns_engine.save_analysis(
                     dns_map, symbol, analysis, now, price
                 )
+                refresh_blocked_symbols.discard(symbol)
                 try:
                     main._save_zone_review_chart(
                         symbol, frames_by_symbol[symbol], analysis, now,
@@ -116,6 +130,9 @@ def run(now=None, fetcher=data.fetch, mapper=None):
     seen = state.setdefault("seen_dns_events", [])
     seen_set = set(seen)
     for symbol, frames in frames_by_symbol.items():
+        if symbol in refresh_blocked_symbols:
+            print(f"[dns-wait] {symbol}: required AI DNS refresh is pending; skipping new entries")
+            continue
         snapshot = dns_map.get("symbols", {}).get(symbol)
         if not snapshot:
             print(f"[dns-wait] {symbol}: waiting for first successful AI DNS map")
