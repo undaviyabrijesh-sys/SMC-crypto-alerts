@@ -78,11 +78,10 @@ For GitHub Actions fallback, add OPENAI_API_KEY and DISCORD_TRIGGER_WEBHOOK (or 
 ## Alert behaviour
 
 - No WATCH or generic market commentary messages are sent to Discord.
-- No repeat AI analysis is performed for a symbol unless its latest fully closed 5m candle has changed.
-- All available symbols are analysed together in one model call.
+- The local watcher runs every five minutes without AI calls. AI map refreshes are age/event driven (four-hour default), batched across due symbols, and throttled to at most one failed refresh attempt per symbol every 30 minutes.
 - One open paper position per symbol is allowed.
-- The first release supports immediate MARKET entries only. A proposed entry must be within the configured tolerance of the last closed 5m price. Limit orders are not silently treated as fills.
-- Trade tracking is paper tracking, not a broker fill and not an exchange order. The entry is assumed at the last closed 5m price so the signal lifecycle can be measured consistently.
+- The first local detector supports only a confirmed DNS liquidity-sweep/reclaim pattern, with entry at the confirming closed 5m candle and a target at the nearest opposing mapped zone. Other sub-setups are not yet wired into the local detector.
+- Trade tracking is paper tracking, not a broker fill and not an exchange order. The entry is assumed at the confirming closed 5m candle close so the signal lifecycle can be measured consistently.
 - If Discord delivery fails, the alert is retried briefly; undelivered signals are not silently marked as active paper trades.
 - Same-candle TP/SL ambiguity is resolved conservatively as SL first.
 - Trade outcomes are sent as separate Discord messages when TP, SL or TIME exits are confirmed from closed 5m candles.
