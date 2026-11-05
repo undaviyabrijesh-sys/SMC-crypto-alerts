@@ -830,6 +830,8 @@ def test_historical_archive_persists_hash_coverage_and_resumes_after_interruptio
         manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
         assert manifest["datasets"]["BTC_BTCUSD_5m"]["row_count"] == 4
         assert (output / "coverage.csv").exists()
+        coverage = pd.read_csv(output / "coverage.csv")
+        assert coverage.loc[0, "dataset_key"] == "BTC_BTCUSD_5m"
         assert not (output / ".work" / "BTC_5m").exists()
 
 
