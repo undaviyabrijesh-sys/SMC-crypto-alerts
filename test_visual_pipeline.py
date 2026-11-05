@@ -599,11 +599,6 @@ def test_state_save_is_atomic_and_round_trips():
             state_module.PATH = original_path
 
 
-if __name__ == "__main__":
-    for name, fn in list(globals().items()):
-        if name.startswith("test_"):
-            fn()
-            print("PASS", name)
 
 def test_trade_gate_rejects_nonfinite_required_prices_and_zone_bounds():
     def valid_analysis():
@@ -652,3 +647,8 @@ def test_nonfinite_optional_second_target_is_ignored():
     assert plan is not None
     assert plan["tp2"] is None
 
+if __name__ == "__main__":
+    for name, fn in list(globals().items()):
+        if name.startswith("test_"):
+            fn()
+            print("PASS", name)
