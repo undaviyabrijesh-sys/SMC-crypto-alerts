@@ -27,12 +27,18 @@ jobs:
         run: python -m compileall -q .
       - name: Run offline visual pipeline tests
         run: python test_visual_pipeline.py
+      - name: Run offline quant replay tests
+        run: python test_quant_backtest.py
+      - name: Run derivatives-history parser tests
+        run: python test_derivatives_history.py
       - name: Run offline quant backtest tests
         run: python test_quant_backtest.py
       - name: Run Quant Discovery unit tests
         run: python -m unittest discover -s quant_discovery -p 'test_*.py' -v
       - name: Verify live public Delta OHLCV data
         run: python smoke_delta_feed.py
+      - name: Probe public historical funding, mark and OI series
+        run: python smoke_derivatives_history.py --days 3 --output "$RUNNER_TEMP/derivatives_history_pilot.json"
 
       - name: Exercise a small live historical archive pilot
         run: python bootstrap_historical_data.py --years 0.01 --symbols BTC --timeframes 5m --output-dir "$RUNNER_TEMP/salty-historical-pilot" --request-delay 0
