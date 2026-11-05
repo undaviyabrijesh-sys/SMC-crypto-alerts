@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - ai-quant-rebuild
-    paths:
-      - .github/workflows/derivatives-archive.yml
   workflow_dispatch:
 
 permissions:
