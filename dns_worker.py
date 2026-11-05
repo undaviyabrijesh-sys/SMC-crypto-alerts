@@ -18,7 +18,22 @@ from visual_chart import render_symbol_chart
 def run(now=None, fetcher=data.fetch, mapper=None):
     now = main._utc_now(now)
     state = st.load()
+    # Retry confirmed outcomes and pending Discord deliveries before new monitoring.
+    for signal_id, outcome in list(state.setdefault("pending_outcomes", {}).items()):
+        sym = outcome.get("sym")
+        if sym in C.SYMBOLS and discord.send_outcome(outcome, lambda value, s=sym: main._fmt(s, value)):
+            del state["pending_outcomes"][signal_id]
+    for signal_id, trade in list(state.setdefault("pending_alerts", {}).items()):
+        age = now - pd.Timestamp(trade.get("analysis_time", now.isoformat()))
+        if age > pd.Timedelta(minutes=10):
+            del state["pending_alerts"][signal_id]
+            continue
+        sym = trade.get("sym")
+        if sym in C.SYMBOLS and discord.send_ai_trade(sym, trade, lambda value, s=sym: main._fmt(s, value)):
+            state.setdefault("positions", {})[signal_id] = trade
+            del state["pending_alerts"][signal_id]
     dns_map = dns_engine.load_map()
+    refresh_attempts = state.setdefault("dns_refresh_attempts", {})
     frames_by_symbol = {}
     chart_images = {}
     refresh_due = {}
@@ -39,6 +54,12 @@ def run(now=None, fetcher=data.fetch, mapper=None):
             frames_by_symbol[symbol] = frames
             snapshot = dns_map.get("symbols", {}).get(symbol)
             reasons = dns_engine.refresh_reasons(snapshot, now, frames)
+            last_attempt = refresh_attempts.get(symbol)
+            if reasons and last_attempt:
+                last_attempt_ts = pd.Timestamp(last_attempt)
+                last_attempt_ts = last_attempt_ts.tz_localize("UTC") if last_attempt_ts.tzinfo is None else last_attempt_ts.tz_convert("UTC")
+                if now - last_attempt_ts < pd.Timedelta(minutes=30):
+                    reasons = []
             if reasons:
                 refresh_due[symbol] = reasons
                 chart_images[symbol] = render_symbol_chart(
@@ -54,6 +75,8 @@ def run(now=None, fetcher=data.fetch, mapper=None):
         })
         market_context["_mapping_refresh_reasons"] = refresh_due
         call_mapper = mapper or ai_analyst.map_dns
+        for symbol in chart_images:
+            refresh_attempts[symbol] = now.isoformat()
         try:
             result, meta = call_mapper(chart_images, market_context)
             by_symbol = {item.get("symbol"): item for item in result.get("analyses", [])}
