@@ -513,3 +513,34 @@ These near-zero linear associations do not support a simple standalone funding-c
 3. Redesign the visual analyst so it compares independent candidate families (SMC/structure, DNS, liquidity, S/R, trend pullback, momentum, breakout/retest and volatility/mean-reversion) where the chart evidence supports them; permit `NO_TRADE`. Remove the mandatory DNS anchor for non-DNS families without weakening numeric risk gates.
 4. Wire that analyst into the active worker only after schema and mechanical-validator tests cover every family; local code must validate prices/risk and track outcomes, not invent zones or decide market structure.
 5. Continue contract-specific funding event reconciliation; do not convert historical funding candles or book them into P&L until units, sign and event timing are independently verified.
+
+
+## Supervisor verification — 2026-11-05 13:52 IST
+
+### Exact branch / PR / CI state
+- Branch `ai-quant-rebuild` head at the start of this verification: `e68bf74f8f23c52168fa88d308420c3daf520373` (handoff-only commit).
+- Draft PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1) remains open, draft, mergeable and unmerged; base `main`; 251 commits / 45 changed files. Default branch is still `main`.
+- Push CI [41987082118](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41987082118) and PR CI [41987089690](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41987089690) both completed successfully on the exact `e68bf74` head. All listed steps passed: compile, visual/DNS tests, paper replay, reporting, feedback, OpenAI-secret validation, derivatives parsing/archive, Quant Discovery tests, 18 public OHLCV checks, derivatives probes and historical download pilot.
+- Neither CI run uploaded chart-review artifacts. No raw or AI-annotated multi-timeframe chart image was available for visual inspection. The successful offline tests/feed probes do not establish a live visual-AI decision or Discord delivery.
+
+### Fresh feed evidence (CI timestamp 2026-11-05 07:25 UTC)
+- All 18 symbol/timeframe checks passed for BTCUSD, ETHUSD and XAUTUSD across 5m, 15m, 1h, 4h, 1d and 1w. Closed-bar and freshness checks passed.
+- Latest 5m closes in that run: BTCUSD 80,590.00; ETHUSD 2,424.25; XAUTUSD 4,106.95. These are historical CI snapshot values, not current quotes at 13:52 IST.
+- Funding 1h, mark 5m and OI 1h series were available for all three contracts (72 funding candles, 864 mark candles and 72 OI candles per contract). The BTC 5m historical pilot returned 1,051 candles, 100% observed coverage, zero gaps.
+- No newer live feed request was made in this verification.
+
+### Architecture / operational blockers confirmed from current branch files
+- `dns_worker.py` calls `ai_analyst.map_dns()` only when the DNS map is missing, aged or invalidated; each subsequent five-minute cycle uses `dns_engine.detect_local_setup()` for the narrow local DNS sweep/reclaim detector. The active worker does not call `ai_analyst.analyse()`.
+- `ai_analyst.py` explicitly requires every actionable setup to be anchored to a directional DNS zone. Trend pullback, momentum, breakout/retest and mean-reversion are restricted to DNS-anchored confirmations. `main.validate_trade()` also requires a nearby selected entry zone overlapping a quality directional DNS zone. Thus the current prompt/schema/validator/worker combination does not yet satisfy independent comparison of all suitable setup families; a test that checks the setup-type enum alone is insufficient.
+- Existing mechanical gates remain intact: AI confidence >=75, minimum 2R, selected-entry proximity <=0.35%, and DNS detector quality >=3, plus directional SL/TP and one open paper position per symbol. TP/SL/TIME tracking and execution/outcome Discord formatting are implemented; no delivery confirmation is available.
+- The default-branch `main/.github/workflows/alerts.yml` still schedules `advance-alerts` every 10 minutes and executes `python main.py` with legacy Discord webhook secrets. The last specifically verified legacy scheduled run remains [41980193244](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41980193244) at 06:24 UTC; this check verified the workflow definition but did not retrieve a newer scheduled run. The branch visual workflow remains schedule-gated by `ENABLE_GITHUB_SCHEDULE == 'true'`; PR #1 is unmerged, so it is not the default scheduled workflow.
+- Last known OpenAI Responses API blocker remains HTTP 429 `insufficient_quota / credit_balance_exhausted`; it was not retried. Actual Discord delivery is not verified.
+
+### Quant Discovery decision
+- EXP-001 remains rejected: 30/30 baseline OOS cells had negative expectancy under the documented 10 bps round-trip cost plus adverse-carry stress. The post-hoc ETH 15m volatility-expansion/downtrend subgroup remains an unvalidated hypothesis and is not eligible for alerts.
+- Funding/OI work remains descriptive. Historical funding candle unit, sign and same-boundary versus lagged event attribution are not reconciled; do not book historical funding P&L. Historical spread/depth remain unavailable.
+
+### Supervisor decision / next steps
+- No new low-risk code defect was identified. No runtime code, thresholds, secrets, infrastructure or `main` files were changed in this verification.
+- Next: restore OpenAI quota; manually run one paper-only visual cycle and inspect chart artifacts/model output/validator/Discord result; redesign prompt/schema/validator/active worker together so independent evidence-supported setup families can be selected or return `NO_TRADE`; retain mechanical risk gates and local outcome tracking. Resolve the legacy default-branch workflow only after owner decision.
+- No PR merge, deployment, live trading or exchange order.
