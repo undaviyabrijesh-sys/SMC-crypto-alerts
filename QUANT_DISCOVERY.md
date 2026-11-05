@@ -234,3 +234,36 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - New research commits: 472b138771868006b2f562e7ce027575b56aef70 (screen), 89afe0b6db0d177e193d827023e3eccfc865ec9a (tests), 1fb57e4de10dfbe786f11b9b41dec6c52cc6cfcf (experiment report). CI verification follow-up: run 41955307668 on head 94075af13e543b562a3bdcbac97ef448d8bd2b6d completed successfully; compile, visual-pipeline tests, quant-backtest tests, Quant Discovery tests, all 18 live feed checks and the historical archive pilot passed. The immediately preceding run 41955221023 exposed an uncounted final-bar signal; commit 94075af fixed the skipped-entry counter and the rerun passed.
 - Current next steps: cross-check EXP-001 against quant_backtest.py. That generic engine models per-side fees/slippage but explicitly excludes funding, spread/depth, contract multipliers, margin/liquidation and has no explicit time-stop; reconcile fill and cost semantics before treating the two engines as equivalent. Obtain historical funding/mark and defensible spread/slippage proxies; pre-register and retest the ETH 15m volatility-expansion/downtrend hypothesis on additional untouched windows and instruments; compare any validated candidates against visual-AI outcomes. Keep the chart-first multi-setup analyst and all production thresholds unchanged.
 - No production worker, real chart cycle, OpenAI analysis, Discord delivery, authenticated account, order or deployment was exercised. No order was placed. Main was not modified and PR #1 was not merged.
+
+
+
+## Supervisor handoff — 2026-11-05 08:04 IST
+
+### Repository and verification
+
+- Branch: `ai-quant-rebuild`; current code/test head before this handoff: `7f544c5744ffb421ad770d0aff8e9f00d458fea2`.
+- PR #1 remains open, draft, unmerged and mergeable. It targets `main`; main remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. The branch is 173 commits ahead and 0 behind.
+- Latest push CI [41955994996](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41955994996) and PR CI [41956002630](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41956002630) passed on head `7f544c5`.
+- The workflow compiled all Python modules; passed visual-pipeline tests, 17 generic replay tests, 7 derivative-probe tests, 7 derivatives-archive tests and 4 Quant Discovery tests; checked all 18 BTC/ETH/XAUT OHLCV symbol/timeframe combinations; checked the derivative series; and completed the small historical OHLCV pilot.
+- No recent production visual-desk/alerts workflow run was found. No live worker, chart-to-AI call, Discord delivery, authenticated Delta account check or exchange order was exercised. The scheduled alerts workflow remains opt-in through `ENABLE_GITHUB_SCHEDULE=true`; do not enable it as part of research.
+
+### Historical funding / mark / open-interest discovery
+
+- The public Delta India historical candle endpoint returned usable three-day samples for all nine expected series:
+  - Funding, `FUNDING:<contract>`, 1h: BTC 67, ETH 67, XAUT 71 candles.
+  - Mark price, `MARK:<contract>`, 5m: 864 candles per contract.
+  - Open interest, `OI:<contract>`, 1h: 72 candles per contract.
+- The probe parser preserves negative funding values and raw API units. These counts establish short-window endpoint availability only; they do not establish multi-year history, funding-rate scaling/sign conventions, or executable spread.
+- Added `bootstrap_derivatives_history.py` for resumable, bounded, chunked downloads of nine series, with CSVs, a manifest, SHA-256 hashes and coverage/gap metrics. Added `test_bootstrap_derivatives_history.py` and the one-time `.github/workflows/derivatives-archive.yml`.
+- The one-time workflow is guarded: it runs only by manual workflow dispatch or a commit whose message begins `RUN_DERIVATIVES_ARCHIVE:`. It has **not** been dispatched. It retains a verified or partial archive as a 14-day Actions artifact and does not commit raw data.
+- Safety/quality fixes on this branch: the three-day probe now requires every symbol/series pair to be present and non-empty; resume checkpoints must align to the series candle boundary; the archive workflow rejects empty datasets even if all nine filenames and hashes exist. Regression tests cover complete probe coverage and checkpoint alignment.
+- Relevant commits: `16b21fab6599152cac06541c32b3026ae42b595f`, `7b654320ff8b3c241beed788739e3bc0a463f793`, `942b39e154f12de823ae6bd68d4f231258da266e`, `01a1923a8b17e426c82f6506031a1e9bd145393a`, and `7f544c5744ffb421ad770d0aff8e9f00d458fea2`.
+
+### Research interpretation and exact next steps
+
+- The existing EXP-001 conclusions remain unchanged: all 30 baseline OOS combinations were negative at the stated 10 bps combined round-trip cost scenario plus 1 bp per 8 hours funding stress. No candidate is an edge and none is routed to production.
+- Do not apply funding to a backtest until raw series units, sign convention, actual funding-event timestamps and contract-specific payment semantics are independently confirmed. Keep missing spread/depth explicit; do not set them to zero.
+- The generic `quant_backtest.py` engine and EXP-001 `initial_screen.py` are not yet equivalent: the generic engine has per-side fee/slippage inputs but no explicit time-stop or funding-event accounting; EXP-001 uses a 24-hour time stop and combined cost/funding stress. Reconcile next-bar fills, target/stop gap handling, fees, funding, end-of-data treatment and drawdown definitions before cross-validating or comparing their reported metrics.
+- Next operator action: manually run GitHub Actions workflow **Derivatives history archive (one-time)** on `ai-quant-rebuild`, or run `python bootstrap_derivatives_history.py --years 3 --output-dir derivatives_history` on durable storage. Then inspect all nine series' actual first/last timestamps, empty chunks, gaps, cadence, row counts and hashes; do not assume three years are available.
+- After the derivative archive is verified, implement event-time funding attribution and mark-price valuation in the research replay, add defensible spread/slippage scenarios, and run chronological/walk-forward validation. Pre-register the ETH 15m volatility-expansion/downtrend hypothesis before further testing; do not reuse its already-observed OOS slice as fresh holdout data.
+- Keep the visual-first multi-setup AI analyst and all production thresholds unchanged. No deployment, secret mutation, merge, live trading or order placement was performed.
