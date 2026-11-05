@@ -217,6 +217,36 @@ class TestQuantSupervisor(unittest.TestCase):
         self.assertIn("GAPSAFE1", state["positions"])
         self.assertEqual(state["trade_history"], [])
 
+    def test_quant_worker_records_shadow_candidate_without_discord_execution_alert(self):
+        frames = frames_with_optional_gap()
+        signal_time = frames["5m"].index[-1].isoformat()
+        item = candidate()
+        item.update({
+            "entry": 120.0, "stop_loss": 118.0, "take_profit": 124.4,
+            "signal_candle": signal_time,
+            "triggered_at": (frames["5m"].index[-1] + pd.Timedelta(minutes=5)).isoformat(),
+        })
+        state = {"positions": {}, "pending_outcomes": {}, "quant_last_candle": {}}
+        records = []
+        with (
+            patch.object(quant_worker.C, "SYMBOLS", {"BTC": {"delta_symbol": "BTCUSD", "dp": 1}}),
+            patch.object(quant_worker.st, "load", return_value=state),
+            patch.object(quant_worker.st, "save"),
+            patch.object(quant_worker.data, "fetch_bundle", return_value=frames),
+            patch.object(quant_worker.data, "freshness", return_value=(True, "fresh")),
+            patch.object(quant_worker, "manage_positions"),
+            patch.object(quant_worker.quant_strategies, "generate_candidates", return_value=[item]),
+            patch.object(quant_worker, "_append_record", side_effect=records.append),
+            patch.object(quant_worker.discord, "send_quant_trade") as send,
+        ):
+            quant_worker.run(now=pd.Timestamp("2026-11-05T12:10:00Z"), fetcher=lambda *args, **kwargs: None)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["decision_status"], "RESEARCH_ONLY")
+        self.assertEqual(records[0]["research_preview_strategy"], "TREND_PULLBACK")
+        send.assert_not_called()
+        self.assertEqual(state["positions"], {})
+        self.assertEqual(state["quant_last_candle"]["BTC"], signal_time)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
