@@ -44,6 +44,13 @@ def validate_candidate(candidate, current_price, latest_candle=None):
     reward = target - entry if direction == "LONG" else entry - target
     if risk <= 0 or reward / risk < MIN_REWARD_RISK:
         return False, "candidate fails the minimum 2R gate"
+    try:
+        reported_rr = float(candidate.get("rr"))
+    except (TypeError, ValueError, OverflowError):
+        return False, "candidate R:R is missing or invalid"
+    calculated_rr = reward / risk
+    if not math.isfinite(reported_rr) or abs(reported_rr - calculated_rr) > max(0.02, calculated_rr * 0.02):
+        return False, "reported R:R does not match the entry/stop/target levels"
     stop_atr = risk / atr
     if not math.isfinite(stop_atr) or not 0.35 <= stop_atr <= 2.5:
         return False, "stop distance is outside the 0.35–2.5 ATR safety band"
