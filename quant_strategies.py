@@ -354,7 +354,7 @@ STRATEGIES = (
 def generate_candidates(symbol, frames):
     """Evaluate every independent strategy against the same latest closed-bar snapshot."""
     for timeframe in REQUIRED_TIMEFRAMES:
-        minimum = 70 if timeframe in ("5m", "15m", "1h", "4h") else 55
+        minimum = 70 if timeframe in ("5m", "15m", "1h", "4h") else (20 if timeframe == "1w" else 55)
         if not _valid_frame(frames.get(timeframe), timeframe, minimum=minimum):
             return []
     candidates = []
