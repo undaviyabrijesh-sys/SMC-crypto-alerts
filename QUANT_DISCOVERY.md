@@ -888,6 +888,6 @@ No main modifications, PR merge, deployment, secrets change, scheduled-workflow 
 
 ---
 
-## Latest reproducible research handoff
+## Latest research handoff
 
 See [Quant Discovery first chronological multi-asset screen — 2026-11-05](quant_discovery/SCREEN_2026-11-05.md) for the verified archive hash, frozen hypotheses, OOS/walk-forward metrics, cost assumptions, decision and exact next steps.
