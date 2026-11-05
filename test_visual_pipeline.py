@@ -647,6 +647,41 @@ def test_nonfinite_optional_second_target_is_ignored():
     assert plan is not None
     assert plan["tp2"] is None
 
+def test_discord_delivery_errors_do_not_log_webhook_secret():
+    import contextlib
+    import io
+
+    webhook = "https://discord.com/api/webhooks/12345/dummy-secret-token"
+    old_hook = os.environ.get("DISCORD_TRIGGER_WEBHOOK")
+    old_dry_run = os.environ.get("DRY_RUN")
+    original_post = main.discord.requests.post
+
+    def fail_with_secret(*args, **kwargs):
+        raise main.discord.requests.ConnectionError(f"connection failed for {webhook}")
+
+    os.environ["DISCORD_TRIGGER_WEBHOOK"] = webhook
+    os.environ.pop("DRY_RUN", None)
+    main.discord.requests.post = fail_with_secret
+    output = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(output):
+            delivered = main.discord._post("test alert")
+    finally:
+        main.discord.requests.post = original_post
+        if old_hook is None:
+            os.environ.pop("DISCORD_TRIGGER_WEBHOOK", None)
+        else:
+            os.environ["DISCORD_TRIGGER_WEBHOOK"] = old_hook
+        if old_dry_run is None:
+            os.environ.pop("DRY_RUN", None)
+        else:
+            os.environ["DRY_RUN"] = old_dry_run
+
+    assert delivered is False
+    assert webhook not in output.getvalue()
+    assert "ConnectionError" in output.getvalue()
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
