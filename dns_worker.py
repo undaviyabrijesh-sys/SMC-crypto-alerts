@@ -1,5 +1,6 @@
 """Five-minute local DNS watcher with infrequent AI-authored market-map refreshes."""
 import json
+import math
 import os
 import uuid
 
@@ -15,6 +16,90 @@ import state as st
 from visual_chart import render_symbol_chart
 
 
+def _reprice_pending_alert(trade, current_price, snapshot):
+    """Revalidate a delayed Discord alert against the latest closed price and current AI map."""
+    try:
+        current = float(current_price)
+        original_entry = float(trade["entry"])
+        stop = float(trade["sl"])
+        target = float(trade["tp"])
+        selected = trade["selected_entry_zone"]
+        selected_low = float(selected["low"])
+        selected_high = float(selected["high"])
+        selected_timeframe = str(selected["timeframe"])
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return None
+
+    values = (current, original_entry, stop, target, selected_low, selected_high)
+    if not all(math.isfinite(value) and value > 0 for value in values):
+        return None
+    valid_timeframes = {"1w", "1d", "4h", "1h", "15m", "5m"}
+    if not (0 < selected_low < selected_high) or selected_timeframe not in valid_timeframes:
+        return None
+    if abs(current - original_entry) / original_entry * 100 > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
+        return None
+    selected_gap = max(selected_low - current, current - selected_high, 0.0)
+    if selected_gap / current * 100 > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
+        return None
+
+    direction = trade.get("dir")
+    if direction == "long":
+        if not stop < current < target:
+            return None
+        expected_side = "DEMAND"
+        directional_zones = snapshot.get("demand_zones", []) if isinstance(snapshot, dict) else []
+        risk, reward = current - stop, target - current
+    elif direction == "short":
+        if not target < current < stop:
+            return None
+        expected_side = "SUPPLY"
+        directional_zones = snapshot.get("supply_zones", []) if isinstance(snapshot, dict) else []
+        risk, reward = stop - current, current - target
+    else:
+        return None
+
+    rr = reward / risk if risk > 0 else 0.0
+    if not math.isfinite(rr) or rr < C.MIN_AI_RR:
+        return None
+
+    primary_zone = None
+    for zone in directional_zones if isinstance(directional_zones, list) else []:
+        if not isinstance(zone, dict):
+            continue
+        try:
+            low = float(zone["low"])
+            high = float(zone["high"])
+            quality = int(zone.get("quality", 0))
+            timeframe = str(zone["timeframe"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        if (
+            not math.isfinite(low) or not math.isfinite(high)
+            or not (0 < low < high)
+            or quality < C.MIN_DNS_ZONE_QUALITY or quality > 5
+            or timeframe not in valid_timeframes
+        ):
+            continue
+        if min(selected_high, high) - max(selected_low, low) <= 0:
+            continue
+        zone_gap = max(low - current, current - high, 0.0)
+        if zone_gap / current * 100 > C.MAX_MARKET_ENTRY_DEVIATION_PCT:
+            continue
+        primary_zone = {
+            "side": expected_side,
+            "low": low,
+            "high": high,
+            "timeframe": timeframe,
+            "quality": quality,
+            "evidence": str(zone.get("evidence", "")),
+        }
+        break
+
+    if primary_zone is None:
+        return None
+    return {"entry": current, "rr": rr, "primary_zone": primary_zone}
+
+
 def run(now=None, fetcher=data.fetch, mapper=None):
     now = main._utc_now(now)
     state = st.load()
@@ -23,15 +108,6 @@ def run(now=None, fetcher=data.fetch, mapper=None):
         sym = outcome.get("sym")
         if sym in C.SYMBOLS and discord.send_outcome(outcome, lambda value, s=sym: main._fmt(s, value)):
             del state["pending_outcomes"][signal_id]
-    for signal_id, trade in list(state.setdefault("pending_alerts", {}).items()):
-        age = now - pd.Timestamp(trade.get("analysis_time", now.isoformat()))
-        if age > pd.Timedelta(minutes=10):
-            del state["pending_alerts"][signal_id]
-            continue
-        sym = trade.get("sym")
-        if sym in C.SYMBOLS and discord.send_ai_trade(sym, trade, lambda value, s=sym: main._fmt(s, value)):
-            state.setdefault("positions", {})[signal_id] = trade
-            del state["pending_alerts"][signal_id]
     dns_map = dns_engine.load_map()
     refresh_attempts = state.setdefault("dns_refresh_attempts", {})
     frames_by_symbol = {}
@@ -132,6 +208,38 @@ def run(now=None, fetcher=data.fetch, mapper=None):
         except Exception as exc:
             # Keep using the last valid map; do not erase it when AI is unavailable.
             print(f"[dns-map-error] refresh failed; retaining last map: {type(exc).__name__}: {exc}")
+
+    # Retry pending execution alerts only after fresh market data and current-map checks.
+    # A delayed webhook retry must never publish an entry that has already moved or lost 2R.
+    for signal_id, trade in list(state.setdefault("pending_alerts", {}).items()):
+        age = now - pd.Timestamp(trade.get("analysis_time", now.isoformat()))
+        if age > pd.Timedelta(minutes=10):
+            del state["pending_alerts"][signal_id]
+            continue
+        symbol = trade.get("sym")
+        if symbol not in C.SYMBOLS or symbol in refresh_blocked_symbols:
+            continue
+        frames = frames_by_symbol.get(symbol)
+        m5 = frames.get("5m") if isinstance(frames, dict) else None
+        if m5 is None or m5.empty:
+            continue
+        snapshot = dns_map.get("symbols", {}).get(symbol)
+        current_price = float(m5.iloc[-1].close)
+        revalidated = _reprice_pending_alert(trade, current_price, snapshot)
+        if revalidated is None:
+            del state["pending_alerts"][signal_id]
+            print(f"[dns-expired] {symbol} {signal_id}: delayed alert is no longer actionable")
+            continue
+        retry_trade = {
+            **trade,
+            **revalidated,
+            "triggered_at": (pd.Timestamp(m5.index[-1]) + pd.Timedelta(minutes=5)).isoformat(),
+        }
+        if discord.send_ai_trade(
+            symbol, retry_trade, lambda value, s=symbol: main._fmt(s, value)
+        ):
+            state.setdefault("positions", {})[signal_id] = retry_trade
+            del state["pending_alerts"][signal_id]
 
     seen = state.setdefault("seen_dns_events", [])
     seen_set = set(seen)
