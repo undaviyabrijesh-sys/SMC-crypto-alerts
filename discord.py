@@ -92,3 +92,30 @@ def send_outcome(trade, fmt):
 def send_daily_report(message):
     """Deliver the once-daily India-time paper P&L summary."""
     return _post(message)
+
+
+
+def send_quant_trade(sym, trade, fmt):
+    """Execution-focused deterministic strategy alert; score is not a probability."""
+    direction = trade["dir"].upper()
+    icon = "🟢" if direction == "LONG" else "🔴"
+    score = trade.get("quality_score")
+    score_line = ""
+    if isinstance(score, int) and not isinstance(score, bool) and 0 <= score <= 100:
+        score_line = f"Rule quality: **{score}/100** (rubric points, not probability)\\n"
+    message = (
+        f"{icon} **SALTY QUANT — {direction} {sym}**\\n"
+        f"Signal ID: `{trade['signal_id']}`\\n"
+        f"Strategy: **{trade.get('setup_type', 'QUANT_SETUP')}** "
+        f"(`{trade.get('strategy_id', 'UNSPECIFIED')}`)\\n"
+        f"{score_line}"
+        f"Entry: **{fmt(trade['entry'])}**\\n"
+        f"Stop-loss: **{fmt(trade['sl'])}**\\n"
+        f"Target: **{fmt(trade['tp'])}**\\n"
+        f"Validated R:R: **{float(trade['rr']):.2f}R**\\n"
+        f"Timeframes: {', '.join(trade.get('timeframes_in_agreement', [])) or 'mixed'}\\n"
+        f"Why: {str(trade.get('rationale', ''))[:380]}\\n"
+        f"Invalidation: {str(trade.get('invalidation', 'See stop-loss'))[:220]}\\n"
+        "Paper tracking uses the latest closed 5m price; no exchange order is submitted."
+    )
+    return _post(message)
