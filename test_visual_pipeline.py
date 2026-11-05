@@ -831,6 +831,15 @@ def test_historical_archive_persists_hash_coverage_and_resumes_after_interruptio
         assert not (output / ".work" / "BTC_5m").exists()
 
 
+def test_historical_parser_includes_candle_at_inclusive_chunk_end():
+    payload = {"success": True, "result": [
+        {"time": 600, "open": 100, "high": 102, "low": 99, "close": 101, "volume": 5}
+    ]}
+    frame = historical_data.parse_candle_payload(payload, "BTCUSD", "5m", 1, 600, 2)
+    assert len(frame) == 1
+    assert int(frame.index[0].timestamp()) == 600
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
