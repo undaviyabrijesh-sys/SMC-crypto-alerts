@@ -43,12 +43,12 @@ def _heartbeat(status, detail=None):
 
 def _check_required_environment():
     missing = []
-    if not os.environ.get("OPENAI_API_KEY"):
-        missing.append("OPENAI_API_KEY")
     if not (os.environ.get("DISCORD_TRIGGER_WEBHOOK") or os.environ.get("DISCORD_WEBHOOK")):
         missing.append("DISCORD_TRIGGER_WEBHOOK (or DISCORD_WEBHOOK)")
     if missing:
         raise RuntimeError("Missing required environment settings: " + ", ".join(missing))
+    if not os.environ.get("OPENAI_API_KEY"):
+        print("[worker] WARNING: OPENAI_API_KEY is absent; local DNS monitoring continues, map refreshes are paused", flush=True)
 
 
 def _check_optional_delta_auth():
