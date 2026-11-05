@@ -2,7 +2,7 @@
 import unittest
 from datetime import date
 
-from daily_reports import build_daily_report, maybe_send_daily_report
+from daily_reports import build_daily_report, is_enabled, maybe_send_daily_report
 
 
 class DailyReportTests(unittest.TestCase):
@@ -62,6 +62,16 @@ class DailyReportTests(unittest.TestCase):
         self.assertFalse(maybe_send_daily_report(state, "2026-11-05T18:40:00Z",
             lambda message: calls.append(message) or True))
         self.assertEqual(calls, [])
+
+
+    def test_daily_reports_are_opt_in_and_default_off(self):
+        self.assertFalse(is_enabled())
+        self.assertFalse(is_enabled(""))
+        self.assertFalse(is_enabled("false"))
+        self.assertFalse(is_enabled("0"))
+        self.assertTrue(is_enabled("true"))
+        self.assertTrue(is_enabled("1"))
+        self.assertTrue(is_enabled("yes"))
 
 
 if __name__ == "__main__":
