@@ -113,7 +113,7 @@ def run(now=None, fetcher=data.fetch):
         delivery = "not_applicable"
         if decision["selected"] is not None:
             trade = _paper_trade(symbol, decision["selected"], now)
-            if discord.send_ai_trade(symbol, trade, lambda value: _fmt(symbol, value)):
+            if discord.send_quant_trade(symbol, trade, lambda value: _fmt(symbol, value)):
                 state["positions"][trade["signal_id"]] = trade
                 delivery = "sent"
             else:
