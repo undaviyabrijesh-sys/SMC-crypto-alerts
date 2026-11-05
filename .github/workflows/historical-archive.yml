@@ -6,6 +6,7 @@ on:
       - ai-quant-rebuild
     paths:
       - .github/workflows/historical-archive.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,6 +17,7 @@ concurrency:
 
 jobs:
   archive:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_HISTORICAL_ARCHIVE:')
     name: Download and verify 3-year market history
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -57,7 +59,8 @@ jobs:
 
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           datasets = manifest.get("datasets", {})
-          expected = {(symbol, timeframe) for symbol in ("BTC", "ETH", "XAUT")
+          import config
+          expected = {(symbol, timeframe) for symbol in config.SYMBOLS
                       for timeframe in ("5m", "15m", "1h", "4h", "1d", "1w")}
           found = set()
           report_rows = []
