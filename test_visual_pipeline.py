@@ -684,6 +684,31 @@ def test_discord_execution_alert_includes_optional_second_target():
     assert "Invalidation: A close below" in message
 
 
+def test_discord_execution_alert_omits_unmeasured_confidence():
+    captured = {}
+    original_post = main.discord._post
+
+    def capture(content):
+        captured["content"] = content
+        return True
+
+    main.discord._post = capture
+    trade = {
+        "signal_id": "DNSCONF01", "dir": "long",
+        "setup_type": "DNS_LIQUIDITY_SWEEP_RECLAIM",
+        "entry": 100.0, "sl": 99.0, "tp": 102.5, "rr": 2.5,
+    }
+    try:
+        assert main.discord.send_ai_trade("BTC", trade, lambda value: f"{value:.1f}")
+    finally:
+        main.discord._post = original_post
+
+    message = captured["content"]
+    assert "Setup: **DNS_LIQUIDITY_SWEEP_RECLAIM**" in message
+    assert "Confidence:" not in message
+    assert "Validated R:R to T1: **2.50R**" in message
+
+
 def test_corrupt_state_fails_closed_instead_of_resetting_positions():
     import json
     with tempfile.TemporaryDirectory(prefix="salty-state-test-") as folder:

@@ -25,10 +25,19 @@ def _post(content):
 def send_ai_trade(sym, trade, fmt):
     direction = trade["dir"].upper()
     icon = "🟢" if direction == "LONG" else "🔴"
+    setup_line = f"Setup: **{trade.get('setup_type', 'OTHER')}**"
+    try:
+        confidence = float(trade.get("confidence"))
+        if not 0 <= confidence <= 100:
+            confidence = None
+    except (TypeError, ValueError):
+        confidence = None
+    if confidence is not None:
+        setup_line += f" | Confidence: **{confidence:g}/100**"
     lines = [
         f"{icon} **SALTY QUANT AI — {direction} {sym}**",
         f"Signal ID: {trade['signal_id']}",
-        f"Setup: **{trade.get('setup_type', 'OTHER')}** | Confidence: **{trade.get('confidence', 0)}/100**",
+        setup_line,
     ]
     primary_zone = trade.get("primary_zone")
     if primary_zone:

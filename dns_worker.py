@@ -150,7 +150,7 @@ def run(now=None, fetcher=data.fetch, mapper=None):
                 **candidate, "signal_id": signal_id, "sym": symbol,
                 "dir": direction, "sl": candidate["stop_loss"],
                 "tp": candidate["take_profit"], "tp2": None,
-                "confidence": 80, "bias": snapshot.get("bias", "UNCLEAR"),
+                "bias": snapshot.get("bias", "UNCLEAR"),
                 "rationale": (
                     f"Local 5m sweep/reclaim confirmed at AI-mapped {candidate['zone_side'].lower()} "
                     f"zone Q{candidate['zone_quality']} ({candidate['zone_timeframe']})."

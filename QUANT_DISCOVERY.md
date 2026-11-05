@@ -374,3 +374,25 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 3. Restore OpenAI API quota, then manually validate one paper-only multi-timeframe chart cycle and inspect paired raw/annotated images. Do not enable the recurring schedule.
 4. Confirm funding raw units, contract-specific interval and settlement timestamp alignment before event-time attribution. Keep spread/depth limitations explicit.
 5. Continue tracking visual paper alerts and confirmed TP/SL/TIME outcomes; compare them with research only after clean, adequate samples. No candidate is currently approved as an edge.
+
+
+## Supervisor update — 2026-11-05 10:16 IST
+
+### Default-branch scheduled runner and current visual pipeline
+
+- Latest observed scheduled run: [advance-alerts run 41967539944](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41967539944), created 2026-11-05 04:23:47 UTC, ran on default branch `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`, and completed successfully. Its job log confirms it executed `python main.py`; the runner environment had `DISCORD_WEBHOOK`, `DISCORD_WATCH_WEBHOOK` and `DISCORD_TRIGGER_WEBHOOK` configured (values were redacted by GitHub).
+- The default-branch `.github/workflows/alerts.yml` still schedules every 10 minutes without the visual-branch schedule guard. Default-branch `main.py` still imports and calls the coded `zones.find_zones` / `score_setup` path and can emit legacy `WATCH`, `CANCEL` and `TRIGGER` Discord messages. The run log does not establish whether any message was actually delivered. This is not the new visual-first pipeline. **No changes were made to `main`**, per scope.
+- The `ai-quant-rebuild` workflow has its own five-minute schedule, but its job is gated by `ENABLE_GITHUB_SCHEDULE=true` (or manual `workflow_dispatch`). GitHub scheduled workflows run from the default branch; while PR #1 remains draft/unmerged, this branch's scheduled visual worker is not the default scheduled runner. CI runs are tests, not live chart-analysis cycles.
+- No current raw/annotated chart images were attached to the latest PR CI or default-branch scheduled run; both workflow artifact lists were empty. Therefore no current multi-timeframe visual market assessment or execution signal is claimed in this supervisor cycle.
+- The active branch container path remains `Dockerfile → worker.py → dns_worker.py`. It refreshes visual DNS maps with `ai_analyst.map_dns()`, then uses only `dns_engine.detect_local_setup()` for the local sweep/reclaim candidate. The broader multi-setup `ai_analyst.analyse()` path is not active in that worker. The prior HTTP 429 `insufficient_quota / credit_balance_exhausted` remains the last known live-analysis blocker; no new live OpenAI call was made.
+- The lifecycle boundary finding in PR comment #6636833531 is already fixed on this branch: `manage_positions()` caps eligible 5m bars at expiry minus five minutes, only marks TIME after expiry, and has regressions for a post-expiry TP touch and missing candles. No duplicate fix was needed.
+- This cycle found and fixed misleading metadata: the DNS watcher had hard-coded `confidence: 80` even though the local detector does not calculate a confidence score. The watcher no longer supplies that value, and Discord now omits confidence unless a valid measured value is present. A regression test was added. Visual-AI analyses still retain their actual model-returned qualitative confidence field; it is not a probability or proven win rate.
+- User action before cutover: decide whether to pause the legacy default-branch `advance-alerts` schedule or knowingly tolerate its legacy WATCH/TRIGGER path. This supervisor did not disable it or modify `main`. Restore OpenAI API quota before manually validating the new branch's visual chart-to-AI cycle. Do not enable the branch's recurring schedule or deploy until the multi-setup visual analysis and shared risk-validation design are completed and reviewed.
+
+### Exact next steps
+
+1. Review the latest default-branch scheduled run and decide how to handle the legacy alerts workflow; no GitHub setting or main-branch file was changed.
+2. Continue the visual-first integration design: the model must compare suitable setup families and return one selected candidate or NO_TRADE; local code should only enforce mechanical risk and track confirmed outcomes.
+3. Add a shared mechanical validator to the active DNS worker before any deployment; remove hard-coded confidence or other unmeasured alert metadata.
+4. Restore API quota and manually inspect raw/annotated multi-timeframe chart artifacts before judging visual mapping quality.
+5. Confirm funding-event semantics and realistic execution costs before extending Quant Discovery beyond the rejected EXP-001 baseline.
