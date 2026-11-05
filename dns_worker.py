@@ -306,6 +306,9 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
             # a quota outage cannot trigger a request every five-minute candle.
             reviewer = agent_reviewer or ai_trade_agents.review_candidate
             cooldowns = state.setdefault("ai_review_cooldown_until", {})
+            if not isinstance(cooldowns, dict):
+                cooldowns = {}
+                state["ai_review_cooldown_until"] = cooldowns
             cooldown_raw = cooldowns.get(symbol)
             review = None
             if cooldown_raw:
@@ -328,7 +331,10 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
                     review = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
 
             if review.get("status") == "ERROR":
-                cooldown_minutes = max(5, int(os.environ.get("AI_TRADE_REVIEW_FAILURE_COOLDOWN_MINUTES", "30")))
+                try:
+                    cooldown_minutes = max(5, int(os.environ.get("AI_TRADE_REVIEW_FAILURE_COOLDOWN_MINUTES", "30")))
+                except (TypeError, ValueError):
+                    cooldown_minutes = 30
                 cooldowns[symbol] = (now + pd.Timedelta(minutes=cooldown_minutes)).isoformat()
 
             # Record every review outcome before deciding whether the event can proceed.
