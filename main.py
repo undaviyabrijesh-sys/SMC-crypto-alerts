@@ -299,8 +299,9 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
         except Exception as exc:
             print(f"[error] {symbol} data/chart: {exc}")
 
-    # Daily P&L reporting runs independently of whether a new chart is due.
-    daily_reports.maybe_send_daily_report(state, now, discord.send_daily_report)
+    # Daily summaries are disabled unless explicitly opted in; execution/outcome alerts stay primary.
+    if daily_reports.is_enabled(os.environ.get("ENABLE_DAILY_PNL_REPORT")):
+        daily_reports.maybe_send_daily_report(state, now, discord.send_daily_report)
 
     if not frames_by_symbol:
         st.save(state)
