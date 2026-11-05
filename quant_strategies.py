@@ -298,7 +298,7 @@ def _mean_reversion(symbol, frames):
         return None
     return _make_candidate(
         symbol, frames, "MEAN_REVERSION", "MEAN_REVERSION", direction, stop, text,
-        trigger_points=25, target=target,
+        trigger_points=40, target=target,
     )
 
 
