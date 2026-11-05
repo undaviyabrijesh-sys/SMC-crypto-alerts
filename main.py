@@ -337,35 +337,46 @@ def manage_positions(state, sym, m5, now, fmt):
         print(f"[closed] {sym} {signal_id}: {outcome} {pnl_r:+.2f}R")
 
 
-def _save_zone_review_chart(symbol, frames, analysis, now):
-    """Persist one latest annotated chart per symbol for visual audit, not as a decision input."""
+def _save_zone_review_chart(symbol, frames, analysis, now, raw_png=None):
+    """Persist paired raw-input and AI-annotated charts for visual quality review."""
     cfg = C.SYMBOLS[symbol]
-    png = render_symbol_chart(
+    raw = raw_png or render_symbol_chart(
+        f"{symbol} · {cfg['delta_symbol']}", frames, now
+    )
+    annotated = render_symbol_chart(
         f"{symbol} · {cfg['delta_symbol']}", frames, now, annotations=analysis
     )
     root = Path(os.environ.get(
         "CHART_REVIEW_DIR", str(data.DATA_DIR / "review_charts")
     ))
     root.mkdir(parents=True, exist_ok=True)
-    target = root / f"{symbol}_latest.png"
-    temp = target.with_name(target.name + ".tmp")
-    try:
-        with temp.open("wb") as handle:
-            handle.write(png)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temp, target)
-    finally:
-        try:
-            temp.unlink()
-        except FileNotFoundError:
-            pass
-    return {
-        "path": str(target),
-        "sha256": hashlib.sha256(png).hexdigest(),
-        "bytes": len(png),
-    }
 
+    def save_atomic(target, payload):
+        temp = target.with_name(target.name + ".tmp")
+        try:
+            with temp.open("wb") as handle:
+                handle.write(payload)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp, target)
+        finally:
+            try:
+                temp.unlink()
+            except FileNotFoundError:
+                pass
+
+    raw_path = root / f"{symbol}_raw.png"
+    review_path = root / f"{symbol}_latest.png"
+    save_atomic(raw_path, raw)
+    save_atomic(review_path, annotated)
+    return {
+        "raw_path": str(raw_path),
+        "raw_sha256": hashlib.sha256(raw).hexdigest(),
+        "raw_bytes": len(raw),
+        "dns_review_path": str(review_path),
+        "dns_review_sha256": hashlib.sha256(annotated).hexdigest(),
+        "dns_review_bytes": len(annotated),
+    }
 
 def _append_research(record):
     path = Path(os.environ.get("RESEARCH_PATH", "research/visual_decisions.jsonl"))
@@ -457,7 +468,8 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
             continue
         try:
             review_charts[symbol] = _save_zone_review_chart(
-                symbol, frames_by_symbol[symbol], analysis, now
+                symbol, frames_by_symbol[symbol], analysis, now,
+                raw_png=chart_images[symbol]
             )
         except Exception as exc:
             print(f"[warn] {symbol} DNS review chart could not be saved: {type(exc).__name__}")
