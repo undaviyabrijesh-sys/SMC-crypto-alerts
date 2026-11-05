@@ -108,7 +108,18 @@ def run(now=None, fetcher=data.fetch, mapper=None):
         sym = outcome.get("sym")
         if sym in C.SYMBOLS and discord.send_outcome(outcome, lambda value, s=sym: main._fmt(s, value)):
             del state["pending_outcomes"][signal_id]
-    dns_map = dns_engine.load_map()
+    # A corrupt/unreadable DNS map must pause new entries, not prevent the
+    # existing paper positions from being checked against fresh market candles.
+    try:
+        dns_map = dns_engine.load_map()
+        dns_map_available = True
+    except Exception as exc:
+        dns_map = {"schema_version": 1, "symbols": {}, "history": {}}
+        dns_map_available = False
+        print(
+            f"[dns-map-fatal] map unavailable; existing positions will still be managed, "
+            f"but new entries are paused: {type(exc).__name__}: {exc}"
+        )
     refresh_attempts = state.setdefault("dns_refresh_attempts", {})
     frames_by_symbol = {}
     chart_images = {}
@@ -131,6 +142,13 @@ def run(now=None, fetcher=data.fetch, mapper=None):
                 print(f"[dns-skip] {symbol}: {reason}")
                 continue
             frames_by_symbol[symbol] = frames
+            if not dns_map_available:
+                refresh_blocked_symbols.add(symbol)
+                print(
+                    f"[dns-wait] {symbol}: DNS map is unreadable; "
+                    "existing paper positions were managed and new entries are paused"
+                )
+                continue
             try:
                 snapshot = dns_map.get("symbols", {}).get(symbol)
                 reasons = dns_engine.refresh_reasons(snapshot, now, frames)
