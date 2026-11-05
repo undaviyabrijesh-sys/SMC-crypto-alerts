@@ -184,7 +184,7 @@ class TestQuantSupervisor(unittest.TestCase):
             "entry": 100.0, "sl": 98.0, "tp": 104.0,
             "triggered_at": triggered.isoformat(),
         }
-        state = {"positions": {"LIFECYCLE1": trade}, "trade_history": {}}
+        state = {"positions": {"LIFECYCLE1": trade}, "trade_history": []}
         with patch.object(trade_lifecycle.discord, "send_outcome", return_value=True):
             trade_lifecycle.manage_positions(
                 state, "BTC", bars, triggered + pd.Timedelta(minutes=10),
