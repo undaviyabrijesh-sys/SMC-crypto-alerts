@@ -161,3 +161,37 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Visual-first pipeline, multiple setup-family comparison, NO_TRADE option, confidence >=75, minimum 2R, entry deviation <=0.35%, selected entry-zone requirement and one-open-position-per-symbol guard remain unchanged.
 - No persistent worker or production chart images are available in this cycle; OpenAI API access, Discord delivery and authenticated Delta access remain unverified. No execution alert was sent.
 - Quant Discovery remains research design only: no tracked long-term historical archive, dedicated backtest runner or completed experiment. Continue with historical OHLCV bootstrap, coverage/hash checks, then a deterministic cost-aware event-driven backtester with chronological and walk-forward validation.
+
+
+## Quant Discovery implementation — historical archive bootstrap (2026-11-05)
+
+### Implemented on ai-quant-rebuild
+
+- Added `bootstrap_historical_data.py`, a standalone, credential-free historical traded-price OHLCV collector for Delta India contracts BTCUSD, ETHUSD and XAUTUSD across 5m, 15m, 1h, 4h, 1d and 1w.
+- Uses `GET /v2/history/candles` in bounded adjacent time windows. Each request respects Delta's documented 2,000-candle cap. The collector runs sequentially with a conservative inter-request delay and bounded exponential backoff for HTTP 429, 5xx and transient request failures.
+- Default collection window is three years, configurable through `--years` or explicit `--start` / `--end`. Symbol and timeframe subsets can be selected for a small pilot.
+- Each symbol/timeframe is downloaded into temporary chunk files. A progress checkpoint is atomically updated after each successful chunk, so reruns resume after interruption. Completed files are skipped only when request bounds match and the stored SHA-256 verifies.
+- Strict parsing rejects unsuccessful API responses, missing required candle fields, invalid timestamps, non-finite/non-positive prices, inconsistent OHLC, negative/non-finite volume, and responses larger than the configured cap. Missing volume is made explicit as zero and counted in the manifest; no missing price bars are synthesized.
+- Final CSVs are atomically published under `historical_data/`. `manifest.json` records contract, venue, timeframe, requested and observed bounds, row count, duplicate removal count, empty request windows, volume defaults, request count and file SHA-256. `coverage.csv` reports requested-range coverage and observed-span missing bars/gaps, including the largest gap.
+- Added an inclusive chunk-end regression test after review of boundary semantics, plus offline tests for chunk caps, response validation, 429 retry handling, checkpoint resume, SHA-256, and coverage reporting.
+- `historical_data/` is Git-ignored intentionally. The raw dataset must live on durable local or mounted storage and be backed up; it is not committed to the source repository or treated as an ephemeral CI artifact.
+- README now documents the exact collection commands and output format.
+
+### GitHub commits
+
+- `73e39202da9aaa00915ae33ffc3539a95a98e5de` — add resumable historical OHLCV bootstrap.
+- `ebf7a5b78ef33958d7433a88742afd9025cdb253` — include inclusive candle request end boundaries.
+- `af56ee69e8a8b3d0044cca74ede3a61aac452005` — test inclusive chunk-end candle handling.
+- `09495fae0928d1d4c28d64043ed7eabe838502a8` — report both requested-range and observed-span coverage.
+- `231d5a853455812317f82ee7406dc9755b388a53` — assert coverage metrics in offline archive test.
+- `d71be2543d15a1fcffe98ce31a2ef31f258741f4` — Git-ignore local historical archives.
+- `172d0f811b06ffb9b060ab4788758ef6d35700d1` — document archive workflow in README.
+
+### Verification status and limits
+
+- The collector has offline regression coverage but has **not yet run a full three-year collection**. No historical dataset, market coverage result, or strategy performance is being claimed at this point.
+- CI will verify Python compilation and the new offline tests. The existing public-feed smoke test is a separate short-window availability/integrity check, not proof of long-range history completeness.
+- This first version archives traded-price OHLCV only. It does not collect funding history, mark-price candles, order-book depth, spread or executable bid/ask history. Those cost inputs must not be set to zero in future backtests; extend the archive only after the corresponding public series is checked and validated.
+- The three-year default is a configurable bootstrap starting point, not an assertion that every contract/timeframe has three years of available history. The coverage report must reveal actual history and gaps for each contract.
+- No persistent worker was deployed. The archive should be run from the user's durable machine/storage after pulling this branch, beginning with the small pilot command in README, then the full three-year run. Keep the raw archive out of Git.
+- Once the archive is produced, inspect all 18 datasets' first/last timestamps, requested coverage, observed gaps, duplicates and hashes. Resolve coverage anomalies before implementing backtests. The next code milestone is a deterministic event-driven replay harness with explicit next-bar fills, conservative same-bar SL-first handling, fee/slippage assumptions, explicit unavailable funding/spread flags, chronological splits, purge/embargo and walk-forward folds.
