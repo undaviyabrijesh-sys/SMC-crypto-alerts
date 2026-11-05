@@ -44,7 +44,7 @@ jobs:
           restore-keys: |
             salty-quant-market-${{ runner.os }}-
       - name: Run offline pipeline tests
-        run: python test_visual_pipeline.py
+        run: python test_visual_pipeline.py && python test_dns_engine.py
       - name: Check runtime secrets without exposing their values
         id: runtime
         run: |
@@ -62,9 +62,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      - name: Download data, render charts, and ask AI analyst
+      - name: Download data, refresh due DNS maps, and run local setup watcher
         if: steps.runtime.outputs.ready == 'true'
-        run: python main.py
+        run: python dns_worker.py
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-6.1-terra' }}
