@@ -188,16 +188,7 @@ def _configured_api_key():
 
 def analyse(chart_images, market_context, active_positions=None, model=None):
     """Send all available symbol charts in one multimodal request and return schema-validated JSON."""
-    # GitHub secrets are sometimes pasted with a trailing newline. Strip only
-    # outer whitespace, then fail clearly if embedded whitespace/non-ASCII remains.
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is not configured in GitHub repository secrets")
-    if not api_key.isascii() or any(char.isspace() for char in api_key):
-        raise RuntimeError(
-            "OPENAI_API_KEY contains embedded whitespace or non-ASCII characters; "
-            "store the raw API key only, without a Bearer prefix or line breaks"
-        )
+    api_key = _configured_api_key()
 
     content = [{
         "type": "input_text",
