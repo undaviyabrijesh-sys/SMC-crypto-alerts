@@ -34,6 +34,14 @@ Best OOS row per asset is shown only as a compact summary of the full eight-comb
 | ETH | OI q80, SL 1.0 ATR, TP 3R | 67 | 43.28% | +0.0493R | 1.0896 | -10.8919R | 5 | 10.04 | -0.0640R |
 | XAUT | OI q90, SL 1.0 ATR, TP 3R | 14 | 71.43% | +0.2863R | 1.7499 | -3.7874R | 2 | 10.43 | -0.0305R |
 
+### Full OOS parameter-grid ranges (all eight combinations per asset)
+
+| Asset | Trades | Win rate | Expectancy (10 bps) | PF | Max DD | Max losing streak | Trades / 30d | Expectancy (20 bps) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| BTC | 45–67 | 29.85–43.48% | -0.3189 to -0.0313R | 0.5411–0.9337 | -23.7326 to -7.5739R | 6–7 | 6.59–9.82 | -0.4729 to -0.1365R |
+| ETH | 42–68 | 37.21–47.69% | -0.2571 to +0.0493R | 0.5436–1.1239 | -15.2161 to -7.3901R | 5–7 | 6.30–10.19 | -0.3649 to -0.0293R |
+| XAUT | 14–22 | 54.55–71.43% | -0.0100 to +0.2863R | 0.9821–1.9030 | -4.4127 to -2.5681R | 2–3 | 10.43–16.40 | -0.3153 to +0.0002R |
+
 ### Robustness interpretation
 
 - **BTC:** all eight OOS parameter combinations are negative at 10 bps (expectancy range -0.3189R to -0.0313R); all are more negative at 20 bps.
