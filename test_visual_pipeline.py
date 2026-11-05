@@ -179,20 +179,30 @@ def test_latest_dns_review_chart_is_saved_atomically():
         old = os.environ.get("CHART_REVIEW_DIR")
         os.environ["CHART_REVIEW_DIR"] = folder
         try:
+            raw_png = render_symbol_chart(
+                "BTC", frames, pd.Timestamp("2026-11-04 12:00", tz="UTC")
+            )
             saved = main._save_zone_review_chart(
-                "BTC", frames, analysis, pd.Timestamp("2026-11-04 12:00", tz="UTC")
+                "BTC", frames, analysis, pd.Timestamp("2026-11-04 12:00", tz="UTC"),
+                raw_png=raw_png
             )
         finally:
             if old is None:
                 os.environ.pop("CHART_REVIEW_DIR", None)
             else:
                 os.environ["CHART_REVIEW_DIR"] = old
-        with open(saved["path"], "rb") as handle:
-            image = handle.read()
-        assert image.startswith(b"\x89PNG\r\n\x1a\n")
-        assert len(image) == saved["bytes"]
-        assert hashlib.sha256(image).hexdigest() == saved["sha256"]
-        assert not os.path.exists(saved["path"] + ".tmp")
+        with open(saved["raw_path"], "rb") as handle:
+            raw_image = handle.read()
+        with open(saved["dns_review_path"], "rb") as handle:
+            review_image = handle.read()
+        assert raw_image.startswith(b"\x89PNG\r\n\x1a\n")
+        assert review_image.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(raw_image) == saved["raw_bytes"]
+        assert len(review_image) == saved["dns_review_bytes"]
+        assert hashlib.sha256(raw_image).hexdigest() == saved["raw_sha256"]
+        assert hashlib.sha256(review_image).hexdigest() == saved["dns_review_sha256"]
+        assert not os.path.exists(saved["raw_path"] + ".tmp")
+        assert not os.path.exists(saved["dns_review_path"] + ".tmp")
 
 
 def test_valid_long_trade_is_repriced_to_latest_close():
