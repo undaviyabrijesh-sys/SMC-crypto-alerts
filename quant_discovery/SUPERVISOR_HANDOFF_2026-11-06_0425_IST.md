@@ -5,7 +5,7 @@
 - Private repository: `undaviyabrijesh-sys/SMC-crypto-alerts`.
 - Working branch: `ai-quant-rebuild`.
 - Branch head immediately before this handoff: [`ab8de2c`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/ab8de2cc811f57ca5ce03fabc8fa9a24eaf6a0ec), documentation-only visual architecture spec.
-- PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1): open, draft, unmerged, base `main`, mergeable at last metadata read.
+- PR [#1](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/pull/1): open, draft, unmerged, base `main`. After the documentation commit, GitHub temporarily reported `mergeable=false` while the new push/PR CI checks were still in progress; re-check mergeability after checks complete.
 - Compare at prior code head: 358 commits ahead / 0 behind; base/main SHA remains `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. Adding this handoff will add one further branch-only commit.
 - Branch API reports `protected=false` and no required status checks. Do not change branch settings in this task.
 - No changes to `main`, no PR merge, deployment, secrets, live trading, exchange orders, or schedule activation.
