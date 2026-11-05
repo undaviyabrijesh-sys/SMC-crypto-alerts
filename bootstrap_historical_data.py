@@ -251,8 +251,8 @@ def _coverage_metrics(frame: pd.DataFrame, step_seconds: int,
     requested_coverage = round(100.0 * count / requested_expected, 4)
     if count == 0:
         return {
-            "requested_expected_candles": requested_expected,
-            "requested_coverage_pct": requested_coverage,
+            "requested_expected_candles_estimate": requested_expected,
+            "requested_coverage_pct_estimate": requested_coverage,
             "expected_candles_in_observed_span": 0,
             "missing_expected_candles": 0,
             "gap_count": 0,
@@ -266,8 +266,8 @@ def _coverage_metrics(frame: pd.DataFrame, step_seconds: int,
     gaps = deltas[deltas > step_seconds * 1.5]
     largest_gap = int(deltas.max()) if not deltas.empty else 0
     return {
-        "requested_expected_candles": requested_expected,
-        "requested_coverage_pct": requested_coverage,
+        "requested_expected_candles_estimate": requested_expected,
+        "requested_coverage_pct_estimate": requested_coverage,
         "expected_candles_in_observed_span": expected,
         "missing_expected_candles": missing,
         "gap_count": int(len(gaps)),
