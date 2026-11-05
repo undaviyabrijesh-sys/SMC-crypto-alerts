@@ -104,6 +104,29 @@ def probe(session, symbol, series_name, start_epoch, end_epoch):
     }
 
 
+def validate_results(results):
+    """Require a non-empty sample for every expected symbol/series pair."""
+    expected = {(symbol, series_name) for symbol in C.SYMBOLS for series_name in SERIES}
+    actual = [(item.get("symbol_alias"), item.get("series")) for item in results]
+    errors = []
+    if len(actual) != len(expected):
+        errors.append(f"expected {len(expected)} symbol/series results, got {len(actual)}")
+    if len(set(actual)) != len(actual):
+        errors.append("duplicate symbol/series results")
+    missing = sorted(expected - set(actual))
+    unexpected = sorted(set(actual) - expected)
+    if missing:
+        errors.append(f"missing symbol/series results: {missing}")
+    if unexpected:
+        errors.append(f"unexpected symbol/series results: {unexpected}")
+    for item in results:
+        if item.get("status") != "available" or int(item.get("row_count", 0)) <= 0:
+            errors.append(
+                f"{item.get('series')}:{item.get('symbol_alias')} has no usable historical candles"
+            )
+    return errors
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--days", type=float, default=3.0)
@@ -135,11 +158,13 @@ def main(argv=None):
         "generated_at_utc": pd.Timestamp.now(tz="UTC").isoformat(),
         "results": results,
     }
+    errors = validate_results(results)
+    output["validation_errors"] = errors
     Path(args.output).write_text(json.dumps(output, indent=2, sort_keys=True) + "\n",
                                  encoding="utf-8")
     print(f"Report: {args.output}")
-    if not any(item["status"] == "available" for item in results):
-        raise SystemExit("All derivatives history series returned empty data")
+    if errors:
+        raise SystemExit("Incomplete derivatives history pilot: " + "; ".join(errors))
     return 0
 
 
