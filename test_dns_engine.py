@@ -327,17 +327,20 @@ def _run_pending_alert_case(current_price):
     snapshot = _pending_snapshot("long")
     map_state = {"symbols": {"BTC": snapshot}, "history": {}}
 
-    with patch.object(dns_worker.C, "SYMBOLS", {
-        "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}
-    }), patch.object(dns_worker.st, "load", return_value=state), \\
-         patch.object(dns_worker.st, "save"), \\
-         patch.object(dns_worker.dns_engine, "load_map", return_value=map_state), \\
-         patch.object(dns_worker.data, "fetch_bundle", return_value={"5m": frame}), \\
-         patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")), \\
-         patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=[]), \\
-         patch.object(dns_worker.main, "manage_positions"), \\
-         patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[]), \\
-         patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert:
+    with (
+        patch.object(dns_worker.C, "SYMBOLS", {
+            "BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}
+        }),
+        patch.object(dns_worker.st, "load", return_value=state),
+        patch.object(dns_worker.st, "save"),
+        patch.object(dns_worker.dns_engine, "load_map", return_value=map_state),
+        patch.object(dns_worker.data, "fetch_bundle", return_value={"5m": frame}),
+        patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")),
+        patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=[]),
+        patch.object(dns_worker.main, "manage_positions"),
+        patch.object(dns_worker.dns_engine, "detect_local_setup", return_value=[]),
+        patch.object(dns_worker.discord, "send_ai_trade", return_value=True) as alert,
+    ):
         dns_worker.run(now=now, fetcher=lambda *args, **kwargs: None)
         return state, alert
 
