@@ -57,3 +57,12 @@ ETH 15m volatility expansion in the 1h downtrend regime showed +0.0946R OOS (113
 - Pre-register the ETH 15m volatility-expansion/downtrend hypothesis, test it on additional untouched windows and other instruments, and compare against visual AI decisions. Include regime-conditioned sample size, expectancy, PF, drawdown and loss streaks.
 - Gold needs substantially more history before meaningful long-horizon claims. The current XAUTUSD archive supports only a short exploratory window.
 - This is a deterministic OHLCV screen, not a backtest of live visual-AI alerts. No live worker, production chart image, OpenAI call, Discord delivery, broker fill or order was exercised. No order was placed.
+
+
+## Reproducibility correction — 2026-11-05
+
+A final-boundary audit found an off-by-one in `simulate()`: the exclusive split end was clamped to `len(x)-1`, omitting the last fully closed candle and skipping trades whose 24-hour holding window ended on that candle. The clamp is corrected to `min(end, len(x))`, with a regression test proving that the final closed bar can resolve a trade. Entry timing, signal definitions, stops, targets, costs and split boundaries are unchanged.
+
+The full 18-file archive was re-run after this correction. All **30/30 OOS asset × timeframe × strategy cells remain negative** at the 10 bps round-trip scenario plus 1 bp/8h adverse carry stress. Only one OOS cell changed: XAU 15m mean-reversion gained one completed trade (116 → 117) and expectancy moved from -1.3875R to -1.3611R. The least-negative cell remains BTC 1h mean-reversion (176 trades, 39.77% net win rate, -0.0149R expectancy, PF 0.978, -18.078R max drawdown, 7 consecutive losses). The worst cell remains XAU 15m trend-pullback (168 trades, 20.83% net win rate, -1.6886R expectancy, PF 0.137, -284.499R max drawdown, 27 consecutive losses).
+
+**Decision unchanged:** reject every tested family as a production edge. These fixed-rule results are not a test of visual-AI DNS decisions. The 1 bp/8h funding component remains an adverse stress assumption, not historical funding attribution; Delta funding is exchanged at discrete contract-specific funding snapshots, which require event-time mapping before use.

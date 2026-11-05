@@ -79,3 +79,19 @@ def test_local_watcher_does_not_signal_without_opposing_target():
     snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 101.4)
     snap["supply_zones"] = []
     assert dns_engine.detect_local_setup("BTC", {"5m": frame}, snap) == []
+
+
+def test_zone_invalidation_uses_the_zone_own_timeframe():
+    now = pd.Timestamp("2026-11-05T08:00:00Z")
+    snap = dns_engine.validate_analysis("BTC", _analysis(), "2026-11-05T07:00:00Z", 105)
+    snap["demand_zones"][0]["timeframe"] = "4h"
+    frames = {
+        "1h": pd.DataFrame({"close": [98.5]}),
+        "4h": pd.DataFrame({"close": [100.5]}),
+    }
+    reasons = dns_engine.refresh_reasons(snap, now, frames)
+    assert "DEMAND_ZONE_BROKEN" not in reasons
+
+    frames["4h"] = pd.DataFrame({"close": [98.5]})
+    reasons = dns_engine.refresh_reasons(snap, now, frames)
+    assert "DEMAND_ZONE_BROKEN" in reasons

@@ -108,7 +108,7 @@ def simulate(x,signal,strategy,minutes,start,end,target_r=TARGET_R,stop_scale=1.
     atr=x.atr14.to_numpy(float); ar=x.atr_ratio.to_numpy(float)
     e50=x.ema50_y.to_numpy(float); e200=x.ema200_y.to_numpy(float)
     signal=np.asarray(signal,dtype=int); out=[]
-    i=max(start,205); end=min(end,len(x)-1)
+    i=max(start,205); end=min(end,len(x))
     max_hold=max(1,int(24*60/minutes)); step=minutes*60
     while i<end:
         d=int(signal[i]); ent_i=i+1

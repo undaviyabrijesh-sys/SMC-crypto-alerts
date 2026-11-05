@@ -48,5 +48,17 @@ class InitialScreenTests(unittest.TestCase):
         self.assertLess(high,low)
 
 
+    def test_final_closed_bar_is_included_in_end_of_data_exit(self):
+        frame=self._frame()
+        frame.iloc[-1,frame.columns.get_loc("high")]=104.0
+        signal=np.zeros(len(frame),dtype=int); signal[-25]=1
+        trades=simulate(frame,signal,"donchian_breakout",60,0,len(frame))
+        self.assertEqual(len(trades),1)
+        self.assertEqual(trades[0]["entry_time"],frame.index[-24])
+        self.assertEqual(trades[0]["exit_time"],frame.index[-1])
+        self.assertEqual(trades[0]["outcome"],"TP")
+        self.assertEqual(trades[0]["exit"],103.0)
+
+
 if __name__=="__main__":
     unittest.main()

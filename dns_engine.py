@@ -150,7 +150,7 @@ def save_analysis(map_state, symbol, analysis, observed_at, price, path=None):
 
 
 def refresh_reasons(snapshot, now, frames):
-    """Refresh on age or a confirmed 1h close through a mapped zone."""
+    """Refresh on age or a confirmed close through a zone on its own timeframe."""
     if not snapshot:
         return ["NO_EXISTING_MAP"]
     stamp = pd.Timestamp(snapshot.get("mapped_at"))
