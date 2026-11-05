@@ -17,7 +17,8 @@ def _post(content):
         response.raise_for_status()
         return True
     except Exception as exc:
-        print(f"[warn] Discord post failed: {exc}")
+        # Request exceptions may contain the full webhook URL, which is a credential.
+        print(f"[warn] Discord post failed ({type(exc).__name__}); webhook URL redacted")
         return False
 
 
