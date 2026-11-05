@@ -29,16 +29,24 @@ def send_ai_trade(sym, trade, fmt):
         f"{icon} **SALTY QUANT AI — {direction} {sym}**",
         f"Signal ID: {trade['signal_id']}",
         f"Setup: **{trade.get('setup_type', 'OTHER')}** | Confidence: **{trade.get('confidence', 0)}/100**",
+    ]
+    primary_zone = trade.get("primary_zone")
+    if primary_zone:
+        lines.append(
+            f"Primary DNS ({primary_zone['side']} · {primary_zone['timeframe']} · Q{primary_zone['quality']}): "
+            f"**{fmt(primary_zone['low'])} – {fmt(primary_zone['high'])}**"
+        )
+    selected_zone = trade.get("selected_entry_zone")
+    if selected_zone:
+        lines.append(
+            f"Entry zone ({selected_zone['timeframe']}): "
+            f"**{fmt(selected_zone['low'])} – {fmt(selected_zone['high'])}**"
+        )
+    lines.extend([
         f"Entry: **{fmt(trade['entry'])}**",
         f"Stop-loss: **{fmt(trade['sl'])}**",
         f"Target 1: **{fmt(trade['tp'])}**",
-    ]
-    selected_zone = trade.get("selected_entry_zone")
-    if selected_zone:
-        lines.insert(
-            3,
-            f"Entry zone ({selected_zone['timeframe']}): **{fmt(selected_zone['low'])} – {fmt(selected_zone['high'])}**"
-        )
+    ])
     if trade.get("tp2") is not None:
         lines.append(f"Target 2: **{fmt(trade['tp2'])}**")
     lines.extend([
