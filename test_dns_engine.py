@@ -113,7 +113,7 @@ def test_zone_invalidation_uses_the_zone_own_timeframe():
     assert "DEMAND_ZONE_BROKEN" in reasons
 
 
-def _run_worker_refresh_case(now, state, mapper):
+def _run_worker_refresh_case(now, state, mapper, refresh_check_fails=False):
     """Run one isolated worker cycle and return detector/alert call counts."""
     import os
     import tempfile
@@ -166,7 +166,11 @@ def _run_worker_refresh_case(now, state, mapper):
                  patch.object(dns_worker.data, "fetch_bundle", return_value=frames), \
                  patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")), \
                  patch.object(dns_worker.main, "manage_positions"), \
-                 patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=["SCHEDULED_REFRESH"]), \
+                 patch.object(
+                     dns_worker.dns_engine, "refresh_reasons",
+                     side_effect=RuntimeError("simulated map validation failure") if refresh_check_fails else None,
+                     return_value=["SCHEDULED_REFRESH"]
+                 ), \
                  patch.object(dns_worker.dns_engine, "save_analysis", side_effect=save_map), \
                  patch.object(dns_worker.main, "build_context", return_value={}), \
                  patch.object(dns_worker, "render_symbol_chart", return_value=b"test-png"), \
@@ -218,6 +222,18 @@ def test_worker_scans_again_after_successful_map_refresh():
     detector_calls, alert_calls = _run_worker_refresh_case(now, state, successful_mapper)
     assert detector_calls == 1
     assert alert_calls == 1
+
+
+def test_worker_blocks_new_entries_when_refresh_check_raises():
+    now = pd.Timestamp("2026-11-05T15:00:00Z")
+    state = {"positions": {}, "pending_alerts": {}, "pending_outcomes": {}}
+    def mapper_must_not_run(*args, **kwargs):
+        raise AssertionError("AI refresh should not run after map validation failed")
+    detector_calls, alert_calls = _run_worker_refresh_case(
+        now, state, mapper_must_not_run, refresh_check_fails=True
+    )
+    assert detector_calls == 0
+    assert alert_calls == 0
 
 
 if __name__ == "__main__":
