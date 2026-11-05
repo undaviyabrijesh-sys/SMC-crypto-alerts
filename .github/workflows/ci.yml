@@ -27,6 +27,8 @@ jobs:
         run: python -m compileall -q .
       - name: Run offline visual pipeline tests
         run: python test_visual_pipeline.py
+      - name: Run opt-in Bull/Bear/Chief Trader agent contract tests
+        run: python test_ai_trade_agents.py
       - name: Run DNS map and local watcher tests
         run: python test_dns_engine.py
       - name: Run offline quant replay tests
