@@ -39,6 +39,24 @@ def _active_symbol(state, symbol):
     return any(isinstance(item, dict) and item.get("sym") == symbol for item in active)
 
 
+def _quarantine_legacy_pending_alerts(state):
+    """Never replay an undelivered AI/DNS alert under the new deterministic engine."""
+    pending = state.pop("pending_alerts", {})
+    if not isinstance(pending, dict) or not pending:
+        return
+    quarantine = state.setdefault("quarantined_pending_alerts", [])
+    for signal_id, trade in pending.items():
+        trade = trade if isinstance(trade, dict) else {}
+        quarantine.append({
+            "signal_id": str(signal_id),
+            "sym": trade.get("sym"),
+            "setup_type": trade.get("setup_type"),
+            "analysis_time": trade.get("analysis_time"),
+            "reason": "undelivered legacy AI/DNS alert quarantined during AI-free quant migration; never replay automatically",
+        })
+    state["quarantined_pending_alerts"] = quarantine[-1000:]
+
+
 def _paper_trade(symbol, candidate, now):
     signal_id = uuid.uuid4().hex[:12].upper()
     direction = candidate["direction"].lower()
@@ -73,6 +91,7 @@ def run(now=None, fetcher=data.fetch):
     state = st.load()
     state.setdefault("positions", {})
     state.setdefault("pending_outcomes", {})
+    _quarantine_legacy_pending_alerts(state)
     last_candles = state.setdefault("quant_last_candle", {})
 
     # Outcome delivery is independent of signal generation and continues on every cycle.
