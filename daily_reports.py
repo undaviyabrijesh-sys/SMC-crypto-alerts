@@ -6,7 +6,7 @@ fees, funding, spread or liquidation.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta
+from datetime import date, time, timedelta
 from zoneinfo import ZoneInfo
 
 import math
@@ -14,6 +14,11 @@ import pandas as pd
 
 IST = ZoneInfo("Asia/Kolkata")
 REPORT_AFTER = time(0, 5)
+
+
+def is_enabled(value=None) -> bool:
+    """Daily summaries are opt-in; execution/outcome alerts remain the default."""
+    return str(value or "").strip().lower() in {"1", "true", "yes"}
 
 
 def _to_ist(value) -> pd.Timestamp:
