@@ -74,6 +74,8 @@ jobs:
                   count = max(0, sum(1 for _ in csv.reader(handle)) - 1)
               if count != item.get("row_count"):
                   errors.append(f"{key}: row count mismatch")
+              if count <= 0:
+                  errors.append(f"{key}: dataset is empty; cannot validate historical cost inputs")
               rows.append({
                   "dataset": key, "rows": count,
                   "first_candle_utc": item.get("first_candle_utc"),
