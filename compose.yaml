@@ -15,6 +15,6 @@ services:
       HEARTBEAT_PATH: /data/worker_heartbeat.json
       WORKER_INTERVAL_SECONDS: "300"
       ENABLE_DAILY_PNL_REPORT: "false"
-      OPENAI_REASONING_EFFORT: high
+      OPENAI_REASONING_EFFORT: low
     volumes:
       - ./salty_data:/data
