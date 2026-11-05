@@ -142,12 +142,34 @@ def test_visual_chart_png_contains_all_panels():
     assert len(image) > 20_000
 
 
+def test_visual_chart_draws_ai_dns_overlays_on_matching_panels():
+    frames = {
+        "1w": candles("7D", 80), "1d": candles("1D", 110), "4h": candles("4h", 110),
+        "1h": candles("1h", 130), "15m": candles("15min", 130),
+        "5m": candles("5min", 130)
+    }
+    analysis = {
+        "demand_zones": [{"low": 101.0, "high": 102.0, "timeframe": "15m", "quality": 4, "evidence": "Bullish base."}],
+        "supply_zones": [{"low": 103.5, "high": 104.5, "timeframe": "4h", "quality": 5, "evidence": "Bearish base."}],
+        "selected_entry_zone": {"low": 101.2, "high": 101.7, "timeframe": "15m", "evidence": "Refined demand trigger."}
+    }
+    raw = render_symbol_chart("BTC", frames, pd.Timestamp("2026-11-04 12:00", tz="UTC"))
+    reviewed = render_symbol_chart(
+        "BTC", frames, pd.Timestamp("2026-11-04 12:00", tz="UTC"), annotations=analysis
+    )
+    assert raw.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+    assert reviewed.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+    assert reviewed != raw
+    assert len(reviewed) > 20_000
+
+
 def test_valid_long_trade_is_repriced_to_latest_close():
     analysis = {
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100.05, "stop_loss": 95, "take_profit_1": 110,
         "take_profit_2": 115, "confidence": 82, "setup_type": "DEMAND_REJECTION",
         "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Demand reclaim band."},
+        "demand_zones": [{"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 4, "evidence": "Base before bullish displacement."}],
         "bias": "BULLISH", "rationale": "Demand held and 5m reclaim.", "invalidation": "Close below demand."
     }
     plan, reason = validate_trade(analysis, 100.0)
@@ -162,7 +184,8 @@ def test_bad_risk_reward_is_rejected():
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100, "stop_loss": 95, "take_profit_1": 109,
         "take_profit_2": None, "confidence": 90,
-        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."}
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."},
+        "demand_zones": [{"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 4, "evidence": "Demand base."}]
     }
     plan, reason = validate_trade(analysis, 100)
     assert plan is None and "only 1.80R" in reason
@@ -188,10 +211,62 @@ def test_trade_without_nearby_selected_entry_zone_is_rejected():
         "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
         "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
         "take_profit_2": None, "confidence": 90,
-        "selected_entry_zone": {"low": 98.0, "high": 99.0, "timeframe": "1h", "evidence": "Distant demand band."}
+        "selected_entry_zone": {"low": 98.0, "high": 99.0, "timeframe": "1h", "evidence": "Distant demand band."},
+        "demand_zones": [{"low": 98.0, "high": 99.0, "timeframe": "1h", "quality": 4, "evidence": "Distant demand band."}]
     }
     plan, reason = validate_trade(analysis, 100.0)
     assert plan is None and "away from the AI selected entry zone" in reason
+
+
+def test_long_trade_requires_a_nearby_quality_demand_zone():
+    analysis = {
+        "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."},
+        "supply_zones": [{"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 5, "evidence": "Wrong side."}]
+    }
+    plan, reason = validate_trade(analysis, 100.0)
+    assert plan is None and "demand zone" in reason.lower()
+
+    analysis["demand_zones"] = [
+        {"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 2, "evidence": "Weak demand."}
+    ]
+    plan, reason = validate_trade(analysis, 100.0)
+    assert plan is None and "quality >= 3" in reason
+
+    analysis["demand_zones"] = [
+        {"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 4, "evidence": "Strong demand."}
+    ]
+    plan, reason = validate_trade(analysis, 100.0)
+    assert reason == "validated"
+    assert plan["primary_zone"]["side"] == "DEMAND"
+    assert plan["primary_zone"]["quality"] == 4
+
+
+def test_short_trade_requires_a_nearby_supply_zone():
+    analysis = {
+        "action": "TRADE", "direction": "SHORT", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 105.0, "take_profit_1": 90.0,
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Supply trigger."},
+        "supply_zones": [{"low": 99.5, "high": 100.5, "timeframe": "1h", "quality": 4, "evidence": "Supply rejection base."}]
+    }
+    plan, reason = validate_trade(analysis, 100.0)
+    assert reason == "validated"
+    assert plan["primary_zone"]["side"] == "SUPPLY"
+
+
+def test_selected_entry_band_must_overlap_its_primary_dns_zone():
+    analysis = {
+        "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": None, "confidence": 90,
+        "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Entry band."},
+        "demand_zones": [{"low": 99.6, "high": 99.79, "timeframe": "1h", "quality": 4, "evidence": "Non-overlapping demand."}]
+    }
+    plan, reason = validate_trade(analysis, 100.0)
+    assert plan is None and "overlapping" in reason
 
 
 def test_duplicate_open_position_is_rejected():
@@ -291,6 +366,9 @@ def test_visual_analyst_compares_multiple_setup_families():
     assert "selected_entry_zone" in prompt
     assert "single clearest, highest-conviction" in prompt
     assert "return no_trade" in prompt
+    assert "demand and supply first" in prompt
+    assert "sub-setups" in prompt
+    assert "mid-range trades" in prompt
 
 
 def test_analyst_accepts_exactly_one_analysis_per_requested_symbol():
@@ -545,6 +623,7 @@ def test_discord_execution_alert_includes_optional_second_target():
         "signal_id": "FORMAT01", "dir": "long", "setup_type": "TREND_PULLBACK",
         "confidence": 86, "entry": 100.0, "sl": 95.0, "tp": 110.0, "tp2": 115.0,
         "selected_entry_zone": {"low": 99.8, "high": 100.2, "timeframe": "15m", "evidence": "Reclaim band."},
+        "primary_zone": {"side": "DEMAND", "low": 99.5, "high": 100.5, "timeframe": "1h", "quality": 4, "evidence": "Demand base."},
         "rr": 2.0, "bias": "BULLISH", "timeframes_in_agreement": ["4h", "1h", "15m"],
         "rationale": "Higher-timeframe trend aligned with a confirmed pullback.",
         "invalidation": "A close below the structural swing low."
@@ -558,6 +637,7 @@ def test_discord_execution_alert_includes_optional_second_target():
     assert "Target 1: **110.0**" in message
     assert "Target 2: **115.0**" in message
     assert "Entry zone (15m): **99.8 – 100.2**" in message
+    assert "Primary DNS (DEMAND · 1h · Q4): **99.5 – 100.5**" in message
     assert "Why: Higher-timeframe trend aligned" in message
     assert "Invalidation: A close below" in message
 
@@ -610,7 +690,8 @@ def test_trade_gate_rejects_nonfinite_required_prices_and_zone_bounds():
             "selected_entry_zone": {
                 "low": 99.8, "high": 100.2, "timeframe": "15m",
                 "evidence": "Nearby entry band."
-            }
+            },
+            "demand_zones": [{"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 4, "evidence": "Demand base."}]
         }
 
     cases = [
@@ -641,7 +722,8 @@ def test_nonfinite_optional_second_target_is_ignored():
         "selected_entry_zone": {
             "low": 99.8, "high": 100.2, "timeframe": "15m",
             "evidence": "Nearby entry band."
-        }
+        },
+        "demand_zones": [{"low": 99.5, "high": 100.5, "timeframe": "15m", "quality": 4, "evidence": "Demand base."}]
     }
     plan, reason = validate_trade(analysis, 100.0)
     assert reason == "validated"
