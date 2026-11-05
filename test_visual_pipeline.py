@@ -844,6 +844,37 @@ def test_historical_parser_includes_candle_at_inclusive_chunk_end():
     assert int(frame.index[0].timestamp()) == 600
 
 
+def test_historical_fetch_does_not_retry_permanent_client_errors():
+    import requests
+
+    class BadResponse:
+        status_code = 400
+        headers = {}
+        def raise_for_status(self):
+            raise requests.HTTPError("bad request", response=self)
+        def json(self):
+            raise AssertionError("bad response must not be parsed")
+
+    class FakeSession:
+        def __init__(self):
+            self.calls = 0
+        def get(self, *args, **kwargs):
+            self.calls += 1
+            return BadResponse()
+
+    session = FakeSession()
+    try:
+        historical_data.fetch_chunk(
+            session, "BTCUSD", "5m", 0, 599, max_candles=2,
+            retries=5, sleep=lambda seconds: None
+        )
+    except requests.HTTPError:
+        pass
+    else:
+        raise AssertionError("HTTP 400 must fail immediately")
+    assert session.calls == 1
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
