@@ -99,11 +99,14 @@ def _market_evidence(candidate, snapshot, frames):
 
     map_data = snapshot if isinstance(snapshot, dict) else {}
     def zones(name):
+        items = map_data.get(name, [])
+        if not isinstance(items, list):
+            return []
         return [{
             "low": z.get("low"), "high": z.get("high"),
             "timeframe": z.get("timeframe"), "quality": z.get("quality"),
             "status": z.get("status"), "evidence": z.get("evidence"),
-        } for z in map_data.get(name, []) if isinstance(z, dict)]
+        } for z in items if isinstance(z, dict)]
 
     liquidity = [
         {
@@ -125,7 +128,7 @@ def _market_evidence(candidate, snapshot, frames):
             "demand_zones": zones("demand_zones"),
             "supply_zones": zones("supply_zones"),
             "liquidity_levels": liquidity[:20],
-            "key_observations": map_data.get("key_observations", [])[:12],
+            "key_observations": (map_data.get("key_observations") or [])[:12],
         },
         "closed_ohlcv_last_three_bars_by_timeframe": bars,
         "data_limits": [
@@ -221,6 +224,11 @@ def _validate_trader(report):
         raise ValueError("Chief Trader returned invalid key_risks")
     report["rationale"] = report["rationale"][:700]
     report["key_risks"] = [item[:300] for item in risks[:8]]
+
+
+def allows_candidate(review):
+    """Only an explicitly approved debate (or intentionally disabled debate) may pass."""
+    return isinstance(review, dict) and review.get("status") in {"DISABLED", "APPROVED"}
 
 
 def review_candidate(candidate, snapshot, frames, *, enabled_override=None, call_agent=None):
