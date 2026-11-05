@@ -604,3 +604,51 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
             print("PASS", name)
+
+def test_trade_gate_rejects_nonfinite_required_prices_and_zone_bounds():
+    def valid_analysis():
+        return {
+            "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+            "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+            "take_profit_2": 115.0, "confidence": 90,
+            "selected_entry_zone": {
+                "low": 99.8, "high": 100.2, "timeframe": "15m",
+                "evidence": "Nearby entry band."
+            }
+        }
+
+    cases = [
+        ("entry", float("nan"), 100.0),
+        ("stop_loss", float("inf"), 100.0),
+        ("take_profit_1", float("nan"), 100.0),
+        ("current_price", None, float("inf")),
+        ("zone_high", float("inf"), 100.0),
+    ]
+    for field, bad_value, current_price in cases:
+        analysis = valid_analysis()
+        if field == "current_price":
+            pass
+        elif field == "zone_high":
+            analysis["selected_entry_zone"]["high"] = bad_value
+        else:
+            analysis[field] = bad_value
+        plan, reason = validate_trade(analysis, current_price)
+        assert plan is None, f"{field} should be rejected"
+        assert "finite" in reason or "invalid price bounds" in reason
+
+
+def test_nonfinite_optional_second_target_is_ignored():
+    analysis = {
+        "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": float("inf"), "confidence": 90,
+        "selected_entry_zone": {
+            "low": 99.8, "high": 100.2, "timeframe": "15m",
+            "evidence": "Nearby entry band."
+        }
+    }
+    plan, reason = validate_trade(analysis, 100.0)
+    assert reason == "validated"
+    assert plan is not None
+    assert plan["tp2"] is None
+
