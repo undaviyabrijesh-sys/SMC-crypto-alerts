@@ -71,6 +71,9 @@ def send_ai_trade(sym, trade, fmt):
             f"Bear {agent_review.get('bear_stance', '—')} · "
             f"Chief {agent_review.get('decision', 'APPROVE')}"
         )
+        chief_rationale = agent_review.get("trader_rationale")
+        if isinstance(chief_rationale, str) and chief_rationale.strip():
+            lines.append(f"Chief Trader review: {chief_rationale[:250]}")
     lines.extend([
         f"Validated R:R to T1: **{trade['rr']:.2f}R**",
         f"Bias: {trade.get('bias', 'UNCLEAR')} | Timeframes: {', '.join(trade.get('timeframes_in_agreement', [])) or 'mixed'}",
