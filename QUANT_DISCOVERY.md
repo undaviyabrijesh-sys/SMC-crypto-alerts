@@ -691,3 +691,43 @@ These near-zero linear associations do not support a simple standalone funding-c
 2. Redesign the visual analyst/schema/validator so independent setup families can compete and return `NO_TRADE` without a mandatory DNS anchor; wire this into the active worker only after tests.
 3. Keep unresolved paper positions open when 5m coverage is incomplete; never infer an exit across a gap.
 4. Obtain owner decision on the legacy `main` schedule before any cutover. No `main` edits, PR merge, deployment, secret change, live trading or exchange orders.
+## Supervisor verification — 2026-11-05 19:22 IST (automation cycle)
+
+### Repository, PR and CI
+- Re-read the live branch ref and PR #1. ai-quant-rebuild head and PR head both resolve to a5d017c4470f6f9f987ebec7ae283415659d402c; PR #1 remains open, draft, unmerged and mergeable, base main, 286 commits ahead / 0 behind, 48 changed files. No review threads were returned.
+- Latest exact-head push CI [42036914428](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42036914428) and PR CI [42036924765](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42036924765) both completed successfully. The PR job passed compilation, visual pipeline, DNS worker, paper lifecycle, report/feedback, secret-format, derivatives parser/archive, Quant Discovery, public Delta OHLCV, funding/mark/OI and historical archive-pilot steps.
+- Current PR CI log explicitly reports 17 DNS/lifecycle tests passed, 6 daily-report tests, 3 feedback tests, 7 secret-format tests, 7 derivatives-history tests, 7 derivatives-archive tests and 10 Quant Discovery tests. It is an offline/test + public-data CI run, not a live visual desk cycle.
+- Latest branch commit a5d017c changes README model/API-credit documentation only. It sets the default model identifier to gpt-6-luna and reasoning effort to low; no fresh OpenAI request was made, so model availability, image support and strict structured-output compatibility are not verified by this run. The last known live API response remains HTTP 429 insufficient_quota / credit_balance_exhausted.
+
+### Latest feed evidence (PR CI at 2026-11-05 13:34:55 UTC)
+- All 18 BTCUSD / ETHUSD / XAUTUSD native timeframe checks passed (5m, 15m, 1h, 4h, 1d, 1w); closed-bar and freshness checks passed.
+- Latest closed 5m values at that snapshot: BTCUSD 79,662.50; ETHUSD 2,389.80; XAUTUSD 4,102.64. These are historical CI observations, not current quotes.
+- Funding availability: 70 hourly candles each for BTC, ETH and XAUT; mark: 864 five-minute candles per contract; OI: 72 hourly candles per contract.
+- BTC historical pilot: 1,051 candles, 100% observed coverage, zero gaps. The run uploaded no chart-review artifacts.
+
+### Visual architecture — requirement still not met
+- The current README, PR description and ai_analyst.py prompt are explicit: DNS is the mandatory primary location framework; trend pullback, momentum, breakout/retest, FVG, RBS/SBR, sweeps and range/mean-reversion are only confirmations/sub-setups at or near a qualifying DNS band. Standalone candidates away from DNS are rejected.
+- Active runtime remains worker.py → dns_worker.py → ai_analyst.map_dns() for map refresh and dns_engine.detect_local_setup() for the local sweep/reclaim trigger. The broad multi-setup ai_analyst.analyse() function is not wired into this active worker. Therefore independent strategy families do not yet compete for the single best setup as requested. Do not describe the full multi-family visual desk as implemented.
+- The branch workflow .github/workflows/alerts.yml has a 5-minute schedule but scheduled execution is gated by ENABLE_GITHUB_SCHEDULE == 'true'; manual dispatch is allowed. No visual-desk run or chart-review artifact was found in the current branch run list. Do not enable the schedule or dispatch an alerting run until API quota and paper-only validation prerequisites are confirmed.
+
+### Risk controls, outcomes and Discord
+- Current DNS worker retains fail-closed map-refresh handling, DNS quality/invalidation checks, sweep/reclaim confirmation, existing 0.35% entry/zone proximity and 2R gates, one open paper position per symbol, and fresh-market/current-map revalidation before delayed Discord alert retries.
+- Strict numeric AI confidence >=75 is implemented in the separate main.validate_trade() path, but the active DNS worker does not call that validator. DNS-local signals are instead gated by the local detector's zone/structure/risk checks; do not claim both paths have identical checks.
+- Paper outcomes require contiguous closed 5m coverage; a gap leaves the position unresolved rather than allowing a later TP/SL to be misreported as the first exit. Discord execution/outcome formatting is covered by tests, but no actual webhook delivery was established by CI.
+- No chart images were available from the current CI run for visual inspection, and no new AI signal or trading recommendation was generated.
+
+### Default-branch operational warning
+- Latest observed scheduled default-branch run [42039207590](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42039207590), created 2026-11-05 13:49:34 UTC, completed successfully on main and executed the legacy python main.py step.
+- Its job environment included configured DISCORD_WEBHOOK, DISCORD_WATCH_WEBHOOK and DISCORD_TRIGGER_WEBHOOK secrets (values masked). The run logs do not prove a Discord message was delivered.
+- main/.github/workflows/alerts.yml still schedules advance-alerts every 10 minutes and runs the legacy main.py path. No changes were made to main; owner decision remains required before pausing the legacy workflow or cutover.
+
+### Quant Discovery
+- EXP-001 remains rejected (30/30 baseline OOS combinations negative). The OI + volatility expansion screen remains rejected for BTC, ETH and XAUT; no candidate is eligible for production alerts.
+- Funding settlement-event attribution/units and historical spread/depth remain unresolved. No funding P&L conversion or performance claim is permitted.
+
+### Exact next steps
+1. Restore/confirm API project quota and verify the configured gpt-6-luna identifier against the actual API before any manual request. Do not change secrets in this workflow.
+2. Redesign the analyst prompt/schema/validator so independent DNS, trend/pullback, momentum, breakout/retest and mean-reversion candidates can compete from chart evidence; preserve the visual model as decision-maker and return NO_TRADE when none passes.
+3. Connect that multi-family selection to the active worker behind paper-only validation; keep mechanical gates and contiguous-bar outcome handling.
+4. Only after quota is confirmed, manually run a paper-only cycle, inspect raw/annotated BTC/ETH/XAUT six-timeframe images, candidate comparisons and validator decisions, then verify Discord delivery and a complete paper outcome.
+5. Obtain owner decision on the legacy main schedule before cutover. Do not modify main, merge PR #1, deploy, change secrets, enable live trading or place orders.
