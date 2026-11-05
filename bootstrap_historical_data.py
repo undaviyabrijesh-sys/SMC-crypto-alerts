@@ -175,7 +175,10 @@ def fetch_chunk(session: requests.Session, symbol: str, timeframe: str,
             return parse_candle_payload(
                 payload, symbol, timeframe, start_epoch, end_epoch, max_candles
             )
-        except requests.RequestException:
+        except requests.RequestException as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None and status != 429 and status < 500:
+                raise
             if attempt >= retries:
                 raise
             sleep(min(30.0, 0.5 * (2 ** attempt)))
