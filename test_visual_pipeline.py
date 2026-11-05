@@ -406,7 +406,7 @@ def test_visual_analyst_compares_multiple_setup_families():
     prompt = ai_analyst.SYSTEM_PROMPT.lower()
     assert "compare candidate setups" in prompt
     assert "selected_entry_zone" in prompt
-    assert "single clearest, highest-conviction" in prompt
+    assert "select the single clearest candidate" in prompt
     assert "return no_trade" in prompt
     assert "demand and supply first" in prompt
     assert "sub-setups" in prompt
