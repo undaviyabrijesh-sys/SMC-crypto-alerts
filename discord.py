@@ -65,3 +65,8 @@ def send_outcome(trade, fmt):
         f"({trade['gross_R']:+.2f}R)**"
     )
     return _post(message)
+
+
+def send_daily_report(message):
+    """Deliver the once-daily India-time paper P&L summary."""
+    return _post(message)
