@@ -1094,6 +1094,43 @@ def test_historical_archive_excludes_currently_forming_last_candle():
         )
 
 
+def _confidence_gate_analysis(confidence):
+    return {
+        "action": "TRADE", "direction": "LONG", "entry_mode": "MARKET",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": None, "confidence": confidence,
+        "selected_entry_zone": {
+            "low": 99.8, "high": 100.2, "timeframe": "15m",
+            "evidence": "Entry band."
+        },
+        "demand_zones": [{
+            "low": 99.5, "high": 100.5, "timeframe": "1h",
+            "quality": 4, "evidence": "Confirmed demand."
+        }]
+    }
+
+
+def test_trade_validator_rejects_malformed_or_out_of_range_confidence():
+    invalid_values = (
+        None, "90", True, float("nan"), float("inf"),
+        -1, 101, 75.5, 10**10000
+    )
+    for value in invalid_values:
+        plan, reason = validate_trade(_confidence_gate_analysis(value), 100.0)
+        assert plan is None
+        assert "confidence" in reason.lower()
+
+
+def test_trade_validator_accepts_confidence_boundary_and_enforces_minimum():
+    plan, reason = validate_trade(_confidence_gate_analysis(75), 100.0)
+    assert reason == "validated"
+    assert plan["confidence"] == 75
+
+    plan, reason = validate_trade(_confidence_gate_analysis(74), 100.0)
+    assert plan is None
+    assert "below the configured gate" in reason
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
