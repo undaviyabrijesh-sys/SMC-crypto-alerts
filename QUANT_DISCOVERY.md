@@ -419,3 +419,33 @@ Initial screening floor (not proof of an edge): aim for at least 100 completed t
 - Branch: `ai-quant-rebuild`; code commit under review: `b700a60a9ac86bd1850b571f51ea7be0250b79ce`. The PR remains open, draft and unmerged. `main` remains unchanged.
 - The fake DNS confidence value was removed; Discord only prints confidence when a valid value is actually supplied. The new regression passed in both CI runs.
 - The default-branch legacy `advance-alerts` schedule finding and required user decision are recorded in the prior supervisor update above. No main-branch change or workflow setting change was made.
+
+
+## Supervisor handoff — 2026-11-05 (local DNS entry-proximity gate)
+
+### Latest verified repository state
+- Branch: `ai-quant-rebuild`; code head before this handoff note: `2744b0f3e481f920ef2c73d7beadfa49913b273c`.
+- PR #1 remains open, draft, unmerged, targeting `main`. No changes were made to `main`.
+- Risk-gate fix commits: `6bfee07aace19ce63636f4f437d2d892026c1575` (local DNS entry proximity) and `2744b0f3e481f920ef2c73d7beadfa49913b273c` (regression tests).
+- Push CI [41976396776](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41976396776) and PR CI [41976399657](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41976399657) both completed successfully, including DNS map/local watcher tests, Quant Discovery tests, public Delta OHLCV checks, derivatives probes and historical-download pilot.
+
+### Risk-control defect fixed
+- The active `dns_worker.py → dns_engine.detect_local_setup()` path generated a market entry at the confirming 5m close and enforced zone quality, sweep/reclaim, invalidation and minimum 2R, but it did not enforce the configured `MAX_MARKET_ENTRY_DEVIATION_PCT` between that entry and the AI-authored DNS band.
+- A strong confirming candle could therefore chase price too far away from the visual zone. `dns_engine.py` now rejects local candidates when distance from the entry to the nearest edge of the mapped zone exceeds the existing configured 0.35% threshold. This is an additional mechanical gate only; it does not create zones or change setup identification.
+- `test_dns_engine.py` now verifies a valid near-zone demand sweep remains eligible and a confirmation more than 0.35% away is rejected. Both CI workflows passed.
+
+### Remaining operational / architecture blockers
+- The latest observed default-branch scheduled run remains legacy `advance-alerts` [41973906858](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/41973906858), on `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. Its workflow still executes `python main.py` every 10 minutes with legacy Discord webhook secrets present. The log confirms execution of the script and secret presence (values redacted), but does not prove a message was delivered. The old path can still emit WATCH/CANCEL/TRIGGER messages. No change was made to `main` or the workflow settings.
+- The branch workflow `.github/workflows/alerts.yml` is schedule-gated by `ENABLE_GITHUB_SCHEDULE=true`; GitHub scheduled workflows execute from the default branch. PR #1 is unmerged, so this branch is not the default scheduled runner. Manual dispatch remains the only safe validation path.
+- Active branch path remains `worker.py → dns_worker.py`: it fetches six closed Delta timeframes, refreshes an AI visual DNS map only when missing/aged/broken, then uses the narrow local DNS liquidity-sweep/reclaim detector. The broader `ai_analyst.analyse()` multi-setup trade-selection function is not called by the active worker. The prompt enumerates multiple DNS-anchored sub-setups, but this does not yet satisfy a full active multi-family AI comparison each cycle.
+- No current chart-review artifact or fresh live AI cycle was available. The last known Responses API attempt returned HTTP 429 `insufficient_quota / credit_balance_exhausted`; no repeated API calls were made. Restore quota before one manual paper-only visual validation.
+- Discord formatting on the branch includes setup, optional measured confidence, primary DNS band, selected entry band, entry, stop, targets, validated R:R, rationale, invalidation and paper-only disclaimer. TP/SL/TIME outcomes are separate updates. Actual Discord delivery remains unverified.
+
+### Exact next steps
+1. Keep the legacy main workflow unchanged until the owner explicitly decides how to handle the old scheduled alerts; do not silently disable or replace it.
+2. Restore OpenAI quota and manually dispatch one paper-only branch cycle; inspect raw and annotated multi-timeframe images, model result, local signal gate and Discord delivery.
+3. Design and test the active worker's visual multi-setup comparison path (including independent trend/momentum/breakout/mean-reversion candidates where chart evidence supports them), with the model selecting one candidate or NO_TRADE and local code enforcing mechanical risk only. Do not deploy or enable recurring schedule until audited.
+4. Keep the new 0.35% local DNS proximity gate and add symmetric short-side coverage if the detector is expanded.
+5. Continue discrete funding-event reconciliation; raw hourly funding candles remain unscaled and are not applied to P&L. EXP-001 remains rejected: all 30 OOS baseline cells negative under the documented cost/stress assumptions.
+
+No live trading, broker orders, infrastructure deployment, secret changes, PR merge or main-branch edits were performed.
