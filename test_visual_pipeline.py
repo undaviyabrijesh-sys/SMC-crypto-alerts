@@ -823,7 +823,7 @@ def test_historical_archive_persists_hash_coverage_and_resumes_after_interruptio
         assert result["row_count"] == 4
         assert result["missing_expected_candles"] == 0
         assert result["gap_count"] == 0
-        assert result["requested_coverage_pct"] == 100.0
+        assert result["requested_coverage_pct_estimate"] == 100.0
         assert result["observed_coverage_pct"] == 100.0
         assert len(result["sha256"]) == 64
         assert historical_data.file_sha256(archive) == result["sha256"]
