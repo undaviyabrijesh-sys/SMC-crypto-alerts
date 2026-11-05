@@ -94,6 +94,8 @@ The collector:
 
 The archive defaults to historical_data/ and is intentionally Git-ignored. Store this folder on durable local or mounted storage and back it up; do not commit large market datasets or treat a short-lived CI cache as the research archive. XAUTUSD is Delta's Tether Gold perpetual, not spot XAUUSD. This first collector records traded-price OHLCV only; it does not infer spread, order-book depth or funding costs. Those inputs must remain explicitly unavailable until separately collected and validated.
 
+A cloud collection workflow is available at `.github/workflows/historical-archive.yml`. Its output is a temporary GitHub Actions artifact (14-day retention), not permanent storage. Export verified archives to durable storage and keep the raw files out of Git. The workflow is guarded against accidental repeat downloads.
+
 Delta documents a maximum of 2,000 candles per historical-candle response. See the official [Delta historical OHLC candles API documentation](https://docs.delta.exchange/).
 
 ## Local validation
