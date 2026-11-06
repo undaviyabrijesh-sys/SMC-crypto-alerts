@@ -147,14 +147,14 @@ def send_visual_trade(sym, trade, fmt):
     if isinstance(quality, int) and not isinstance(quality, bool) and isinstance(confidence, int) and not isinstance(confidence, bool):
         score_line = (
             f"Visual quality: **{quality}/100** | Confidence: **{confidence}/100** "
-            "(rubric scores, not probabilities)\\n"
+            "(rubric scores, not probabilities)\n"
         )
     zone = trade.get("entry_zone") or {}
     zone_line = ""
     if isinstance(zone, dict) and all(key in zone for key in ("low", "high", "timeframe")):
         zone_line = (
             f"Entry zone ({zone['timeframe']}): "
-            f"**{fmt(zone['low'])} – {fmt(zone['high'])}**\\n"
+            f"**{fmt(zone['low'])} – {fmt(zone['high'])}**\n"
         )
     evidence_tfs = trade.get("evidence_timeframes") or trade.get("timeframes_in_agreement") or []
     supporting = trade.get("supporting_evidence") or []
@@ -188,7 +188,7 @@ def send_visual_trade(sym, trade, fmt):
     if cancel_if:
         lines.append("Cancel before entry if: " + " | ".join(short(item, 70) for item in cancel_if[:2]))
     lines.append("Paper tracking only at the latest closed 5m price; no exchange order is submitted.")
-    message = "\\n".join(lines)
+    message = "\n".join(lines)
     if len(message) > 1900:
         print("[warn] visual alert exceeded the safe Discord message budget; refusing truncated delivery")
         return False
