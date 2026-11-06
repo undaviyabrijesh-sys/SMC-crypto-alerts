@@ -77,6 +77,30 @@ def _analysis(symbol, now, frames, cycle_id, candidates=None, selected="trend-lo
     }
 
 
+def test_visual_cycle_id_changes_when_chart_image_changes_on_same_candles():
+    watermarks = {
+        "BTC": {timeframe: f"2026-11-06T00:00:00+00:00" for timeframe in visual_worker.TIMEFRAMES}
+    }
+    first_hashes = {"BTC": "a" * 64}
+    retry_hashes = {"BTC": "b" * 64}
+
+    first_cycle = visual_worker._visual_cycle_id(watermarks, first_hashes)
+    retry_cycle = visual_worker._visual_cycle_id(watermarks, retry_hashes)
+
+    assert first_cycle == visual_worker._visual_cycle_id(watermarks, first_hashes)
+    assert first_cycle != retry_cycle
+
+
+def test_visual_cycle_id_rejects_mismatched_chart_evidence_sets():
+    watermarks = {"BTC": {timeframe: "2026-11-06T00:00:00+00:00" for timeframe in visual_worker.TIMEFRAMES}}
+    try:
+        visual_worker._visual_cycle_id(watermarks, {"ETH": "b" * 64})
+    except ValueError as exc:
+        assert "same non-empty symbols" in str(exc)
+    else:
+        raise AssertionError("mismatched chart evidence must fail closed")
+
+
 def test_schema_supports_independent_families_without_dns_fields():
     schema_text = str(visual_first_analyst.OUTPUT_SCHEMA)
     assert "TREND_PULLBACK" in schema_text
