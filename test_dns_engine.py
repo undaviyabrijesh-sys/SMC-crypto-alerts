@@ -66,7 +66,11 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
     snap["demand_zones"][0]["low"] = 100.0
     snap["demand_zones"][0]["high"] = 100.5
     candidates = dns_engine.detect_local_setup(
-        "BTC", {"5m": frame, "1h": pd.DataFrame({"close": [100.8]})}, snap
+        "BTC", {
+            "5m": frame,
+            "1h": pd.DataFrame({"close": [100.8]}),
+            "4h": pd.DataFrame({"close": [100.8]}),
+        }, snap
     )
     assert len(candidates) == 1, candidates
     candidate = candidates[0]
@@ -204,7 +208,11 @@ def test_local_watcher_skips_a_sweep_when_recent_five_minute_bars_have_a_gap():
     snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 100.8)
     snap["demand_zones"][0]["low"] = 100.0
     snap["demand_zones"][0]["high"] = 100.5
-    frames = {"5m": frame, "1h": pd.DataFrame({"close": [100.8]})}
+    frames = {
+        "5m": frame,
+        "1h": pd.DataFrame({"close": [100.8]}),
+        "4h": pd.DataFrame({"close": [100.8]}),
+    }
     assert dns_engine.detect_local_setup("BTC", frames, snap) == []
 
 
