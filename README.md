@@ -1,6 +1,6 @@
 # Salty Quant — Deterministic Multi-Strategy Paper Desk
 
-This branch keeps two selectable paper/research lanes. The default `WORKER_MODE=quant` runs the deterministic multi-strategy supervisor without AI calls. Set `WORKER_MODE=dns` to run the visual DNS mapper plus a local five-minute watcher; its optional Bull/Bear/Chief Trader debate is invoked only after a local DNS setup appears. Both lanes are paper-only and keep deterministic risk checks authoritative.
+This branch contains three selectable paper lanes. The default `WORKER_MODE=quant` is the AI-free multi-strategy research/shadow lane. `WORKER_MODE=dns` is the separate visual DNS-map plus local watcher lane. `WORKER_MODE=visual` routes to the independent visual-first analyst, but it is disabled unless `ENABLE_VISUAL_PAPER=true` is explicitly set. All lanes are paper-only; no exchange orders are submitted.
 
 ## Current operating mode: shadow research only
 
@@ -24,6 +24,22 @@ The worker still manages any already-open paper positions in the shared state fi
 4. `quant_worker.py` runs once per new closed 5m candle, records all candidates and the supervisor decision in `research/quant_signals.jsonl`, and only sends an execution alert for a promoted strategy. No model calls or image interpretation are involved.
 5. `trade_lifecycle.py` independently tracks open paper positions from contiguous closed 5m candles. A data gap leaves the outcome unresolved; it cannot infer a first TP/SL across an unobserved interval. Same-candle ambiguity is resolved conservatively as SL first.
 6. `discord.py` formats deterministic quant execution alerts and separate confirmed TP/SL/TIME updates. There are no WATCH/status messages. Alert delivery failure does not open a paper position.
+
+## Visual-first independent paper analyst
+
+The visual lane is separate from the DNS watcher. `visual_first_analyst.py` receives fresh, unannotated six-timeframe chart images (5m, 15m, 1h, 4h, 1d and 1w) and compares independent candidates: SMC/market structure, visually mapped supply/demand, liquidity sweeps, support/resistance, trend pullback, momentum, breakout/retest, volatility expansion, range rejection and mean reversion. No coded zone or market-structure detector selects, ranks or vetoes these candidates.
+
+The model returns materially viable candidates with context/timeframe alignment, entry quality, invalidation, stop distance, target rationale, estimated R:R and conflicts. It selects one candidate ID or returns `NO_TRADE`. The mechanical validator does not substitute another candidate; it checks fresh chart watermarks, candidate identity, latest-price proximity, confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, at least two evidence timeframes, one open/pending position per symbol, and a clear quality margin over any opposing actionable candidate. A close or stronger opposing candidate forces NO_TRADE.
+
+Only an immediately actionable market setup can become a paper execution alert. Future retests are not sent as WATCH messages. The Discord visual alert includes setup family, entry band, trigger, invalidation, stop, target, rationale and cancellation conditions. Confirmed TP/SL/TIME outcomes are separate messages through the existing closed-5m lifecycle.
+
+Run one local paper cycle only with explicit opt-in:
+
+```bash
+ENABLE_VISUAL_PAPER=true python visual_worker.py
+```
+
+For the persistent worker, set `WORKER_MODE=visual` and `ENABLE_VISUAL_PAPER=true`. The GitHub manual workflow also requires `lane=visual` and `confirm_visual_paper=true`; scheduled runs remain on the quant lane unless the pre-existing schedule opt-in is enabled. A valid `OPENAI_API_KEY` and usable API quota are required. Offline CI uses mocked model/API and Discord calls; it does not prove live delivery.
 
 ## Visual DNS sub-setup watcher
 
@@ -87,7 +103,7 @@ For a rare confirmed DNS candidate, `ai_trade_agents.py` can run three separate 
    docker compose logs -f
    ```
 
-The default worker uses the AI-free quant lane. For the visual DNS lane, set `WORKER_MODE=dns` in `.env`. To add the three-role candidate debate, also set `AI_TRADE_DEBATE_ENABLED=true` and configure `OPENAI_API_KEY`. Keep the debate disabled to use only the infrequent DNS map refresh and the local watcher.
+The default worker uses the AI-free quant lane. For the independent visual-first paper lane, set `WORKER_MODE=visual`, `ENABLE_VISUAL_PAPER=true` and configure `OPENAI_API_KEY`. The visual lane remains opt-in and fail-closed. For the separate DNS-map watcher, set `WORKER_MODE=dns`; the three-role Bull/Bear/Chief debate remains optional through `AI_TRADE_DEBATE_ENABLED=true`.
 
 The persistent `./salty_data` volume stores state, rolling candles, quant candidate logs and the worker heartbeat. Use one worker instance only.
 
@@ -97,12 +113,15 @@ The persistent `./salty_data` volume stores state, rolling candles, quant candid
 - `DATA_DIR`: rolling OHLCV cache directory.
 - `STATE_PATH`: persistent paper position/state JSON.
 - `QUANT_RESEARCH_PATH`: append-only deterministic candidate/decision log; default `research/quant_signals.jsonl`.
+- `ENABLE_VISUAL_PAPER`: explicit opt-in for the independent visual-first paper lane; default false.
+- `VISUAL_FIRST_RESEARCH_PATH`: append-only visual candidate/decision log; default `research/visual_first_decisions.jsonl`.
+- `VISUAL_FIRST_FAILURE_COOLDOWN_MINUTES`: API/data failure cooldown; default 30 minutes.
 - `DISCORD_TRIGGER_WEBHOOK` or `DISCORD_WEBHOOK`: execution/outcome destination.
 - `DELTA_API_KEY`, `DELTA_API_SECRET`: optional read-only startup validation only.
 
-GitHub Actions schedule remains opt-in through `ENABLE_GITHUB_SCHEDULE=true`; leave it unset unless a single scheduler is deliberately selected. Manual dispatch performs one paper/shadow cycle. No deployment or schedule enablement is performed by code commits.
+GitHub Actions schedule remains opt-in through `ENABLE_GITHUB_SCHEDULE=true`; leave it unset unless a single scheduler is deliberately selected. Manual dispatch performs one paper/shadow cycle; visual dispatch additionally requires the explicit `confirm_visual_paper=true` input. No deployment or schedule enablement is performed by code commits.
 
-Implementation notes and validation scope for the DNS-anchored SMC watcher are in [SMC_SUBSETUP_WATCHER_2026-11-06.md](quant_discovery/SMC_SUBSETUP_WATCHER_2026-11-06.md).
+Implementation notes for the independent visual-first lane are in [VISUAL_FIRST_INDEPENDENT_ANALYST_V2_SPEC.md](quant_discovery/VISUAL_FIRST_INDEPENDENT_ANALYST_V2_SPEC.md). DNS watcher notes are in [SMC_SUBSETUP_WATCHER_2026-11-06.md](quant_discovery/SMC_SUBSETUP_WATCHER_2026-11-06.md).
 
 ## Quant Discovery and promotion protocol
 

@@ -8,7 +8,7 @@
 
 Make the multimodal analyst—not a coded zone, sweep, or market-structure detector—the decision-maker for each eligible closed 5-minute analysis cycle. The analyst must compare independent evidence-supported approaches from the raw six-timeframe charts and return either one best actionable candidate or `NO_TRADE`.
 
-This design does not change the current runtime. Do not enable it, deploy it, or route its output to Discord until the implementation and tests are reviewed.
+The implementation is wired into the branch runtime as an explicit opt-in paper lane. It does not enable scheduled execution or live trading: the worker requires `WORKER_MODE=visual` and `ENABLE_VISUAL_PAPER=true`, while the manual GitHub workflow additionally requires `lane=visual` and `confirm_visual_paper=true`. Do not dispatch a real vision cycle until API quota and webhook handling are confirmed.
 
 ## Required analysis inputs
 
@@ -170,4 +170,4 @@ The visual analyst inspects fresh multi-timeframe chart images on eligible new c
 - `test_visual_first.py`: offline schema, mocked multimodal request, risk-gate, candidate-selection, stale-candle, deduplication, paper-cycle and Discord-format tests. CI runs this suite without an API key or webhook.
 - `.github/workflows/alerts.yml`: manual visual selection is available but requires a separate explicit paper confirmation; no workflow has been dispatched and no schedule variable was changed.
 
-The validator validates the model-selected candidate; it does not construct zones, rank setup families, or substitute another candidate. Existing hard gates remain: confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, entry band within 0.35% of the latest closed price, fresh watermarks, two or more evidence timeframes, no conflicting near-tie, and one open/pending position per symbol.
+The validator validates the model-selected candidate; it does not construct zones, rank setup families, or substitute another candidate. Existing hard gates remain: confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, entry band within 0.35% of the latest closed price, fresh watermarks, two or more evidence timeframes, and one open/pending position per symbol. An opposing actionable candidate must be at least eight quality points weaker than the selected side; otherwise validation fails closed with NO_TRADE.

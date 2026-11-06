@@ -59,7 +59,7 @@ jobs:
           restore-keys: |
             salty-quant-market-${{ runner.os }}-
       - name: Run offline tests
-        run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py
+        run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py && python test_visual_first.py
       - name: Fetch closed OHLCV and run the selected paper-analysis lane
         shell: bash
         run: |
