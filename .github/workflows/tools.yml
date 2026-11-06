@@ -10,10 +10,18 @@ on:
           - visual-tests
           - visual-desk-run
         default: visual-tests
+      confirm_visual_paper:
+        description: "Explicitly confirm one visual PAPER analysis cycle (no exchange orders)"
+        required: true
+        type: boolean
+        default: false
 
 concurrency:
   group: quant-desk-tools
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   run:
@@ -45,10 +53,16 @@ jobs:
             salty-quant-market-${{ runner.os }}-
       - name: Run offline visual pipeline tests
         if: ${{ inputs.task == 'visual-tests' }}
-        run: python test_visual_pipeline.py
-      - name: Run one AI visual desk cycle
+        run: python test_visual_pipeline.py && python test_visual_first.py
+      - name: Run one confirmed AI visual paper cycle
         if: ${{ inputs.task == 'visual-desk-run' }}
-        run: python main.py
+        shell: bash
+        run: |
+          if [ "${{ inputs.confirm_visual_paper }}" != "true" ]; then
+            echo "Visual paper lane not run: explicitly set confirm_visual_paper=true in manual dispatch."
+            exit 0
+          fi
+          ENABLE_VISUAL_PAPER=true python visual_worker.py
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
@@ -57,4 +71,22 @@ jobs:
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
           STATE_PATH: state.json
-          RESEARCH_PATH: research/visual_decisions.jsonl
+          VISUAL_FIRST_RESEARCH_PATH: research/visual_first_decisions.jsonl
+          VISUAL_FIRST_CHART_DIR: visual_artifacts
+
+      - name: Upload visual-first decision log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-first-decisions-${{ github.run_id }}
+          path: research/visual_first_decisions.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload raw visual charts and watermark manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-charts-${{ github.run_id }}
+          path: visual_artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
