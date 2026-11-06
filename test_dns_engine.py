@@ -530,6 +530,18 @@ def test_pending_alert_revalidation_reprices_only_if_still_actionable():
     assert dns_worker._reprice_pending_alert(trade, 100.1, snapshot) is None
 
 
+def test_pending_alert_revalidation_rejects_an_invalidated_opposing_target():
+    trade = _pending_trade("long")
+    snapshot = _pending_snapshot("long")
+    frames = {
+        "1h": pd.DataFrame({"close": [100.0]}),
+        "4h": pd.DataFrame({"close": [106.0]}),  # Closes through supply target ceiling.
+    }
+    assert dns_worker._reprice_pending_alert(
+        trade, 99.95, snapshot, frames=frames
+    ) is None
+
+
 def test_pending_alert_revalidation_supports_short_side():
     trade = _pending_trade("short")
     accepted = dns_worker._reprice_pending_alert(
