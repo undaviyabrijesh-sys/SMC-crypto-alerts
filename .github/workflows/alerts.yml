@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: state.json
-          key: salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-
       - name: Restore rolling OHLCV and research history
@@ -55,7 +55,7 @@ jobs:
           path: |
             market_data/
             research/
-          key: salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-
       - name: Run offline tests
