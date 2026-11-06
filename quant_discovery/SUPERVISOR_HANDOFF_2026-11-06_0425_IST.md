@@ -74,3 +74,50 @@ Confirmed from live branch source:
 8. Continue Quant Discovery separately; no candidate promotion without adequate OOS, walk-forward, parameter-neighbourhood and stressed-cost evidence.
 
 No secrets or credentials are stored in this handoff.
+
+
+## Fresh supervision checkpoint — 2026-11-06 06:45 IST
+
+### GitHub / CI
+- Live PR #1 is open, draft, unmerged, mergeable, base `main`; before this checkpoint's small test-clarity commit its head was `784eb0d6f84a477e5f98ddc9fc0d224e997b05ce`. Compare showed 362 commits ahead / 0 behind, with main at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`.
+- Exact-head push CI `42125482093` and PR CI `42125488717` both passed on `784eb0d6`. Both ran compile, visual, agents, DNS, replay, quant, lifecycle/reporting, derivatives, research, live public Delta OHLCV/history probes, and a BTC archive pilot.
+- The PR run had no uploaded artifacts. CI success is not a live vision decision or Discord-delivery test.
+- Repository metadata grants push/admin permission, but branch-protection read returned 403 (resource not accessible by integration); protection state is unverified.
+
+### Small test-clarity fix
+- Commit `347975b80aeed5152780204e4f6e0803e267f7e3` renames `test_visual_analyst_compares_multiple_setup_families` to `test_visual_analyst_is_dns_first_and_lists_confirmation_families` and adds a docstring clarifying that enum coverage is not independent setup comparison.
+- This is deliberately a test-only clarity change; no production logic or thresholds changed. Verify the new exact-head push and PR CI before relying on it.
+
+### Data-feed snapshot (historical CI observation, not current market prices)
+- On the successful 2026-11-05 22:55 UTC CI probe, all 18 BTC/ETH/XAUT × six-timeframe OHLCV checks passed.
+- Per asset: 1,151 closed 5m candles; 1,343 15m; 1,079 1h; 719 4h; 364 1d for BTC/ETH (XAUT 202); weekly 149 BTC, 143 ETH, 29 XAUT. These are API-returned rolling windows, not a multi-year research archive.
+- Derivatives endpoint returned 71 hourly funding, 864 5m mark-price and 72 hourly OI candles per contract. Availability does not validate funding settlement attribution.
+- BTC 5m historical pilot: 1,051 candles, 100% coverage in the requested pilot window, zero gaps.
+
+### Visual pipeline / runtime finding
+- Current `ai_analyst.py` still says “DEMAND AND SUPPLY FIRST”; every actionable trade must be DNS-anchored, and trend/momentum/breakout/mean-reversion are confirmations inside/at DNS, not independent candidate families.
+- The renamed test makes this limitation explicit. The previous test name overstated what it proved.
+- `worker.py` supports only `quant` (default, AI-free) and `dns`; there is no independent `visual` mode. DNS refreshes a visual map infrequently and then a coded local sweep/reclaim detector creates candidates; optional Bull/Bear/Chief review is after that trigger.
+- Branch `.github/workflows/alerts.yml` gates its scheduled run on `vars.ENABLE_GITHUB_SCHEDULE == 'true'`, but the workflow's manual/opt-in job directly executes `python quant_worker.py`, not visual analysis. No chart-review artifact was produced.
+- Keep V2 as design-only until the schema, prompt, validator, isolated visual paper worker, persistence, mocked end-to-end tests and fail-closed behaviour are implemented together. Never revive coded zones/structure as setup decision-maker.
+
+### Legacy main workflow — unchanged, owner decision required
+- Main `.github/workflows/alerts.yml` still schedules every 10 minutes and runs `python main.py` with masked WATCH/TRIGGER Discord webhook variables.
+- Latest observed run: [42137828192](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42137828192), created 2026-11-06 00:34:37 UTC and completed successfully. Job logs confirm `python main.py` executed; they do not prove a Discord message was delivered.
+- Main `main.py` imports legacy `zones.py` and `score.py` and retains WATCH/TRIGGER logic. Do not modify or disable it without owner authorization; no main change was made.
+
+### Risk, lifecycle, Discord and research
+- Existing risk controls remain unchanged. `quant_supervisor.APPROVED_STRATEGIES` remains empty. Branch quant lifecycle retains closed-5m evaluation, stop-first ambiguity, missing-bar protection, 48h TIME expiry and separate/retryable outcome notifications.
+- Discord execution/outcome format tests passed; gross P&L is explicitly labeled before fees, spread, slippage and funding. Actual webhook delivery is unverified.
+- Quant Discovery remains research-only: 926,209 OHLCV candles across 18 datasets; BTC/ETH have roughly 2.7 years, XAUT starts 2026-04-17 (~6.6 months). Prior six-family screen rejected all candidates; all 18 15m OOS cells were negative under stressed costs; only 8/180 folds had positive expectancy and PF >1, and only four also had >=30 trades. BTC 1h volatility expansion's 11-trade OOS result had negative validation. OI expansion did not survive cost/validation/sample checks. Funding excluded from P&L; measured spread/depth unavailable.
+- Last documented OpenAI API blocker remains HTTP 429 insufficient quota; quota was not re-tested and no credentials/secrets were changed.
+
+### Next actions
+1. Verify exact-head CI for test-clarity commit `347975b` and the following handoff refresh commit.
+2. Implement V2 independent setup comparison in a separate opt-in visual paper mode; update prompt, strict schema, validator and worker together.
+3. Keep all existing mechanical gates and reject stale/missing images, watermarks, malformed output, conflicts and API failures as NO_TRADE.
+4. Add mocked end-to-end chart-to-paper tests, then separately verify API quota and a paper-only vision smoke test.
+5. Keep Quant Discovery separate; reproduce experiments from frozen runners/data, extend XAUT, and resolve funding/spread/depth before net-cost claims.
+6. Obtain owner authorization before any legacy main-workflow cutover.
+
+No deployment, main modification, PR merge, secret change, schedule activation, live trading or exchange order was performed.
