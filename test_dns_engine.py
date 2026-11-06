@@ -247,7 +247,12 @@ def test_local_watcher_rejects_confirmation_too_far_from_visual_zone():
     }, index=idx)
     snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 101.4)
     # The existing demand band ends at 100.0: the confirmation is >0.35% away.
-    assert dns_engine.detect_local_setup("BTC", {"5m": frame}, snap) == []
+    frames = {
+        "5m": frame,
+        "1h": pd.DataFrame({"close": [101.4]}),
+        "4h": pd.DataFrame({"close": [101.4]}),
+    }
+    assert dns_engine.detect_local_setup("BTC", frames, snap) == []
 
 
 def test_local_watcher_does_not_signal_without_opposing_target():
@@ -259,7 +264,8 @@ def test_local_watcher_does_not_signal_without_opposing_target():
     }, index=idx)
     snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 101.4)
     snap["supply_zones"] = []
-    assert dns_engine.detect_local_setup("BTC", {"5m": frame}, snap) == []
+    frames = {"5m": frame, "1h": pd.DataFrame({"close": [101.4]})}
+    assert dns_engine.detect_local_setup("BTC", frames, snap) == []
 
 
 def test_zone_invalidation_uses_the_zone_own_timeframe():
