@@ -13,7 +13,7 @@ The integration is event-driven. Models do not analyse every five-minute candle.
 |---|---|---|
 | Market structure analyst | `ai_analyst.map_dns` | Visually maps demand/supply bands, timeframe, quality, structure and observations from synchronized six-timeframe charts. |
 | Liquidity analyst | `ai_analyst.map_dns` + `dns_engine` | The visual map records EQH/EQL and swing liquidity; local OHLCV checks test the configured DNS trigger. Wick sweeps remain proxies, not proof of resting orders. |
-| Technical analyst | `dns_engine.detect_local_setup` | Watches closed candles for a local setup at an active mapped zone. It does not create or widen AI zones. |
+| Technical analyst | `dns_engine.detect_local_setup` | Independently checks closed 5m candles for sweep/reclaim, demand/supply rejection, BOS/CHOCH confirmation, trend pullback, FVG retrace and RBS/SBR role-reversal retests at an active mapped zone. It does not create or widen AI zones. |
 | Bull researcher | `ai_trade_agents.py` | Independently argues for the exact candidate using only the supplied map and closed OHLCV evidence. |
 | Bear researcher | `ai_trade_agents.py` | Independently tries to disprove it, including invalidation, opposing zones, conflicting context and poor reward space. |
 | Chief trader | `ai_trade_agents.py` | Reviews both reports and returns APPROVE, REJECT or NO_TRADE. |
@@ -59,7 +59,7 @@ The key must never be committed or pasted into a chat. Keep one persistent worke
 - The default worker mode remains `quant`; changing code does not enable schedules, deployments or live trading.
 - The agent team is advisory. It can veto a candidate but cannot manufacture an entry, stop, target, DNS band or liquidity level.
 - The visual map's zone evidence is preserved with map revisions. New zones are not inferred by a deterministic zone algorithm.
-- The current local DNS detector is intentionally narrow: it confirms a sweep/reclaim at a mapped band. This integration does not claim that every proposed SMC sub-setup (FVG, BOS/CHOCH, trend pullback, RBS/SBR, etc.) is implemented in the watcher yet.
+- The local DNS watcher now checks six independent, DNS-anchored families: liquidity sweep/reclaim, zone rejection, BOS/CHOCH confirmation, trend pullback, FVG retrace and RBS/SBR retest. Each requires an active AI-authored directional zone, a latest closed 5m confirmation, a nearby entry (<=0.35% from the band), an active opposing mapped DNS target and at least 2R. These are deterministic OHLCV proxies and triggers, not proof of institutional order flow.
 - A successful API response or green unit test is not evidence of a profitable strategy. The strategy allowlist, historical OOS and walk-forward promotion requirements remain unchanged.
 - Missing historical spread/depth and unresolved funding attribution remain explicit research limitations.
 
