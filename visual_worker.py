@@ -267,7 +267,7 @@ def validate_analysis(analysis, current_price, frames, expected_watermarks,
             # Do not replace the model's choice with a coded alternative. Fail closed
             # unless the model-selected side is clearly stronger than every opposite
             # actionable candidate by the configured quality margin.
-            if other_plan["quality_score"] >= selected_plan["quality_score"] - OPPOSING_SIGNAL_TIE_MARGIN:
+            if other_plan["quality_score"] > selected_plan["quality_score"] - OPPOSING_SIGNAL_TIE_MARGIN:
                 return None, "opposing actionable candidates are not clearly separated in quality; fail-closed NO_TRADE"
 
     selected_plan["comparison_summary"] = analysis["comparison_summary"]

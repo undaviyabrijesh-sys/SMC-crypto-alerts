@@ -181,6 +181,19 @@ def test_stronger_opposing_candidate_blocks_the_models_weaker_selection():
     assert plan is None and "opposing actionable candidates" in reason
 
 
+def test_opposing_candidate_exactly_eight_points_weaker_passes_margin():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    frames = _frames(now)
+    long = _candidate("long", "LONG", 90, 92)
+    short = _candidate("short", "SHORT", 82, 85)
+    analysis = _analysis("BTC", now, frames, "cycle", [long, short], selected="long")
+    plan, reason = visual_worker.validate_analysis(
+        analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
+    )
+    assert reason == "validated"
+    assert plan["candidate_id"] == "long"
+
+
 def test_model_selected_side_passes_when_opposing_candidate_is_clearly_weaker():
     now = pd.Timestamp("2026-11-06T02:00:00Z")
     frames = _frames(now)
