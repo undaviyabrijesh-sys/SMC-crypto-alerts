@@ -56,7 +56,7 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
     idx = pd.date_range("2026-11-05T00:00:00Z", periods=3, freq="5min")
     frame = pd.DataFrame({
         "open": [101, 99.5, 100.1],
-        "high": [102, 100.2, 101.5],
+        "high": [102, 100.7, 101.5],
         "low": [100.5, 98.8, 100.0],
         "close": [101.2, 100.6, 100.8],
         "volume": [10, 12, 11],
