@@ -66,3 +66,17 @@ A final-boundary audit found an off-by-one in `simulate()`: the exclusive split 
 The full 18-file archive was re-run after this correction. All **30/30 OOS asset × timeframe × strategy cells remain negative** at the 10 bps round-trip scenario plus 1 bp/8h adverse carry stress. Only one OOS cell changed: XAU 15m mean-reversion gained one completed trade (116 → 117) and expectancy moved from -1.3875R to -1.3611R. The least-negative cell remains BTC 1h mean-reversion (176 trades, 39.77% net win rate, -0.0149R expectancy, PF 0.978, -18.078R max drawdown, 7 consecutive losses). The worst cell remains XAU 15m trend-pullback (168 trades, 20.83% net win rate, -1.6886R expectancy, PF 0.137, -284.499R max drawdown, 27 consecutive losses).
 
 **Decision unchanged:** reject every tested family as a production edge. These fixed-rule results are not a test of visual-AI DNS decisions. The 1 bp/8h funding component remains an adverse stress assumption, not historical funding attribution; Delta funding is exchanged at discrete contract-specific funding snapshots, which require event-time mapping before use.
+
+## Data-gap indicator correction — 2026-11-06
+
+A research-integrity review found that the original exploratory indicator builder rolled ATR, EMA, Bollinger, RSI, volume and prior-extreme windows across missing-candle gaps. It also carried the last closed higher-timeframe EMA indefinitely if that source stream stopped updating.
+
+The research screen now:
+- starts a fresh rolling/EMA segment after every timestamp discontinuity;
+- uses the first post-gap candle's high-low range rather than comparing it with a stale pre-gap close;
+- expires higher-timeframe context after 1.5 times its expected candle interval;
+- receives explicit lower- and higher-timeframe durations instead of inferring them from the first two rows.
+
+Regression tests cover post-gap warm-up and stale higher-timeframe expiry. Both passed in exact-head CI.
+
+The verified archive gap audit shows BTC 15m gaps on 10 Jan and 29 Jan 2024 and one BTC 1h gap on 29 Jan 2024; all are inside the first 60% training split. ETH and XAUT have no gaps in the 15m/1h inputs used by this screen. The BTC validation and OOS segments are gap-free. Therefore the published validation/OOS figures above are unchanged by this correction; this is a conservative feature-integrity fix, not a new performance result or a new edge claim.
