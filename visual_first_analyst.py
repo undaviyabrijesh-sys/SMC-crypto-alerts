@@ -78,6 +78,7 @@ For a TRADE selection:
 - stop must sit beyond the described structural invalidation;
 - target_1 must be realistic and offer at least 2R;
 - cite at least two timeframe panels, including the trigger timeframe;
+- `timeframes_in_agreement` must list at least two distinct panels that genuinely agree with the setup direction; duplicate labels do not count;
 - do not select if an opposing, similarly strong candidate makes direction unclear.
 
 Do not provide hidden chain-of-thought. Return concise evidence and comparative

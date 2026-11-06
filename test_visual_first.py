@@ -422,7 +422,10 @@ def test_visual_analyst_builds_a_multimodal_v2_request_without_network():
     assert "data:image/png;base64," in next(
         item["image_url"] for item in content if item.get("type") == "input_image"
     )
-    assert "NO MANDATORY DNS ANCHOR" in captured["body"]["input"][0]["content"][0]["text"]
+    prompt_text = captured["body"]["input"][0]["content"][0]["text"]
+    assert "NO MANDATORY DNS ANCHOR" in prompt_text
+    assert "timeframes_in_agreement" in prompt_text
+    assert "at least two distinct panels" in prompt_text
 
 
 def test_worker_dispatches_visual_mode_without_changing_default_quant_mode():
