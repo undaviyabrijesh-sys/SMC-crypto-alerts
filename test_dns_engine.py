@@ -500,11 +500,18 @@ def _pending_trade(direction="long"):
 def _pending_snapshot(direction="long"):
     zone = {
         "low": 99.8, "high": 100.2, "timeframe": "1h",
-        "quality": 4, "evidence": "Current AI visual map",
+        "quality": 4, "evidence": "Current AI visual map", "status": "ACTIVE",
+    }
+    target = {
+        "low": 104.0, "high": 105.0, "timeframe": "4h",
+        "quality": 4, "evidence": "Current opposing visual DNS target", "status": "ACTIVE",
+    } if direction == "long" else {
+        "low": 95.0, "high": 96.0, "timeframe": "4h",
+        "quality": 4, "evidence": "Current opposing visual DNS target", "status": "ACTIVE",
     }
     return {
-        "demand_zones": [zone] if direction == "long" else [],
-        "supply_zones": [zone] if direction == "short" else [],
+        "demand_zones": [zone] if direction == "long" else [target],
+        "supply_zones": [target] if direction == "long" else [zone],
     }
 
 
@@ -571,7 +578,14 @@ def _run_pending_alert_case(current_price):
         patch.object(dns_worker.st, "load", return_value=state),
         patch.object(dns_worker.st, "save"),
         patch.object(dns_worker.dns_engine, "load_map", return_value=map_state),
-        patch.object(dns_worker.data, "fetch_bundle", return_value={"5m": frame}),
+        patch.object(
+            dns_worker.data, "fetch_bundle",
+            return_value={
+                "5m": frame,
+                "1h": pd.DataFrame({"close": [100.0]}),
+                "4h": pd.DataFrame({"close": [100.0]}),
+            }
+        ),
         patch.object(dns_worker.data, "freshness", return_value=(True, "fresh")),
         patch.object(dns_worker.dns_engine, "refresh_reasons", return_value=[]),
         patch.object(dns_worker.main, "manage_positions"),
