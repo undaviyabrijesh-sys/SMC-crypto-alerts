@@ -1,16 +1,15 @@
-# Salty Quant Supervisor Handoff — 2026-11-06 08:15 IST
+# Salty Quant Supervisor Handoff — 2026-11-06 08:20 IST
 
 ## Exact repository state
 
 - Repository: `undaviyabrijesh-sys/SMC-crypto-alerts`
 - Working branch: `ai-quant-rebuild`
-- Last code-changing commit: `c47f34bdfd11b7cdb313bbab56ce7eb6186c7257`.
-- Documentation/report commit that added this handoff: `94a034b12dd20d2707d033c1203c0bcb962a913a`.
-- At the last full verification, branch and PR head were `94a034b12dd20d2707d033c1203c0bcb962a913a`; this handoff refresh is documentation-only. Re-check the live branch head before any further action.
+- Last code-changing commit: `7e08fbd43459ac7ced7e8bd33f92f09ca93a75c1` (visual analyst prompt now explicitly matches the two-distinct-timeframe validator).
+- The handoff/report was first added by documentation commit `94a034b12dd20d2707d033c1203c0bcb962a913a`; this refresh is documentation-only. At the last full code verification, branch and PR head were `7e08fbd43459ac7ced7e8bd33f92f09ca93a75c1`. Re-check the live branch head before any further action.
 - PR #1: open, draft, unmerged; base is `main`. Do not merge.
 - `main` remains at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`; no main-branch writes were made.
-- Exact-head Push CI: [42152450763](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42152450763) — success.
-- Exact-head PR CI: [42152455631](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42152455631) — success.
+- Exact-head Push CI: [42152744350](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42152744350) — success.
+- Exact-head PR CI: [42152749513](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42152749513) — success.
 - Both exact-head runs passed compilation, visual pipeline, visual-first, agent, DNS, quant replay/supervisor, daily report, strategy feedback, secret-format, derivatives parser/archive, Quant Discovery tests, live Delta OHLCV smoke, derivatives-history probe and a small historical archive pilot.
 
 ## Changes completed this cycle
@@ -18,7 +17,7 @@
 1. **Recent feed-gap fail-closed guard**
    - `data.freshness()` now requires the latest 15 closed candles on each of the six timeframes to be contiguous.
    - Visual ATR validation independently rejects a gap inside the last 15 trigger-timeframe candles.
-   - The visual candidate validator requires at least two distinct timeframe-alignment references.
+   - The visual candidate validator and analyst prompt both require at least two distinct timeframe-alignment references.
    - Regression tests cover recent-gap rejection, old-gap tolerance, ATR refusal and alignment count.
 
 2. **Discord alert length**
