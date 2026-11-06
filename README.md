@@ -102,6 +102,8 @@ The persistent `./salty_data` volume stores state, rolling candles, quant candid
 
 GitHub Actions schedule remains opt-in through `ENABLE_GITHUB_SCHEDULE=true`; leave it unset unless a single scheduler is deliberately selected. Manual dispatch performs one paper/shadow cycle. No deployment or schedule enablement is performed by code commits.
 
+Implementation notes and validation scope for the DNS-anchored SMC watcher are in [SMC_SUBSETUP_WATCHER_2026-11-06.md](quant_discovery/SMC_SUBSETUP_WATCHER_2026-11-06.md).
+
 ## Quant Discovery and promotion protocol
 
 Research is separate from the runtime signal engine. Existing historical screens rejected the baseline candidates; no strategy is currently production-approved. New hypotheses must be tested on verified historical data with:
