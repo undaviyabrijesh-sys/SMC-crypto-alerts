@@ -27,6 +27,13 @@ def _fmt(symbol, value):
     return f"{float(value):,.{digits}f}"
 
 
+def _send_ai_trade(symbol, trade):
+    """Send an AI paper alert with a symbol-aware formatter callable."""
+    return discord.send_ai_trade(
+        symbol, trade, lambda value, s=symbol: _fmt(s, value)
+    )
+
+
 def build_context(frames_by_symbol):
     """Compact exact recent OHLCV accompanies the images for price-level precision."""
     limits = {"1w": 12, "1d": 18, "4h": 24, "1h": 30, "15m": 24, "5m": 24}
@@ -418,7 +425,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
             print(f"[drop] {trade.get('sym')} {signal_id}: Discord alert stayed undelivered for over 10 minutes")
             del pending[signal_id]
             continue
-        sent = discord.send_ai_trade(trade["sym"], trade, _fmt(trade["sym"], trade["entry"]))
+        sent = _send_ai_trade(trade["sym"], trade)
         if sent:
             state.setdefault("positions", {})[signal_id] = trade
             del pending[signal_id]
@@ -528,7 +535,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None):
                 "model": meta.get("model"),
                 "analysis_time": now.isoformat()
             }
-            delivered = discord.send_ai_trade(symbol, trade, _fmt(symbol, current_price))
+            delivered = _send_ai_trade(symbol, trade)
             if delivered:
                 state.setdefault("positions", {})[signal_id] = trade
                 print(f"[signal] {symbol} {plan['dir'].upper()} {signal_id} at {_fmt(symbol, current_price)} | {plan['rr']:.2f}R")

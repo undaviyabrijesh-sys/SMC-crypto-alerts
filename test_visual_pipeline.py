@@ -36,6 +36,25 @@ def test_worker_scheduler_aligns_to_five_minute_boundaries():
     assert abs(seconds_until_next_tick(900.25, 300) - 299.75) < 1e-9
 
 
+def test_main_ai_alert_helper_passes_a_callable_symbol_formatter():
+    captured = {}
+    original = main.discord.send_ai_trade
+
+    def fake_send(symbol, trade, fmt):
+        captured.update({"symbol": symbol, "trade": trade, "fmt": fmt})
+        return True
+
+    main.discord.send_ai_trade = fake_send
+    try:
+        assert main._send_ai_trade("BTC", {"signal_id": "FORMATCALL01"})
+    finally:
+        main.discord.send_ai_trade = original
+
+    assert captured["symbol"] == "BTC"
+    assert callable(captured["fmt"])
+    assert captured["fmt"](123.456) == "123.5"
+
+
 def test_normalize_retains_volume_and_utc():
     normalized = data.normalize(candles("5min", 10))
     assert list(normalized.columns) == ["open", "high", "low", "close", "volume"]
