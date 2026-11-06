@@ -273,6 +273,11 @@ def _candidate_for_trigger(
         "event_candle": event_time.isoformat(),
         "map_revision": snapshot.get("revision"),
         "rationale": str(rationale)[:500],
+        "invalidation": (
+            "A move through the mapped demand band and structural stop invalidates the long setup."
+            if side == "DEMAND" else
+            "A move through the mapped supply band and structural stop invalidates the short setup."
+        ),
         "status": "PAPER_CANDIDATE",
     }
 
