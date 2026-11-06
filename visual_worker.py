@@ -446,7 +446,7 @@ def _retry_pending_visual_alerts(state, frames_by_symbol, now):
             "signal_id": signal_id,
             "sym": symbol,
             "triggered_at": latest_close.isoformat(),
-            "analysis_time": now.isoformat(),
+            # Preserve the original analysis timestamp; retries must not extend the 10-minute TTL.
             "status": "OPEN",
         }
         try:
