@@ -380,11 +380,14 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
                 "dir": direction, "sl": candidate["stop_loss"],
                 "tp": candidate["take_profit"], "tp2": None,
                 "bias": snapshot.get("bias", "UNCLEAR"),
-                "rationale": (
-                    f"Local 5m sweep/reclaim confirmed at AI-mapped {candidate['zone_side'].lower()} "
-                    f"zone Q{candidate['zone_quality']} ({candidate['zone_timeframe']})."
+                "rationale": candidate.get("rationale") or (
+                    f"Local 5m {candidate['setup_type']} confirmed at AI-mapped "
+                    f"{candidate['zone_side'].lower()} zone Q{candidate['zone_quality']} "
+                    f"({candidate['zone_timeframe']})."
                 ),
-                "invalidation": "Stop-loss beyond the sweep extreme.",
+                "invalidation": candidate.get(
+                    "invalidation", "The mapped DNS band and structural stop define invalidation."
+                ),
                 "primary_zone": primary_zone,
                 "selected_entry_zone": {
                     "low": candidate["zone_low"], "high": candidate["zone_high"],
