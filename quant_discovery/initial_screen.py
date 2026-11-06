@@ -47,43 +47,62 @@ def rsi(close,period=2):
     rs=g/l.replace(0,np.nan)
     return (100-100/(1+rs)).fillna(50)
 
-def indicators(x):
-    x=x.copy(); pc=x.close.shift(1)
+def indicators(x, minutes):
+    """Calculate rolling features independently inside each contiguous candle segment."""
+    x=x.copy().sort_index()
+    expected=pd.Timedelta(minutes=int(minutes))
+    contiguous=x.index.to_series().diff().eq(expected)
+    segment=(~contiguous).cumsum()
+    # The first candle after a gap uses its own high-low range, never a stale
+    # previous close from before the missing interval.
+    pc=x.close.shift(1).where(contiguous)
     tr=pd.concat([x.high-x.low,(x.high-pc).abs(),(x.low-pc).abs()],axis=1).max(axis=1)
-    x["atr14"]=tr.rolling(14,min_periods=14).mean()
-    x["atr50"]=tr.rolling(50,min_periods=50).mean()
-    x["ema20"]=x.close.ewm(span=20,adjust=False,min_periods=20).mean()
-    x["ema50"]=x.close.ewm(span=50,adjust=False,min_periods=50).mean()
-    x["ema200"]=x.close.ewm(span=200,adjust=False,min_periods=200).mean()
-    mid=x.close.rolling(20,min_periods=20).mean()
-    sd=x.close.rolling(20,min_periods=20).std(ddof=0)
+
+    def grouped(values, operation):
+        return values.groupby(segment).transform(operation)
+
+    x["atr14"]=grouped(tr,lambda values: values.rolling(14,min_periods=14).mean())
+    x["atr50"]=grouped(tr,lambda values: values.rolling(50,min_periods=50).mean())
+    x["ema20"]=grouped(x.close,lambda values: values.ewm(span=20,adjust=False,min_periods=20).mean())
+    x["ema50"]=grouped(x.close,lambda values: values.ewm(span=50,adjust=False,min_periods=50).mean())
+    x["ema200"]=grouped(x.close,lambda values: values.ewm(span=200,adjust=False,min_periods=200).mean())
+    mid=grouped(x.close,lambda values: values.rolling(20,min_periods=20).mean())
+    sd=grouped(x.close,lambda values: values.rolling(20,min_periods=20).std(ddof=0))
     x["bb_low"]=mid-2*sd; x["bb_high"]=mid+2*sd
-    x["rsi2"]=rsi(x.close,2)
-    x["volume_sma20"]=x.volume.rolling(20,min_periods=20).mean()
-    x["prior_high20"]=x.high.rolling(20,min_periods=20).max().shift(1)
-    x["prior_low20"]=x.low.rolling(20,min_periods=20).min().shift(1)
-    x["prior_high10"]=x.high.rolling(10,min_periods=10).max().shift(1)
-    x["prior_low10"]=x.low.rolling(10,min_periods=10).min().shift(1)
+    x["rsi2"]=grouped(x.close,lambda values: rsi(values,2))
+    x["volume_sma20"]=grouped(x.volume,lambda values: values.rolling(20,min_periods=20).mean())
+    x["prior_high20"]=grouped(x.high,lambda values: values.rolling(20,min_periods=20).max().shift(1))
+    x["prior_low20"]=grouped(x.low,lambda values: values.rolling(20,min_periods=20).min().shift(1))
+    x["prior_high10"]=grouped(x.high,lambda values: values.rolling(10,min_periods=10).max().shift(1))
+    x["prior_low10"]=grouped(x.low,lambda values: values.rolling(10,min_periods=10).min().shift(1))
     x["atr_ratio"]=x.atr14/x.atr50.replace(0,np.nan)
     return x
 
-def add_closed_htf_context(lower,higher,higher_minutes):
-    """HTF values become visible only after the higher-timeframe candle closes."""
+def add_closed_htf_context(lower,higher,higher_minutes,lower_minutes=None):
+    """Expose only closed HTF values and expire them when the source stream has a gap."""
     h=higher[["ema50","ema200"]].copy()
     h["htf_close_time"]=h.index+pd.Timedelta(minutes=higher_minutes)
     h=h.reset_index(drop=True).sort_values("htf_close_time")
-    lower_minutes=int((lower.index[1]-lower.index[0]).total_seconds()/60)
+    if lower_minutes is None:
+        if len(lower.index)<2:
+            raise ValueError("at least two lower-timeframe rows are required to infer candle duration")
+        lower_minutes=int((lower.index[1]-lower.index[0]).total_seconds()/60)
     left=lower.copy()
     left["signal_close_time"]=left.index+pd.Timedelta(minutes=lower_minutes)
     merged=pd.merge_asof(left.reset_index(names="timestamp").sort_values("signal_close_time"),
                          h,left_on="signal_close_time",right_on="htf_close_time",direction="backward")
+    age=(merged["signal_close_time"]-merged["htf_close_time"]).dt.total_seconds()/60.0
+    merged["htf_age_minutes"]=age
+    stale=age>(1.5*int(higher_minutes))
+    merged.loc[stale,["ema50_y","ema200_y"]]=np.nan
     return merged.set_index("timestamp")
 
 def build_signals(root,symbol,tf):
     minutes,htf_tf=TIMEFRAMES[tf]
-    lower=indicators(load_frame(root,symbol,tf))
-    higher=indicators(load_frame(root,symbol,htf_tf))
-    x=add_closed_htf_context(lower,higher,TF_MINUTES[htf_tf])
+    lower=indicators(load_frame(root,symbol,tf),minutes)
+    higher_minutes=TF_MINUTES[htf_tf]
+    higher=indicators(load_frame(root,symbol,htf_tf),higher_minutes)
+    x=add_closed_htf_context(lower,higher,higher_minutes,minutes)
     up=x.ema50_y>x.ema200_y; down=x.ema50_y<x.ema200_y
     sig={
       "sweep_reclaim":np.where((x.low<x.prior_low20)&(x.close>x.prior_low20)&
