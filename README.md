@@ -25,6 +25,19 @@ The worker still manages any already-open paper positions in the shared state fi
 5. `trade_lifecycle.py` independently tracks open paper positions from contiguous closed 5m candles. A data gap leaves the outcome unresolved; it cannot infer a first TP/SL across an unobserved interval. Same-candle ambiguity is resolved conservatively as SL first.
 6. `discord.py` formats deterministic quant execution alerts and separate confirmed TP/SL/TIME updates. There are no WATCH/status messages. Alert delivery failure does not open a paper position.
 
+## Visual DNS sub-setup watcher
+
+With `WORKER_MODE=dns`, the visual AI still owns the demand/supply map. The local watcher does not derive zones; it tests independent closed-5m confirmations only at active quality >=3 AI-mapped bands:
+
+- Liquidity sweep/reclaim.
+- Demand or supply zone rejection.
+- BOS/CHOCH-style break of the recent 5m swing after a DNS reaction.
+- 15m EMA20/EMA50 trend pullback with 5m reclaim.
+- Three-candle FVG retrace when the imbalance overlaps the mapped DNS band.
+- RBS/SBR role reversal: close through the mapped band, a separate retest candle that holds it, then 5m follow-through.
+
+Every candidate must remain within 0.35% of its mapped band, use the nearest eligible opposing DNS band as target, and offer at least 2R. Zone invalidation is checked using the zone's own timeframe. The watcher returns separate candidates; the worker ranks them by zone quality and R multiple, debates at most one per symbol/cycle, and still permits only one active paper position per symbol. Pattern labels are descriptive OHLCV rules, not proof of resting liquidity or a validated profitable edge.
+
 ## Scoring and risk controls
 
 - Strategy families produce separate candidates; incompatible long and short ideas are never blended.
