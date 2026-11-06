@@ -277,11 +277,13 @@ def test_mocked_end_to_end_visual_paper_cycle_and_same_candle_deduplication():
     original_symbols = C.SYMBOLS
     original_path = state_module.PATH
     old_research = os.environ.get("VISUAL_FIRST_RESEARCH_PATH")
+    old_chart_dir = os.environ.get("VISUAL_FIRST_CHART_DIR")
     try:
         with tempfile.TemporaryDirectory(prefix="salty-visual-first-") as folder:
             C.SYMBOLS = {"BTC": {"delta_symbol": "BTCUSD", "kind": "crypto", "dp": 1}}
             state_module.PATH = os.path.join(folder, "state.json")
             os.environ["VISUAL_FIRST_RESEARCH_PATH"] = os.path.join(folder, "decisions.jsonl")
+            os.environ["VISUAL_FIRST_CHART_DIR"] = os.path.join(folder, "charts")
             original_renderer = visual_worker.render_symbol_chart
             original_sender = discord.send_visual_trade
             original_outcome = discord.send_outcome
@@ -316,6 +318,18 @@ def test_mocked_end_to_end_visual_paper_cycle_and_same_candle_deduplication():
                 assert len(saved["positions"]) == 1
                 assert saved["last_visual_candle"]["BTC"] == frames["5m"].index[-1].isoformat()
                 assert os.path.exists(os.environ["VISUAL_FIRST_RESEARCH_PATH"])
+                chart_dir = os.path.join(
+                    os.environ["VISUAL_FIRST_CHART_DIR"], sent[0][1]["cycle_id"]
+                )
+                chart_path = os.path.join(chart_dir, "BTC.png")
+                manifest_path = os.path.join(chart_dir, "manifest.json")
+                assert open(chart_path, "rb").read() == b"mock-png-image"
+                manifest = visual_worker.json.loads(open(manifest_path, encoding="utf-8").read())
+                assert manifest["cycle_id"] == sent[0][1]["cycle_id"]
+                assert manifest["charts"][0]["sha256"] == visual_worker.hashlib.sha256(
+                    b"mock-png-image"
+                ).hexdigest()
+                assert manifest["charts"][0]["chart_watermarks"] == visual_worker._watermarks(frames)
 
                 second = visual_worker.run(
                     now=now, analyzer=fake_analyser, enabled=True, frames_loader=loader
@@ -335,6 +349,10 @@ def test_mocked_end_to_end_visual_paper_cycle_and_same_candle_deduplication():
             os.environ.pop("VISUAL_FIRST_RESEARCH_PATH", None)
         else:
             os.environ["VISUAL_FIRST_RESEARCH_PATH"] = old_research
+        if old_chart_dir is None:
+            os.environ.pop("VISUAL_FIRST_CHART_DIR", None)
+        else:
+            os.environ["VISUAL_FIRST_CHART_DIR"] = old_chart_dir
 
 
 def test_visual_worker_is_disabled_without_explicit_paper_opt_in():

@@ -83,6 +83,7 @@ jobs:
           STATE_PATH: state.json
           QUANT_RESEARCH_PATH: research/quant_signals.jsonl
           VISUAL_FIRST_RESEARCH_PATH: research/visual_first_decisions.jsonl
+          VISUAL_FIRST_CHART_DIR: visual_artifacts
 
       - name: Upload visual-first decision log
         if: always()
@@ -98,5 +99,14 @@ jobs:
         with:
           name: salty-quant-research-${{ github.run_id }}
           path: research/quant_signals.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload raw visual charts and watermark manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-charts-${{ github.run_id }}
+          path: visual_artifacts/
           if-no-files-found: ignore
           retention-days: 14

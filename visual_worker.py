@@ -293,6 +293,78 @@ def _append_research(record):
         os.fsync(handle.fileno())
 
 
+
+def _persist_chart_images(chart_images, cycle_id, chart_watermarks, chart_hashes, now):
+    """Persist raw chart PNGs and a hash/watermark manifest for later audit."""
+    if (
+        not isinstance(cycle_id, str)
+        or len(cycle_id) != 24
+        or any(char not in "0123456789abcdef" for char in cycle_id)
+    ):
+        raise ValueError("visual chart cycle_id must be a 24-character lowercase SHA-256 prefix")
+
+    root = Path(os.environ.get("VISUAL_FIRST_CHART_DIR", "visual_artifacts"))
+    cycle_dir = root / cycle_id
+    cycle_dir.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        "schema_version": 1,
+        "cycle_id": cycle_id,
+        "created_at_utc": pd.Timestamp(now).isoformat(),
+        "charts": [],
+    }
+
+    for symbol in sorted(chart_images):
+        if symbol not in C.SYMBOLS:
+            raise ValueError(f"unknown symbol in visual chart artifact: {symbol}")
+        image = chart_images[symbol]
+        if not isinstance(image, (bytes, bytearray)) or not image:
+            raise ValueError(f"empty visual chart artifact for {symbol}")
+        image_bytes = bytes(image)
+        digest = hashlib.sha256(image_bytes).hexdigest()
+        if chart_hashes.get(symbol) != digest:
+            raise ValueError(f"visual chart hash mismatch for {symbol}")
+        watermarks = chart_watermarks.get(symbol)
+        if not isinstance(watermarks, dict) or set(watermarks) != set(TIMEFRAMES):
+            raise ValueError(f"incomplete visual chart watermarks for {symbol}")
+
+        filename = f"{symbol}.png"
+        target = cycle_dir / filename
+        temporary = target.with_name(target.name + ".tmp")
+        try:
+            with temporary.open("wb") as handle:
+                handle.write(image_bytes)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, target)
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+
+        manifest["charts"].append({
+            "symbol": symbol,
+            "file": filename,
+            "sha256": digest,
+            "chart_watermarks": watermarks,
+        })
+
+    manifest_path = cycle_dir / "manifest.json"
+    temporary = manifest_path.with_name(manifest_path.name + ".tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            json.dump(manifest, handle, indent=2, ensure_ascii=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, manifest_path)
+    finally:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+    return str(cycle_dir)
+
+
 def _set_failure_cooldown(state, now):
     try:
         minutes = max(5, int(os.environ.get("VISUAL_FIRST_FAILURE_COOLDOWN_MINUTES", FAILURE_COOLDOWN_MINUTES)))
@@ -458,6 +530,18 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
     cycle_id = hashlib.sha256(
         json.dumps(cycle_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()[:24]
+    try:
+        chart_artifact_dir = _persist_chart_images(
+            chart_images, cycle_id, chart_watermarks, chart_hashes, now
+        )
+    except Exception as exc:
+        st.save(state)
+        print(
+            f"[visual-first] chart artifact persistence failed ({type(exc).__name__}); "
+            "no new signals created",
+            flush=True,
+        )
+        return {"status": "image_persistence_error", "analyzed": 0, "signals": pending_delivery["delivered"]}
     market_context = main.build_context({
         symbol: frames_by_symbol[symbol] for symbol in chart_images
     })
@@ -467,6 +551,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
         "as_of_utc": now.isoformat(),
         "chart_watermarks": chart_watermarks,
         "chart_sha256": chart_hashes,
+                "chart_artifact_dir": chart_artifact_dir,
         "chart_timeframes": list(TIMEFRAMES),
     }
     active_trades = (
@@ -501,6 +586,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
                 "cycle_id": cycle_id,
                 "chart_watermarks": chart_watermarks,
                 "chart_sha256": chart_hashes,
+                "chart_artifact_dir": chart_artifact_dir,
                 "error_type": type(exc).__name__,
                 "error": str(exc)[:400],
             })
@@ -563,6 +649,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
             "market_context": market_context,
             "chart_watermarks": chart_watermarks,
             "chart_sha256": chart_hashes,
+                "chart_artifact_dir": chart_artifact_dir,
             "analysis": result,
             "validation": validation,
         })
