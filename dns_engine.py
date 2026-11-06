@@ -180,9 +180,10 @@ def refresh_reasons(snapshot, now, frames):
     return list(dict.fromkeys(reasons))
 
 
-def _nearest_target(zones, entry, direction):
-    """Use the nearest active, visually mapped opposing DNS band as the target."""
+def _nearest_target(zones, entry, direction, frames):
+    """Use the nearest active and unbroken opposing visual DNS band as the target."""
     candidates = []
+    opposing_side = "SUPPLY" if direction == "LONG" else "DEMAND"
     for zone in zones or []:
         if not isinstance(zone, dict) or zone.get("status") != "ACTIVE":
             continue
@@ -192,6 +193,8 @@ def _nearest_target(zones, entry, direction):
         except (KeyError, TypeError, ValueError, OverflowError):
             continue
         if quality < MIN_ZONE_QUALITY or not math.isfinite(low + high) or not (0 < low < high):
+            continue
+        if not _zone_frame_is_valid(zone, frames, opposing_side):
             continue
         level = low if direction == "LONG" else high
         if direction == "LONG" and level > entry:
@@ -246,7 +249,7 @@ def _candidate_for_trigger(
 
     direction = "LONG" if side == "DEMAND" else "SHORT"
     opposing = snapshot.get("supply_zones", []) if direction == "LONG" else snapshot.get("demand_zones", [])
-    target = _nearest_target(opposing, entry, direction)
+    target = _nearest_target(opposing, entry, direction, frames)
     if target is None:
         return None
     risk = entry - stop if direction == "LONG" else stop - entry
