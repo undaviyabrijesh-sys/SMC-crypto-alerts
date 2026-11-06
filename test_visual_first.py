@@ -485,6 +485,57 @@ def test_worker_dispatches_visual_mode_without_changing_default_quant_mode():
     assert original_mode == "quant"
 
 
+
+def test_visual_alert_retry_preserves_original_analysis_expiry():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    candle_open = now - pd.Timedelta(minutes=5)
+    frames = {
+        "BTC": {
+            "5m": pd.DataFrame(
+                {"close": [100.0]},
+                index=pd.DatetimeIndex([candle_open]),
+            )
+        }
+    }
+    original_analysis_time = (now - pd.Timedelta(minutes=9)).isoformat()
+    signal_id = "VISUAL-PENDING-01"
+    state = {
+        "positions": {},
+        "pending_visual_alerts": {
+            signal_id: {
+                "sym": "BTC",
+                "analysis_time": original_analysis_time,
+                "_candidate": {},
+            }
+        },
+    }
+
+    original_validate = visual_worker._validate_candidate
+    original_send = discord.send_visual_trade
+    original_save = visual_worker.st.save
+    try:
+        visual_worker._validate_candidate = lambda candidate, price, symbol_frames: (
+            {"dir": "long", "setup_family": "TREND_PULLBACK", "rr": 2.0},
+            "validated",
+        )
+        discord.send_visual_trade = lambda *args, **kwargs: False
+        visual_worker.st.save = lambda value: None
+
+        first = visual_worker._retry_pending_visual_alerts(state, frames, now)
+        assert first == {"delivered": 0, "dropped": 0}
+        assert state["pending_visual_alerts"][signal_id]["analysis_time"] == original_analysis_time
+
+        second = visual_worker._retry_pending_visual_alerts(
+            state, frames, now + pd.Timedelta(minutes=2)
+        )
+        assert second == {"delivered": 0, "dropped": 1}
+        assert signal_id not in state["pending_visual_alerts"]
+    finally:
+        visual_worker._validate_candidate = original_validate
+        discord.send_visual_trade = original_send
+        visual_worker.st.save = original_save
+
+
 def test_visual_state_schema_adds_dedup_and_pending_delivery_fields():
     original_path = state_module.PATH
     try:
