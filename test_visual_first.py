@@ -169,6 +169,31 @@ def test_conflicting_opposite_candidates_with_close_quality_return_no_trade():
     assert plan is None and "opposing actionable candidates" in reason
 
 
+def test_stronger_opposing_candidate_blocks_the_models_weaker_selection():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    frames = _frames(now)
+    long = _candidate("long", "LONG", 75, 85)
+    short = _candidate("short", "SHORT", 85, 90)
+    analysis = _analysis("BTC", now, frames, [long, short], selected="long")
+    plan, reason = visual_worker.validate_analysis(
+        analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
+    )
+    assert plan is None and "not clearly weaker" in reason
+
+
+def test_model_selected_side_passes_when_opposing_candidate_is_clearly_weaker():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    frames = _frames(now)
+    long = _candidate("long", "LONG", 90, 92)
+    short = _candidate("short", "SHORT", 70, 75)
+    analysis = _analysis("BTC", now, frames, [long, short], selected="long")
+    plan, reason = visual_worker.validate_analysis(
+        analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
+    )
+    assert reason == "validated"
+    assert plan["candidate_id"] == "long"
+
+
 def test_validator_checks_model_selected_candidate_without_substituting_and_rejects_missing_id():
     now = pd.Timestamp("2026-11-06T02:00:00Z")
     frames = _frames(now)
