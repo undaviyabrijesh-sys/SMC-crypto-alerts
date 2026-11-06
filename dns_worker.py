@@ -29,7 +29,7 @@ def _append_dns_event(record):
         print(f"[dns-research-log-error] {type(exc).__name__}: {exc}")
 
 
-def _reprice_pending_alert(trade, current_price, snapshot):
+def _reprice_pending_alert(trade, current_price, snapshot, frames=None):
     """Revalidate a delayed Discord alert against the latest closed price and current AI map."""
     try:
         current = float(current_price)
@@ -93,6 +93,16 @@ def _reprice_pending_alert(trade, current_price, snapshot):
             or timeframe not in valid_timeframes
         ):
             continue
+        if isinstance(frames, dict):
+            zone_frame = frames.get(timeframe)
+            if zone_frame is None or zone_frame.empty:
+                continue
+            try:
+                zone_close = float(zone_frame.iloc[-1].close)
+            except (KeyError, TypeError, ValueError, OverflowError):
+                continue
+            if (expected_side == "DEMAND" and zone_close < low) or (expected_side == "SUPPLY" and zone_close > high):
+                continue
         if min(selected_high, high) - max(selected_low, low) <= 0:
             continue
         zone_gap = max(low - current, current - high, 0.0)
@@ -110,6 +120,44 @@ def _reprice_pending_alert(trade, current_price, snapshot):
 
     if primary_zone is None:
         return None
+
+    # A delayed alert must retain its original nearest opposing DNS target.
+    # Do not send it if a map refresh invalidated that target or mapped a nearer one.
+    opposing_zones = snapshot.get("supply_zones" if direction == "long" else "demand_zones", []) if isinstance(snapshot, dict) else []
+    valid_targets = []
+    for zone in opposing_zones if isinstance(opposing_zones, list) else []:
+        if not isinstance(zone, dict) or zone.get("status") != "ACTIVE":
+            continue
+        try:
+            low, high = float(zone["low"]), float(zone["high"])
+            quality = int(zone.get("quality", 0))
+            timeframe = str(zone["timeframe"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        if (
+            not all(math.isfinite(value) for value in (low, high))
+            or not (0 < low < high)
+            or quality < C.MIN_DNS_ZONE_QUALITY or quality > 5
+            or timeframe not in valid_timeframes
+        ):
+            continue
+        if isinstance(frames, dict):
+            zone_frame = frames.get(timeframe)
+            if zone_frame is None or zone_frame.empty:
+                continue
+            try:
+                zone_close = float(zone_frame.iloc[-1].close)
+            except (KeyError, TypeError, ValueError, OverflowError):
+                continue
+            if (direction == "long" and zone_close > high) or (direction == "short" and zone_close < low):
+                continue
+        level = low if direction == "long" else high
+        if (direction == "long" and level > current) or (direction == "short" and level < current):
+            valid_targets.append(level)
+    nearest_target = (min(valid_targets) if direction == "long" else max(valid_targets)) if valid_targets else None
+    if nearest_target is None or abs(nearest_target - target) / target > 1e-9:
+        return None
+
     return {"entry": current, "rr": rr, "primary_zone": primary_zone}
 
 
@@ -256,7 +304,7 @@ def run(now=None, fetcher=data.fetch, mapper=None, agent_reviewer=None):
             continue
         snapshot = dns_map.get("symbols", {}).get(symbol)
         current_price = float(m5.iloc[-1].close)
-        revalidated = _reprice_pending_alert(trade, current_price, snapshot)
+        revalidated = _reprice_pending_alert(trade, current_price, snapshot, frames=frames)
         if revalidated is None:
             del state["pending_alerts"][signal_id]
             print(f"[dns-expired] {symbol} {signal_id}: delayed alert is no longer actionable")
