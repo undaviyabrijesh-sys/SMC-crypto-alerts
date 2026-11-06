@@ -482,6 +482,38 @@ def test_duplicate_candidate_ids_fail_closed_even_for_no_trade():
     )
     assert plan is None and "duplicated" in reason
 
+
+def test_recent_missing_candle_blocks_freshness_and_atr_risk_calculation():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    frames = _frames(now)
+    usable, reason = visual_worker.data.freshness(frames, now)
+    assert usable, reason
+
+    gapped = dict(frames)
+    gapped["5m"] = frames["5m"].drop(frames["5m"].index[-5])
+    usable, reason = visual_worker.data.freshness(gapped, now)
+    assert not usable and "5m feed has a gap" in reason
+    assert visual_worker._atr(frames["5m"], timeframe="5m") is not None
+    assert visual_worker._atr(gapped["5m"], timeframe="5m") is None
+
+    older_gap = dict(frames)
+    older_gap["5m"] = frames["5m"].drop(frames["5m"].index[2])
+    usable, reason = visual_worker.data.freshness(older_gap, now)
+    assert usable, reason
+
+
+def test_candidate_requires_two_distinct_timeframe_alignment_references():
+    now = pd.Timestamp("2026-11-06T02:00:00Z")
+    frames = _frames(now)
+    candidate = _candidate()
+    candidate["timeframes_in_agreement"] = ["4h"]
+    analysis = _analysis("BTC", now, frames, "cycle", [candidate])
+    plan, reason = visual_worker.validate_analysis(
+        analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
+    )
+    assert plan is None and "at least two distinct" in reason
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

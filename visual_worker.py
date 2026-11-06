@@ -44,9 +44,19 @@ def _finite_positive(value):
     return number if math.isfinite(number) and number > 0 else None
 
 
-def _atr(frame, period=14):
+def _atr(frame, period=14, timeframe=None):
     if frame is None or len(frame) < period + 1:
         return None
+    if timeframe is not None:
+        minutes = data.MINUTES.get(timeframe)
+        if minutes is None:
+            return None
+        recent_index = pd.DatetimeIndex(frame.index[-(period + 1):])
+        if len(recent_index) != period + 1:
+            return None
+        intervals = recent_index.to_series().diff().dropna()
+        if not intervals.eq(pd.Timedelta(minutes=minutes)).all():
+            return None
     high = pd.to_numeric(frame["high"], errors="coerce")
     low = pd.to_numeric(frame["low"], errors="coerce")
     close = pd.to_numeric(frame["close"], errors="coerce")
@@ -120,7 +130,7 @@ def _validate_candidate(candidate, current_price, frames):
     if reported_rr is None or abs(reported_rr - rr) > max(0.02, rr * 0.02):
         return None, "reported reward/risk does not match the entry/stop/target"
 
-    atr = _atr(frames.get(trigger_tf))
+    atr = _atr(frames.get(trigger_tf), timeframe=trigger_tf)
     if atr is None:
         return None, f"insufficient {trigger_tf} candles to calculate stop ATR"
     stop_atr = risk / atr
@@ -147,10 +157,10 @@ def _validate_candidate(candidate, current_price, frames):
         return None, "candidate must cite at least two chart timeframes including its trigger timeframe"
     if (
         not isinstance(aligned_tfs, list)
-        or not aligned_tfs
         or any(not isinstance(tf, str) or tf not in TIMEFRAMES for tf in aligned_tfs)
+        or len(set(aligned_tfs)) < 2
     ):
-        return None, "candidate has no valid timeframe-alignment evidence"
+        return None, "candidate must cite at least two distinct timeframe-alignment references"
     supporting = candidate.get("supporting_evidence")
     if not isinstance(supporting, list) or not supporting or any(not isinstance(x, str) or not x.strip() for x in supporting):
         return None, "candidate lacks specific supporting chart evidence"

@@ -170,4 +170,11 @@ def freshness(frames, now):
             return False, f"{tf} feed stale ({age:.0f} min since last close)"
         if age < -2:
             return False, f"{tf} timestamp is unexpectedly in the future"
+        recent = frame.index[-15:]
+        if len(recent) < 15:
+            return False, f"insufficient recent {tf} candles ({len(recent)}/15)"
+        expected_interval = pd.Timedelta(minutes=MINUTES[tf])
+        intervals = recent.to_series().diff().dropna()
+        if not intervals.eq(expected_interval).all():
+            return False, f"{tf} feed has a gap within the latest 15 candles"
     return True, "fresh"
