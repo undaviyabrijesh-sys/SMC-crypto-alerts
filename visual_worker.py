@@ -294,6 +294,33 @@ def _append_research(record):
 
 
 
+def _visual_cycle_id(chart_watermarks, chart_hashes):
+    """Identify the exact chart evidence, not only its candle timestamps.
+
+    The renderer includes the cycle time in each image. A retry on unchanged
+    candles can therefore produce different PNG bytes; include their hashes so
+    one attempt cannot overwrite another attempt's audit evidence.
+    """
+    if (
+        not isinstance(chart_watermarks, dict)
+        or not isinstance(chart_hashes, dict)
+        or not chart_watermarks
+        or set(chart_watermarks) != set(chart_hashes)
+    ):
+        raise ValueError("visual chart watermarks and hashes must cover the same non-empty symbols")
+    payload = {
+        "chart_watermarks": {
+            symbol: chart_watermarks[symbol] for symbol in sorted(chart_watermarks)
+        },
+        "chart_sha256": {
+            symbol: chart_hashes[symbol] for symbol in sorted(chart_hashes)
+        },
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:24]
+
+
 def _persist_chart_images(chart_images, cycle_id, chart_watermarks, chart_hashes, now):
     """Persist raw chart PNGs and a hash/watermark manifest for later audit."""
     if (
@@ -524,12 +551,16 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
         except (TypeError, ValueError):
             state.pop("visual_ai_cooldown_until", None)
 
-    cycle_payload = {
-        symbol: chart_watermarks[symbol] for symbol in sorted(chart_watermarks)
-    }
-    cycle_id = hashlib.sha256(
-        json.dumps(cycle_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()[:24]
+    try:
+        cycle_id = _visual_cycle_id(chart_watermarks, chart_hashes)
+    except Exception as exc:
+        st.save(state)
+        print(
+            f"[visual-first] chart cycle identity failed ({type(exc).__name__}); "
+            "no new signals created",
+            flush=True,
+        )
+        return {"status": "image_identity_error", "analyzed": 0, "signals": pending_delivery["delivered"]}
     try:
         chart_artifact_dir = _persist_chart_images(
             chart_images, cycle_id, chart_watermarks, chart_hashes, now
