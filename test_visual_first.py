@@ -554,6 +554,36 @@ def test_visual_discord_alert_is_bounded_and_preserves_required_sections():
         "Conflicts considered:", "Cancel before entry if:",
     ))
 
+
+def test_visual_discord_alert_uses_real_line_breaks():
+    captured = {}
+    original_post = discord._post
+    try:
+        discord._post = lambda content: captured.setdefault("content", content) and True
+        trade = _candidate()
+        trade.update({
+            "signal_id": "VISUAL-NEWLINE-01",
+            "dir": "long",
+            "entry": 100.0,
+            "sl": 98.5,
+            "tp": 103.0,
+            "rr": 2.0,
+            "rationale": "Aligned trend pullback.",
+        })
+        assert discord.send_visual_trade("BTC", trade, lambda value: f"{value:.1f}")
+    finally:
+        discord._post = original_post
+
+    message = captured["content"]
+    lines = message.splitlines()
+    assert len(lines) >= 10
+    assert "\\n" not in message
+    assert any(line.startswith("Visual quality:") for line in lines)
+    assert any(line.startswith("Entry zone (5m):") for line in lines)
+    assert any(line.startswith("Entry:") for line in lines)
+    assert any(line.startswith("Stop-loss:") for line in lines)
+    assert any(line.startswith("Invalidation:") for line in lines)
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
