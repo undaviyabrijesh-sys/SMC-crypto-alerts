@@ -677,6 +677,30 @@ def test_visual_discord_alert_uses_real_line_breaks():
     assert any(line.startswith("Stop-loss:") for line in lines)
     assert any(line.startswith("Invalidation:") for line in lines)
 
+def test_discord_post_refuses_oversized_messages_without_sending_truncated_content():
+    from unittest.mock import patch
+
+    webhook = "https://example.invalid/webhook"
+    with patch.dict(os.environ, {"DISCORD_WEBHOOK": webhook}, clear=True):
+        with patch.object(discord.requests, "post") as post:
+            assert discord._post("x" * 1901) is False
+            post.assert_not_called()
+
+
+def test_discord_post_sends_the_complete_message_within_the_safe_budget():
+    from unittest.mock import Mock, patch
+
+    webhook = "https://example.invalid/webhook"
+    message = "x" * 1900
+    response = Mock()
+    with patch.dict(os.environ, {"DISCORD_WEBHOOK": webhook}, clear=True):
+        with patch.object(discord.requests, "post", return_value=response) as post:
+            assert discord._post(message) is True
+            post.assert_called_once_with(
+                webhook, json={"content": message}, timeout=15
+            )
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

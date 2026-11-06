@@ -9,12 +9,18 @@ def _trigger_hook():
 
 
 def _post(content):
+    # Never silently truncate execution or outcome details at the Discord boundary.
+    # Visual alerts already enforce this budget; apply the same fail-closed rule
+    # to legacy, deterministic, outcome and daily-report messages.
+    if len(content) > 1900:
+        print("[warn] Discord message exceeded the safe 1,900-character budget; refusing delivery")
+        return False
     url = _trigger_hook()
     if os.environ.get("DRY_RUN") or not url:
         print("[DISCORD DRY RUN / NOT CONFIGURED]\n" + content)
         return False
     try:
-        response = requests.post(url, json={"content": content[:1900]}, timeout=15)
+        response = requests.post(url, json={"content": content}, timeout=15)
         response.raise_for_status()
         return True
     except Exception as exc:
