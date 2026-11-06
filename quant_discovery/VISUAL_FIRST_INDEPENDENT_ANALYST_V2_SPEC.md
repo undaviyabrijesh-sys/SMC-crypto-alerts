@@ -1,8 +1,8 @@
 # Visual-First Independent Setup Analyst — V2 Design
 
-**Status:** implemented as an opt-in paper-only lane; push and PR CI both passed on code checkpoint `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198` (runs 42149740829 and 42149746808). Not enabled by default; no live chart/API/webhook smoke test or live execution is claimed.
+**Status:** implemented as an opt-in paper-only lane; push and PR CI both passed on code checkpoint `368ece900a3765d52405f99d931d852d6d1a984b` (runs 42150222336 and 42150229613). Not enabled by default; no live chart/API/webhook smoke test or live execution is claimed.
 **Branch:** `ai-quant-rebuild`
-**Implementation commits:** initial lane `5532f7e8b9356825e33a2c22b2185dc2e14f3530`; validator/test follow-ups through `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198`.
+**Implementation commits:** initial lane `5532f7e8b9356825e33a2c22b2185dc2e14f3530`; validator/test follow-ups through `368ece900a3765d52405f99d931d852d6d1a984b`.
 
 ## Objective
 
@@ -170,4 +170,4 @@ The visual analyst inspects fresh multi-timeframe chart images on eligible new c
 - `test_visual_first.py`: offline schema, mocked multimodal request, risk-gate, candidate-selection, stale-candle, deduplication, paper-cycle and Discord-format tests. CI runs this suite without an API key or webhook.
 - `.github/workflows/alerts.yml`: manual visual selection is available but requires a separate explicit paper confirmation; no workflow has been dispatched and no schedule variable was changed.
 
-The validator validates the model-selected candidate; it does not construct zones, rank setup families, or substitute another candidate. Existing hard gates remain: confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, entry band within 0.35% of the latest closed price, fresh watermarks, two or more evidence timeframes, and one open/pending position per symbol. An opposing actionable candidate must be at least eight quality points weaker than the selected side; otherwise validation fails closed with NO_TRADE.
+The validator validates the model-selected candidate; it does not construct zones, rank setup families, or substitute another candidate. Existing hard gates remain: confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, entry band within 0.35% of the latest closed price, fresh watermarks, two or more evidence timeframes, and one open/pending position per symbol. An opposing actionable candidate must be at least eight quality points weaker than the selected side; a close or stronger opposite candidate forces NO_TRADE. Exactly eight points weaker passes.

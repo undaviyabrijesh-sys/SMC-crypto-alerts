@@ -4,26 +4,28 @@
 
 - Repository: `undaviyabrijesh-sys/SMC-crypto-alerts`
 - Working branch: `ai-quant-rebuild`
-- Code-verification checkpoint: `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198` — `Fix visual conflict validation test wording`
-- PR #1: open, draft, unmerged; mergeable; 395 commits ahead of `main`, 0 behind.
+- Code-verification checkpoint: `368ece900a3765d52405f99d931d852d6d1a984b` — `Correct opposing-candidate quality margin boundary`
+- Documentation/workflow refresh parent: `ad1352d7ca4065c0c43b35ece634be54889522f8`.
+- PR #1: open, draft, unmerged; mergeable; 397 commits ahead of `main`, 0 behind.
 - Base/main SHA: `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`
 - No changes were made to `main`.
 
-Implementation commits:
+Implementation and safety-fix commits:
 - `5532f7e8b9356825e33a2c22b2185dc2e14f3530` — initial independent visual-first paper lane.
 - `195aed902cd016391c4191c2ecbcd397bb7c798e` — visual conflict tie-break correction.
-- Follow-up concurrent test/validator corrections were preserved: `a861e429`, `96356bd2`, `a410a302`.
-- `01dddffd` — regression assertion wording correction.
+- `22d68a48af36ee39d75ad7219fb8d880c063aa7c` — fixed callable symbol formatter in both new and pending legacy AI paper-alert paths.
+- `a861e429`, `96356bd2`, `a410a302`, `01dddffd` — conflict guard and regression-test follow-ups.
+- `368ece900a3765d52405f99d931d852d6d1a984b` — corrected the eight-point opposing-quality boundary and added exact-boundary coverage.
 
 ## CI status on code checkpoint
 
 Both exact-head checks passed on `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198`:
-- Push CI: run [42149740829](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42149740829) — success.
-- PR CI: run [42149746808](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42149746808) — success.
+- Push CI: run [42150222336](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42150222336) — success.
+- PR CI: run [42150229613](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42150229613) — success.
 
 The suites compiled the Python modules and passed the existing visual, DNS, agent, quant replay, risk, lifecycle, Discord, derivative-history, and Quant Discovery tests. The new independent visual-first suite passed, including mocked multimodal request construction, candidate validation, risk gates, opposing-direction ambiguity, NO_TRADE, duplicate/stale data rejection, paper-cycle deduplication, worker dispatch, and execution-only Discord formatting.
 
-The previous intermediate head `96356bd` had a regression assertion/message mismatch; the message and test were corrected in `a410a302` and the final assertion wording in `01dddffd`. Both final CI workflows passed. Do not describe the intermediate failure as still outstanding.
+The previous intermediate head `96356bd` had a regression assertion/message mismatch; the message and test were corrected in `a410a302` and the final assertion wording in `01dddffd`. The exact eight-point boundary was then covered by `368ece9`. Both final CI workflows passed. Do not describe the intermediate failures as still outstanding.
 
 ## Visual-first implementation
 
@@ -57,7 +59,7 @@ The model selects the setup; code validates the selected plan. It does not creat
 - At least two chart evidence timeframes including the trigger timeframe.
 - Exact fresh chart watermarks and recent analysis timestamp.
 - Future limit/retest/conditional entries are not converted into immediate market entries.
-- Opposing actionable directions within the quality separation margin fail closed.
+- An opposing actionable candidate must be at least eight quality points weaker than the selected side; a close or stronger opposite candidate forces NO_TRADE. Exactly eight points weaker passes, matching the configured boundary.
 - One open or pending paper position per symbol.
 - Failed analysis/persistence does not create a signal; pending delivery is revalidated before sending.
 - Outcome handling reuses the existing closed-5m TP/SL/TIME tracker, including existing missing-candle and expiry protections.
