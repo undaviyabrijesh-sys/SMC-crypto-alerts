@@ -65,13 +65,127 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
     snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 100.8)
     snap["demand_zones"][0]["low"] = 100.0
     snap["demand_zones"][0]["high"] = 100.5
-    candidates = dns_engine.detect_local_setup("BTC", {"5m": frame}, snap)
+    candidates = dns_engine.detect_local_setup(
+        "BTC", {"5m": frame, "1h": pd.DataFrame({"close": [100.8]})}, snap
+    )
     assert len(candidates) == 1
     candidate = candidates[0]
     assert candidate["direction"] == "LONG"
     assert candidate["setup_type"] == "DNS_LIQUIDITY_SWEEP_RECLAIM"
     assert candidate["rr"] >= 2
     assert candidate["zone_side"] == "DEMAND"
+
+
+
+def _setup_test_frames(base=100.0, trend=1):
+    idx = pd.date_range("2026-11-05T00:00:00Z", periods=60, freq="5min")
+    m5 = pd.DataFrame({
+        "open": [base] * 60,
+        "high": [base + 0.2] * 60,
+        "low": [base - 0.2] * 60,
+        "close": [base] * 60,
+        "volume": [100.0] * 60,
+    }, index=idx)
+    m15_index = pd.date_range(end=idx[-1], periods=60, freq="15min")
+    closes = [95.0 + (6.0 * i / 59) for i in range(60)] if trend > 0 else [115.0 - (6.0 * i / 59) for i in range(60)]
+    m15 = pd.DataFrame({
+        "open": closes,
+        "high": [x + 0.2 for x in closes],
+        "low": [x - 0.2 for x in closes],
+        "close": closes,
+        "volume": [100.0] * 60,
+    }, index=m15_index)
+    h1_close = 101.0 if trend > 0 else 109.8
+    h1 = pd.DataFrame({"close": [h1_close] * 60}, index=pd.date_range(end=idx[-1], periods=60, freq="1h"))
+    h4 = pd.DataFrame({"close": [h1_close] * 60}, index=pd.date_range(end=idx[-1], periods=60, freq="4h"))
+    return {"5m": m5, "15m": m15, "1h": h1, "4h": h4}
+
+
+def _setup_test_map(side="DEMAND"):
+    demand = {
+        "zone_id": "DEMAND1", "side": "DEMAND", "low": 100.0, "high": 100.5,
+        "timeframe": "1h", "quality": 4, "evidence": "AI visual demand", "status": "ACTIVE",
+    }
+    supply = {
+        "zone_id": "SUPPLY1", "side": "SUPPLY", "low": 110.0, "high": 110.5,
+        "timeframe": "4h", "quality": 4, "evidence": "AI visual supply", "status": "ACTIVE",
+    }
+    return {
+        "revision": 4,
+        "demand_zones": [demand] if side == "DEMAND" else [{
+            **demand, "low": 99.5, "high": 100.0,
+        }],
+        "supply_zones": [supply] if side == "DEMAND" else [{
+            **supply, "low": 109.5, "high": 110.0,
+        }],
+    }
+
+
+def test_dns_zone_rejection_bos_choch_and_trend_pullback_are_separate_candidates():
+    frames = _setup_test_frames(trend=1)
+    m5 = frames["5m"]
+    m5.iloc[-2, m5.columns.get_loc("open")] = 100.2
+    m5.iloc[-2, m5.columns.get_loc("high")] = 100.6
+    m5.iloc[-2, m5.columns.get_loc("low")] = 100.0
+    m5.iloc[-2, m5.columns.get_loc("close")] = 100.3
+    m5.iloc[-1, m5.columns.get_loc("open")] = 100.5
+    m5.iloc[-1, m5.columns.get_loc("high")] = 101.0
+    m5.iloc[-1, m5.columns.get_loc("low")] = 100.4
+    m5.iloc[-1, m5.columns.get_loc("close")] = 100.8
+
+    candidates = dns_engine.detect_local_setup("BTC", frames, _setup_test_map())
+    setup_types = {item["setup_type"] for item in candidates}
+    assert "DNS_DEMAND_REJECTION" in setup_types
+    assert "DNS_BOS_CHOCH_BULLISH" in setup_types
+    assert "DNS_TREND_PULLBACK" in setup_types
+    assert all(item["zone_side"] == "DEMAND" and item["rr"] >= 2 for item in candidates)
+
+
+def test_dns_fvg_retrace_requires_imbalance_overlap_with_visual_demand():
+    frames = _setup_test_frames(trend=1)
+    m5 = frames["5m"]
+    # A bullish three-candle FVG [99.9, 100.1] overlaps the mapped demand band.
+    for offset, values in {
+        -5: (99.8, 100.0, 99.6, 99.8),
+        -4: (99.9, 101.0, 99.8, 100.8),
+        -3: (100.3, 100.7, 100.1, 100.5),
+        -2: (100.0, 100.2, 99.8, 100.0),
+        -1: (100.5, 100.9, 100.05, 100.8),
+    }.items():
+        for col, value in zip(("open", "high", "low", "close"), values):
+            m5.iloc[offset, m5.columns.get_loc(col)] = value
+    candidates = dns_engine.detect_local_setup("BTC", frames, _setup_test_map())
+    assert any(item["setup_type"] == "DNS_FVG_RETRACE" for item in candidates)
+
+
+def test_dns_rbs_and_sbr_require_break_retest_and_follow_through():
+    long_frames = _setup_test_frames(trend=1)
+    long_bars = {
+        -8: (99.7, 99.9, 99.5, 99.7),
+        -7: (100.0, 100.4, 99.9, 100.2),
+        -6: (100.4, 101.0, 100.3, 100.8),  # Close above mapped resistance.
+        -5: (100.7, 100.9, 100.3, 100.6),  # Retest and hold the flipped band.
+        -1: (100.5, 101.0, 100.4, 100.8),  # Confirm above the previous high.
+    }
+    for offset, values in long_bars.items():
+        for col, value in zip(("open", "high", "low", "close"), values):
+            long_frames["5m"].iloc[offset, long_frames["5m"].columns.get_loc(col)] = value
+    long_candidates = dns_engine.detect_local_setup("BTC", long_frames, _setup_test_map("DEMAND"))
+    assert any(item["setup_type"] == "DNS_RBS_RETEST" for item in long_candidates)
+
+    short_frames = _setup_test_frames(base=110.0, trend=-1)
+    short_bars = {
+        -8: (110.3, 110.5, 110.1, 110.3),
+        -7: (110.1, 110.2, 109.7, 109.9),
+        -6: (109.8, 109.9, 109.0, 109.2),  # Close below mapped support.
+        -5: (109.3, 109.7, 109.1, 109.4),  # Retest and reject the flipped band.
+        -1: (109.4, 109.5, 108.8, 109.0),  # Confirm below the previous low.
+    }
+    for offset, values in short_bars.items():
+        for col, value in zip(("open", "high", "low", "close"), values):
+            short_frames["5m"].iloc[offset, short_frames["5m"].columns.get_loc(col)] = value
+    short_candidates = dns_engine.detect_local_setup("BTC", short_frames, _setup_test_map("SUPPLY"))
+    assert any(item["setup_type"] == "DNS_SBR_RETEST" for item in short_candidates)
 
 
 def test_local_watcher_rejects_confirmation_too_far_from_visual_zone():
