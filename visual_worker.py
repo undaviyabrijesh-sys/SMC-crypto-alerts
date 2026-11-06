@@ -551,7 +551,6 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
         "as_of_utc": now.isoformat(),
         "chart_watermarks": chart_watermarks,
         "chart_sha256": chart_hashes,
-                "chart_artifact_dir": chart_artifact_dir,
         "chart_timeframes": list(TIMEFRAMES),
     }
     active_trades = (
@@ -649,7 +648,7 @@ def run(now=None, fetcher=data.fetch, analyzer=None, enabled=None, frames_loader
             "market_context": market_context,
             "chart_watermarks": chart_watermarks,
             "chart_sha256": chart_hashes,
-                "chart_artifact_dir": chart_artifact_dir,
+            "chart_artifact_dir": chart_artifact_dir,
             "analysis": result,
             "validation": validation,
         })
