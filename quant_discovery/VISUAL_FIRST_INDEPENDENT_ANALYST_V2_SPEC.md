@@ -1,8 +1,8 @@
 # Visual-First Independent Setup Analyst — V2 Design
 
-**Status:** implemented on `ai-quant-rebuild` as an opt-in paper-only lane; CI verification is pending for the implementation commit. Not enabled by default and not approved for live execution.
+**Status:** implemented as an opt-in paper-only lane; push and PR CI both passed on code checkpoint `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198` (runs 42149740829 and 42149746808). Not enabled by default; no live chart/API/webhook smoke test or live execution is claimed.
 **Branch:** `ai-quant-rebuild`
-**Implementation parent:** `84bcfd859ca05d1315f8be86035a26614b8036b7`
+**Implementation commits:** initial lane `5532f7e8b9356825e33a2c22b2185dc2e14f3530`; validator/test follow-ups through `01dddffd9772e3a5d69d7e3fb25bf7afd4fa4198`.
 
 ## Objective
 
