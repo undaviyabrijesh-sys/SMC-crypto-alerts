@@ -216,6 +216,26 @@ def test_local_watcher_skips_a_sweep_when_recent_five_minute_bars_have_a_gap():
     assert dns_engine.detect_local_setup("BTC", frames, snap) == []
 
 
+def test_local_watcher_will_not_use_an_invalidated_opposing_target_zone():
+    idx = pd.date_range("2026-11-05T00:00:00Z", periods=3, freq="5min")
+    frame = pd.DataFrame({
+        "open": [101.0, 99.5, 100.1],
+        "high": [102.0, 100.7, 101.5],
+        "low": [100.5, 98.8, 100.0],
+        "close": [101.2, 100.6, 100.8],
+        "volume": [10.0, 12.0, 11.0],
+    }, index=idx)
+    snap = dns_engine.validate_analysis("BTC", _analysis(), idx[-1], 100.8)
+    snap["demand_zones"][0]["low"] = 100.0
+    snap["demand_zones"][0]["high"] = 100.5
+    frames = {
+        "5m": frame,
+        "1h": pd.DataFrame({"close": [100.8]}),
+        "4h": pd.DataFrame({"close": [112.0]}),  # Closes above the mapped supply ceiling.
+    }
+    assert dns_engine.detect_local_setup("BTC", frames, snap) == []
+
+
 def test_local_watcher_rejects_confirmation_too_far_from_visual_zone():
     idx = pd.date_range("2026-11-05T00:00:00Z", periods=3, freq="5min")
     frame = pd.DataFrame({
