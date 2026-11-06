@@ -166,7 +166,7 @@ def test_conflicting_opposite_candidates_with_close_quality_return_no_trade():
     plan, reason = visual_worker.validate_analysis(
         analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
     )
-    assert plan is None and "opposing actionable candidates" in reason
+    assert plan is None and "opposing actionable candidate" in reason
 
 
 def test_stronger_opposing_candidate_blocks_the_models_weaker_selection():
