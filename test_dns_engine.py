@@ -179,7 +179,7 @@ def test_dns_rbs_and_sbr_require_break_retest_and_follow_through():
         -7: (110.1, 110.2, 109.7, 109.9),
         -6: (109.8, 109.9, 109.0, 109.2),  # Close below mapped support.
         -5: (109.3, 109.7, 109.1, 109.4),  # Retest and reject the flipped band.
-        -1: (109.4, 109.5, 108.8, 109.0),  # Confirm below the previous low.
+        -1: (109.4, 109.5, 108.8, 109.2),  # Confirm below the previous low, still near mapped supply.
     }
     for offset, values in short_bars.items():
         for col, value in zip(("open", "high", "low", "close"), values):
