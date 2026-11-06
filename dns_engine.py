@@ -350,11 +350,13 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
 
     # 1) Liquidity sweep and reclaim: preserve the original strict two-candle trigger.
     sweep = m5.iloc[-2]
+    sweep_triggered = False
     if side == "DEMAND":
         if (
             float(sweep.low) < low and float(sweep.close) > high
             and _is_bullish(last) and float(last.close) > float(sweep.high)
         ):
+            sweep_triggered = True
             add(
                 "DNS_LIQUIDITY_SWEEP_RECLAIM",
                 min(float(sweep.low), low) - pad,
@@ -365,6 +367,7 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
             float(sweep.high) > high and float(sweep.close) < low
             and _is_bearish(last) and float(last.close) < float(sweep.low)
         ):
+            sweep_triggered = True
             add(
                 "DNS_LIQUIDITY_SWEEP_RECLAIM",
                 max(float(sweep.high), high) + pad,
@@ -375,11 +378,11 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
     recent = m5.iloc[-4:-1]
     touched = any(_touches_zone(row, low, high) for _, row in recent.iterrows())
     if side == "DEMAND":
-        if touched and _is_bullish(last) and float(last.close) > high and float(last.close) > float(previous.high):
+        if not sweep_triggered and touched and _is_bullish(last) and float(last.close) > high and float(last.close) > float(previous.high):
             stop = min(float(row.low) for _, row in recent.iterrows()) - pad
             add("DNS_DEMAND_REJECTION", stop, "Recent 5m candles tested visually mapped demand; the latest bullish close reclaimed the band and broke the prior candle high.")
     else:
-        if touched and _is_bearish(last) and float(last.close) < low and float(last.close) < float(previous.low):
+        if not sweep_triggered and touched and _is_bearish(last) and float(last.close) < low and float(last.close) < float(previous.low):
             stop = max(float(row.high) for _, row in recent.iterrows()) + pad
             add("DNS_SUPPLY_REJECTION", stop, "Recent 5m candles tested visually mapped supply; the latest bearish close rejected the band and broke the prior candle low.")
 
