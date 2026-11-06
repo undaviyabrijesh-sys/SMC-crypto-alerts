@@ -39,18 +39,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: state.json
-          key: salty-quant-state-${{ runner.os }}-${{ github.run_id }}
+          key: salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-state-${{ runner.os }}-
+            salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-
       - name: Restore rolling OHLCV and research data
         uses: actions/cache@v4
         with:
           path: |
             market_data/
             research/
-          key: salty-quant-market-${{ runner.os }}-${{ github.run_id }}
+          key: salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            salty-quant-market-${{ runner.os }}-
+            salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-
       - name: Run offline visual pipeline tests
         if: ${{ inputs.task == 'visual-tests' }}
         run: python test_visual_pipeline.py && python test_visual_first.py
