@@ -178,7 +178,7 @@ def test_stronger_opposing_candidate_blocks_the_models_weaker_selection():
     plan, reason = visual_worker.validate_analysis(
         analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
     )
-    assert plan is None and "not clearly weaker" in reason
+    assert plan is None and "opposing actionable candidates" in reason
 
 
 def test_model_selected_side_passes_when_opposing_candidate_is_clearly_weaker():
