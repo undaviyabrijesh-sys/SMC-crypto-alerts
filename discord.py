@@ -133,7 +133,11 @@ def send_quant_trade(sym, trade, fmt):
 
 
 def send_visual_trade(sym, trade, fmt):
-    """Execution-focused alert for an independently selected visual setup."""
+    """Execution-focused alert; bound every narrative field before Discord's 2,000-char limit."""
+    def short(value, limit):
+        text = str(value).strip()
+        return text if len(text) <= limit else text[:limit - 1].rstrip() + "…"
+
     direction = str(trade["dir"]).upper()
     icon = "🟢" if direction == "LONG" else "🔴"
     family = str(trade.get("setup_family") or trade.get("setup_type") or "OTHER")
@@ -143,14 +147,14 @@ def send_visual_trade(sym, trade, fmt):
     if isinstance(quality, int) and not isinstance(quality, bool) and isinstance(confidence, int) and not isinstance(confidence, bool):
         score_line = (
             f"Visual quality: **{quality}/100** | Confidence: **{confidence}/100** "
-            "(rubric scores, not probabilities)\n"
+            "(rubric scores, not probabilities)\\n"
         )
     zone = trade.get("entry_zone") or {}
     zone_line = ""
     if isinstance(zone, dict) and all(key in zone for key in ("low", "high", "timeframe")):
         zone_line = (
             f"Entry zone ({zone['timeframe']}): "
-            f"**{fmt(zone['low'])} – {fmt(zone['high'])}**\n"
+            f"**{fmt(zone['low'])} – {fmt(zone['high'])}**\\n"
         )
     evidence_tfs = trade.get("evidence_timeframes") or trade.get("timeframes_in_agreement") or []
     supporting = trade.get("supporting_evidence") or []
@@ -158,7 +162,7 @@ def send_visual_trade(sym, trade, fmt):
     cancel_if = trade.get("cancel_if") or []
     lines = [
         f"{icon} **SALTY QUANT AI — {direction} {sym}**",
-        f"Signal ID: {chr(96)}{trade['signal_id']}{chr(96)}",
+        f"Signal ID: `{trade['signal_id']}`",
         f"Setup: **{family}**",
     ]
     if score_line:
@@ -171,19 +175,21 @@ def send_visual_trade(sym, trade, fmt):
         f"Target 1: **{fmt(trade['tp'])}**",
         f"Validated R:R: **{trade['rr']:.2f}R**",
         f"Trigger timeframe: {trade.get('trigger_timeframe', '—')} | Evidence: {', '.join(evidence_tfs[:6])}",
-        f"Trigger: {str(trade.get('trigger_condition', ''))[:180]}",
-        f"Context: {str(trade.get('higher_timeframe_context', ''))[:180]}",
-        f"Why: {str(trade.get('rationale', ''))[:230]}",
-        f"Target rationale: {str(trade.get('target_rationale', ''))[:150]}",
-        f"Invalidation: {str(trade.get('invalidation', ''))[:180]}",
+        f"Trigger: {short(trade.get('trigger_condition', ''), 140)}",
+        f"Context: {short(trade.get('higher_timeframe_context', ''), 140)}",
+        f"Why: {short(trade.get('rationale', ''), 170)}",
+        f"Target rationale: {short(trade.get('target_rationale', ''), 120)}",
+        f"Invalidation: {short(trade.get('invalidation', ''), 140)}",
     ])
     if supporting:
-        lines.append("Evidence: " + " | ".join(str(item)[:95] for item in supporting[:3]))
+        lines.append("Evidence: " + " | ".join(short(item, 70) for item in supporting[:3]))
     if conflicts:
-        lines.append("Conflicts considered: " + " | ".join(str(item)[:90] for item in conflicts[:2]))
+        lines.append("Conflicts considered: " + " | ".join(short(item, 70) for item in conflicts[:2]))
     if cancel_if:
-        lines.append("Cancel before entry if: " + " | ".join(str(item)[:90] for item in cancel_if[:2]))
+        lines.append("Cancel before entry if: " + " | ".join(short(item, 70) for item in cancel_if[:2]))
     lines.append("Paper tracking only at the latest closed 5m price; no exchange order is submitted.")
-    return _post("\n".join(lines))
-
-
+    message = "\\n".join(lines)
+    if len(message) > 1900:
+        print("[warn] visual alert exceeded the safe Discord message budget; refusing truncated delivery")
+        return False
+    return _post(message)

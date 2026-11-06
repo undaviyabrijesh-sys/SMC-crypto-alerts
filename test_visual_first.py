@@ -514,6 +514,42 @@ def test_candidate_requires_two_distinct_timeframe_alignment_references():
     assert plan is None and "at least two distinct" in reason
 
 
+
+def test_visual_discord_alert_is_bounded_and_preserves_required_sections():
+    captured = {}
+    original_post = discord._post
+    try:
+        discord._post = lambda content: captured.setdefault("content", content) and True
+        trade = _candidate()
+        trade.update({
+            "signal_id": "VISUAL-LONG-01",
+            "setup_family": "OTHER_EVIDENCE_SUPPORTED",
+            "quality_score": 100,
+            "confidence": 100,
+            "entry": 100.0,
+            "sl": 98.0,
+            "tp": 104.0,
+            "rr": 2.0,
+            "trigger_condition": "T" * 1000,
+            "higher_timeframe_context": "H" * 1000,
+            "selection_rationale": "R" * 1000,
+            "target_rationale": "G" * 1000,
+            "invalidation": "I" * 1000,
+            "supporting_evidence": ["S" * 1000] * 3,
+            "conflicting_evidence": ["C" * 1000] * 2,
+            "cancel_if": ["K" * 1000] * 2,
+        })
+        assert discord.send_visual_trade("BTC", trade, lambda value: f"{value:.2f}")
+    finally:
+        discord._post = original_post
+    message = captured["content"]
+    assert len(message) <= 1900
+    assert message.endswith("Paper tracking only at the latest closed 5m price; no exchange order is submitted.")
+    assert all(section in message for section in (
+        "Entry:", "Stop-loss:", "Target 1:", "Invalidation:",
+        "Conflicts considered:", "Cancel before entry if:",
+    ))
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
