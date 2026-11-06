@@ -1,8 +1,8 @@
 # Visual-First Independent Setup Analyst — V2 Design
 
-**Status:** design only; not wired into a worker and not approved for execution.
+**Status:** implemented on `ai-quant-rebuild` as an opt-in paper-only lane; CI verification is pending for the implementation commit. Not enabled by default and not approved for live execution.
 **Branch:** `ai-quant-rebuild`
-**Checkpoint reviewed:** `d25e8e55a6c7649e898ce850487cbedd9a5e83ab`
+**Implementation parent:** `84bcfd859ca05d1315f8be86035a26614b8036b7`
 
 ## Objective
 
@@ -148,14 +148,26 @@ The validator must return a validation result for the model-selected candidate; 
 
 ## Current blockers and guardrails
 
-- Current `ai_analyst.py` prompt, schema, and visual tests require demand/supply anchoring; redesign them together rather than editing only the prompt.
-- Current `dns_worker.py` uses an infrequent AI map refresh followed by a coded sweep/reclaim candidate detector. It is not the requested per-cycle independent visual analyst.
-- Current `worker.py` defaults to AI-free quant. The branch Actions paper workflow directly runs `quant_worker.py`.
-- Last documented live Responses API failure was HTTP 429 insufficient quota. This checkpoint did not test API quota or change credentials.
-- `APPROVED_STRATEGIES` remains empty. No research candidate is approved.
+- The legacy DNS lane still uses an infrequent AI map refresh followed by a coded sweep/reclaim detector. It remains separate and unchanged; do not confuse it with the new visual lane.
+- `worker.py` still defaults to AI-free quant. A third `visual` mode now imports `visual_worker.py`; the visual lane itself also requires `ENABLE_VISUAL_PAPER=true`.
+- The branch's manual paper workflow now offers a visual/quant selection. Visual execution requires a separate manual boolean confirmation; scheduled runs continue to use the pre-existing quant lane and remain gated by `vars.ENABLE_GITHUB_SCHEDULE == 'true'`. The workflow has not been dispatched or enabled.
+- The new visual lane requires a working OpenAI Responses API quota and existing configured `OPENAI_API_KEY`; the last documented live error was HTTP 429 insufficient quota. No credential was changed and no live API request is part of CI.
+- `APPROVED_STRATEGIES` remains empty. Quant Discovery candidates remain research-only and are not promoted by the visual worker.
 - The legacy scheduled workflow on `main` still runs `python main.py` with legacy WATCH/TRIGGER logic and webhook secrets. Do not modify it from this branch; obtain owner authorization for any cutover.
 - No live trading, exchange orders, deployments, secret changes, schedule activation, or PR merge are permitted.
 
 ## Acceptance criterion
 
-The visual analyst must demonstrably inspect fresh multi-timeframe chart images on every eligible analysis cycle, compare independent candidate families, and either return one candidate that passes unchanged mechanical controls or return `NO_TRADE`. Until mocked end-to-end tests, a real paper-only vision smoke test, and delivery/outcome tests pass, keep the visual mode opt-in and do not route it to execution alerts.
+The visual analyst inspects fresh multi-timeframe chart images on eligible new closed-5m cycles, compares independent candidate families, and either returns one model-selected candidate that passes unchanged mechanical controls or returns `NO_TRADE`. The implementation is isolated behind `WORKER_MODE=visual` plus `ENABLE_VISUAL_PAPER=true`. CI uses mocked API/Discord calls and must never require credentials. A real paper-only vision smoke test and actual Discord delivery/outcome verification remain separate opt-in checks; keep the lane disabled unless a human explicitly confirms a manual paper run.
+
+
+## Implemented components on ai-quant-rebuild
+
+- `visual_first_analyst.py`: strict V2 multimodal Responses API contract. It receives raw six-timeframe chart PNGs and returns all material candidates, one model-selected ID or `NO_TRADE`; no DNS/zone fields exist in its schema.
+- `visual_worker.py`: opt-in per-cycle chart fetch/render, candle watermarks and image hashes, model call, candidate-level fail-closed validation, append-only decision log, pending alert persistence, Discord delivery, and existing closed-5m TP/SL/TIME lifecycle tracking.
+- `worker.py`: adds an opt-in `visual` mode without changing the `quant` default or the separate `dns` lane.
+- `discord.py`: adds execution-only visual alerts with setup family, entry band, entry, stop, target, R:R, evidence, context, invalidation and pre-entry cancellation conditions.
+- `test_visual_first.py`: offline schema, mocked multimodal request, risk-gate, candidate-selection, stale-candle, deduplication, paper-cycle and Discord-format tests. CI runs this suite without an API key or webhook.
+- `.github/workflows/alerts.yml`: manual visual selection is available but requires a separate explicit paper confirmation; no workflow has been dispatched and no schedule variable was changed.
+
+The validator validates the model-selected candidate; it does not construct zones, rank setup families, or substitute another candidate. Existing hard gates remain: confidence and quality >=75, R:R >=2, stop distance 0.35–2.5 ATR, entry band within 0.35% of the latest closed price, fresh watermarks, two or more evidence timeframes, no conflicting near-tie, and one open/pending position per symbol.

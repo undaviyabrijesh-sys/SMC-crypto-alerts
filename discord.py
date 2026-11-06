@@ -130,3 +130,60 @@ def send_quant_trade(sym, trade, fmt):
         "Paper tracking uses the latest closed 5m price; no exchange order is submitted."
     )
     return _post(message)
+
+
+def send_visual_trade(sym, trade, fmt):
+    """Execution-focused alert for an independently selected visual setup."""
+    direction = str(trade["dir"]).upper()
+    icon = "🟢" if direction == "LONG" else "🔴"
+    family = str(trade.get("setup_family") or trade.get("setup_type") or "OTHER")
+    quality = trade.get("quality_score")
+    confidence = trade.get("confidence")
+    score_line = ""
+    if isinstance(quality, int) and not isinstance(quality, bool) and isinstance(confidence, int) and not isinstance(confidence, bool):
+        score_line = (
+            f"Visual quality: **{quality}/100** | Confidence: **{confidence}/100** "
+            "(rubric scores, not probabilities)\n"
+        )
+    zone = trade.get("entry_zone") or {}
+    zone_line = ""
+    if isinstance(zone, dict) and all(key in zone for key in ("low", "high", "timeframe")):
+        zone_line = (
+            f"Entry zone ({zone['timeframe']}): "
+            f"**{fmt(zone['low'])} – {fmt(zone['high'])}**\n"
+        )
+    evidence_tfs = trade.get("evidence_timeframes") or trade.get("timeframes_in_agreement") or []
+    supporting = trade.get("supporting_evidence") or []
+    conflicts = trade.get("conflicting_evidence") or []
+    cancel_if = trade.get("cancel_if") or []
+    lines = [
+        f"{icon} **SALTY QUANT AI — {direction} {sym}**",
+        f"Signal ID: {chr(96)}{trade['signal_id']}{chr(96)}",
+        f"Setup: **{family}**",
+    ]
+    if score_line:
+        lines.append(score_line.rstrip())
+    if zone_line:
+        lines.append(zone_line.rstrip())
+    lines.extend([
+        f"Entry: **{fmt(trade['entry'])}**",
+        f"Stop-loss: **{fmt(trade['sl'])}**",
+        f"Target 1: **{fmt(trade['tp'])}**",
+        f"Validated R:R: **{trade['rr']:.2f}R**",
+        f"Trigger timeframe: {trade.get('trigger_timeframe', '—')} | Evidence: {', '.join(evidence_tfs[:6])}",
+        f"Trigger: {str(trade.get('trigger_condition', ''))[:180]}",
+        f"Context: {str(trade.get('higher_timeframe_context', ''))[:180]}",
+        f"Why: {str(trade.get('rationale', ''))[:230]}",
+        f"Target rationale: {str(trade.get('target_rationale', ''))[:150]}",
+        f"Invalidation: {str(trade.get('invalidation', ''))[:180]}",
+    ])
+    if supporting:
+        lines.append("Evidence: " + " | ".join(str(item)[:95] for item in supporting[:3]))
+    if conflicts:
+        lines.append("Conflicts considered: " + " | ".join(str(item)[:90] for item in conflicts[:2]))
+    if cancel_if:
+        lines.append("Cancel before entry if: " + " | ".join(str(item)[:90] for item in cancel_if[:2]))
+    lines.append("Paper tracking only at the latest closed 5m price; no exchange order is submitted.")
+    return _post("\n".join(lines))
+
+

@@ -12,13 +12,16 @@ import quant_worker
 
 
 WORKER_MODE = os.environ.get("WORKER_MODE", "quant").strip().lower()
-if WORKER_MODE not in {"quant", "dns"}:
-    raise ValueError("WORKER_MODE must be either 'quant' or 'dns'")
+if WORKER_MODE not in {"quant", "dns", "visual"}:
+    raise ValueError("WORKER_MODE must be 'quant', 'dns', or 'visual'")
 
 
 def _run_cycle():
-    """Select the deterministic quant lane or the visual DNS + agent lane."""
-    if WORKER_MODE == "dns":
+    """Run the explicitly selected paper lane; visual decisions are model-led."""
+    if WORKER_MODE == "visual":
+        import visual_worker
+        visual_worker.run()
+    elif WORKER_MODE == "dns":
         import dns_worker
         dns_worker.run()
     else:
@@ -57,7 +60,7 @@ def _heartbeat(status, detail=None):
 
 def _check_required_environment():
     if not (os.environ.get("DISCORD_TRIGGER_WEBHOOK") or os.environ.get("DISCORD_WEBHOOK")):
-        print("[worker] WARNING: Discord webhook absent; quant research continues, outbound notifications are queued/disabled", flush=True)
+        print("[worker] WARNING: Discord webhook absent; paper analysis continues, outbound notifications remain pending/disabled", flush=True)
 
 
 def _check_optional_delta_auth():
@@ -88,10 +91,14 @@ def run_forever():
     print(
         f"[worker] Salty Quant starting; mode={WORKER_MODE}; interval={INTERVAL_SECONDS}s; "
         + (
-            "visual DNS maps refresh infrequently; local watcher scans every cycle; "
-            "optional Bull/Bear/Chief debate runs only after a DNS event; paper-only"
-            if WORKER_MODE == "dns"
-            else "deterministic multi-strategy research; no AI API calls; OOS promotion required; paper-only"
+            "independent multi-setup chart vision; closed-candle analysis; hard risk gates; paper-only"
+            if WORKER_MODE == "visual"
+            else (
+                "visual DNS maps refresh infrequently; coded local watcher scans every cycle; "
+                "optional Bull/Bear/Chief debate runs only after a DNS event; paper-only"
+                if WORKER_MODE == "dns"
+                else "deterministic multi-strategy research; no AI API calls; OOS promotion required; paper-only"
+            )
         ),
         flush=True
     )

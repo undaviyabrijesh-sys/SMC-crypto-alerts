@@ -4,6 +4,20 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      lane:
+        description: "Paper analysis lane for this one manual run"
+        required: true
+        type: choice
+        options:
+          - visual
+          - quant
+        default: visual
+      confirm_visual_paper:
+        description: "Explicitly confirm a one-cycle VISUAL PAPER run (no exchange orders)"
+        required: true
+        type: boolean
+        default: false
 
 concurrency:
   group: salty-quant-paper-desk
@@ -46,14 +60,38 @@ jobs:
             salty-quant-market-${{ runner.os }}-
       - name: Run offline tests
         run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py
-      - name: Fetch closed OHLCV and run deterministic strategy supervisor
-        run: python quant_worker.py
+      - name: Fetch closed OHLCV and run the selected paper-analysis lane
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python quant_worker.py
+          elif [ "${{ inputs.lane }}" = "visual" ]; then
+            if [ "${{ inputs.confirm_visual_paper }}" != "true" ]; then
+              echo "Visual paper lane not run: explicitly set confirm_visual_paper=true in manual dispatch."
+              exit 0
+            fi
+            ENABLE_VISUAL_PAPER=true python visual_worker.py
+          else
+            python quant_worker.py
+          fi
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
           DATA_DIR: market_data
           STATE_PATH: state.json
           QUANT_RESEARCH_PATH: research/quant_signals.jsonl
+          VISUAL_FIRST_RESEARCH_PATH: research/visual_first_decisions.jsonl
+
+      - name: Upload visual-first decision log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-first-decisions-${{ github.run_id }}
+          path: research/visual_first_decisions.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload deterministic candidate and decision log
         if: always()
         uses: actions/upload-artifact@v4

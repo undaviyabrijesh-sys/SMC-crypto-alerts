@@ -25,9 +25,12 @@ def load():
 
     state.setdefault("positions", {})
     state.setdefault("pending_alerts", {})
+    state.setdefault("pending_visual_alerts", {})
     state.setdefault("pending_outcomes", {})
     state.setdefault("trade_history", [])
     state.setdefault("last_ai_candle", {})
+    state.setdefault("last_visual_candle", {})
+    state.setdefault("visual_ai_cooldown_until", None)
     state.setdefault("last_analysis_at", None)
     state.setdefault("last_market_commentary", "")
     state.setdefault("daily_reports_sent", [])
