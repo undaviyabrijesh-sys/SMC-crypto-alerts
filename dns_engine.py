@@ -282,6 +282,17 @@ def _candidate_for_trigger(
     }
 
 
+def _recent_bars_contiguous(frame, count, minutes):
+    if frame is None or len(frame) < count or not isinstance(frame.index, pd.DatetimeIndex):
+        return False
+    if frame.index.tz is None or not frame.index.is_monotonic_increasing or frame.index.has_duplicates:
+        return False
+    recent = frame.index[-count:]
+    return len(recent) < 2 or bool(
+        (recent.to_series().diff().dropna() == pd.Timedelta(minutes=minutes)).all()
+    )
+
+
 def _ema(series, period):
     return series.ewm(span=period, adjust=False, min_periods=period).mean()
 
@@ -315,7 +326,11 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
     opposing-zone target and 2R checks. This code never creates a zone.
     """
     m5 = frames.get("5m")
-    if m5 is None or len(m5) < 3 or not _zone_frame_is_valid(zone, frames, side):
+    if (
+        m5 is None or len(m5) < 3
+        or not _recent_bars_contiguous(m5, 3, 5)
+        or not _zone_frame_is_valid(zone, frames, side)
+    ):
         return []
     required = {"open", "high", "low", "close", "volume"}
     if not required.issubset(m5.columns) or not isinstance(m5.index, pd.DatetimeIndex):
@@ -397,7 +412,7 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
         idx for idx, row in structure_window.iterrows()
         if _touches_zone(row, low, high)
     ]
-    if structure_touch:
+    if structure_touch and _recent_bars_contiguous(m5, 9, 5):
         prior_swing = m5.iloc[-6:-1]
         if side == "DEMAND":
             broken = float(last.close) > float(prior_swing.high.max()) and _is_bullish(last)
@@ -416,7 +431,12 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
 
     # 4) Trend pullback: higher-timeframe EMA alignment plus a 5m reclaim at the DNS band.
     m15 = frames.get("15m")
-    if m15 is not None and len(m15) >= 55 and {"close", "open"}.issubset(m15.columns):
+    if (
+        m15 is not None and len(m15) >= 55
+        and {"close", "open"}.issubset(m15.columns)
+        and _recent_bars_contiguous(m5, 7, 5)
+        and _recent_bars_contiguous(m15, 55, 15)
+    ):
         ema20_15, ema50_15 = _ema(m15.close, 20).iloc[-1], _ema(m15.close, 50).iloc[-1]
         ema20_5 = _ema(m5.close, 20).iloc[-1]
         pullback_touch = any(_touches_zone(row, low, high) for _, row in m5.iloc[-7:-1].iterrows())
@@ -436,7 +456,7 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
 
     # 5) FVG retrace: a genuine three-candle imbalance must overlap the mapped DNS band.
     atr5 = _atr(m5).iloc[-1]
-    if pd.notna(atr5) and float(atr5) > 0:
+    if pd.notna(atr5) and float(atr5) > 0 and _recent_bars_contiguous(m5, 12, 5):
         n = len(m5)
         for i in range(max(2, n - 10), n - 1):
             first, impulse, third = m5.iloc[i - 2], m5.iloc[i - 1], m5.iloc[i]
@@ -461,7 +481,7 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
 
     # 6) RBS / SBR role reversal: a close through the mapped band, retest, then follow-through.
     reversal_history = m5.iloc[-8:]
-    if len(reversal_history) >= 4:
+    if len(reversal_history) >= 4 and _recent_bars_contiguous(m5, 8, 5):
         if side == "DEMAND":
             for j in range(1, len(reversal_history) - 1):
                 before, breakout = reversal_history.iloc[j - 1], reversal_history.iloc[j]
