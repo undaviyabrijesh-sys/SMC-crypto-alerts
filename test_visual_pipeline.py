@@ -397,7 +397,8 @@ def test_delta_client_rejects_non_allowlisted_api_paths():
 
 
 
-def test_visual_analyst_compares_multiple_setup_families():
+def test_visual_analyst_is_dns_first_and_lists_confirmation_families():
+    """Enum coverage is not independent setup comparison; this contract remains DNS-first."""
     setup_types = set(ai_analyst.ANALYSIS_ITEM["properties"]["setup_type"]["enum"])
     assert {"DEMAND_REJECTION", "LIQUIDITY_SWEEP_REVERSAL", "TREND_PULLBACK",
             "MOMENTUM_CONTINUATION", "RANGE_BREAKOUT", "MEAN_REVERSION",
