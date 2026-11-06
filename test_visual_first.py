@@ -523,6 +523,7 @@ def test_visual_discord_alert_is_bounded_and_preserves_required_sections():
         trade = _candidate()
         trade.update({
             "signal_id": "VISUAL-LONG-01",
+            "dir": "long",
             "setup_family": "OTHER_EVIDENCE_SUPPORTED",
             "quality_score": 100,
             "confidence": 100,
@@ -532,7 +533,7 @@ def test_visual_discord_alert_is_bounded_and_preserves_required_sections():
             "rr": 2.0,
             "trigger_condition": "T" * 1000,
             "higher_timeframe_context": "H" * 1000,
-            "selection_rationale": "R" * 1000,
+            "rationale": "R" * 1000,
             "target_rationale": "G" * 1000,
             "invalidation": "I" * 1000,
             "supporting_evidence": ["S" * 1000] * 3,
