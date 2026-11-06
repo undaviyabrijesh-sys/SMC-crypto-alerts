@@ -264,7 +264,7 @@ def validate_analysis(analysis, current_price, frames, expected_watermarks,
         if other_id == selected_id:
             continue
         if other_plan["dir"] != selected_plan["dir"]:
-            if abs(selected_quality - other_plan["quality_score"]) < OPPOSING_SIGNAL_TIE_MARGIN:
+            if abs(selected_plan["quality_score"] - other_plan["quality_score"]) < OPPOSING_SIGNAL_TIE_MARGIN:
                 return None, "opposing actionable candidates are too close in quality; fail-closed NO_TRADE"
 
     selected_plan["comparison_summary"] = analysis["comparison_summary"]
