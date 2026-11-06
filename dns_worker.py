@@ -77,7 +77,7 @@ def _reprice_pending_alert(trade, current_price, snapshot, frames=None):
 
     primary_zone = None
     for zone in directional_zones if isinstance(directional_zones, list) else []:
-        if not isinstance(zone, dict):
+        if not isinstance(zone, dict) or zone.get("status") != "ACTIVE":
             continue
         try:
             low = float(zone["low"])
