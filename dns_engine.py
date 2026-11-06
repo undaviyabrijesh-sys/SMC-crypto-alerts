@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 import config as C
@@ -309,7 +310,7 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
     opposing-zone target and 2R checks. This code never creates a zone.
     """
     m5 = frames.get("5m")
-    if m5 is None or len(m5) < 12 or not _zone_frame_is_valid(zone, frames, side):
+    if m5 is None or len(m5) < 3 or not _zone_frame_is_valid(zone, frames, side):
         return []
     required = {"open", "high", "low", "close", "volume"}
     if not required.issubset(m5.columns) or not isinstance(m5.index, pd.DatetimeIndex):
