@@ -460,9 +460,12 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
         if side == "DEMAND":
             for j in range(1, len(reversal_history) - 1):
                 before, breakout = reversal_history.iloc[j - 1], reversal_history.iloc[j]
-                retest_rows = reversal_history.iloc[j + 1:]
+                retest_rows = reversal_history.iloc[j + 1:-1]
                 broke = float(before.close) <= high and float(breakout.close) > high and _is_bullish(breakout)
-                held = any(_touches_zone(row, low, high) and float(row.close) >= low for _, row in retest_rows.iterrows())
+                held = (
+                    not retest_rows.empty
+                    and any(_touches_zone(row, low, high) and float(row.close) >= low for _, row in retest_rows.iterrows())
+                )
                 if broke and held and _is_bullish(last) and float(last.close) > float(previous.high):
                     stop = min(float(row.low) for _, row in retest_rows.iterrows()) - pad
                     add("DNS_RBS_RETEST", stop, "The mapped band changed from resistance to demand: price closed above it, retested the band, held, and confirmed with bullish 5m follow-through.")
@@ -470,9 +473,12 @@ def _find_zone_setups(symbol, frames, snapshot, zone, side):
         else:
             for j in range(1, len(reversal_history) - 1):
                 before, breakout = reversal_history.iloc[j - 1], reversal_history.iloc[j]
-                retest_rows = reversal_history.iloc[j + 1:]
+                retest_rows = reversal_history.iloc[j + 1:-1]
                 broke = float(before.close) >= low and float(breakout.close) < low and _is_bearish(breakout)
-                held = any(_touches_zone(row, low, high) and float(row.close) <= high for _, row in retest_rows.iterrows())
+                held = (
+                    not retest_rows.empty
+                    and any(_touches_zone(row, low, high) and float(row.close) <= high for _, row in retest_rows.iterrows())
+                )
                 if broke and held and _is_bearish(last) and float(last.close) < float(previous.low):
                     stop = max(float(row.high) for _, row in retest_rows.iterrows()) + pad
                     add("DNS_SBR_RETEST", stop, "The mapped band changed from support to supply: price closed below it, retested the band, held, and confirmed with bearish 5m follow-through.")
