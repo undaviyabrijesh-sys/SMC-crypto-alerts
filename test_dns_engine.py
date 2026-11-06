@@ -68,7 +68,7 @@ def test_local_watcher_confirms_demand_sweep_and_requires_two_r():
     candidates = dns_engine.detect_local_setup(
         "BTC", {"5m": frame, "1h": pd.DataFrame({"close": [100.8]})}, snap
     )
-    assert len(candidates) == 1
+    assert len(candidates) == 1, candidates
     candidate = candidates[0]
     assert candidate["direction"] == "LONG"
     assert candidate["setup_type"] == "DNS_LIQUIDITY_SWEEP_RECLAIM"
