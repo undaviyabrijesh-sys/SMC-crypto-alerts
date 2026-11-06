@@ -174,7 +174,7 @@ def test_stronger_opposing_candidate_blocks_the_models_weaker_selection():
     frames = _frames(now)
     long = _candidate("long", "LONG", 75, 85)
     short = _candidate("short", "SHORT", 85, 90)
-    analysis = _analysis("BTC", now, frames, [long, short], selected="long")
+    analysis = _analysis("BTC", now, frames, "cycle", [long, short], selected="long")
     plan, reason = visual_worker.validate_analysis(
         analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
     )
@@ -186,7 +186,7 @@ def test_model_selected_side_passes_when_opposing_candidate_is_clearly_weaker():
     frames = _frames(now)
     long = _candidate("long", "LONG", 90, 92)
     short = _candidate("short", "SHORT", 70, 75)
-    analysis = _analysis("BTC", now, frames, [long, short], selected="long")
+    analysis = _analysis("BTC", now, frames, "cycle", [long, short], selected="long")
     plan, reason = visual_worker.validate_analysis(
         analysis, 100.0, frames, visual_worker._watermarks(frames), now=now
     )
