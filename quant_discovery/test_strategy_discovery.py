@@ -25,7 +25,8 @@ class StrategyDiscoveryTests(unittest.TestCase):
 
     def test_same_candle_exit_is_valid_and_available_at_candle_close(self):
         row = trade("BTC", "a", "2026-01-01T00:00Z", "2026-01-01T00:00Z",
-                    -1, hold_hours=0, outcome="SL")
+                    -1, outcome="SL")
+        row["hold_hours"] = 0
         result = validate_trades(pd.DataFrame([row]))
         self.assertEqual(result.iloc[0].outcome_available_at,
                          pd.Timestamp("2026-01-01T00:15Z"))
