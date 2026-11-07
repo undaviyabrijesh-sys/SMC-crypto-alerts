@@ -132,6 +132,13 @@ jobs:
           --data-dir historical_data
           --output-dir quant_discovery/results/exp002
 
+      - name: Run EXP-003 prequential online strategy selector
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/strategy_discovery.py
+          --input-csv quant_discovery/results/exp002/exp002_oos_trades.csv
+          --output-dir quant_discovery/results/exp003
+
       - name: Summarize strategy research tables
         if: always()
         run: |
@@ -160,7 +167,19 @@ jobs:
                       f"expectancy={row.get('expectancy_net_R', row.get('net_expectancy_R'))}R, "
                       f"PF={row.get('profit_factor')}"
                   )
-          print("- EXP-002 remains research-only; no result is automatically promoted.")
+          exp003_path = Path("quant_discovery/results/exp003/exp003_summary.csv")
+          print("## EXP-003 online strategy selector")
+          if exp003_path.is_file():
+              with exp003_path.open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.DictReader(handle))
+              rows = [r for r in rows if r.get("asset") == "ALL" and r.get("cost_bps_round_trip") == "10.0"]
+              for r in rows:
+                  print(f"- {r.get('policy')}: n={r.get('n')}, expectancy={r.get('expectancy_net_R')}R, "
+                        f"PF={r.get('profit_factor')}, max DD={r.get('max_drawdown_R')}R, "
+                        f"max loss-event streak={r.get('max_consecutive_losses')}")
+          else:
+              print("- EXP-003 results not produced; inspect its workflow step.")
+          print("- EXP-001/002/003 remain research-only; no result is automatically promoted.")
           PY
 
       - name: Add archive result to run summary
@@ -198,7 +217,7 @@ jobs:
           compression-level: 6
           retention-days: 14
 
-      - name: Retain EXP-001 and EXP-002 result tables
+      - name: Retain EXP-001, EXP-002 and EXP-003 result tables
         if: always()
         uses: actions/upload-artifact@v4
         with:
