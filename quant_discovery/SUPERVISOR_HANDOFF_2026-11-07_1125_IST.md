@@ -119,3 +119,40 @@ Together with all 42 cells turning negative at 20/40 bps, these results are fold
 4. Replace evictable Actions-cache state with durable position storage and reconcile prior positions before claiming complete lifecycle tracking.
 5. Validate Delta funding units, sign, interval and settlement timestamps against contract metadata and a realized event; obtain historical spread/depth or retain costs only as stress assumptions.
 6. Keep PR #1 draft/unmerged and `main` untouched. No deployment, secrets, live trading or orders.
+
+
+## Addendum — corrected EXP-003 replay completed, 2026-11-07 12:00 IST
+
+### Historical archive and coverage audit
+
+- Corrected replay [run 42346506072](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42346506072) completed successfully. All 18 expected Delta Exchange India CSV datasets passed row-count and SHA-256 validation; total **931,532 candles**. Research artifact ID `13564220631`; OHLCV archive artifact ID `13563074167`; both expire 2026-11-21.
+- Coverage is not three full years for every instrument. BTC starts 2023-12-29; ETH starts 2024-02-06; XAUTUSD (Gold proxy) starts only 2026-04-17, so Gold has about 6.7 months of history and only ~18.6% of the requested three-year coverage. XAUT has 100% coverage within that shorter observed span, but its sample is insufficient for a multi-year robustness claim.
+- BTC history contains material gaps: 5m has 7 gaps (largest ~8.4 days), 15m has 3 (largest ~34 hours), and 1h has 1 (~19 hours). ETH has 4 gaps on 5m and 1 on 15m (largest ~17.8 hours); higher timeframes had no reported gaps. Gap-affected windows must be excluded or explicitly modeled before relying on regime or execution conclusions.
+
+### EXP-003 corrected walk-forward results
+
+- The pandas datetime-resolution fix is confirmed by the production archive: **10,570 selected trades, zero null folds**. Fold counts: WF1 1,758; WF2 2,364; WF3 1,859; WF4 1,936; WF5 2,653. The five-fold totals reconcile to the selected-trade count for each policy/asset/cost summary.
+- At 10 bps round-trip stress:
+  - Follow-the-Winner: n=711, win rate 35.86%, expectancy -0.18277R, PF 0.7688, max DD -133.9182R, max loss streak 11, ~104 trades/month; all five folds negative.
+  - Follow-the-Loser: n=2,349, 34.65%, -0.42457R, PF 0.5664, max DD -1009.6958R, streak 18, ~344/month; all five folds negative.
+  - Pattern Match: n=614, 34.04%, -0.22922R, PF 0.7151, max DD -148.8300R, streak 9, ~90/month; all five folds negative.
+  - Meta-Ensemble: n=970, 34.74%, -0.20821R, PF 0.7413, max DD -209.5939R, streak 13, ~142/month; all five folds negative.
+- At 20 bps, all four policies remain negative overall. Follow-the-Winner is positive in only one of five folds (+0.04805R) but has overall expectancy -0.16109R; the other three policies are negative in all five folds. At 40 bps, all four policies are negative; Follow-the-Loser degrades to -1.74270R expectancy, PF 0.1379, max DD -4397.0432R and a 40-loss streak. Several 40 bps policies have very small samples or empty folds.
+- EXP-001: 0/30 OOS cells positive. EXP-002: 4/42 positive at 10 bps, but 0/42 at 20/40 bps; small positives remain fold/regime fragile. EXP-003's corrected folds are now usable, but no selector is profitable across costs and chronological folds.
+- These are historical shadow-trade results using stated cost/carry stress assumptions. Historical spread, depth, executable impact and realized funding attribution are not available. **No candidate is a validated edge.** Keep `APPROVED_STRATEGIES` empty and do not route any of these results into alerts.
+
+### Current release and visual pipeline state
+
+- Latest code/test commit remains [`547fd6a`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/547fd6a6d4d3509af3c1a18f7c78608d50496317); latest handoff commit before this addendum is `6ae8ce91`. Push CI [42346685689](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42346685689) and PR CI [42346690266](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42346690266) passed on the handoff head.
+- PR #1 remains open, draft, unmerged and mergeable. Its base and live `main` SHA remain `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`; no `main` commit was made.
+- Public Delta feed smoke checks passed all 18 symbol/timeframe combinations at the 06:20 UTC probe. Funding, mark and OI endpoints responded for BTC, ETH and XAUT, but funding sign/settlement accounting is not validated.
+- No fresh chart bundle, real vision inference or Discord webhook delivery was produced. The visual worker remains manual/opt-in; OpenAI quota HTTP 429 remains the recorded blocker. No execution alert was sent in this cycle.
+
+### Exact next steps
+
+1. Find or connect a longer, gap-audited Gold/XAUT history source before treating Gold results as comparable with BTC/ETH; preserve the Delta XAUT dataset as a separate short-history sample.
+2. Quantify and mask BTC/ETH gap windows, then rerun chronological/walk-forward comparisons with realistic fees, spread, slippage and validated funding.
+3. Require a separate untouched future period and robustness across regimes/costs before considering any candidate an edge; keep the production allowlist empty.
+4. Restore OpenAI API quota and perform one explicitly authorized paper-only visual cycle with actual chart images, response validation and confirmed Discord delivery.
+5. Continue to treat the Actions cache as best-effort state recovery, not a durable ledger; recover/verify any open positions before claiming full lifecycle continuity.
+6. Keep PR #1 draft/unmerged and `main` untouched. No deployment, secret changes, live trading or exchange orders.
