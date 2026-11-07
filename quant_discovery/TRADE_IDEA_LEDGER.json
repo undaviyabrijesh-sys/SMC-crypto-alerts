@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-07T11:57:56.718Z",
+  "updated_at_utc": "2026-11-07T12:03:33.000Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -1115,6 +1115,13 @@
       "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
       "status": "still_open_unalerted",
       "details": "167 completed post-entry 5m bars through 11:54:59.999Z; max high 2253.43 below stop 2256; min low 2234.54 above target 2205.11; latest mark 2243.8810; unrealized -0.2118R."
+    },
+    {
+      "timestamp_utc": "2026-11-07T12:03:33.000Z",
+      "event": "user_requested_paper_trade_monitoring_refresh",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "status": "open_unalerted_delivery_blocked",
+      "details": "User explicitly requested continued TP/SL tracking. Fresh Binance USDⓈ-M mark price 0.8603 at 12:03:33Z. Ten completed 5m candles from 11:10 through 11:59:59Z checked; max high 0.8627, min low 0.8590. Original stop 0.8715 and target 0.8300 untouched. Estimated mark-to-entry result -0.0345R. 12:00 candle excluded because still forming. Discord delivery remains not sent/unconfirmed."
     }
   ],
   "triggered_unalerted_setups": [
@@ -1193,18 +1200,18 @@
         "No reliable liquidation/force-order feed was available."
       ],
       "latest_market_check": {
-        "as_of_utc": "2026-11-07T11:57:34.000Z",
-        "mark_price": 0.861,
-        "unrealized_R_at_mark": -0.09482758620689523,
+        "as_of_utc": "2026-11-07T12:03:33.000Z",
+        "mark_price": 0.8603,
+        "unrealized_R_at_mark": -0.03448275862068569,
         "latest_completed_5m_candle": {
-          "open_utc": "2026-11-07T11:50:00.000Z",
-          "close_utc": "2026-11-07T11:54:59.999Z",
-          "open": 0.8618,
-          "high": 0.8619,
-          "low": 0.8614,
-          "close": 0.8615
+          "open_utc": "2026-11-07T11:55:00.000Z",
+          "close_utc": "2026-11-07T11:59:59.999Z",
+          "open": 0.8615,
+          "high": 0.8615,
+          "low": 0.8607,
+          "close": 0.8611
         },
-        "post_entry_5m_bars_checked": 8,
+        "post_entry_5m_bars_checked": 18,
         "post_entry_max_high": 0.8627,
         "post_entry_min_low": 0.859,
         "stop_touched": false,
@@ -1215,9 +1222,9 @@
       "discord_delivery_status": "not_sent",
       "discord_delivery_blocker": "This runner has no direct Discord send action and no GitHub Actions workflow-dispatch action. The existing alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but this run cannot invoke it or access the secrets. No delivery confirmation exists.",
       "active_alerted": false,
-      "last_checked_at_utc": "2026-11-07T11:57:56.718Z",
-      "latest_mark_price": 0.861,
-      "estimated_unrealized_R_at_latest_mark": -0.09482758620689523
+      "last_checked_at_utc": "2026-11-07T12:03:33.000Z",
+      "latest_mark_price": 0.8603,
+      "estimated_unrealized_R_at_latest_mark": -0.03448275862068569
     }
   ]
 }
