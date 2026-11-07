@@ -64,3 +64,28 @@
 ## Safety
 
 This checkpoint did not modify `main`, merge PR #1, deploy infrastructure, change secrets, enable live trading, submit orders, or send a new Discord execution alert.
+
+## Addendum — supervisor re-check, 2026-11-07 11:30 IST
+
+### Archive trigger correction and current run
+
+- The initial handoff commit `f41e237` did not start the archive: the workflow's push path filter only watched its own YAML file. This was corrected in [`15f5de4`](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/15f5de4fe05bc341ea56a9fe16f99be888e240eb), which now also watches `bootstrap_historical_data.py` and the EXP-001/002/003 runner source files. A deliberate `RUN_HISTORICAL_ARCHIVE:` commit is still required.
+- The corrected trigger started [Historical OHLCV archive run 42344719278](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42344719278) on fixed EXP-003 code. At this checkpoint its 3-year BTC/ETH/XAUT download step was still running; no EXP-003 result is claimed yet.
+- The derivatives archive workflow was correctly skipped. The deterministic CI for workflow commit `15f5de4` passed on push [42344719411](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42344719411) and PR [42344723554](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42344723554). The PR remains draft/open/unmerged with head `15f5de4`.
+
+### EXP-002 robustness interpretation
+
+The four small positive 10 bps OOS rows are not stable across walk-forward folds or regimes:
+
+- BTC 1h EMA crossover: only WF4 was positive (+0.3071R); WF1/WF2/WF3/WF5 were negative. Down regime was +0.3211R (n=17) while up regime was -0.0950R (n=27).
+- ETH 1h ADX/DMI: only WF4 (+0.0154R) and WF5 (+0.0226R) were marginally positive; the first three folds were negative. Low-volatility expectancy was +0.0765R versus -0.0866R in high volatility.
+- ETH 1h Bollinger squeeze: WF2/WF3/WF4 positive, WF1/WF5 negative. Low-volatility expectancy was +0.3561R (n=36) versus -0.8618R in high volatility (n=12).
+- ETH 1h stochastic pullback: only WF5 positive (+0.2595R); WF1–WF4 were negative. High-volatility expectancy was +0.1523R versus -0.0592R in low volatility.
+
+Together with all 42 cells turning negative at 20/40 bps, these results are fold- and regime-dependent, with weak sample sizes and drawdowns. None qualifies as a robust edge.
+
+### Live public feed verification
+
+- The exact-head deterministic CI smoke at 2026-11-07 05:55 UTC passed all **18/18** BTC/ETH/XAUT production symbol/timeframe combinations. Each instrument returned 1,151 closed 5m candles, 1,343 15m, 1,079 1h, 719 4h, 364 1d (XAUT 204) and 29–149 1w candles. The 5m/15m/1h last-close ages were approximately 0.9/10.9/55.9 minutes at probe time.
+- Funding (70 hourly), mark (864 five-minute) and open-interest (72 hourly) public series were available for BTCUSD, ETHUSD and XAUTUSD. Availability is not proof of correct funding units/sign or realized settlement attribution.
+- No raw multi-timeframe chart bundle was produced by this CI. Visual analyst tests are mocked; no real vision call, execution alert or Discord webhook delivery is claimed.
