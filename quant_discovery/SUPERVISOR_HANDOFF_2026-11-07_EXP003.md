@@ -28,9 +28,9 @@ The specification is in `quant_discovery/EXP003_ONLINE_META_SELECTOR_SPEC.md`. C
 The existing one-time historical OHLCV workflow was extended to run EXP-003 after EXP-001 and EXP-002, and to include EXP-003 in the run summary and research artifact. The implementation commit intentionally starts a new one-time archive run on this research branch.
 
 GitHub Actions evidence:
-- Push CI run [42341048498](https://github.com/undaviyabr-ij-sys/SMC-crypto-alerts/actions/runs/42341048498) — passed on the EXP-003 implementation head.
-- PR CI run [42341052077](https://github.com/undaviyabr-ij-sys/SMC-crypto-alerts/actions/runs/42341052077) — passed on the same head.
-- Historical archive run [42341048484](https://github.com/undaviyabr-ij-sys/SMC-crypto-alerts/actions/runs/42341048484) — was still downloading the three-year BTC/ETH/XAUT OHLCV archive at the latest inspection. Dataset verification, EXP-001, EXP-002 and EXP-003 had not yet started at that inspection. Do not assume it completed or that it generated research metrics; re-check the run and its jobs/artifacts first.
+- Push CI run [42341048498](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42341048498) — passed on the EXP-003 implementation head.
+- PR CI run [42341052077](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42341052077) — passed on the same head.
+- Historical archive run [42341048484](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42341048484) — was still downloading the three-year BTC/ETH/XAUT OHLCV archive at the latest inspection. Dataset verification, EXP-001, EXP-002 and EXP-003 had not yet started at that inspection. Do not assume it completed or that it generated research metrics; re-check the run and its jobs/artifacts first.
 - The preceding archive run [42340120427](https://github.com/undaviyabr-sys/SMC-crypto-alerts/actions/runs/42340120427) completed successfully: all 18 datasets verified and EXP-001 plus EXP-002 completed. It produced:
   - archive artifact ID `13561158245`, expires 2026-11-21 04:57 UTC;
   - research result artifact ID `13561148256`, expires 2026-11-21 04:57 UTC.
