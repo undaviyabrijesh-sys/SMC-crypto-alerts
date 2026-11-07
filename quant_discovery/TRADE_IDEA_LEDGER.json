@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-07T09:07:23.000Z",
+  "updated_at_utc": "2026-11-07T10:13:52.625Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -31,8 +31,8 @@
       "stop_touch_candle_open_utc": "2026-11-07T02:30:00Z",
       "confirmation": "Fresh 5m Binance candles after the 02:15 UTC entry show a 02:30 UTC candle low of 1346.73, below the original 1348.83 stop; no target touch.",
       "discord_entry_delivery_confirmed": false,
-      "last_checked_at_utc": "2026-11-07T05:14:42.001Z",
-      "latest_mark_price": 1311.545
+      "last_checked_at_utc": "2026-11-07T10:13:52.625Z",
+      "latest_mark_price": 1315.64556
     },
     {
       "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
@@ -47,16 +47,16 @@
       "stop": 2256,
       "target_1": 2205.11,
       "planned_rr": 2.31,
-      "latest_mark_price": 2247.99,
-      "estimated_unrealized_R_at_latest_mark": -0.479,
+      "latest_mark_price": 2246.59,
+      "estimated_unrealized_R_at_latest_mark": -0.388,
       "max_high_since_entry_observed": 2253.43,
       "min_low_since_entry_observed": 2234.54,
       "terminal_level_hit": false,
       "confirmation": "Fresh completed Binance 5m candles from the 2026-11-06T22:00:00Z reference entry through 2026-11-07T08:09:59.999Z: maximum post-entry high 2253.43 (< original stop 2256), minimum post-entry low 2234.54 (> original target 2205.11); neither terminal level touched. Latest completed 5m candle opened 08:05Z and closed 08:09:59.999Z at 2246.49 (high 2246.78, low 2245.35). Latest mark 2246.33151938; shadow unrealized approximately -0.3712R. Still unalerted and not an active alerted setup.",
       "discord_entry_delivery_confirmed": false,
       "best_favorable_excursion_R": 0.396,
-      "last_checked_at_utc": "2026-11-07T09:07:23.000Z",
-      "last_candle_evidence": "133 completed 5m candles from the 2026-11-06T22:00:00Z reference bar through 2026-11-07T09:04:59.999Z; max high 2253.43 remains below original stop 2256; min low 2234.54 remains above original target 2205.11. Latest completed 5m candle opened 09:00Z, high 2250.60, low 2247.66, close 2248.29. Latest mark 2247.99; shadow unrealized approximately -0.479R. No terminal event; unalerted."
+      "last_checked_at_utc": "2026-11-07T10:13:52.625Z",
+      "last_candle_evidence": "146 completed 5m candles from the 2026-11-06T22:00:00Z reference entry through 2026-11-07T10:09:59.999Z; max high 2253.43 remains below original stop 2256; min low 2234.54 remains above original target 2205.11. Latest completed 5m candle opened 10:05Z, high 2247.30, low 2246.25, close 2246.76. Latest mark 2246.59; shadow unrealized approximately -0.388R. Still unalerted, no terminal event."
     }
   ],
   "watch_only": [
@@ -76,23 +76,24 @@
       "confidence": 62,
       "confidence_caveat": "Subjective watch-quality score only; below execution-grade confidence and not a validated statistical probability.",
       "reasons_not_qualified": [
-        "No completed 15m close below 0.8615; lowest close in the checked post-watch sample is 0.8651.",
-        "Latest completed 15m candle closed at 0.8684 with volume 0.861x its preceding 20-bar average.",
-        "No breakdown followed by a separate failed retest; remains watch-only."
+        "22 completed 15m candles since the watch start; lowest close is 0.8628, above the required 0.8615 trigger.",
+        "Lowest wick was 0.8618, also above 0.8615; no completed candle close below the trigger.",
+        "Latest completed 15m candle closed at 0.8628 after a low of 0.8618, with volume 1.952x its preceding 20-bar average. This is a close test but not a trigger.",
+        "No separate failed retest after a confirmed breakdown."
       ],
-      "relevant_context": "Latest 15m close 0.8684 below EMA20 0.869008 and EMA50 0.869613; RSI 52.94; volume 0.861x 20-bar average. Latest 1h close 0.8684 below EMA50 0.877851; latest 4h close 0.8699 below EMA20 0.879154 and EMA50 0.891109. OI +0.0870% over the latest completed hourly interval, funding +0.004570%, global long/short account ratio 2.2279. Latest mark 0.8677.",
+      "relevant_context": "Latest completed 15m close 0.8628 below EMA20 0.867507 and EMA50 0.868311; RSI 35.07; volume 1.952x 20-bar average. Latest completed 1h close 0.8628 below EMA50 0.873350; latest 4h close 0.8699 below EMA20 0.879164 and EMA50 0.893473. OI -0.1114% over the latest completed hourly interval, funding +0.004370%, global long/short account ratio 2.2499. Latest mark 0.8622.",
       "cancel_if": "A 4h close reclaims and holds above 0.8745.",
-      "last_checked_at_utc": "2026-11-07T09:07:23.000Z",
-      "latest_mark_price": 0.8677,
+      "last_checked_at_utc": "2026-11-07T10:13:52.625Z",
+      "latest_mark_price": 0.8622,
       "latest_closed_15m": {
-        "open_utc": "2026-11-07T08:45:00Z",
-        "close_utc": "2026-11-07T08:59:59.999Z",
-        "open": 0.8698,
-        "high": 0.8707,
-        "low": 0.8682,
-        "close": 0.8684,
-        "volume": 456888,
-        "volume_vs_20bar_average": 0.861
+        "open_utc": "2026-11-07T09:45:00Z",
+        "close_utc": "2026-11-07T09:59:59.999Z",
+        "open": 0.8641,
+        "high": 0.8644,
+        "low": 0.8618,
+        "close": 0.8628,
+        "volume": 1225795.5,
+        "volume_vs_20bar_average": 1.952
       },
       "trigger_confirmed": false,
       "retest_condition_met": false,
@@ -100,19 +101,20 @@
     }
   ],
   "last_scan": {
-    "as_of_utc": "2026-11-07T09:07:23.000Z",
-    "as_of_ist": "2026-11-07T14:37:23.000+05:30",
+    "as_of_utc": "2026-11-07T10:13:52.625Z",
+    "as_of_ist": "2026-11-07T15:43:52.625+05:30",
     "venue": "Binance USDⓈ-M perpetual public market data",
-    "latest_ticker_timestamp_utc": "2026-11-07T09:06:54Z–2026-11-07T09:07:19Z",
-    "latest_mark_timestamp_utc": "2026-11-07T09:06:57Z–2026-11-07T09:07:23Z",
+    "latest_ticker_timestamp_utc": "2026-11-07T10:13:50Z–2026-11-07T10:13:52.625Z",
+    "latest_mark_sample_utc": "2026-11-07T10:13:52.625Z",
     "closed_ohlcv_latest_by_timeframe": {
-      "5m": "ETH shadow latest completed candle opened 09:00:00Z and closed 09:04:59.999Z",
-      "15m": "08:45:00Z open; closed 08:59:59.999Z",
-      "1h": "08:00:00Z open; closed 08:59:59.999Z",
+      "5m": "ETH shadow latest completed candle opened 2026-11-07T10:05:00Z and closed 10:09:59.999Z",
+      "15m": "09:45:00Z open; closed 09:59:59.999Z",
+      "1h": "09:00:00Z open; closed 09:59:59.999Z",
       "4h": "04:00:00Z open; closed 07:59:59.999Z",
       "1d": "2026-11-06T00:00:00Z open; closed 2026-11-06T23:59:59.999Z"
     },
-    "oi_and_long_short_statistics_through_utc": "Completed hourly observation timestamp 08:00Z; latest mark/funding observations through 09:07:23Z.",
+    "oi_and_long_short_statistics_through_utc": "Completed hourly OI and account-ratio observations timestamped 10:00Z; current mark/funding samples through 10:13:52.625Z.",
+    "adl_risk_snapshot_utc": "2026-11-07T10:00:00.532Z; ADL risk LOW for all ten scanned contracts.",
     "symbols_scanned": [
       "BTCUSDT",
       "ETHUSDT",
@@ -128,548 +130,607 @@
     "market_summary": [
       {
         "symbol": "BTCUSDT",
-        "price": 76134.5,
-        "change24hPct": 0.409,
-        "quoteVolume24h": 8879537464.57,
-        "funding": 0.00000699,
-        "oiChange1hPct": 0.0817,
-        "longShortAccounts": 3.065,
-        "levels": {
-          "support": [
-            75803.8,
-            75742.3,
-            74810.8
-          ],
-          "resistance": [
-            76161.1,
-            76182.5,
-            76210.4,
-            76350.9
-          ]
-        },
+        "price": 75996,
+        "mark": 75997.2337971,
+        "change24hPct": -0.199,
+        "quoteVolume24h": 8492944831.04,
+        "high24h": 76350.9,
+        "low24h": 74810.8,
+        "fundingRate": 0.00000174,
+        "oiChange1hPct": 0.27473,
+        "longShortAccountsRatio": 3.0339,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.5078,
         "tf": {
           "m15": {
-            "close": 76161,
-            "ema20": 76014.4,
-            "ema50": 75952.92,
-            "rsi14": 78.47,
-            "volumeVs20": 1.719
+            "c": 76015.5,
+            "ema20": 76029.77,
+            "ema50": 75977.19,
+            "rsi": 50.35,
+            "vol": 0.878
           },
           "h1": {
-            "close": 76161,
-            "ema20": 76007.43,
-            "ema50": 76767.21,
-            "rsi14": 73.27,
-            "volumeVs20": 0.276
+            "c": 76015.5,
+            "ema20": 76004.35,
+            "ema50": 76456.37,
+            "rsi": 47.41,
+            "vol": 0.501
           },
           "h4": {
-            "close": 76053.5,
-            "ema20": 76905.95,
-            "ema50": 77759.08,
-            "rsi14": 17.84,
-            "volumeVs20": 0.13
+            "c": 76053.5,
+            "ema20": 76906.33,
+            "ema50": 77812.84,
+            "rsi": 40.41,
+            "vol": 0.132
           },
           "d1": {
-            "close": 75810.1,
-            "ema20": 79188.18,
-            "ema50": 80353.06,
-            "rsi14": 34.35
+            "c": 75810.1,
+            "ema20": 79184.27,
+            "ema50": 79579.65,
+            "rsi": 37.92
           }
         }
       },
       {
         "symbol": "ETHUSDT",
-        "price": 2247.99,
-        "change24hPct": 0.716,
-        "quoteVolume24h": 5269284742.49,
-        "funding": 0.000047,
-        "oiChange1hPct": 0.08255,
-        "longShortAccounts": 3.7237,
-        "levels": {
-          "support": [
-            2239.25,
-            2234.54,
-            2208.81,
-            2205.11
-          ],
-          "resistance": [
-            2249.98,
-            2250.6,
-            2253.43
-          ]
-        },
+        "price": 2246.23,
+        "mark": 2246.59,
+        "change24hPct": 0.314,
+        "quoteVolume24h": 4979531003.45,
+        "high24h": 2253.43,
+        "low24h": 2208.81,
+        "fundingRate": 0.00005041,
+        "oiChange1hPct": 0.07361,
+        "longShortAccountsRatio": 3.7015,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.4386,
         "tf": {
           "m15": {
-            "close": 2249.36,
-            "ema20": 2245.53,
-            "ema50": 2241.98,
-            "rsi14": 54.84,
-            "volumeVs20": 1.276
+            "c": 2244.85,
+            "ema20": 2245.62,
+            "ema50": 2243.23,
+            "rsi": 49.34,
+            "vol": 1.051
           },
           "h1": {
-            "close": 2249.36,
-            "ema20": 2243.74,
-            "ema50": 2273.7,
-            "rsi14": 68.52,
-            "volumeVs20": 0.227
+            "c": 2244.85,
+            "ema20": 2243.67,
+            "ema50": 2259.5,
+            "rsi": 48.37,
+            "vol": 0.298
           },
           "h4": {
-            "close": 2244.81,
-            "ema20": 2273.85,
-            "ema50": 2287.87,
-            "rsi14": 16.72,
-            "volumeVs20": 0.139
+            "c": 2244.81,
+            "ema20": 2273.88,
+            "ema50": 2291.47,
+            "rsi": 42.58,
+            "vol": 0.14
           },
           "d1": {
-            "close": 2237.55,
-            "ema20": 2335.51,
-            "ema50": 2421.41,
-            "rsi14": 38.03,
-            "volumeVs20": 0.952
+            "c": 2237.55,
+            "ema20": 2335.3,
+            "ema50": 2389.02,
+            "rsi": 39.46,
+            "vol": 0.933
           }
         }
       },
       {
         "symbol": "SOLUSDT",
-        "price": 90.25,
-        "change24hPct": 0.479,
-        "quoteVolume24h": 998556691.59,
-        "funding": 0.00005249,
-        "oiChange1hPct": 0.0492,
-        "longShortAccounts": 3.6083,
-        "levels": {
-          "support": [
-            89.85,
-            89.55,
-            88.24
-          ],
-          "resistance": [
-            90.35,
-            90.47,
-            90.63,
-            91.58
-          ]
-        },
+        "price": 90.02,
+        "mark": 90.02,
+        "change24hPct": -0.1,
+        "quoteVolume24h": 966068032.28,
+        "high24h": 91.58,
+        "low24h": 89.55,
+        "fundingRate": 0.00004143,
+        "oiChange1hPct": -0.01104,
+        "longShortAccountsRatio": 3.6147,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 1.1425,
         "tf": {
           "m15": {
-            "close": 90.25,
-            "ema20": 90.163,
-            "ema50": 90.177,
-            "volumeVs20": 1.319
+            "c": 90.03,
+            "ema20": 90.1314,
+            "ema50": 90.1637,
+            "rsi": 44.64,
+            "vol": 0.637
           },
           "h1": {
-            "close": 90.25,
-            "ema20": 90.254,
-            "ema50": 91.19,
-            "volumeVs20": 0.367
+            "c": 90.03,
+            "ema20": 90.2283,
+            "ema50": 90.8584,
+            "rsi": 44.69,
+            "vol": 0.647
           },
           "h4": {
-            "close": 90.18,
-            "ema20": 91.595,
-            "ema50": 93.747,
-            "volumeVs20": 0.202
+            "c": 90.18,
+            "ema20": 91.5968,
+            "ema50": 93.916,
+            "rsi": 40.42,
+            "vol": 0.204
           },
           "d1": {
-            "close": 90.1,
-            "ema20": 97.995,
-            "ema50": 102.978,
-            "volumeVs20": 0.95
+            "c": 90.1,
+            "ema20": 97.9875,
+            "ema50": 101.4462,
+            "rsi": 30.76,
+            "vol": 0.931
           }
         }
       },
       {
         "symbol": "XRPUSDT",
-        "price": 1.1759,
-        "change24hPct": -1.45,
-        "quoteVolume24h": 737115140.2,
-        "funding": 0.00007957,
-        "oiChange1hPct": -1.2312,
-        "longShortAccounts": 2.8745,
-        "levels": {
-          "support": [
-            1.1757,
-            1.1711,
-            1.1512,
-            1.1509
-          ],
-          "resistance": [
-            1.181,
-            1.1817,
-            1.1991,
-            1.2029
-          ]
-        },
+        "price": 1.1691,
+        "mark": 1.1694,
+        "change24hPct": -2.453,
+        "quoteVolume24h": 719734397.9159,
+        "high24h": 1.2029,
+        "low24h": 1.1509,
+        "fundingRate": 0.0001,
+        "oiChange1hPct": -0.1139,
+        "longShortAccountsRatio": 2.8139,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 1.2092,
         "tf": {
           "m15": {
-            "close": 1.1758,
-            "ema20": 1.170509,
-            "ema50": 1.171849,
-            "volumeVs20": 1.236
+            "c": 1.1711,
+            "ema20": 1.17103,
+            "ema50": 1.17253,
+            "rsi": 50.71,
+            "vol": 0.494
           },
           "h1": {
-            "close": 1.1758,
-            "ema20": 1.17863,
-            "ema50": 1.209195,
-            "volumeVs20": 0.955
+            "c": 1.1711,
+            "ema20": 1.17787,
+            "ema50": 1.20427,
+            "rsi": 40.35,
+            "vol": 0.614
           },
           "h4": {
-            "close": 1.1749,
-            "ema20": 1.222076,
-            "ema50": 1.249455,
-            "volumeVs20": 0.688
+            "c": 1.1749,
+            "ema20": 1.22208,
+            "ema50": 1.24955,
+            "rsi": 32.74,
+            "vol": 0.676
           },
           "d1": {
-            "close": 1.1785,
-            "ema20": 1.282702,
-            "ema50": 1.337473,
-            "volumeVs20": 1.426
+            "c": 1.1785,
+            "ema20": 1.2826,
+            "ema50": 1.31903,
+            "rsi": 32.96,
+            "vol": 1.372
           }
         }
       },
       {
         "symbol": "BNBUSDT",
-        "price": 696.46798,
-        "change24hPct": 0.282,
-        "quoteVolume24h": 192581871.72,
-        "funding": 0.00009819,
-        "oiChange1hPct": -0.1612,
-        "longShortAccounts": 2.8139,
-        "levels": {
-          "support": [
-            696.26,
-            694.04,
-            693.5,
-            692.64,
-            680
-          ],
-          "resistance": [
-            697.01,
-            700.17
-          ]
-        },
+        "price": 695.13,
+        "mark": 695.14,
+        "change24hPct": 0.099,
+        "quoteVolume24h": 188007780.051,
+        "high24h": 700.17,
+        "low24h": 692.64,
+        "fundingRate": 0.00009592,
+        "oiChange1hPct": 0.04408,
+        "longShortAccountsRatio": 2.8139,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.433,
         "tf": {
           "m15": {
-            "close": 696.43,
-            "ema20": 695.61,
-            "ema50": 695.446,
-            "rsi14": 61.59,
-            "volumeVs20": 1.738
+            "c": 694.92,
+            "ema20": 695.6006,
+            "ema50": 695.5431,
+            "rsi": 43.12,
+            "vol": 1.138
           },
           "h1": {
-            "close": 696.43,
-            "ema20": 695.512,
-            "ema50": 699.186,
-            "rsi14": 54.93,
-            "volumeVs20": 0.609
+            "c": 694.92,
+            "ema20": 695.4221,
+            "ema50": 696.9136,
+            "rsi": 47,
+            "vol": 0.526
           },
           "h4": {
-            "close": 695.31,
-            "ema20": 699.005,
-            "ema50": 707.586,
-            "rsi14": 30.83,
-            "volumeVs20": 0.23
+            "c": 695.31,
+            "ema20": 698.991,
+            "ema50": 706.7998,
+            "rsi": 45.32,
+            "vol": 0.231
           },
           "d1": {
-            "close": 694.08,
-            "ema20": 719.014,
-            "ema50": 731.883,
-            "rsi14": 36.64,
-            "volumeVs20": 0.669
+            "c": 694.08,
+            "ema20": 718.9617,
+            "ema50": 724.045,
+            "rsi": 40.29,
+            "vol": 0.663
           }
         }
       },
       {
         "symbol": "DOGEUSDT",
-        "price": 0.07211515,
-        "change24hPct": -0.083,
-        "quoteVolume24h": 190524969.9,
-        "funding": 0.00003806,
-        "oiChange1hPct": 0.3217,
-        "longShortAccounts": 2.7397,
-        "levels": {
-          "support": [
-            0.07207,
-            0.07172,
-            0.0717,
-            0.07108,
-            0.0701
-          ],
-          "resistance": [
-            0.07215,
-            0.07334
-          ]
-        },
+        "price": 0.07182,
+        "mark": 0.07182,
+        "change24hPct": -0.705,
+        "quoteVolume24h": 187799025.953,
+        "high24h": 0.07334,
+        "low24h": 0.0717,
+        "fundingRate": 0.0000234,
+        "oiChange1hPct": -0.25812,
+        "longShortAccountsRatio": 2.7481,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.7903,
         "tf": {
           "m15": {
-            "close": 0.07212,
-            "ema20": 0.07205,
-            "ema50": 0.072237,
-            "rsi14": 64.71,
-            "volumeVs20": 1.537
+            "c": 0.07184,
+            "ema20": 0.0720093,
+            "ema50": 0.0721626,
+            "rsi": 38.56,
+            "vol": 0.886
           },
           "h1": {
-            "close": 0.07212,
-            "ema20": 0.072321,
-            "ema50": 0.073144,
-            "rsi14": 35.06,
-            "volumeVs20": 0.827
+            "c": 0.07184,
+            "ema20": 0.072271,
+            "ema50": 0.0728535,
+            "rsi": 40.17,
+            "vol": 0.807
           },
           "h4": {
-            "close": 0.07206,
-            "ema20": 0.073429,
-            "ema50": 0.074832,
-            "rsi14": 28.66,
-            "volumeVs20": 0.3
+            "c": 0.07206,
+            "ema20": 0.0734263,
+            "ema50": 0.074743,
+            "rsi": 40.72,
+            "vol": 0.3
           },
           "d1": {
-            "close": 0.07238,
-            "ema20": 0.077254,
-            "ema50": 0.081588,
-            "rsi14": 35.62,
-            "volumeVs20": 0.887
+            "c": 0.07238,
+            "ema20": 0.0772514,
+            "ema50": 0.0808002,
+            "rsi": 35.75,
+            "vol": 0.882
           }
         }
       },
       {
         "symbol": "SUIUSDT",
-        "price": 0.8677,
-        "change24hPct": 0.907,
-        "quoteVolume24h": 116566453.14,
-        "funding": 0.0000457,
-        "oiChange1hPct": 0.08704,
-        "longShortAccounts": 2.2279,
-        "levels": {
-          "support": [
-            0.8682,
-            0.8643,
-            0.8615,
-            0.857,
-            0.83
-          ],
-          "resistance": [
-            0.8707,
-            0.8711,
-            0.8733,
-            0.8745,
-            0.8816
-          ]
-        },
+        "price": 0.8621,
+        "mark": 0.8622,
+        "change24hPct": -0.404,
+        "quoteVolume24h": 115042232.31248,
+        "high24h": 0.8816,
+        "low24h": 0.857,
+        "fundingRate": 0.0000437,
+        "oiChange1hPct": -0.11137,
+        "longShortAccountsRatio": 2.2499,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.8139,
         "tf": {
           "m15": {
-            "close": 0.8684,
-            "ema20": 0.869008,
-            "ema50": 0.869613,
-            "rsi14": 52.94,
-            "volumeVs20": 0.824
+            "c": 0.8628,
+            "ema20": 0.8675068,
+            "ema50": 0.8683105,
+            "rsi": 35.07,
+            "vol": 1.952
           },
           "h1": {
-            "close": 0.8684,
-            "ema20": 0.869066,
-            "ema50": 0.877851,
-            "rsi14": 39.38,
-            "volumeVs20": 0.352
+            "c": 0.8628,
+            "ema20": 0.8684152,
+            "ema50": 0.8733498,
+            "rsi": 41.72,
+            "vol": 0.824
           },
           "h4": {
-            "close": 0.8699,
-            "ema20": 0.879154,
-            "ema50": 0.891109,
-            "rsi14": 31.56,
-            "volumeVs20": 0.217
+            "c": 0.8699,
+            "ema20": 0.8791641,
+            "ema50": 0.8934731,
+            "rsi": 45.23,
+            "vol": 0.218
           },
           "d1": {
-            "close": 0.8687,
-            "ema20": 0.927676,
-            "ema50": 0.949619,
-            "rsi14": 38.06,
-            "volumeVs20": 0.897
+            "c": 0.8687,
+            "ema20": 0.9276582,
+            "ema50": 0.9454972,
+            "rsi": 40.88,
+            "vol": 0.894
           }
         }
       },
       {
         "symbol": "LINKUSDT",
-        "price": 10.85973358,
-        "change24hPct": 0.602,
-        "quoteVolume24h": 76451969.54,
-        "funding": 0.00008584,
-        "oiChange1hPct": -0.03487,
-        "longShortAccounts": 1.809,
-        "levels": {
-          "support": [
-            10.85,
-            10.765,
-            10.732,
-            10.501,
-            10.252
-          ],
-          "resistance": [
-            10.864,
-            10.894,
-            11.035
-          ]
-        },
+        "price": 10.823,
+        "mark": 10.824,
+        "change24hPct": 0.148,
+        "quoteVolume24h": 76287478.555,
+        "high24h": 11.035,
+        "low24h": 10.732,
+        "fundingRate": 0.0000781,
+        "oiChange1hPct": 0.04413,
+        "longShortAccountsRatio": 1.7964,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 4.971,
         "tf": {
           "m15": {
-            "close": 10.85,
-            "ema20": 10.847898,
-            "ema50": 10.846241,
-            "rsi14": 60.74,
-            "volumeVs20": 0.876
+            "c": 10.836,
+            "ema20": 10.84559,
+            "ema50": 10.84554,
+            "rsi": 47.27,
+            "vol": 3.614
           },
           "h1": {
-            "close": 10.85,
-            "ema20": 10.853525,
-            "ema50": 10.961518,
-            "rsi14": 47.02,
-            "volumeVs20": 0.371
+            "c": 10.836,
+            "ema20": 10.85125,
+            "ema50": 10.91458,
+            "rsi": 46.93,
+            "vol": 1.094
           },
           "h4": {
-            "close": 10.877,
-            "ema20": 10.998048,
-            "ema50": 11.174594,
-            "rsi14": 36.25,
-            "volumeVs20": 0.232
+            "c": 10.877,
+            "ema20": 10.99809,
+            "ema50": 11.19193,
+            "rsi": 45.01,
+            "vol": 0.234
           },
           "d1": {
-            "close": 10.854,
-            "ema20": 11.539659,
-            "ema50": 12.033409,
-            "rsi14": 40.46,
-            "volumeVs20": 0.872
+            "c": 10.854,
+            "ema20": 11.53879,
+            "ema50": 11.85969,
+            "rsi": 40.49,
+            "vol": 0.861
           }
         }
       },
       {
         "symbol": "ZECUSDT",
-        "price": 1327.96543,
-        "change24hPct": 4.678,
-        "quoteVolume24h": 2235455965.12,
-        "funding": 0.0001,
-        "oiChange1hPct": 0.3119,
-        "longShortAccounts": 0.8495,
-        "levels": {
-          "support": [
-            1319.87,
-            1317.37,
-            1313.75,
-            1305.22,
-            1300.13
-          ],
-          "resistance": [
-            1329.7,
-            1333.81,
-            1387.98
-          ]
-        },
+        "price": 1315.09,
+        "mark": 1315.64556,
+        "change24hPct": 2.668,
+        "quoteVolume24h": 2160805377.02,
+        "high24h": 1387.98,
+        "low24h": 1276.13,
+        "fundingRate": 0.0001,
+        "oiChange1hPct": -0.18858,
+        "longShortAccountsRatio": 0.8308,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.5836,
         "tf": {
           "m15": {
-            "close": 1323.31,
-            "ema20": 1320.83,
-            "ema50": 1327.72,
-            "rsi14": 68.04,
-            "volumeVs20": 1.532
+            "c": 1318.03,
+            "ema20": 1321.3752,
+            "ema50": 1324.2884,
+            "rsi": 44.4,
+            "vol": 1.154
           },
           "h1": {
-            "close": 1323.31,
-            "ema20": 1323.043,
-            "ema50": 1314.147,
-            "rsi14": 43.14,
-            "volumeVs20": 0.496
+            "c": 1318.03,
+            "ema20": 1322.4603,
+            "ema50": 1305.448,
+            "rsi": 49.51,
+            "vol": 0.477
           },
           "h4": {
-            "close": 1322.3,
-            "ema20": 1291.946,
-            "ema50": 1271.446,
-            "rsi14": 54.48,
-            "volumeVs20": 0.481
+            "c": 1322.3,
+            "ema20": 1291.9057,
+            "ema50": 1266.4424,
+            "rsi": 57,
+            "vol": 0.483
           },
           "d1": {
-            "close": 1322.32,
-            "ema20": 1251.24,
-            "ema50": 1265.761,
-            "rsi14": 61.4,
-            "volumeVs20": 1.332
+            "c": 1322.32,
+            "ema20": 1250.3056,
+            "ema50": 1203.1247,
+            "rsi": 55.57,
+            "vol": 1.291
           }
         }
       },
       {
         "symbol": "HYPEUSDT",
-        "price": 78.96815,
-        "change24hPct": 1.453,
-        "quoteVolume24h": 424188635.56,
-        "funding": 0.00005,
-        "oiChange1hPct": -0.157,
-        "longShortAccounts": 1.9197,
-        "levels": {
-          "support": [
-            78.814,
-            78.519,
-            77.39,
-            76.236
-          ],
-          "resistance": [
-            79.041,
-            79.191,
-            79.654,
-            79.67
-          ]
-        },
+        "price": 78.371,
+        "mark": 78.36802,
+        "change24hPct": 0.347,
+        "quoteVolume24h": 405161311.08444,
+        "high24h": 79.67,
+        "low24h": 77.39,
+        "fundingRate": 0.00005,
+        "oiChange1hPct": -0.28347,
+        "longShortAccountsRatio": 1.9377,
+        "adlRisk": "LOW",
+        "takerBuySellRatio15m": 0.5503,
         "tf": {
           "m15": {
-            "close": 78.865,
-            "ema20": 79.117641,
-            "ema50": 79.00672,
-            "rsi14": 38.8,
-            "volumeVs20": 0.779
+            "c": 78.411,
+            "ema20": 78.9281,
+            "ema50": 78.943,
+            "rsi": 29.75,
+            "vol": 1.136
           },
           "h1": {
-            "close": 78.865,
-            "ema20": 78.893405,
-            "ema50": 79.501878,
-            "rsi14": 59.92,
-            "volumeVs20": 0.574
+            "c": 78.411,
+            "ema20": 78.849,
+            "ema50": 79.5604,
+            "rsi": 43.18,
+            "vol": 0.745
           },
           "h4": {
-            "close": 79.096,
-            "ema20": 80.534987,
-            "ema50": 82.552202,
-            "rsi14": 29,
-            "volumeVs20": 0.252
+            "c": 79.096,
+            "ema20": 80.533,
+            "ema50": 82.2027,
+            "rsi": 40.63,
+            "vol": 0.254
           },
           "d1": {
-            "close": 78.568,
-            "ema20": 82.551396,
-            "ema50": 83.526947,
-            "rsi14": 52.21,
-            "volumeVs20": 0.775
+            "c": 78.568,
+            "ema20": 82.5418,
+            "ema50": 81.9474,
+            "rsi": 42.81,
+            "vol": 0.759
           }
         }
       }
     ],
+    "levels": {
+      "BTCUSDT": {
+        "support": [
+          75962,
+          75819.9,
+          75742.3,
+          74810.8
+        ],
+        "resistance": [
+          76030.8,
+          76038,
+          76210.4,
+          76350.9
+        ]
+      },
+      "ETHUSDT": {
+        "support": [
+          2244.05,
+          2239.15,
+          2234.54,
+          2208.81
+        ],
+        "resistance": [
+          2247.07,
+          2248.84,
+          2250.6,
+          2253.43
+        ]
+      },
+      "SOLUSDT": {
+        "support": [
+          89.85,
+          89.71,
+          89.55,
+          88.24
+        ],
+        "resistance": [
+          90.28,
+          90.35,
+          90.63,
+          91.58
+        ]
+      },
+      "XRPUSDT": {
+        "support": [
+          1.1711,
+          1.1509,
+          1.1512
+        ],
+        "resistance": [
+          1.1778,
+          1.1806,
+          1.1817,
+          1.2029
+        ]
+      },
+      "BNBUSDT": {
+        "support": [
+          694.34,
+          693.5,
+          692.64,
+          686.88
+        ],
+        "resistance": [
+          696.04,
+          697.01,
+          700.17
+        ]
+      },
+      "DOGEUSDT": {
+        "support": [
+          0.0717,
+          0.07172,
+          0.07108
+        ],
+        "resistance": [
+          0.07215,
+          0.07268,
+          0.07334
+        ]
+      },
+      "SUIUSDT": {
+        "support": [
+          0.8618,
+          0.8615,
+          0.8584,
+          0.857
+        ],
+        "resistance": [
+          0.8644,
+          0.8671,
+          0.8707,
+          0.8733,
+          0.8745,
+          0.8816
+        ]
+      },
+      "LINKUSDT": {
+        "support": [
+          10.813,
+          10.732,
+          10.501
+        ],
+        "resistance": [
+          10.84,
+          10.886,
+          10.894,
+          11.035
+        ]
+      },
+      "ZECUSDT": {
+        "support": [
+          1314.59,
+          1313.75,
+          1305.22,
+          1276.13
+        ],
+        "resistance": [
+          1323.74,
+          1329.43,
+          1333.81,
+          1387.98
+        ]
+      },
+      "HYPEUSDT": {
+        "support": [
+          78.302,
+          77.39,
+          76.236
+        ],
+        "resistance": [
+          78.464,
+          79.041,
+          79.67
+        ]
+      }
+    },
     "technical_interpretation": {
-      "market_tape": "The latest 24h tape is mixed-to-positive for most majors, while XRP is down. Short-term 15m rebounds are visible in BTC, ETH, BNB, DOGE and ZEC, but several remain weak on 1h/4h and/or have low 1h/4h volume. BTC 15m closed 76161 with 1.72x volume but is stretched; price is near the 76182.5–76210.4 local resistance band.",
-      "structure": "BTC, ETH, SOL, XRP, BNB, DOGE, SUI and LINK remain below 4h EMA20/50. ZEC remains above 4h/daily EMA20/50 but its latest 15m close 1323.31 is below 15m EMA50 1327.72 after a test to 1329.70. HYPE remains below 4h EMA20/50. Rebounds have not reversed the broader structure.",
-      "strategy": "No new completed-candle setup combines a clean trigger, aligned structure, volume confirmation, defensible invalidation and at least 2R. No new qualified idea.",
-      "derivatives": "Funding is positive across all ten sampled contracts. Global account ratios are long-heavy in nine of ten; ZEC remains slightly short-heavy. Latest completed hourly OI changes: BTC +0.0817%, ETH +0.0825%, SOL +0.0492%, XRP -1.2312%, BNB -0.1612%, DOGE +0.3217%, SUI +0.0870%, LINK -0.0349%, ZEC +0.3119%, HYPE -0.1570%.",
-      "risk": "BTC/ETH/SOL/XRP and several alts have elevated short-term momentum readings after rebounds. BTC 15m volume is above average but 1h/4h volume is low. No reliable liquidation/force-order event stream was available; top-of-book depth was not used to infer persistent liquidity walls.",
+      "market_tape": "The market has softened since the previous scan: BTC is -0.199% and ETH only +0.314% over 24h; XRP -2.453%, DOGE -0.705%, SOL -0.100%. ZEC remains +2.668%. Latest completed 15m candles show selling pressure in BTC/ETH, while SUI tested the prior 0.8615 trigger with a 0.8618 wick and 1.95x volume but closed at 0.8628.",
+      "structure": "BTC, ETH, SOL, XRP, BNB, DOGE, SUI, LINK and HYPE remain below their 4h EMA20/50. ZEC remains above 4h and daily EMA20/50, but latest 15m close 1318.03 is below 15m EMA20 1321.38 and EMA50 1324.29. No higher-timeframe reversal is confirmed in the other majors.",
+      "strategy": "No new completed-candle setup combines aligned structure, confirmed trigger, volume confirmation, defensible invalidation and at least 2R. No qualified idea. SUI remains a near-trigger watch only; its lowest post-watch 15m close is 0.8628, above 0.8615.",
+      "derivatives": "Funding is positive across all ten contracts. Global long/short account ratios are long-heavy in nine of ten; ZEC is short-heavy at 0.8308. Latest completed hourly OI changes: BTC +0.2747%, ETH +0.0736%, SOL -0.0110%, XRP -0.1139%, BNB +0.0441%, DOGE -0.2581%, SUI -0.1114%, LINK +0.0441%, ZEC -0.1886%, HYPE -0.2835%. Latest 15m taker buy/sell ratios: BTC 0.5078, ETH 0.4386, SOL 1.1425, XRP 1.2092, BNB 0.4330, DOGE 0.7903, SUI 0.8139, LINK 4.9710, ZEC 0.5836, HYPE 0.5503.",
+      "risk": "ADL risk snapshot is LOW for all ten symbols. ADL rating is not liquidation-flow evidence. No reliable liquidation/force-order stream was available. SUI is close to its short trigger but has not closed below it; chasing at current price would violate the original setup condition. LINK has a 3.61x 15m volume candle and 4.97 taker ratio, but remains below 1h/4h EMA20/50 and under local resistance.",
       "lead_editor": "NO_TRADE"
     },
     "prior_idea_comparison": {
-      "ZECUSDT-L-20261107T0215Z-BRK-01": "Previously shadow-stopped at original 1348.83 stop; -1R shadow result. No Discord entry delivery. Current ZEC bullish 4h/daily structure is not a revival of that stopped setup; latest 15m close 1323.31 remains below 15m EMA50 1327.72.",
-      "ETHUSDT-S-20261106T2200Z-BSL-01": "Still open shadow-only and unalerted. 133 completed post-entry 5m candles through 09:04:59.999Z: high 2253.43 below original stop 2256; low 2234.54 above target 2205.11. Latest mark 2247.99; estimated unrealized approximately -0.479R; no terminal event.",
-      "SUIUSDT-S-20261107T0423Z-BRK-01": "Still valid watch-only, not triggered. Lowest completed 15m close in checked post-watch sample 0.8651, above 0.8615. Latest 15m close 0.8684, volume 0.861x average; no breakdown or failed retest. Latest completed 4h close 0.8699 remains below 0.8745 cancellation threshold."
+      "ZECUSDT-L-20261107T0215Z-BRK-01": "Previously shadow-stopped at original 1348.83 stop for -1R; no Discord entry delivery. Current ZEC 4h/daily structure remains bullish, but this is not a revival of the stopped setup. Latest mark 1315.6456.",
+      "ETHUSDT-S-20261106T2200Z-BSL-01": "Still open shadow-only and unalerted. 146 completed post-entry 5m candles through 10:09:59.999Z: max high 2253.43 below original stop 2256; min low 2234.54 above original target 2205.11. Latest mark 2246.59; estimated unrealized -0.388R; no terminal event.",
+      "SUIUSDT-S-20261107T0423Z-BRK-01": "Still valid watch-only, not triggered. 22 completed 15m candles since watch start; lowest close 0.8628 and lowest wick 0.8618, both above trigger 0.8615. Latest 15m close 0.8628, volume 1.952x average. No separate failed retest. Latest completed 4h close 0.8699 remains below 0.8745 cancellation level."
     },
     "qualified_ideas": [],
     "new_watch_ideas": [],
     "verdict": "NO_TRADE",
     "discord_entry_alerts_sent": [],
     "discord_lifecycle_updates_sent": [],
-    "discord_delivery_status": "No qualified completed-candle entry trigger and no active Discord-confirmed alerted setup requiring a lifecycle update; no message attempted. This automation run has no direct Discord send action or webhook-secret access; future delivery must be confirmed by the existing bot pipeline.",
+    "discord_delivery_status": "No qualified completed-candle entry trigger and no active Discord-confirmed alerted setup requiring a lifecycle update; no message attempted. This automation runner has no direct Discord send action or webhook-secret access; future delivery must be confirmed by the existing bot pipeline.",
     "active_alerted_setups_count": 0,
     "ledger_read_success": true,
     "worker_state_recovery": "Worker state.json remains separate and unrecovered. Actions cache is not durable ledger storage; unknown worker-held positions cannot be ruled out.",
     "data_limitations": [
-      "No reliable liquidation/force-order event stream exposed by connected market-data actions; liquidation context unavailable.",
-      "No verified persistent liquidity walls; order-book snapshots are transient and not sufficient to establish resting liquidity.",
+      "No reliable liquidation/force-order event stream exposed by connected market-data actions; liquidation flow and liquidation clusters unavailable.",
+      "ADL risk rating was LOW for all ten scanned symbols at 10:00:00.532Z; this is not a liquidation trigger or proof of low directional risk.",
+      "Order-book depth was not used to infer persistent resting liquidity walls.",
       "No direct Discord send action or webhook-secret access in this automation run.",
       "Worker state.json remains unrecovered; an empty alerted ledger does not prove no other worker-held position exists."
     ]
@@ -774,6 +835,26 @@
       "active_alerted_setups_count": 0,
       "discord_entry_alerts_sent": [],
       "note": "Fresh ten-contract USDⓈ-M scan across 15m/1h/4h/daily closed candles with current ticker/mark/funding, completed hourly OI and global long/short account ratios. No >=2R setup qualified. ETH shadow remains open unalerted; SUI short watch remains untriggered."
+    },
+    {
+      "as_of_utc": "2026-11-07T10:13:52.625Z",
+      "verdict": "NO_TRADE",
+      "symbols_scanned": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "BNBUSDT",
+        "DOGEUSDT",
+        "SUIUSDT",
+        "LINKUSDT",
+        "ZECUSDT",
+        "HYPEUSDT"
+      ],
+      "qualified_ideas": [],
+      "active_alerted_setups_count": 0,
+      "discord_entry_alerts_sent": [],
+      "note": "Fresh 10-contract USDⓈ-M scan with completed 15m/1h/4h/daily candles, ticker/mark/funding, hourly OI, global account ratios, 15m taker buy/sell volume and ADL risk. No qualified >=2R trigger. SUI came within 0.0003 of its breakdown threshold but no 15m close below 0.8615; ETH shadow remained nonterminal."
     }
   ],
   "event_log": [
@@ -876,6 +957,26 @@
       "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
       "status": "still_valid_untriggered_watch_not_a_trade",
       "details": "Lowest checked post-watch 15m close 0.8651 above 0.8615; latest completed 15m close 0.8684 with 0.861x average volume; no breakdown/retest. Latest completed 4h close 0.8699 below 0.8745 cancellation level."
+    },
+    {
+      "timestamp_utc": "2026-11-07T10:13:52.625Z",
+      "event": "scan_completed",
+      "status": "NO_TRADE",
+      "details": "Ten liquid USDⓈ-M perpetuals reviewed using fresh ticker/mark/funding, completed 15m/1h/4h/daily candles, OI, global long/short accounts, taker volume and ADL rating. No qualified entry and no Discord message attempted."
+    },
+    {
+      "timestamp_utc": "2026-11-07T10:13:52.625Z",
+      "event": "shadow_idea_review",
+      "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
+      "status": "still_open_unalerted",
+      "details": "146 completed post-entry 5m candles through 10:09:59.999Z: max high 2253.43 below original stop 2256, min low 2234.54 above target 2205.11; latest mark 2246.59; estimated unrealized -0.388R; no terminal event."
+    },
+    {
+      "timestamp_utc": "2026-11-07T10:13:52.625Z",
+      "event": "watch_review",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "status": "still_valid_untriggered_watch_not_a_trade",
+      "details": "22 completed 15m candles since watch start; lowest close 0.8628 and lowest wick 0.8618 remain above 0.8615 trigger. Latest 15m candle closed 0.8628 with 1.952x average volume; no breakdown/retest. 4h cancellation close above 0.8745 not met."
     }
   ]
 }
