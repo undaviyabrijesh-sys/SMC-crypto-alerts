@@ -33,8 +33,8 @@ def validate_trades(raw):
         raise ValueError(f"Unsupported timeframes={unsupported}; outcomes={invalid}")
     for col in ("entry_time", "exit_time"):
         x[col] = pd.to_datetime(x[col], utc=True, errors="raise")
-    if (x.exit_time <= x.entry_time).any():
-        raise ValueError("Trade exit timestamp must follow entry timestamp")
+    if (x.exit_time < x.entry_time).any():
+        raise ValueError("Trade exit timestamp must not precede entry timestamp")
     for col in ("entry", "risk", "gross_R", "hold_hours"):
         x[col] = pd.to_numeric(x[col], errors="raise")
         if not np.isfinite(x[col].to_numpy(float)).all():
