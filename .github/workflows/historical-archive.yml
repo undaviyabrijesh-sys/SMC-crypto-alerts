@@ -118,6 +118,51 @@ jobs:
               raise SystemExit("Historical archive validation failed")
           PY
 
+      - name: Run EXP-001 baseline strategy screen
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/initial_screen.py
+          --data-dir historical_data
+          --output-dir quant_discovery/results/exp001
+
+      - name: Run EXP-002 expanded seven-family screen
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/expanded_screen.py
+          --data-dir historical_data
+          --output-dir quant_discovery/results/exp002
+
+      - name: Summarize strategy research tables
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import csv
+          from pathlib import Path
+
+          print("# Strategy research")
+          for label, path in (
+              ("EXP-001 baseline", Path("quant_discovery/results/exp001/oos_summary.csv")),
+              ("EXP-002 expanded", Path("quant_discovery/results/exp002/exp002_oos_summary.csv")),
+          ):
+              print(f"## {label}")
+              if not path.is_file():
+                  print("- Results not produced; inspect the corresponding workflow step.")
+                  continue
+              with path.open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.DictReader(handle))
+              rows.sort(key=lambda row: float(row.get("expectancy_net_R") or -1e9), reverse=True)
+              print(f"- OOS strategy rows: {len(rows)}")
+              for row in rows[:10]:
+                  print(
+                      f"- {row.get('asset', row.get('symbol'))} "
+                      f"{row.get('timeframe')} {row.get('strategy')}: "
+                      f"n={row.get('n', row.get('trades'))}, "
+                      f"expectancy={row.get('expectancy_net_R', row.get('net_expectancy_R'))}R, "
+                      f"PF={row.get('profit_factor')}"
+                  )
+          print("- EXP-002 remains research-only; no result is automatically promoted.")
+          PY
+
       - name: Add archive result to run summary
         if: always()
         run: |
@@ -149,6 +194,16 @@ jobs:
         with:
           name: salty-quant-historical-ohlcv-3y-${{ github.run_id }}
           path: historical_data/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
+
+      - name: Retain EXP-001 and EXP-002 result tables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-strategy-research-${{ github.run_id }}
+          path: quant_discovery/results/
           if-no-files-found: warn
           compression-level: 6
           retention-days: 14
