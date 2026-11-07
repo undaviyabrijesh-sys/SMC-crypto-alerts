@@ -89,3 +89,33 @@ Together with all 42 cells turning negative at 20/40 bps, these results are fold
 - The exact-head deterministic CI smoke at 2026-11-07 05:55 UTC passed all **18/18** BTC/ETH/XAUT production symbol/timeframe combinations. Each instrument returned 1,151 closed 5m candles, 1,343 15m, 1,079 1h, 719 4h, 364 1d (XAUT 204) and 29–149 1w candles. The 5m/15m/1h last-close ages were approximately 0.9/10.9/55.9 minutes at probe time.
 - Funding (70 hourly), mark (864 five-minute) and open-interest (72 hourly) public series were available for BTCUSD, ETHUSD and XAUTUSD. Availability is not proof of correct funding units/sign or realized settlement attribution.
 - No raw multi-timeframe chart bundle was produced by this CI. Visual analyst tests are mocked; no real vision call, execution alert or Discord webhook delivery is claimed.
+
+
+## Addendum — supervisor re-check, 2026-11-07 11:52 IST
+
+### EXP-003 archive result and walk-forward defect
+
+- Historical OHLCV archive run [42344719278](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42344719278) completed successfully. It verified 18/18 BTC/ETH/XAUT CSV datasets (931,337 candles) and completed EXP-001, EXP-002 and EXP-003. Research artifact ID: `13562749052`; archive artifact ID: `13562484386`; both expire around 2026-11-21 06:02 UTC.
+- The first EXP-003 summary is negative at every tested cost. At 10 bps round trip: Follow-the-Winner n=707, expectancy -0.18075R, PF 0.7711, max DD -131.7574R, 11-loss-event streak; Follow-the-Loser n=2,343, -0.42300R, PF 0.5678, max DD -1003.4532R, streak 18; Pattern Match n=614, -0.22922R, PF 0.7151, max DD -148.8300R, streak 9; Meta-Ensemble n=966, -0.20684R, PF 0.7428, max DD -207.4331R, streak 13. All policies were also negative at 20 and 40 bps. These are research-only shadow-selector results, not production or live fills.
+- Artifact inspection found a reporting defect: all 10,544 selected trades had a null walk-forward fold, so every one of the 240 fold/asset/policy/cost rows reported n=0. GitHub Actions installed pandas 3.1.1, which preserves inferred datetime resolution; the code converted timestamps to int64 seconds but compared them with nanosecond `Timestamp.value` bin edges. Overall summary counts were present, but the walk-forward breakdown was invalid and must not be used.
+- Fixed this on `ai-quant-rebuild` in [`547fd6a`](https://github.com/undaviyabr‍ijesh-sys/SMC-crypto-alerts/commit/547fd6a6d4d3509af3c1a18f7c78608d50496317): EXP-003 now bins timezone-aware datetimes directly. The synthetic end-to-end regression now requires every selected trade to have a fold and the five fold counts to sum exactly to the corresponding summary counts.
+- Exact-head push CI [42346505999](https://github.com/undaviyabr‍ijesh-sys/SMC-crypto-alerts/actions/runs/42346505999) and PR CI [42346511540](https://github.com/undaviyabr‍ijesh-sys/SMC-crypto-alerts/actions/runs/42346511540) both passed. Quant Discovery unit suite: 27 tests passed. Fresh corrected archive rerun [42346506072](https://github.com/undaviyabr‍ijesh-sys/SMC-crypto-alerts/actions/runs/42346506072) is running; do not report corrected folds or new EXP-003 metrics until its artifact is inspected.
+- EXP-001 remains negative across all 30 OOS cells at 10 bps. EXP-002 remains fragile: four of 42 cells were slightly positive at 10 bps, all 42 negative at 20/40 bps, and the small positives were fold/regime-sensitive. No candidate is promoted; `APPROVED_STRATEGIES` remains empty.
+
+### Current feed, visual, risk and lifecycle state
+
+- Exact-head CI again passed the public Delta feed probe for all 18 production symbol/timeframe combinations. Latest 5m/15m/1h close ages were approximately 0.5/5.5/20.5 minutes at the 06:20 UTC probe. Funding, mark and OI public series were available for BTCUSD, ETHUSD and XAUTUSD; availability does not validate funding units/sign or realized settlement attribution.
+- Visual analyst still compares independent chart-supported setup families from raw 5m/15m/1h/4h/1d/1w images; deterministic code only applies data, arithmetic and risk gates. Confidence/quality >=75, minimum 2R, stop 0.35–2.5 trigger ATR, entry deviation <=0.35%, at least two distinct evidence timeframes including trigger, one open/pending position per symbol, and opposing-candidate quality margin >=8 remain unchanged.
+- Discord visual alerts include entry band, entry, stop, target, R:R, trigger, context, rationale, target rationale, invalidation, supporting/conflicting evidence and cancellation conditions; messages over 1,900 characters are refused. Lifecycle remains closed-5m TP/SL/TIME with conservative same-candle SL-first and gap-aware confirmation.
+- No fresh chart-image bundle, real vision call or actual Discord webhook delivery was produced. The last recorded OpenAI API blocker is HTTP 429 insufficient quota; exact-head CI's visual requests are mocked. Visual lane remains opt-in and no recurring visual worker was activated.
+- Trade-idea ledger still records its last scan at 05:14:42 UTC as NO_TRADE, with no confirmed Discord entry delivery. Recovery remains partial/unverified because prior Actions-cache state could not be recovered; do not claim continuous position reconciliation.
+- PR #1 remains open/draft/unmerged, based on `main` at `e93ee289b36d47ca774e9a285fc76a2f4cbb5795`. No `main` change, deployment, secret change, live trading or exchange order.
+
+### Exact next steps
+
+1. Re-check run 42346506072 until complete; verify 18 dataset hashes and inspect corrected EXP-003 selected-trade fold coverage, five chronological slices, per-asset metrics, 10/20/40 bps sensitivity, drawdown, loss streak and regime dependence.
+2. Compare corrected EXP-003 with EXP-001/002; keep all candidates rejected unless a separate untouched future dataset and realistic execution-cost evidence validate them.
+3. Owner action: restore OpenAI API quota, then dispatch a single paper-only visual cycle and verify actual chart images, image watermarks, model output, validator decision and Discord delivery.
+4. Replace evictable Actions-cache state with durable position storage and reconcile prior positions before claiming complete lifecycle tracking.
+5. Validate Delta funding units, sign, interval and settlement timestamps against contract metadata and a realized event; obtain historical spread/depth or retain costs only as stress assumptions.
+6. Keep PR #1 draft/unmerged and `main` untouched. No deployment, secrets, live trading or orders.
