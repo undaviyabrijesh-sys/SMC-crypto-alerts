@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-07T11:57:23.586Z",
+  "updated_at_utc": "2026-11-07T11:57:56.718Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -47,16 +47,16 @@
       "stop": 2256,
       "target_1": 2205.11,
       "planned_rr": 2.31,
-      "latest_mark_price": 2245.19925581,
-      "estimated_unrealized_R_at_latest_mark": -0.2975125730081345,
+      "latest_mark_price": 2243.88102245,
+      "estimated_unrealized_R_at_latest_mark": -0.21177381788616706,
       "max_high_since_entry_observed": 2253.43,
       "min_low_since_entry_observed": 2234.54,
       "terminal_level_hit": false,
       "confirmation": "Fresh completed Binance 5m candles from the 2026-11-06T22:00:00Z reference entry through 2026-11-07T08:09:59.999Z: maximum post-entry high 2253.43 (< original stop 2256), minimum post-entry low 2234.54 (> original target 2205.11); neither terminal level touched. Latest completed 5m candle opened 08:05Z and closed 08:09:59.999Z at 2246.49 (high 2246.78, low 2245.35). Latest mark 2246.33151938; shadow unrealized approximately -0.3712R. Still unalerted and not an active alerted setup.",
       "discord_entry_delivery_confirmed": false,
       "best_favorable_excursion_R": 0.396,
-      "last_checked_at_utc": "2026-11-07T11:57:23.586Z",
-      "last_candle_evidence": "166 completed post-entry 5m candles from 2026-11-06T22:00:00Z through 2026-11-07T11:49:59.999Z; maximum high 2253.43 remains below original stop 2256; minimum low 2234.54 remains above original target 2205.11. Latest mark 2245.19925581; estimated shadow unrealized -0.2975R. Still shadow-only and unalerted."
+      "last_checked_at_utc": "2026-11-07T11:57:56.718Z",
+      "last_candle_evidence": "167 completed post-entry 5m candles from 2026-11-06T22:00:00Z through 2026-11-07T11:54:59.999Z; max high 2253.43 below original stop 2256; min low 2234.54 above original target 2205.11. Latest mark 2243.88102245; estimated shadow unrealized -0.2118R. Still shadow-only and unalerted."
     },
     {
       "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
@@ -69,16 +69,16 @@
       "planned_rr": 2.5775862068965427,
       "entry_timestamp_utc": "2026-11-07T11:14:59.999Z",
       "discord_entry_delivery_confirmed": false,
-      "last_checked_at_utc": "2026-11-07T11:57:23.586Z",
-      "latest_mark_price": 0.8618,
-      "estimated_unrealized_R_at_latest_mark": -0.1637931034482762,
+      "last_checked_at_utc": "2026-11-07T11:57:56.718Z",
+      "latest_mark_price": 0.861,
+      "estimated_unrealized_R_at_latest_mark": -0.09482758620689523,
       "confirmation": "Completed 15m breakdown at 10:15 UTC (0.8597 close, 2.388x 20-bar volume), followed by 11:00 UTC retest/rejection candle (0.8621 high, 0.8599 close). Trigger confirmed; Discord delivery unavailable."
     }
   ],
   "watch_only": [],
   "last_scan": {
-    "as_of_utc": "2026-11-07T11:57:23.586Z",
-    "as_of_ist": "2026-11-07T17:27:23.586+05:30",
+    "as_of_utc": "2026-11-07T11:57:56.718Z",
+    "as_of_ist": "2026-11-07T17:27:56.718+05:30",
     "venue": "Binance USDⓈ-M perpetual public market data",
     "latest_ticker_timestamp_utc": "2026-11-07T11:54:00.137Z",
     "latest_mark_sample_utc": "2026-11-07T11:54:00.001Z",
@@ -105,8 +105,8 @@
     "market_summary": [
       {
         "symbol": "BTCUSDT",
-        "price": 75993.4,
-        "mark": 75977.40302174,
+        "price": 75945.1,
+        "mark": 75945.35570465,
         "change24hPct": -0.195,
         "quoteVolume24h": 8249060568.82,
         "high24h": 76350.9,
@@ -161,8 +161,8 @@
       },
       {
         "symbol": "ETHUSDT",
-        "price": 2245.56,
-        "mark": 2245.19925581,
+        "price": 2243.88,
+        "mark": 2243.88102245,
         "change24hPct": 0.065,
         "quoteVolume24h": 4844633058.6,
         "high24h": 2253.43,
@@ -439,8 +439,8 @@
       },
       {
         "symbol": "SUIUSDT",
-        "price": 0.8618,
-        "mark": 0.8618,
+        "price": 0.8609,
+        "mark": 0.861,
         "change24hPct": -0.908,
         "quoteVolume24h": 110881387.76543,
         "high24h": 0.8816,
@@ -674,8 +674,8 @@
     },
     "prior_idea_comparison": {
       "ZECUSDT-L-20261107T0215Z-BRK-01": "Previously shadow-stopped at original 1348.83 stop for -1R; current ZEC recovery does not revive it.",
-      "ETHUSDT-S-20261106T2200Z-BSL-01": "Still open shadow-only and unalerted. 166 completed post-entry 5m candles through 11:49:59.999Z: max high 2253.43 below stop 2256; min low 2234.54 above target 2205.11. Latest mark 2245.1993; estimated unrealized -0.2975R; no terminal event.",
-      "SUIUSDT-S-20261107T0423Z-BRK-01": "Entry trigger confirmed at 11:14:59.999Z. Initial 10:15 breakdown close 0.8597 on 2.388x volume; 11:00 retest/rejection candle high 0.8621 and close 0.8599 below 0.8615. Triggered but unalerted because delivery cannot be invoked from this runner. Seven completed post-entry 5m bars: max high 0.8627, min low 0.8590; no stop/target touch; mark 0.8618; unrealized -0.1638R."
+      "ETHUSDT-S-20261106T2200Z-BSL-01": "Still open shadow-only and unalerted. 167 completed post-entry 5m bars through 11:54:59.999Z: max high 2253.43 below original stop 2256; min low 2234.54 above target 2205.11. Latest mark 2243.8810; estimated unrealized -0.2118R.",
+      "SUIUSDT-S-20261107T0423Z-BRK-01": "Trigger confirmed at 11:14:59.999Z; Discord delivery blocked. Eight completed post-entry 5m bars through 11:54:59.999Z: max high 0.8627, min low 0.8590; neither original stop 0.8715 nor target 0.8300 touched. Latest mark 0.8610; estimated unrealized -0.0948R."
     },
     "qualified_ideas": [
       {
@@ -791,7 +791,8 @@
       "No reliable liquidation/force-order event stream exposed by connected market-data actions.",
       "No direct Discord send action or GitHub workflow-dispatch action in this runner; webhook secrets are not exposed.",
       "Worker state.json remains unrecovered; empty active_alerted_setups does not prove no other worker-held position exists."
-    ]
+    ],
+    "latest_targeted_mark_refresh_utc": "2026-11-07T11:57:34.000Z"
   },
   "scan_history": [
     {
@@ -1100,6 +1101,20 @@
       "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
       "status": "still_open_unalerted",
       "details": "166 completed post-entry 5m bars through 11:49:59.999Z; high 2253.43 below stop 2256; low 2234.54 above target 2205.11; mark 2245.1993; estimated unrealized -0.2975R."
+    },
+    {
+      "timestamp_utc": "2026-11-07T11:57:56.718Z",
+      "event": "triggered_unalerted_lifecycle_refresh",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "status": "open_unalerted_delivery_blocked",
+      "details": "Eight completed post-entry 5m bars through 11:54:59.999Z; max high 0.8627, min low 0.8590; stop 0.8715 and target 0.8300 untouched. Latest mark 0.8610, unrealized -0.0948R. Discord delivery still unconfirmed."
+    },
+    {
+      "timestamp_utc": "2026-11-07T11:57:56.718Z",
+      "event": "shadow_idea_review",
+      "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
+      "status": "still_open_unalerted",
+      "details": "167 completed post-entry 5m bars through 11:54:59.999Z; max high 2253.43 below stop 2256; min low 2234.54 above target 2205.11; latest mark 2243.8810; unrealized -0.2118R."
     }
   ],
   "triggered_unalerted_setups": [
@@ -1178,18 +1193,18 @@
         "No reliable liquidation/force-order feed was available."
       ],
       "latest_market_check": {
-        "as_of_utc": "2026-11-07T11:54:00.001Z",
-        "mark_price": 0.8618,
-        "unrealized_R_at_mark": -0.1637931034482762,
+        "as_of_utc": "2026-11-07T11:57:34.000Z",
+        "mark_price": 0.861,
+        "unrealized_R_at_mark": -0.09482758620689523,
         "latest_completed_5m_candle": {
-          "open_utc": "2026-11-07T11:45:00.000Z",
-          "close_utc": "2026-11-07T11:49:59.999Z",
-          "open": 0.8626,
-          "high": 0.8627,
-          "low": 0.8618,
-          "close": 0.8618
+          "open_utc": "2026-11-07T11:50:00.000Z",
+          "close_utc": "2026-11-07T11:54:59.999Z",
+          "open": 0.8618,
+          "high": 0.8619,
+          "low": 0.8614,
+          "close": 0.8615
         },
-        "post_entry_5m_bars_checked": 7,
+        "post_entry_5m_bars_checked": 8,
         "post_entry_max_high": 0.8627,
         "post_entry_min_low": 0.859,
         "stop_touched": false,
@@ -1200,7 +1215,9 @@
       "discord_delivery_status": "not_sent",
       "discord_delivery_blocker": "This runner has no direct Discord send action and no GitHub Actions workflow-dispatch action. The existing alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but this run cannot invoke it or access the secrets. No delivery confirmation exists.",
       "active_alerted": false,
-      "last_checked_at_utc": "2026-11-07T11:57:23.586Z"
+      "last_checked_at_utc": "2026-11-07T11:57:56.718Z",
+      "latest_mark_price": 0.861,
+      "estimated_unrealized_R_at_latest_mark": -0.09482758620689523
     }
   ]
 }
