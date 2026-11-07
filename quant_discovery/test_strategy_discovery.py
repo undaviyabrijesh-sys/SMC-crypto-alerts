@@ -103,6 +103,20 @@ class StrategyDiscoveryTests(unittest.TestCase):
             output = run_experiment(inp, root / "result")
             self.assertEqual(len(output["summary"]), 4*3*3)
             self.assertEqual(len(output["walk_forward"]), 4*3*3*5)
+            selected = output["selected_trades"]
+            self.assertFalse(selected.empty)
+            self.assertTrue(selected["fold"].notna().all())
+            fold_totals = (
+                output["walk_forward"]
+                .groupby(["policy", "asset", "cost_bps_round_trip"], sort=True)["n"]
+                .sum()
+            )
+            summary_totals = output["summary"].set_index(
+                ["policy", "asset", "cost_bps_round_trip"]
+            )["n"].sort_index()
+            pd.testing.assert_series_equal(
+                fold_totals.sort_index(), summary_totals, check_names=False
+            )
             self.assertTrue((root / "result" / "exp003_manifest.json").is_file())
 
     def test_unknown_policy_fails_closed(self):

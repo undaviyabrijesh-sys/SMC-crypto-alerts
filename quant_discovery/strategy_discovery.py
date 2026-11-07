@@ -226,9 +226,15 @@ def run_experiment(input_csv, output_dir):
         for policy in POLICIES:
             selected, decisions = simulate_policy(trades, policy, cost)
             if not selected.empty:
-                selected["fold"] = pd.cut(selected.entry_time.astype("int64"),
-                    bins=[int(e.value) for e in edges], labels=[f"WF{i}" for i in range(1, 6)],
-                    include_lowest=True).astype("string")
+                # Keep timestamps as datetimes: pandas 3.x may preserve second-resolution
+                # values, while Timestamp.value is nanoseconds. Mixing those integer
+                # units silently assigns every selected trade to a null walk-forward fold.
+                selected["fold"] = pd.cut(
+                    pd.to_datetime(selected["entry_time"], utc=True),
+                    bins=pd.DatetimeIndex(edges),
+                    labels=[f"WF{i}" for i in range(1, 6)],
+                    include_lowest=True,
+                ).astype("string")
             selected_all.append(selected)
             decisions_all.append(decisions)
             for asset in ["ALL", *sorted(trades.asset.unique())]:
