@@ -6,6 +6,10 @@ on:
       - ai-quant-rebuild
     paths:
       - .github/workflows/historical-archive.yml
+      - bootstrap_historical_data.py
+      - quant_discovery/initial_screen.py
+      - quant_discovery/expanded_screen.py
+      - quant_discovery/strategy_discovery.py
   workflow_dispatch:
 
 permissions:
