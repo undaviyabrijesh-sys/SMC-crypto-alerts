@@ -240,8 +240,8 @@ def build_signals_from_frames(
     prior_bb_high = previous(x["bb_high"])
     volume_confirm = x["volume"].gt(1.2 * x["volume_sma20"])
 
-    ema_cross_up = x["ema20"].gt(x["ema50"]) & prior_ema20.le(prior_ema50)
-    ema_cross_down = x["ema20"].lt(x["ema50"]) & prior_ema20.ge(prior_ema50)
+    ema_cross_up = x["ema20"].gt(x["ema50_x"]) & prior_ema20.le(prior_ema50)
+    ema_cross_down = x["ema20"].lt(x["ema50_x"]) & prior_ema20.ge(prior_ema50)
 
     adx_cross_up = (
         x["plus_di"].gt(x["minus_di"])
