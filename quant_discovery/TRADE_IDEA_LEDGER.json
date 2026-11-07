@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "updated_at_utc": "2026-11-07T04:23:16Z",
+  "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
+  "operating_rules": {
+    "research_only": true,
+    "paper_trading_only": true,
+    "exchange_orders_allowed": false,
+    "alert_requires_completed_candle_trigger": true,
+    "alert_requires_successful_discord_delivery": true,
+    "preserve_original_entry_stop_targets": true,
+    "ambiguous_same_candle_exit": "conservative_stop_first"
+  },
+  "recovery_status": {
+    "status": "partial_unverified",
+    "note": "Recent prior scan records show zero confirmed Discord entry deliveries, but the worker's state.json could not be recovered by this automation. The repository workflow restores state from GitHub Actions cache using run-id-specific keys; that cache is not a durable trade ledger. Do not interpret an empty known ledger as proof that no other worker position exists."
+  },
+  "active_alerted_setups": [],
+  "known_prior_ideas": [
+    {
+      "setup_id": "ZECUSDT-L-20261107T0215Z-BRK-01",
+      "symbol": "ZECUSDT",
+      "direction": "LONG",
+      "status": "shadow_stopped_unalerted",
+      "entry": 1359.7,
+      "stop": 1348.83,
+      "target_1": 1387.98,
+      "planned_rr": 2.6,
+      "assumed_exit": 1348.83,
+      "result_R": -1,
+      "stop_touch_candle_open_utc": "2026-11-07T02:30:00Z",
+      "confirmation": "Fresh 5m Binance candles after the 02:15 UTC entry show a 02:30 UTC candle low of 1346.73, below the original 1348.83 stop; no target touch.",
+      "discord_entry_delivery_confirmed": false
+    },
+    {
+      "setup_id": "ETHUSDT-S-20261106T2200Z-BSL-01",
+      "symbol": "ETHUSDT",
+      "direction": "SHORT",
+      "status": "shadow_open_unalerted",
+      "entry_zone": [
+        2240.25,
+        2241
+      ],
+      "reference_entry": 2240.625,
+      "stop": 2256,
+      "target_1": 2205.11,
+      "planned_rr": 2.31,
+      "latest_mark_price": 2244.01,
+      "estimated_unrealized_R_at_latest_mark": -0.22,
+      "max_high_since_entry_observed": 2253.43,
+      "min_low_since_entry_observed": 2234.54,
+      "terminal_level_hit": false,
+      "confirmation": "Fresh 5m candles since 22:00 UTC and the current 24h range show neither original stop nor target touched.",
+      "discord_entry_delivery_confirmed": false
+    }
+  ],
+  "watch_only": [
+    {
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "symbol": "SUIUSDT",
+      "direction": "SHORT",
+      "status": "untriggered_watch_not_a_trade",
+      "trigger": "Require a completed 15m candle close below 0.8615, then a separate retest that fails and closes back below 0.8615; breakdown candle volume should exceed 1.25x the 20-bar 15m average.",
+      "entry_zone": [
+        0.859,
+        0.861
+      ],
+      "stop": 0.8715,
+      "target_1": 0.83,
+      "planned_rr_at_0_860_entry": 2.61,
+      "confidence": 62,
+      "confidence_caveat": "Subjective watch-quality score only; below execution-grade confidence and not a validated statistical probability.",
+      "reasons_not_qualified": [
+        "Latest closed 15m candle closed at 0.8645, still above 0.8615 support.",
+        "Latest closed 15m volume was approximately 1.00x its 20-bar average, not a decisive expansion.",
+        "No completed-candle breakdown and failed retest have occurred."
+      ],
+      "relevant_context": "1h/4h/1d are below their EMA20/EMA50 structure; 1h open interest rose about 0.14% while price fell; latest long/short account ratio was about 2.19 and funding was positive.",
+      "cancel_if": "A 4h close reclaims and holds above 0.8745."
+    }
+  ],
+  "last_scan": {
+    "as_of_utc": "2026-11-07T04:23:16Z",
+    "as_of_ist": "2026-11-07T09:53:16+05:30",
+    "venue": "Binance USDⓈ-M perpetual public market data",
+    "latest_ticker_and_mark_timestamp_utc": "2026-11-07T04:22:12Z",
+    "closed_ohlcv_through_utc": "2026-11-07T04:00:00Z",
+    "oi_and_long_short_statistics_through_utc": "2026-11-07T04:00:00Z",
+    "symbols_scanned": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "BNBUSDT",
+      "DOGEUSDT",
+      "SUIUSDT",
+      "LINKUSDT",
+      "ZECUSDT",
+      "HYPEUSDT"
+    ],
+    "verdict": "NO_TRADE",
+    "qualified_ideas": [],
+    "discord_entry_alerts_sent": [],
+    "data_limitations": [
+      "No reliable liquidation/force-order feed was available through the connected market-data actions.",
+      "Order-book snapshots were not used as evidence of durable support or resistance.",
+      "This automation has no direct Discord send action or access to the webhook secret; delivery must not be claimed without a successful confirmation.",
+      "The repository's current GitHub Actions state cache is not a durable substitute for this ledger."
+    ]
+  }
+}
