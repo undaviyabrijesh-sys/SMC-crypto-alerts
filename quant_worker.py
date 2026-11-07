@@ -35,7 +35,11 @@ def _append_record(record):
 
 
 def _active_symbol(state, symbol):
-    active = list(state.get("positions", {}).values()) + list(state.get("pending_alerts", {}).values())
+    active = (
+        list(state.get("positions", {}).values())
+        + list(state.get("pending_alerts", {}).values())
+        + list(state.get("pending_visual_alerts", {}).values())
+    )
     return any(isinstance(item, dict) and item.get("sym") == symbol for item in active)
 
 
