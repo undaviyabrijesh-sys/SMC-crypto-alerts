@@ -23,6 +23,19 @@ class StrategyDiscoveryTests(unittest.TestCase):
             self.assertEqual(result.iloc[0].outcome_available_at,
                              pd.Timestamp(f"2026-01-01T{expected}Z"))
 
+    def test_same_candle_exit_is_valid_and_available_at_candle_close(self):
+        row = trade("BTC", "a", "2026-01-01T00:00Z", "2026-01-01T00:00Z",
+                    -1, hold_hours=0, outcome="SL")
+        result = validate_trades(pd.DataFrame([row]))
+        self.assertEqual(result.iloc[0].outcome_available_at,
+                         pd.Timestamp("2026-01-01T00:15Z"))
+        self.assertEqual(result.iloc[0].hold_hours, 0)
+
+    def test_exit_before_entry_is_rejected(self):
+        row = trade("BTC", "a", "2026-01-01T00:15Z", "2026-01-01T00:00Z", -1)
+        with self.assertRaisesRegex(ValueError, "must not precede"):
+            validate_trades(pd.DataFrame([row]))
+
     def test_duplicate_or_nonpositive_risk_fails_closed(self):
         row = trade("BTC", "a", "2026-01-01T00:00Z", "2026-01-01T00:15Z", 1)
         with self.assertRaisesRegex(ValueError, "Duplicate"):
