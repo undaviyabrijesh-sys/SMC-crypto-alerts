@@ -230,7 +230,7 @@ def build_signals_from_frames(
     down = x["ema50_y"].lt(x["ema200_y"])
     prior_close = previous(x["close"])
     prior_ema20 = previous(x["ema20"])
-    prior_ema50 = previous(x["ema50"])
+    prior_ema50 = previous(x["ema50_x"])
     prior_macd_hist = previous(x["macd_hist"])
     prior_plus = previous(x["plus_di"])
     prior_minus = previous(x["minus_di"])
