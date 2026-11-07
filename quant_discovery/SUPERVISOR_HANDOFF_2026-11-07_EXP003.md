@@ -36,6 +36,10 @@ GitHub Actions evidence:
   - research result artifact ID `13561148256`, expires 2026-11-21 04:57 UTC.
   The new EXP-003 run should be used for its own result set; do not treat the previous run as EXP-003 evidence.
 
+## Pre-existing EXP-002 artifact review
+
+A prior completed archive/research artifact (run 42340120427, research artifact 13561148256) was downloaded and reviewed. Its 42 EXP-002 OOS cells produced 8,191 shadow trades. Only four rows were positive at the 10 bps scenario, and all four turned negative at 20/40 bps; three of four also had negative training and validation expectancies. No row is promoted. The ETH 1h Bollinger squeeze result (48 OOS trades, +0.0516R, PF 1.075, 3/5 chronological test windows positive) is retained only as a pre-registered future hypothesis candidate, not an edge claim. Full metrics and cost table: [EXP002_ARTIFACT_REVIEW_2026-11-07.md](EXP002_ARTIFACT_REVIEW_2026-11-07.md).
+
 ## Research interpretation and limits
 
 - The NYU paper's NASDAQ-100 results are not evidence of an edge in BTC, ETH or XAUT perpetuals.
