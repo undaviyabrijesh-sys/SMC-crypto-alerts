@@ -125,6 +125,18 @@ class TestQuantSupervisor(unittest.TestCase):
         self.assertEqual(result["status"], "NO_TRADE")
         self.assertIsNone(result["selected"])
 
+    def test_pending_visual_alert_blocks_quant_entry_for_same_symbol(self):
+        state = {
+            "positions": {},
+            "pending_alerts": {},
+            "pending_visual_alerts": {
+                "VISUAL-PENDING-01": {"sym": "BTC"},
+            },
+        }
+        self.assertTrue(quant_worker._active_symbol(state, "BTC"))
+        self.assertFalse(quant_worker._active_symbol(state, "ETH"))
+
+
     def test_invalid_rr_stop_and_stale_candidate_are_rejected(self):
         item = candidate()
         item["take_profit"] = 103.0
