@@ -84,7 +84,6 @@
     "as_of_ist": "2026-11-07T09:53:16+05:30",
     "venue": "Binance USDⓈ-M perpetual public market data",
     "latest_ticker_and_mark_timestamp_utc": "2026-11-07T04:22:12Z",
-    "closed_ohlcv_through_utc": "2026-11-07T04:00:00Z",
     "oi_and_long_short_statistics_through_utc": "2026-11-07T04:00:00Z",
     "symbols_scanned": [
       "BTCUSDT",
@@ -106,6 +105,12 @@
       "Order-book snapshots were not used as evidence of durable support or resistance.",
       "This automation has no direct Discord send action or access to the webhook secret; delivery must not be claimed without a successful confirmation.",
       "The repository's current GitHub Actions state cache is not a durable substitute for this ledger."
-    ]
+    ],
+    "closed_ohlcv_latest_by_timeframe": {
+      "15m": "2026-11-07T04:00:00Z",
+      "1h": "2026-11-07T03:00:00Z",
+      "4h": "2026-11-07T00:00:00Z",
+      "1d": "2026-11-06T00:00:00Z (bar closed 2026-11-06T23:59:59Z)"
+    }
   }
 }
