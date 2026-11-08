@@ -315,7 +315,7 @@
           "close": 75757.7,
           "ema20": 75807.2454,
           "ema50": 75799.61,
-          "rsi14": 58.11,
+          "rsi14": 45.7967,
           "vol_ratio": 0.734,
           "prior20_high": 75942.3,
           "prior20_low": 75620.8
@@ -324,19 +324,19 @@
           "close": 75800,
           "ema20": 75814.8565,
           "ema50": 76106.4144,
-          "rsi14": 54.27
+          "rsi14": 46.9473
         },
         "h4": {
           "close": 75887.8,
           "ema20": 76482.0814,
           "ema50": 77431.8862,
-          "rsi14": 40.68
+          "rsi14": 40.1406
         },
         "d1": {
           "close": 75836,
           "ema20": 78868.9216,
           "ema50": 79594.287,
-          "rsi14": 35.1
+          "rsi14": 38.0229
         }
       },
       {
@@ -345,7 +345,7 @@
           "close": 2233.58,
           "ema20": 2235.1155,
           "ema50": 2235.5919,
-          "rsi14": 59.21,
+          "rsi14": 46.2837,
           "vol_ratio": 0.561,
           "prior20_high": 2239.49,
           "prior20_low": 2228.42
@@ -354,19 +354,19 @@
           "close": 2234.43,
           "ema20": 2236.538,
           "ema50": 2247.5202,
-          "rsi14": 47.74
+          "rsi14": 45.3836
         },
         "h4": {
           "close": 2237.41,
           "ema20": 2259.6873,
           "ema50": 2280.5683,
-          "rsi14": 37.27
+          "rsi14": 41.6503
         },
         "d1": {
           "close": 2239.01,
           "ema20": 2326.3157,
           "ema50": 2390.2107,
-          "rsi14": 40.03
+          "rsi14": 39.6092
         }
       },
       {
@@ -375,7 +375,7 @@
           "close": 89.18,
           "ema20": 89.2103,
           "ema50": 89.3347,
-          "rsi14": 61.01,
+          "rsi14": 48.0775,
           "vol_ratio": 0.661,
           "prior20_high": 89.51,
           "prior20_low": 88.77
@@ -384,19 +384,19 @@
           "close": 89.17,
           "ema20": 89.4548,
           "ema50": 90.0648,
-          "rsi14": 44.55
+          "rsi14": 42.5661
         },
         "h4": {
           "close": 89.28,
           "ema20": 90.8042,
           "ema50": 93.0798,
-          "rsi14": 41.61
+          "rsi14": 37.4401
         },
         "d1": {
           "close": 89.77,
           "ema20": 97.2119,
           "ema50": 101.3362,
-          "rsi14": 25.53
+          "rsi14": 30.368
         }
       },
       {
@@ -405,7 +405,7 @@
           "close": 1.1659,
           "ema20": 1.161347,
           "ema50": 1.161072,
-          "rsi14": 68.37,
+          "rsi14": 61.0758,
           "vol_ratio": 1.847,
           "prior20_high": 1.164,
           "prior20_low": 1.1546
@@ -414,19 +414,19 @@
           "close": 1.1632,
           "ema20": 1.163463,
           "ema50": 1.181056,
-          "rsi14": 57.72
+          "rsi14": 45.9581
         },
         "h4": {
           "close": 1.1616,
           "ema20": 1.198824,
           "ema50": 1.233398,
-          "rsi14": 22.04
+          "rsi14": 31.4722
         },
         "d1": {
           "close": 1.1634,
           "ema20": 1.27134,
           "ema50": 1.317091,
-          "rsi14": 30.86
+          "rsi14": 31.618
         }
       },
       {
@@ -435,7 +435,7 @@
           "close": 697.4,
           "ema20": 696.6935,
           "ema50": 696.3286,
-          "rsi14": 73.07,
+          "rsi14": 58.8695,
           "vol_ratio": 0.647,
           "prior20_high": 697.55,
           "prior20_low": 694.56
@@ -444,19 +444,19 @@
           "close": 697.16,
           "ema20": 696.0724,
           "ema50": 696.3889,
-          "rsi14": 63.53
+          "rsi14": 55.6986
         },
         "h4": {
           "close": 696.86,
           "ema20": 697.9036,
           "ema50": 704.7541,
-          "rsi14": 55.97
+          "rsi14": 47.193
         },
         "d1": {
           "close": 696.77,
           "ema20": 716.8952,
           "ema50": 724.5991,
-          "rsi14": 37.47
+          "rsi14": 41.3331
         }
       },
       {
@@ -465,7 +465,7 @@
           "close": 0.07115,
           "ema20": 0.0712378,
           "ema50": 0.0713757,
-          "rsi14": 54.93,
+          "rsi14": 44.8274,
           "vol_ratio": 0.532,
           "prior20_high": 0.07147,
           "prior20_low": 0.07086
@@ -474,19 +474,19 @@
           "close": 0.07119,
           "ema20": 0.0715144,
           "ema50": 0.0720916,
-          "rsi14": 40.87
+          "rsi14": 38.6645
         },
         "h4": {
           "close": 0.07126,
           "ema20": 0.0726977,
           "ema50": 0.0741627,
-          "rsi14": 39.12
+          "rsi14": 37.4809
         },
         "d1": {
           "close": 0.0716,
           "ema20": 0.0767159,
           "ema50": 0.0805813,
-          "rsi14": 35.93
+          "rsi14": 34.5239
         }
       },
       {
@@ -495,7 +495,7 @@
           "close": 0.8525,
           "ema20": 0.8522308,
           "ema50": 0.8540915,
-          "rsi14": 60.34,
+          "rsi14": 49.8689,
           "vol_ratio": 0.563,
           "prior20_high": 0.8543,
           "prior20_low": 0.8475
@@ -504,19 +504,19 @@
           "close": 0.8527,
           "ema20": 0.8560096,
           "ema50": 0.8635339,
-          "rsi14": 42.24
+          "rsi14": 41.2402
         },
         "h4": {
           "close": 0.8516,
           "ema20": 0.8702732,
           "ema50": 0.8861263,
-          "rsi14": 45.35
+          "rsi14": 39.5569
         },
         "d1": {
           "close": 0.8565,
           "ema20": 0.9208976,
           "ema50": 0.9423906,
-          "rsi14": 39.06
+          "rsi14": 39.6836
         }
       },
       {
@@ -525,7 +525,7 @@
           "close": 10.739,
           "ema20": 10.76512,
           "ema50": 10.78859,
-          "rsi14": 47.52,
+          "rsi14": 41.2431,
           "vol_ratio": 1.015,
           "prior20_high": 10.81,
           "prior20_low": 10.737
@@ -534,19 +534,19 @@
           "close": 10.753,
           "ema20": 10.80018,
           "ema50": 10.85241,
-          "rsi14": 38.3
+          "rsi14": 42.38
         },
         "h4": {
           "close": 10.776,
           "ema20": 10.9267,
           "ema50": 11.11804,
-          "rsi14": 46.68
+          "rsi14": 42.3365
         },
         "d1": {
           "close": 10.829,
           "ema20": 11.47198,
           "ema50": 11.85048,
-          "rsi14": 41.95
+          "rsi14": 40.2738
         }
       },
       {
@@ -555,7 +555,7 @@
           "close": 1262,
           "ema20": 1257.7915,
           "ema50": 1260.4114,
-          "rsi14": 70.3,
+          "rsi14": 55.0417,
           "vol_ratio": 0.676,
           "prior20_high": 1271.91,
           "prior20_low": 1236.47
@@ -564,19 +564,19 @@
           "close": 1261.6,
           "ema20": 1267.9617,
           "ema50": 1282.3099,
-          "rsi14": 52.05
+          "rsi14": 44.1431
         },
         "h4": {
           "close": 1263.3,
           "ema20": 1281.8289,
           "ema50": 1267.3992,
-          "rsi14": 52.87
+          "rsi14": 47.0753
         },
         "d1": {
           "close": 1260.57,
           "ema20": 1252.1287,
           "ema50": 1218.2176,
-          "rsi14": 54.1
+          "rsi14": 50.8056
         }
       },
       {
@@ -585,7 +585,7 @@
           "close": 77.308,
           "ema20": 77.38246,
           "ema50": 77.5197,
-          "rsi14": 48.22,
+          "rsi14": 45.664,
           "vol_ratio": 0.563,
           "prior20_high": 77.833,
           "prior20_low": 77.1
@@ -594,34 +594,34 @@
           "close": 77.295,
           "ema20": 77.66109,
           "ema50": 78.39,
-          "rsi14": 47.34
+          "rsi14": 41.2265
         },
         "h4": {
           "close": 77.502,
           "ema20": 79.39169,
           "ema50": 81.5273,
-          "rsi14": 45.69
+          "rsi14": 36.5807
         },
         "d1": {
           "close": 77.81,
           "ema20": 82.09983,
           "ema50": 82.09917,
-          "rsi14": 51.74
+          "rsi14": 41.7177
         }
       }
     ],
     "derivatives_summary": [
       {
         "symbol": "BTCUSDT",
-        "oi_change_1h_pct": -0.020915861108883327,
+        "open_interest_change_1h_pct": -0.020915861108883327,
         "taker_buy_sell_ratio": 0.4941,
-        "long_account_pct": 75.46000000000001,
+        "long_account_pct": 75.46,
         "long_short_ratio": 3.075,
         "funding_rate": 0.00006898
       },
       {
         "symbol": "ETHUSDT",
-        "oi_change_1h_pct": 0.010261574541692298,
+        "open_interest_change_1h_pct": 0.010261574541692298,
         "taker_buy_sell_ratio": 1.1321,
         "long_account_pct": 77.77,
         "long_short_ratio": 3.4984,
@@ -629,7 +629,7 @@
       },
       {
         "symbol": "SOLUSDT",
-        "oi_change_1h_pct": -0.05172218000680795,
+        "open_interest_change_1h_pct": -0.05172218000680795,
         "taker_buy_sell_ratio": 0.838,
         "long_account_pct": 78.31,
         "long_short_ratio": 3.6104,
@@ -637,15 +637,15 @@
       },
       {
         "symbol": "XRPUSDT",
-        "oi_change_1h_pct": -0.07733965407906718,
+        "open_interest_change_1h_pct": -0.07733965407906718,
         "taker_buy_sell_ratio": 1.6256,
-        "long_account_pct": 73.46000000000001,
+        "long_account_pct": 73.46,
         "long_short_ratio": 2.7679,
         "funding_rate": 0.00009914
       },
       {
         "symbol": "BNBUSDT",
-        "oi_change_1h_pct": -0.0028977020923526275,
+        "open_interest_change_1h_pct": -0.0028977020923526275,
         "taker_buy_sell_ratio": 0.5271,
         "long_account_pct": 73.16,
         "long_short_ratio": 2.7258,
@@ -653,15 +653,15 @@
       },
       {
         "symbol": "DOGEUSDT",
-        "oi_change_1h_pct": 0.17555080816828994,
+        "open_interest_change_1h_pct": 0.17555080816828994,
         "taker_buy_sell_ratio": 1.1388,
-        "long_account_pct": 73.44000000000001,
+        "long_account_pct": 73.44,
         "long_short_ratio": 2.7651,
         "funding_rate": -0.00001212
       },
       {
         "symbol": "SUIUSDT",
-        "oi_change_1h_pct": -0.07496213441371413,
+        "open_interest_change_1h_pct": -0.07496213441371413,
         "taker_buy_sell_ratio": 2.0195,
         "long_account_pct": 68.28,
         "long_short_ratio": 2.1526,
@@ -669,7 +669,7 @@
       },
       {
         "symbol": "LINKUSDT",
-        "oi_change_1h_pct": 0.04507815267726922,
+        "open_interest_change_1h_pct": 0.04507815267726922,
         "taker_buy_sell_ratio": 0.8832,
         "long_account_pct": 64.51,
         "long_short_ratio": 1.8177,
@@ -677,15 +677,15 @@
       },
       {
         "symbol": "ZECUSDT",
-        "oi_change_1h_pct": -0.21068745384413834,
+        "open_interest_change_1h_pct": -0.21068745384413834,
         "taker_buy_sell_ratio": 0.8452,
-        "long_account_pct": 50.080000000000005,
+        "long_account_pct": 50.08,
         "long_short_ratio": 1.0032,
         "funding_rate": 0.0001
       },
       {
         "symbol": "HYPEUSDT",
-        "oi_change_1h_pct": 0.0692566437311859,
+        "open_interest_change_1h_pct": 0.0692566437311859,
         "taker_buy_sell_ratio": 1.4093,
         "long_account_pct": 65.95,
         "long_short_ratio": 1.9369,
@@ -696,7 +696,11 @@
     "liquidation_context": "No reliable liquidation/force-order feed was available; liquidation clusters not assessed.",
     "decision": "NO_TRADE",
     "new_qualified_setups": 0,
-    "discord_delivery_confirmed": false
+    "discord_delivery_confirmed": false,
+    "rsi_method": "Wilder smoothing, 14 periods; all calculations use completed candles only.",
+    "derivatives_timestamp_utc": "2026-11-08T06:00:00.000Z",
+    "taker_flow_timestamp_utc": "2026-11-08T06:00:00.000Z",
+    "event_log_note": "RSI values in technical_summary are Wilder-smoothed 14-period values, recalculated from completed candles after the initial scan write."
   },
   "scan_history": [
     {
@@ -1829,7 +1833,7 @@
       "timestamp_utc": "2026-11-08T06:29:08.000Z",
       "event": "scan_completed",
       "status": "NO_TRADE",
-      "details": "Ten liquid Binance USDⓈ-M perpetuals scanned using fresh mark/ticker snapshots, completed 15m/1h/4h/daily candles, current funding, 1h OI statistics, taker buy/sell volume and long/short account ratios. No new qualified setup met completed-candle confirmation and >=2R evidence requirements."
+      "details": "Ten liquid Binance USDⓈ-M perpetuals scanned using fresh mark/ticker snapshots, completed 15m/1h/4h/daily candles, current funding, 1h OI statistics, taker buy/sell volume and long/short account ratios. No new qualified setup met completed-candle confirmation and >=2R evidence requirements. RSI14 values were recalculated with Wilder smoothing on completed candles; derivatives summary includes all 10 symbols."
     },
     {
       "timestamp_utc": "2026-11-08T06:29:08.000Z",
