@@ -2109,42 +2109,42 @@
         "No reliable liquidation/force-order feed was available."
       ],
       "latest_market_check": {
-        "as_of_utc": "2026-11-08T06:29:08.000Z",
-        "mark_price": 0.85261048,
-        "unrealized_R_at_mark": 0.6284068965517254,
+        "as_of_utc": "2026-11-08T07:48:39.443Z",
+        "mark_price": 0.85531101,
+        "unrealized_R_at_mark": 0.3956025862,
         "entry_trigger_previously_confirmed": true,
         "entry_zone_touched_after_trigger": true,
         "entry_zone_touched_since_previous_check": false,
-        "completed_bars_since_previous_check": 8,
+        "completed_bars_since_previous_check": 16,
         "latest_completed_5m_candle": {
-          "open_utc": "2026-11-08T06:20:00.000Z",
-          "close_utc": "2026-11-08T06:24:59.999Z",
-          "open": 0.854,
-          "high": 0.8542,
-          "low": 0.8533,
-          "close": 0.8533
+          "open_utc": "2026-11-08T07:40:00.000Z",
+          "close_utc": "2026-11-08T07:44:59.999Z",
+          "open": 0.853,
+          "high": 0.8535,
+          "low": 0.8527,
+          "close": 0.8534
         },
-        "post_entry_5m_bars_checked": 230,
+        "post_entry_5m_bars_checked": 246,
         "post_entry_window_start_utc": "2026-11-07T11:15:00Z",
-        "post_entry_window_end_utc": "2026-11-08T06:24:59.999Z",
+        "post_entry_window_end_utc": "2026-11-08T07:44:59.999Z",
         "post_entry_max_high": 0.8647,
         "post_entry_min_low": 0.8457,
         "stop_touched": false,
         "target_touched": false,
         "lifecycle_status": "triggered_unalerted_delivery_blocked",
-        "new_window_high": 0.8542,
-        "new_window_low": 0.8517,
-        "candle_ordering": "Eight new completed 5m candles since the previous check; interval high 0.8542 and low 0.8517. Cumulative maximum 0.8647 remains below stop 0.8715; cumulative minimum 0.8457 remains above target 0.8300. Entry zone not revisited. No same-candle ambiguity."
+        "new_window_high": 0.8537,
+        "new_window_low": 0.8492,
+        "candle_ordering": "Sixteen new completed 5m candles since the previous check. Interval high 0.8537 and low 0.8492. Cumulative maximum 0.8647 remains below original stop 0.8715; cumulative minimum 0.8457 remains above original target 0.8300. Entry zone not revisited. No same-candle ambiguity."
       },
       "discord_delivery_confirmed": false,
       "discord_delivery_status": "not_sent",
       "discord_delivery_blocker": "This runner has no direct Discord send action and no GitHub Actions workflow-dispatch action. The existing alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but this run cannot invoke it or access the secrets. No delivery confirmation exists.",
       "active_alerted": false,
-      "last_checked_at_utc": "2026-11-08T06:29:08.000Z",
-      "latest_mark_price": 0.85261048,
-      "estimated_unrealized_R_at_latest_mark": 0.6284068965517254,
+      "last_checked_at_utc": "2026-11-08T07:48:39.443Z",
+      "latest_mark_price": 0.85531101,
+      "estimated_unrealized_R_at_latest_mark": 0.3956025862,
       "terminal_level_hit": false,
-      "last_candle_evidence": "230 completed post-entry 5m candles through 2026-11-08T06:24:59.999Z; cumulative maximum high 0.8647 remains below original stop 0.8715 and cumulative minimum low 0.8457 remains above target 0.8300. Latest mark 0.85261048 at 06:29:08Z; estimated unrealized +0.6284R. Eight new completed 5m candles from 05:45 through 06:24:59.999Z: interval high 0.8542, low 0.8517; entry zone 0.8590-0.8610 not revisited. Latest candle O/H/L/C 0.8540/0.8542/0.8533/0.8533. Neither terminal level touched; no same-candle ambiguity; status remains triggered_unalerted_delivery_blocked."
+      "last_candle_evidence": "246 completed post-entry 5m candles through 2026-11-08T07:44:59.999Z; cumulative maximum high 0.8647 remains below original stop 0.8715 and cumulative minimum low 0.8457 remains above target 0.8300. Latest mark 0.85531101 at 07:47:57Z; estimated unrealized +0.3956R. Sixteen new completed candles since prior check (06:25-07:40 UTC): interval high 0.8537, low 0.8492; entry zone 0.8590-0.8610 not revisited. Latest completed candle O/H/L/C 0.8530/0.8535/0.8527/0.8534. Neither terminal level touched; no same-candle ambiguity; status remains triggered_unalerted_delivery_blocked."
     }
   ]
 }
