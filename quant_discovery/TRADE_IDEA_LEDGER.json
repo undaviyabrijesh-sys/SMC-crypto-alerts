@@ -995,7 +995,7 @@
       "symbol": "LINKUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 4h + 15m",
-      "status": "4h_breakdown_confirmed_retest_pending_no_chase",
+      "status": "4h_support_reclaimed_close_above_10_501_short_watch_invalidated",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "entry_zone": [
@@ -1013,10 +1013,10 @@
         "1h OI/taker data not sampled in this run.",
         "Current price is extended below the retest band."
       ],
-      "last_checked_at_utc": "2026-11-09T02:06:13.000Z",
+      "last_checked_at_utc": "2026-11-09T04:17:17.283Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Last completed 4h close 10.406 below prior-20 support 10.501, low 10.100. Latest completed 15m high 10.610 remains just below retest band 10.612-10.660; close 10.565 below EMA50 10.5824, volume 0.31x. Latest 1h close 10.565 below EMA20/50 10.61296/10.70635. No retest/rejection."
+      "last_check_evidence": "The completed 00:00-03:59 UTC 4h candle low 10.360 and close 10.579 reclaimed prior support 10.501. The latest 1h close 10.579 remains below EMA20/EMA50 10.608/10.723 and daily structure remains bearish, but the previous 4h breakdown short thesis is invalidated; do not reuse its old entry band."
     },
     {
       "setup_id": "SUIUSDT-S-20261109T0000Z-4H-BRK-W01",
