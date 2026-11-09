@@ -1195,7 +1195,225 @@
     "symbols_scanned": 11,
     "new_qualified_setups": 0,
     "entry_alerts_due": 0,
-    "entry_alerts_sent": 0
+    "entry_alerts_sent": 0,
+    "market_snapshot": [
+      {
+        "symbol": "BTC",
+        "mark": 74154.8,
+        "change24h_pct": -2.255,
+        "completed_15m_close": 73854,
+        "rsi15m": 22.3,
+        "rsi4h": 18.06,
+        "oi_change_07_to_08_pct": 0.43,
+        "taker_buy_sell_15m": 1.2149,
+        "long_account_pct": 74.36,
+        "funding_pct": 0.01
+      },
+      {
+        "symbol": "ETH",
+        "mark": 2106.3,
+        "change24h_pct": -5.894,
+        "completed_15m_close": 2094.37,
+        "rsi15m": 21.18,
+        "rsi4h": 14.49,
+        "oi_change_07_to_08_pct": 0.177,
+        "taker_buy_sell_15m": 0.7703,
+        "long_account_pct": 79.66,
+        "funding_pct": -0.003902
+      },
+      {
+        "symbol": "SOL",
+        "mark": 86.4269,
+        "change24h_pct": -3.054,
+        "completed_15m_close": 85.84,
+        "rsi15m": 20.3,
+        "rsi4h": 21.82,
+        "oi_change_07_to_08_pct": 0.561,
+        "taker_buy_sell_15m": 0.9371,
+        "long_account_pct": 77.45,
+        "funding_pct": -0.004942
+      },
+      {
+        "symbol": "BNB",
+        "mark": 681.9345,
+        "change24h_pct": -2.627,
+        "completed_15m_close": 678.51,
+        "rsi15m": 21.44,
+        "rsi4h": 27.57,
+        "oi_change_07_to_08_pct": 0.252,
+        "taker_buy_sell_15m": 1.3451,
+        "long_account_pct": 72.89,
+        "funding_pct": 0
+      },
+      {
+        "symbol": "XRP",
+        "mark": 1.094306,
+        "change24h_pct": -5.977,
+        "completed_15m_close": 1.0851,
+        "rsi15m": 23.04,
+        "rsi4h": 17.05,
+        "oi_change_07_to_08_pct": -0.016,
+        "taker_buy_sell_15m": 1.1822,
+        "long_account_pct": 73.37,
+        "funding_pct": 0.006663
+      },
+      {
+        "symbol": "DOGE",
+        "mark": 0.06896,
+        "change24h_pct": -3.205,
+        "completed_15m_close": 0.0684,
+        "rsi15m": 25.81,
+        "rsi4h": 15.91,
+        "oi_change_07_to_08_pct": -1.06,
+        "taker_buy_sell_15m": 1.2368,
+        "long_account_pct": 72.28,
+        "funding_pct": -0.000868
+      },
+      {
+        "symbol": "ADA",
+        "mark": 0.174057,
+        "change24h_pct": -3.443,
+        "completed_15m_close": 0.1728,
+        "rsi15m": 20.34,
+        "rsi4h": 16.18,
+        "oi_change_07_to_08_pct": 0.191,
+        "taker_buy_sell_15m": 1.1058,
+        "long_account_pct": 65.36,
+        "funding_pct": 0.002545
+      },
+      {
+        "symbol": "LINK",
+        "mark": 10.382,
+        "change24h_pct": -3.266,
+        "completed_15m_close": 10.293,
+        "rsi15m": 15.89,
+        "rsi4h": 26.04,
+        "oi_change_07_to_08_pct": 0.381,
+        "taker_buy_sell_15m": 0.965,
+        "long_account_pct": 64.48,
+        "funding_pct": 0.007501
+      },
+      {
+        "symbol": "SUI",
+        "mark": 0.8192,
+        "change24h_pct": -3.898,
+        "completed_15m_close": 0.8122,
+        "rsi15m": 15.21,
+        "rsi4h": 21.05,
+        "oi_change_07_to_08_pct": -0.586,
+        "taker_buy_sell_15m": 0.6654,
+        "long_account_pct": 67.48,
+        "funding_pct": 0.006532
+      },
+      {
+        "symbol": "ZEC",
+        "mark": 1204.7941,
+        "change24h_pct": -4.508,
+        "completed_15m_close": 1197.45,
+        "rsi15m": 19.35,
+        "rsi4h": 22.46,
+        "oi_change_07_to_08_pct": 0.881,
+        "taker_buy_sell_15m": 0.7428,
+        "long_account_pct": 51.07,
+        "funding_pct": 0.01
+      },
+      {
+        "symbol": "HYPE",
+        "mark": 73.0943,
+        "change24h_pct": -5.333,
+        "completed_15m_close": 72.735,
+        "rsi15m": 16.28,
+        "rsi4h": 16.99,
+        "oi_change_07_to_08_pct": 0.983,
+        "taker_buy_sell_15m": 1.4477,
+        "long_account_pct": 63.49,
+        "funding_pct": 0.00327
+      }
+    ],
+    "completed_candle_cutoffs": {
+      "runtime_clock_utc": "2026-11-09T08:21:39.000Z",
+      "mark_server_time_utc": "2026-11-09T08:23:59.000Z",
+      "ticker_snapshot_utc": "2026-11-09T08:23:08.000Z",
+      "clock_skew_note": "Exchange mark/ticker server time is about 140 seconds ahead of runtime clock; indicative only.",
+      "completed_15m": "2026-11-09T08:14:59.999Z",
+      "completed_1h": "2026-11-09T07:59:59.999Z",
+      "completed_4h": "2026-11-09T07:59:59.999Z",
+      "completed_daily": "2026-11-08T23:59:59.999Z",
+      "oi_statistics": "2026-11-09T08:00:00.000Z",
+      "taker_flow": "2026-11-09T08:00:00.000Z-08:14:59.999Z",
+      "long_short_accounts": "2026-11-09T08:00:00.000Z"
+    },
+    "derivatives_summary": {
+      "oi_change_07_to_08_pct": {
+        "BTCUSDT": 0.43,
+        "ETHUSDT": 0.177,
+        "SOLUSDT": 0.561,
+        "BNBUSDT": 0.252,
+        "XRPUSDT": -0.016,
+        "DOGEUSDT": -1.06,
+        "ADAUSDT": 0.191,
+        "LINKUSDT": 0.381,
+        "SUIUSDT": -0.586,
+        "ZECUSDT": 0.881,
+        "HYPEUSDT": 0.983
+      },
+      "taker_buy_sell_15m": {
+        "BTCUSDT": 1.2149,
+        "ETHUSDT": 0.7703,
+        "SOLUSDT": 0.9371,
+        "BNBUSDT": 1.3451,
+        "XRPUSDT": 1.1822,
+        "DOGEUSDT": 1.2368,
+        "ADAUSDT": 1.1058,
+        "LINKUSDT": 0.965,
+        "SUIUSDT": 0.6654,
+        "ZECUSDT": 0.7428,
+        "HYPEUSDT": 1.4477
+      },
+      "long_account_pct": {
+        "BTCUSDT": 74.36,
+        "ETHUSDT": 79.66,
+        "SOLUSDT": 77.45,
+        "BNBUSDT": 72.89,
+        "XRPUSDT": 73.37,
+        "DOGEUSDT": 72.28,
+        "ADAUSDT": 65.36,
+        "LINKUSDT": 64.48,
+        "SUIUSDT": 67.48,
+        "ZECUSDT": 51.07,
+        "HYPEUSDT": 63.49
+      },
+      "funding_pct": {
+        "BTCUSDT": 0.01,
+        "ETHUSDT": -0.003902,
+        "SOLUSDT": -0.004942,
+        "BNBUSDT": 0,
+        "XRPUSDT": 0.006663,
+        "DOGEUSDT": -0.000868,
+        "ADAUSDT": 0.002545,
+        "LINKUSDT": 0.007501,
+        "SUIUSDT": 0.006532,
+        "ZECUSDT": 0.01,
+        "HYPEUSDT": 0.00327
+      },
+      "liquidation_feed": "No reliable force-order or liquidation-cluster endpoint available; no liquidation inference."
+    },
+    "structure": {
+      "all_11_completed_4h_closes_below_prior_support": true,
+      "all_11_below_ema20_ema50_on_15m_1h_4h_daily": true,
+      "latest_completed_15m_candles_all_green": true,
+      "post_confirmation_retests": 0,
+      "local_15m_sweep_reclaims": [
+        "BTCUSDT",
+        "ZECUSDT"
+      ],
+      "4h_sweeps_without_reclaim": [
+        "BNBUSDT",
+        "XRPUSDT",
+        "HYPEUSDT"
+      ]
+    },
+    "rationale": "All eleven completed 4h closes remain below prior support and EMA20/EMA50; daily closes are also below EMA20/EMA50. The latest completed 15m candle is green in all eleven, a relief bounce, but every high remains below its post-confirmation retest zone. RSI remains deeply oversold and taker flow is mixed. BTC and ZEC made local 15m sweep/reclaims, not long triggers. No setup passes the post-confirmation retest/rejection and >=2R gate. NO TRADE; do not chase."
   },
   "scan_history": [
     {
