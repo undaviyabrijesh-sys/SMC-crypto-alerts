@@ -2202,7 +2202,7 @@
       "4h": "2026-11-09T15:59:59.999Z",
       "1d": "2026-11-08T23:59:59.999Z"
     },
-    "quote_snapshot_utc": "2026-11-09T18:54:23.000Z",
+    "quote_snapshot_utc": "2026-11-09T18:58:44.000Z",
     "notes": "Fresh 11-market Binance USDⓈ-M scan. All 11 latest completed 15m candles are below their preceding-20-bar high and above their preceding-20-bar low; no fresh 20-bar sweep/breakout. Latest 15m relative volume is below 1.0x in all 11 markets. Four markets (BNB,DOGE,LINK,SUI) are above both 15m EMA20/EMA50; 6 are below both and ADA/HYPE are mixed. On 1h, LINK/SUI are above both, DOGE/ADA mixed, and seven below both. On 4h, ten are below both and SUI is above EMA20 but below EMA50. Daily: ten below both and ZEC mixed. Latest 18:30-18:44:59 UTC taker ratios are buyer-dominant across all 11, but 15m volume remains thin. OI base units rose in BTC,ETH,SOL,XRP,ZEC and fell in the other six; notional OI fell in most markets, reflecting price effects as well. ZEC's old short watch expired when target1176.98 was reached before entry retest; current mark remains near 24h low and no fresh 20-bar breakdown occurred. User-directed SUI remains terminal at +2.577586R; 19 new completed 5m bars checked, cumulative252 post-target bars, max high0.8694 below original stop0.8715 and min low0.8000. BTC and BNB unalerted references remain terminal at stop. No Discord-confirmed active positions, no new alert due, no exchange orders. Additional 15m sweep-sequence review found mechanical sweep-break-retest patterns in BTC, ETH, BNB and DOGE, but all were disqualified: retest volume ratios were0.301x,0.500x,0.815x and0.670x respectively; BTC breakdown volume0.570x and ETH had no follow-through close below retest low. These are watch-only/historical observations, not qualified entries, not paper positions and no alerts. A distinct HYPE short breakdown watch was added: 15:30 sweep high76.745 (1.312x) and16:00 close75.600 below sweep low76.123 (1.424x); retest zone76.123-76.675 has not been revisited. Current mark74.661, latest taker flow buyer-dominant and OI declining; no entry. No fresh qualified setup.",
     "watch_only_added": [
       "BTCUSDT-S-20261109T1745Z-BSL-W01",
@@ -2210,7 +2210,9 @@
       "BNBUSDT-S-20261109T1630Z-BSL-W01",
       "DOGEUSDT-S-20261109T1630Z-BSL-W01",
       "HYPEUSDT-S-20261109T1600Z-BRK-W01"
-    ]
+    ],
+    "watch_only_count": 42,
+    "discord_delivery_confirmed": false
   },
   "scan_history": [
     {
@@ -14188,6 +14190,19 @@
       "entry_trigger_confirmed": false,
       "discord_delivery_confirmed": false,
       "details": "HYPE 15:30 buy-side sweep high76.745 above prior20 high76.675, close76.292; 1.312x volume. 16:00 candle closed75.600 below sweep low76.123 on1.424x volume. Conditional retest zone76.123-76.675, stop76.95, target72.439, planned R:R4.45. No retest yet; current mark74.661, latest taker buyers and declining OI reduce confidence. Watch only."
+    },
+    {
+      "timestamp_utc": "2026-11-09T18:59:45.318Z",
+      "event": "scan_completed",
+      "status": "NO_NEW_QUALIFIED_ENTRY_FOUR_LOW_VOLUME_SWEEP_RETESTS_DISQUALIFIED_HYPE_RETEST_PENDING",
+      "symbols_scanned": 11,
+      "new_qualified_setups": 0,
+      "qualified_entry_triggers": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "active_alerted_setups_count": 0,
+      "watch_only_count": 42,
+      "details": "Fresh 11-market Binance USDⓈ-M scan. All 11 latest completed 15m candles are below their preceding-20-bar high and above their preceding-20-bar low; no fresh 20-bar sweep/breakout. Latest 15m relative volume is below 1.0x in all 11 markets. Four markets (BNB,DOGE,LINK,SUI) are above both 15m EMA20/EMA50; 6 are below both and ADA/HYPE are mixed. On 1h, LINK/SUI are above both, DOGE/ADA mixed, and seven below both. On 4h, ten are below both and SUI is above EMA20 but below EMA50. Daily: ten below both and ZEC mixed. Latest 18:30-18:44:59 UTC taker ratios are buyer-dominant across all 11, but 15m volume remains thin. OI base units rose in BTC,ETH,SOL,XRP,ZEC and fell in the other six; notional OI fell in most markets, reflecting price effects as well. ZEC's old short watch expired when target1176.98 was reached before entry retest; current mark remains near 24h low and no fresh 20-bar breakdown occurred. User-directed SUI remains terminal at +2.577586R; 19 new completed 5m bars checked, cumulative252 post-target bars, max high0.8694 below original stop0.8715 and min low0.8000. BTC and BNB unalerted references remain terminal at stop. No Discord-confirmed active positions, no new alert due, no exchange orders. Additional 15m sweep-sequence review found mechanical sweep-break-retest patterns in BTC, ETH, BNB and DOGE, but all were disqualified: retest volume ratios were0.301x,0.500x,0.815x and0.670x respectively; BTC breakdown volume0.570x and ETH had no follow-through close below retest low. These are watch-only/historical observations, not qualified entries, not paper positions and no alerts. A distinct HYPE short breakdown watch was added: 15:30 sweep high76.745 (1.312x) and16:00 close75.600 below sweep low76.123 (1.424x); retest zone76.123-76.675 has not been revisited. Current mark74.661, latest taker flow buyer-dominant and OI declining; no entry. No fresh qualified setup."
     }
   ],
   "triggered_unalerted_setups": [
