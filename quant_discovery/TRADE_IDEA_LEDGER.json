@@ -8771,6 +8771,32 @@
         "liquidation_feed": "No reliable liquidation/force-order feed was available; no liquidation inference made."
       },
       "rationale": "The completed 04:00-07:59 UTC 4h candle closed below the prior support/reclaim level in all 11 monitored contracts. The previous five 4h reclaims (BTC, BNB, SUI, LINK, ZEC) have now failed on completed 4h data. The five prior support/retest areas were touched within that same 4h candle before its close; these are pre-confirmation touches and do not qualify as the required post-confirmation retest. Existing six breakdown shorts (ETH, SOL, XRP, DOGE, ADA, HYPE) remain extended and have not retested their supply zones. Latest completed 15m candles are mostly near session lows, RSI is deeply oversold, and taker flow is mixed rather than uniformly seller-dominant. OI rose in all 11 markets over 06:00-07:00 UTC, while global accounts remain long-heavy in 10 of 11 (ZEC near balanced). No new setup meets the post-confirmation 15m retest/rejection rule and >=2R quality gate. NO TRADE; do not chase."
+    },
+    {
+      "timestamp_utc": "2026-11-09T08:21:39.000Z",
+      "status": "NO_TRADE_ALL_11_4H_BREAKDOWNS_RELIEF_BOUNCE_NO_POSTCONFIRMATION_RETEST",
+      "symbols_scanned": 11,
+      "new_qualified_setups": 0,
+      "qualified_entry_triggers": 0,
+      "confirmed_4h_breakdowns": 11,
+      "post_confirmation_retest_rejections": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "venue": "Binance USD-M perpetuals",
+      "data_cutoffs": {
+        "runtime_clock_utc": "2026-11-09T08:21:39.000Z",
+        "mark_server_time_utc": "2026-11-09T08:23:59.000Z",
+        "ticker_snapshot_utc": "2026-11-09T08:23:08.000Z",
+        "clock_skew_note": "Exchange mark/ticker server time is about 140 seconds ahead of runtime clock; indicative only.",
+        "completed_15m": "2026-11-09T08:14:59.999Z",
+        "completed_1h": "2026-11-09T07:59:59.999Z",
+        "completed_4h": "2026-11-09T07:59:59.999Z",
+        "completed_daily": "2026-11-08T23:59:59.999Z",
+        "oi_statistics": "2026-11-09T08:00:00.000Z",
+        "taker_flow": "2026-11-09T08:00:00.000Z-08:14:59.999Z",
+        "long_short_accounts": "2026-11-09T08:00:00.000Z"
+      },
+      "summary": "All eleven completed 4h closes remain below prior support and EMA20/EMA50; daily closes are also below EMA20/EMA50. The latest completed 15m candle is green in all eleven, a relief bounce, but every high remains below its post-confirmation retest zone. RSI remains deeply oversold and taker flow is mixed. BTC and ZEC made local 15m sweep/reclaims, not long triggers. No setup passes the post-confirmation retest/rejection and >=2R gate. NO TRADE; do not chase."
     }
   ],
   "event_log": [
