@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-09T22:18:22.000Z",
+  "updated_at_utc": "2026-11-09T23:16:31.000Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -2165,7 +2165,7 @@
       "symbol": "HYPEUSDT",
       "direction": "SHORT",
       "timeframe": "15m",
-      "status": "breakdown_confirmed_retest_pending_no_retest_buyer_taker_mild_oi_rising",
+      "status": "breakdown_confirmed_retest_pending_no_retest_seller_taker_oi_rising",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "sweep_candle": {
@@ -2205,32 +2205,35 @@
       ],
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_checked_at_utc": "2026-11-09T22:18:22.000Z",
-      "last_check_evidence": "Four new completed 15m bars from 21:15 through 22:14:59.999Z. Window high 75.386 and low 74.731; no retest of 76.123-76.675 and no stop touch. Latest candle 22:00-22:14:59.999 O/H/L/C 75.376/75.386/75.003/75.333, relative volume 0.5633x; 15m EMA20 75.0478 and EMA50 74.7235. Latest 1h close 75.376; EMA20 74.8852, EMA50 75.7231. 4h and daily remain below both EMAs. Mark 75.318. OI base +0.0554%, notional +0.4334%, taker ratio 1.0885, long accounts 61.98%. Existing short remains watch-only, no entry.",
-      "latest_mark": 75.318,
-      "post_breakdown_completed_15m_bars_checked": 24,
-      "max_high_after_breakdown": 75.736,
+      "last_checked_at_utc": "2026-11-09T23:16:31.000Z",
+      "last_check_evidence": "Four new completed 15m candles from 22:15 through 23:14:59.999Z. Window high 75.805 and low 75.117; still below original entry zone 76.123-76.675. Latest mark 75.253. Latest completed 15m candle 23:00-23:14:59.999Z O/H/L/C 75.538/75.601/75.158/75.230, relative volume 1.713x; close remains above EMA20 75.179 and EMA50 74.846. Latest 1h close 75.537 is above EMA20 74.947 but below EMA50 75.640; 4h/daily remain below both. Hourly base OI +0.146%, notional OI +0.374%; taker ratio 0.6739 seller-dominant at 23:00; long accounts 61.92%; funding +0.001996%; Binance ADL risk LOW. Entry zone and stop not touched. Existing short remains watch-only, no trigger or alert.",
+      "latest_mark": 75.253,
+      "post_breakdown_completed_15m_bars_checked": 28,
+      "max_high_after_breakdown": 75.805,
       "stop_touched": false,
       "entry_zone_touched_since_previous_check": false,
       "new_completed_15m_bars_since_previous_check": 4,
       "latest_completed_15m_candle": {
-        "open_utc": "2026-11-09T22:00:00.000Z",
-        "close_utc": "2026-11-09T22:14:59.999Z",
-        "open": 75.376,
-        "high": 75.386,
-        "low": 75.003,
-        "close": 75.333,
-        "relative_volume": 0.56328,
-        "ema20": 75.04777,
-        "ema50": 74.72355
+        "open_utc": "2026-11-09T23:00:00.000Z",
+        "close_utc": "2026-11-09T23:14:59.999Z",
+        "open": 75.538,
+        "high": 75.601,
+        "low": 75.158,
+        "close": 75.23,
+        "relative_volume": 1.7132,
+        "ema20": 75.1792,
+        "ema50": 74.8458
       },
       "latest_derivatives": {
-        "oi_base_change_pct": 0.05545,
-        "oi_notional_change_pct": 0.43338,
-        "taker_buy_sell_ratio": 1.0885,
-        "long_account": 0.6198,
-        "long_short_ratio": 1.6302,
-        "observed_at_utc": "2026-11-09T22:00:00.000Z"
+        "oi_base_change_pct": 0.1459,
+        "oi_notional_change_pct": 0.3741,
+        "taker_buy_sell_ratio": 0.6739,
+        "taker_observed_at_utc": "2026-11-09T23:00:00.000Z",
+        "long_account": 0.6192,
+        "long_short_ratio": 1.6261,
+        "account_observed_at_utc": "2026-11-09T23:00:00.000Z",
+        "funding_rate": 0.00001996,
+        "adl_risk": "LOW"
       }
     },
     {
@@ -2271,9 +2274,9 @@
       ],
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_checked_at_utc": "2026-11-09T22:18:22.000Z",
-      "last_check_evidence": "Four new completed 15m bars through 22:14:59.999Z. The 21:15-21:29 candle retested 1176.98-1190, high 1181.13, close 1176.75 below the breakdown level, but relative volume only 0.4847x. The 21:30 candle closed 1166.07 on 0.3321x volume; 21:45 close 1174.43 on 0.3843x; 22:00 close 1175.05 on 0.3300x. Current mark 1174.04. Nearest support 1158.38; from representative 1181.13 retest high with stop 1226.55, reward to support is only ~0.50R. Second mechanical retest/rejection is disqualified; no qualified entry or alert.",
-      "latest_mark": 1174.04,
+      "last_checked_at_utc": "2026-11-09T23:16:31.000Z",
+      "last_check_evidence": "Four new completed 15m bars from 22:15 through 23:14:59.999Z. A 22:30 candle retested the old 1176.98-1190 short zone (high 1184.70) but closed above the breakdown level at 1182.44, not a rejection. The 23:00 candle then swept the preceding-20-bar low 1158.38, printed 1152.80, and closed back above 1158.38 at 1162.69 on 2.333x relative volume. This is a new sell-side sweep/reclaim observation and countertrend exhaustion possibility, not validation of the old short. Old short remains disqualified due earlier weak rejection volume and insufficient >=2R to nearby support. Latest mark 1166.39; 15m/1h/4h/daily structure remains below both EMA20/EMA50. OI base -0.557%, notional -0.562%; latest available taker ratio 0.4743 seller-dominant at 22:45; long accounts 52.40%; funding +0.0100%; ADL risk LOW. No new short entry or alert.",
+      "latest_mark": 1166.39,
       "post_breakdown_completed_15m_bars_checked": 9,
       "entry_zone_touched_since_previous_check": true,
       "mechanical_trigger_condition_met": true,
@@ -2368,7 +2371,7 @@
       "symbol": "SUIUSDT",
       "direction": "SHORT",
       "timeframe": "15m",
-      "status": "breakdown_confirmed_retest_pending",
+      "status": "invalidated_by_completed_reclaim_above_entry_band_no_fresh_rejection",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "discord_alert_required": false,
@@ -2406,15 +2409,108 @@
         "Target 0.8057 is the prior 24h low and must be revalidated before any entry; no guaranteed 2R path is claimed.",
         "No reliable liquidation/force-order feed is available."
       ],
-      "last_checked_at_utc": "2026-11-09T22:18:22.000Z",
-      "latest_mark": 0.8429,
-      "last_check_evidence": "New 15m breakdown candle 22:00-22:14:59.999Z O/H/L/C 0.8449/0.8450/0.8409/0.8426. It closed below the preceding-20 low 0.8429 on 1.2734x average volume. Current mark 0.8429 is at the broken level; no separate completed-candle retest/rejection after the breakdown. 1h close 0.8449 is mixed vs EMA20 0.84314 and EMA50 0.84581; 4h and daily below both. OI base +0.3415%, notional +0.0353%, taker ratio 0.5809 seller-dominant, long accounts 66.10%. Watch-only; no entry or alert."
+      "last_checked_at_utc": "2026-11-09T23:16:31.000Z",
+      "latest_mark": 0.8439,
+      "last_check_evidence": "Four new completed 15m bars from 22:15 through 23:14:59.999Z. The 22:15 candle retested 0.8429-0.8450 and closed 0.8440 inside the band, not a rejection. The 22:30 candle closed 0.8474 above the entire band, invalidating the original retest-from-below setup; the 22:45 candle closed 0.8457, still above. The 23:00 candle returned to the band with low 0.8425 but closed 0.8431 above the required 0.8429 trigger level. Latest mark 0.8439. No qualified entry, no stop/target touch for this watch, and no alert.",
+      "new_completed_15m_bars_since_previous_check": 4,
+      "entry_zone_touched_since_previous_check": true,
+      "mechanical_trigger_condition_met": false,
+      "stop_touched": false,
+      "target_touched": false,
+      "invalidated_at_utc": "2026-11-09T22:44:59.999Z",
+      "invalidation_reason": "The completed 22:30-22:44:59.999Z 15m candle closed at 0.8474, above the entire original retest band 0.8429-0.8450, reclaiming the zone and invalidating the original retest-from-below short. The 22:45 candle also closed above the band at 0.8457. The 23:00 candle later traded back into the band (low 0.8425) but closed at 0.8431, still above the required 0.8429 rejection threshold. The original setup is invalidated and is not reactivated by this later touch.",
+      "latest_completed_15m_candle": {
+        "open_utc": "2026-11-09T23:00:00.000Z",
+        "close_utc": "2026-11-09T23:14:59.999Z",
+        "open": 0.8458,
+        "high": 0.8462,
+        "low": 0.8425,
+        "close": 0.8431,
+        "relative_volume": 1.065,
+        "ema20": 0.8467,
+        "ema50": 0.84429
+      }
+    },
+    {
+      "setup_id": "ZECUSDT-L-20261109T2300Z-SSL-RECLAIM-W01",
+      "symbol": "ZECUSDT",
+      "direction": "LONG",
+      "timeframe": "15m countertrend observation",
+      "status": "sell_side_sweep_reclaim_observed_countertrend_no_entry_confirmation",
+      "entry_trigger_confirmed": false,
+      "qualified_entry": false,
+      "discord_alert_required": false,
+      "discord_delivery_confirmed": false,
+      "sweep_candle": {
+        "open_utc": "2026-11-09T23:00:00.000Z",
+        "close_utc": "2026-11-09T23:14:59.999Z",
+        "open": 1174.12,
+        "high": 1174.58,
+        "low": 1152.8,
+        "close": 1162.69,
+        "prior20_low": 1158.38,
+        "volume": 28431.27,
+        "relative_volume": 2.3332
+      },
+      "trigger_rule": "Watch only. Require a completed 15m close above the sweep-candle high 1174.58, then a separate retest/hold above 1174.58. Reassess 1h/4h structure and require a defensible >=2R target before any qualification. No entry on the sweep candle alone.",
+      "provisional_invalidation": 1152.8,
+      "reference_resistance": 1174.58,
+      "higher_timeframe_context": {
+        "15m": {
+          "close": 1162.69,
+          "ema20": 1175.496,
+          "ema50": 1187.242,
+          "rsi14": 41.11
+        },
+        "1h": {
+          "close": 1174.12,
+          "ema20": 1199.134,
+          "ema50": 1226.729,
+          "rsi14": 37.38
+        },
+        "4h": {
+          "close": 1173.1,
+          "ema20": 1244.94,
+          "ema50": 1253.451,
+          "rsi14": 36.63
+        },
+        "1d": {
+          "close": 1212.76,
+          "ema20": 1247.616,
+          "ema50": 1218.539,
+          "rsi14": 47.41
+        }
+      },
+      "latest_derivatives": {
+        "oi_base_change_pct": -0.5566,
+        "oi_notional_change_pct": -0.5616,
+        "taker_buy_sell_ratio": 0.4743,
+        "taker_observed_at_utc": "2026-11-09T22:45:00.000Z",
+        "long_account": 0.524,
+        "long_short_ratio": 1.1008,
+        "account_observed_at_utc": "2026-11-09T23:00:00.000Z",
+        "funding_rate": 0.0001,
+        "adl_risk": "LOW"
+      },
+      "confidence": 33,
+      "confidence_caveat": "Subjective observation-quality score, not a probability. The 2.33x-volume sweep/reclaim is notable, but the entire 15m/1h/4h/daily EMA structure remains bearish and taker flow is seller-dominant. No completed close above the sweep high or separate retest has occurred.",
+      "key_risks": [
+        "Countertrend against bearish 1h, 4h and daily EMA structure.",
+        "Latest 15m close 1162.69 remains below EMA20 1175.50 and EMA50 1187.24.",
+        "The sell-side sweep candle's close recovered above 1158.38 but remains below its own high 1174.58.",
+        "OI base and notional values both contracted about 0.56% over the latest hour; no fresh short buildup is established.",
+        "Taker flow remains seller-dominant at 0.4743 on the latest available 22:45 interval.",
+        "No reliable liquidation/force-order feed is available."
+      ],
+      "last_checked_at_utc": "2026-11-09T23:16:31.000Z",
+      "latest_mark": 1166.39,
+      "last_check_evidence": "Fresh completed 15m candle 23:00-23:14:59.999Z O/H/L/C 1174.12/1174.58/1152.80/1162.69. It swept the preceding-20-bar low 1158.38 and closed back above it on 2.333x average volume. Latest mark 1166.39. No close above sweep high 1174.58 and no separate retest/hold. 15m,1h,4h and daily remain below EMA20/EMA50. Watch-only countertrend observation; no trade."
     }
   ],
   "last_scan": {
-    "timestamp_utc": "2026-11-09T22:18:22.000Z",
-    "runtime_utc": "2026-11-09T22:16:27.000Z",
-    "status": "NO_NEW_QUALIFIED_ENTRY_SUI_15M_BREAKDOWN_RETEST_PENDING_ZEC_SECOND_LOW_VOLUME_REJECTION_HYPE_RETEST_PENDING",
+    "timestamp_utc": "2026-11-09T23:16:31.000Z",
+    "runtime_utc": "2026-11-09T23:16:12.000Z",
+    "status": "NO_NEW_QUALIFIED_ENTRY_SUI_RETEST_RECLAIM_INVALIDATED_ZEC_SELL_SIDE_SWEEP_RECLAIM_COUNTERTREND_HYPE_RETEST_PENDING",
     "venue": "Binance USDⓈ-M perpetuals",
     "symbols_scanned": 11,
     "new_qualified_setups": 0,
@@ -2422,24 +2518,29 @@
     "entry_alerts_due": 0,
     "entry_alerts_sent": 0,
     "active_alerted_setups_count": 0,
-    "watch_only_count": 44,
-    "market_regime": "11_of_11_4h_below_both_EMA20_EMA50; 11_of_11_daily_below_both_EMAs; 1h_two_above_both_five_below_both_four_mixed; 15m_six_above_both_three_below_both_two_mixed; 9_of_11_latest_completed_15m_volume_below_preceding20_average",
+    "watch_only_count": 45,
+    "market_regime": "11_of_11_4h_below_both_EMA20_EMA50; 11_of_11_daily_below_both_EMAs; 1h_four_above_both_four_below_both_three_mixed; 15m_five_above_both_four_below_both_two_mixed; latest_15m_volume_above_1x_in_BNB_SUI_ZEC_HYPE; ZEC_latest_15m_sell_side_sweep_reclaimed_1158.38_on_2.33x_volume",
     "candle_cutoffs": {
-      "15m": "2026-11-09T22:14:59.999Z",
-      "1h": "2026-11-09T21:59:59.999Z",
+      "15m": "2026-11-09T23:14:59.999Z",
+      "1h": "2026-11-09T22:59:59.999Z",
       "4h": "2026-11-09T19:59:59.999Z",
       "1d": "2026-11-08T23:59:59.999Z"
     },
-    "quote_snapshot_utc": "2026-11-09T22:18:22.000Z",
+    "quote_snapshot_utc": "2026-11-09T23:16:31.000Z",
     "derivatives_snapshots": {
-      "mark_and_funding": "2026-11-09T22:18:22.000Z",
-      "open_interest": "2026-11-09T22:00:00.000Z",
-      "taker_flow": "2026-11-09T22:00:00.000Z (ZEC latest available 21:45 UTC)",
-      "global_account_long_short": "2026-11-09T22:00:00.000Z"
+      "mark_and_funding": "2026-11-09T23:16:31.000Z",
+      "open_interest": "2026-11-09T23:00:00.000Z",
+      "taker_flow": "2026-11-09T23:00:00.000Z (LINK/SUI/ZEC latest available 22:45 UTC)",
+      "global_account_long_short": "2026-11-09T23:00:00.000Z",
+      "binance_adl_risk": "2026-11-09T23:00:00.512Z"
     },
     "watch_only_updated": [
       "HYPEUSDT-S-20261109T1600Z-BRK-W01",
       "ZECUSDT-S-20261109T2000Z-4H-BRK-W01",
+      "SUIUSDT-S-20261109T2200Z-15M-BRK-W01",
+      "ZECUSDT-L-20261109T2300Z-SSL-RECLAIM-W01"
+    ],
+    "invalidated_watch_only": [
       "SUIUSDT-S-20261109T2200Z-15M-BRK-W01"
     ],
     "completed_user_exception": [
@@ -2450,7 +2551,7 @@
       "BNBUSDT-S-20261109T0915Z-RETEST-01"
     ],
     "no_new_qualified_entry": true,
-    "notes": "Fresh 11-market Binance USDⓈ-M scan. Exchange mark/funding/ticker snapshot 22:18:22Z; automation runtime 22:16:27Z, so exchange clock appears about 1m55s ahead and mark timestamp should be treated with that caveat. Latest completed 15m bars through22:14:59.999Z, 1h through21:59:59.999Z, 4h through19:59:59.999Z, daily through8Nov23:59:59.999Z. All11 completed4h and daily closes below EMA20/EMA50. 1h alignment:2 above both (BNB,LINK),5 below both (ETH,SOL,XRP,ADA,ZEC),4 mixed (BTC,DOGE,SUI,HYPE). 15m:6 above both (BTC,ETH,BNB,XRP,LINK,HYPE),3 below both (SOL,ADA,ZEC),2 mixed (DOGE,SUI). Latest15m relative volume below1x in9/11; ETH1.263x and SUI1.273x. SUI new 22:00-22:14:59Z 15m breakdown closed0.8426 below prior20 low0.8429 on1.273x volume; no separate retest/rejection yet; create watch-only setup with provisional entry0.8429-0.8450, stop0.8475, target0.8057 prior24h low, planned geometric R:R~8.09 only if retest confirms; no entry. ZEC had second retest 21:15 candle high1181.13 close1176.75 below1176.98 but relVol0.485x; subsequent follow-through candles also low volume; nearest support1158.38 offers only ~0.50R from retest high with provisional stop1226.55; disqualified. HYPE four new completed15m candles through22:14; max high75.386, no retest of76.123-76.675; mark75.318; 15m close75.333 above EMA20/50, 1h close75.376 above EMA20 but below EMA50, 4h/daily bearish; OI and taker mildly buyer-dominant. Derivatives sampled all11: OI mixed; taker buyers BTC,ETH,SOL,BNB,LINK,ZEC,HYPE; sellers XRP,DOGE,ADA,SUI; global long-account shares highest ETH79.53%,SOL77.23%,XRP74.92%,BTC73.58%. Funding positive across all11 (HYPE much lower). No reliable liquidation/force-order feed. User-directed SUI completed original target at+2.577586R;12 new completed5m bars, cumulative292, latest mark0.8429, new window high0.8485 low0.8409; original stop untouched; no reopening. No known Discord-confirmed active setups; worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
+    "notes": "Fresh 11-market Binance USDⓈ-M scan. Mark/funding/ticker snapshot 23:16:31Z; runtime 23:16:12Z (19-second timestamp skew). Latest completed 15m candles through23:14:59.999Z, 1h through22:59:59.999Z, 4h through19:59:59.999Z, daily through8Nov23:59:59.999Z. All11 completed4h and daily closes below EMA20/EMA50. 1h alignment: BTC,BNB,LINK,SUI above both; ETH,SOL,ADA,ZEC below both; XRP,DOGE,HYPE mixed. 15m alignment: BTC,ETH,BNB,XRP,HYPE above both; SOL,ADA,SUI,ZEC below both; DOGE,LINK mixed. Latest15m relative volume above1x only BNB1.142,SUI1.065,ZEC2.333,HYPE1.713; others below1x. ZEC 23:00-23:14:59.999Z candle swept prior20 low1158.38 to1152.80 and closed1162.69 back above on2.333x volume. This is a new countertrend sell-side sweep/reclaim observation, not a long entry: price remains below 15m/1h/4h/daily EMA20/EMA50, no close above sweep high1174.58 or separate retest. Existing ZEC short remains disqualified; no defensible short entry near support. SUI prior watch SUIUSDT-S-20261109T2200Z-15M-BRK-W01: four new completed15m bars. 22:15 candle closed0.8440 inside retest band; 22:30 candle closed0.8474 above entire upper edge0.8450, invalidating original retest-from-below thesis; 22:45 close0.8457 remained above; 23:00 candle returned to band but closed0.8431 above required0.8429 rejection threshold. Original watch invalidated, no reactivation. HYPE existing short watch: four new completed15m bars, window high75.805 below entry zone76.123-76.675; no retest or stop touch. Latest mark75.253; 15m close75.230 above EMA20/EMA50; 1h mixed, 4h/daily bearish. Hourly base OI+0.146%, notional+0.374%; taker0.6739 seller-dominant; long accounts61.92%; funding+0.001996%; ADL risk LOW. Derivatives across all11: BTC OI+1.055% base/+1.398% notional; ETH+0.015/+0.307; SOL-0.146/+0.336; BNB+0.142/+0.192; XRP-0.583/+0.390; DOGE-0.143/+0.010; ADA+0.256/+0.461; LINK+0.323/+0.482; SUI+0.009/+0.095; ZEC-0.557/-0.562; HYPE+0.146/+0.374. Latest taker ratios: BTC0.811,ETH0.667,SOL0.793,BNB1.219,XRP0.412,DOGE1.111,ADA0.818,LINK1.089,SUI0.887,ZEC0.474,HYPE0.674 (LINK/SUI/ZEC timestamp22:45, others23:00). Long-account share highest ETH79.17%,SOL77.26%,BTC73.52%,XRP74.88%; ZEC52.40%; all funding positive, HYPE0.001996%. Binance ADL risk LOW across all11; this is not a liquidation map. No reliable liquidation/force-order feed. User-directed SUI original short remains terminal at+2.577586R;12 new completed5m bars through23:14:59.999Z, cumulative304, latest mark0.8439, window high0.8487 low0.8409; original entry zone/stop not touched and target remains completed. No Discord-confirmed active setup; worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
   },
   "scan_history": [
     {
@@ -11528,6 +11629,52 @@
       ],
       "no_new_qualified_entry": true,
       "notes": "Fresh 11-market Binance USDⓈ-M scan. Exchange mark/funding/ticker snapshot 22:18:22Z; automation runtime 22:16:27Z, so exchange clock appears about 1m55s ahead and mark timestamp should be treated with that caveat. Latest completed 15m bars through22:14:59.999Z, 1h through21:59:59.999Z, 4h through19:59:59.999Z, daily through8Nov23:59:59.999Z. All11 completed4h and daily closes below EMA20/EMA50. 1h alignment:2 above both (BNB,LINK),5 below both (ETH,SOL,XRP,ADA,ZEC),4 mixed (BTC,DOGE,SUI,HYPE). 15m:6 above both (BTC,ETH,BNB,XRP,LINK,HYPE),3 below both (SOL,ADA,ZEC),2 mixed (DOGE,SUI). Latest15m relative volume below1x in9/11; ETH1.263x and SUI1.273x. SUI new 22:00-22:14:59Z 15m breakdown closed0.8426 below prior20 low0.8429 on1.273x volume; no separate retest/rejection yet; create watch-only setup with provisional entry0.8429-0.8450, stop0.8475, target0.8057 prior24h low, planned geometric R:R~8.09 only if retest confirms; no entry. ZEC had second retest 21:15 candle high1181.13 close1176.75 below1176.98 but relVol0.485x; subsequent follow-through candles also low volume; nearest support1158.38 offers only ~0.50R from retest high with provisional stop1226.55; disqualified. HYPE four new completed15m candles through22:14; max high75.386, no retest of76.123-76.675; mark75.318; 15m close75.333 above EMA20/50, 1h close75.376 above EMA20 but below EMA50, 4h/daily bearish; OI and taker mildly buyer-dominant. Derivatives sampled all11: OI mixed; taker buyers BTC,ETH,SOL,BNB,LINK,ZEC,HYPE; sellers XRP,DOGE,ADA,SUI; global long-account shares highest ETH79.53%,SOL77.23%,XRP74.92%,BTC73.58%. Funding positive across all11 (HYPE much lower). No reliable liquidation/force-order feed. User-directed SUI completed original target at+2.577586R;12 new completed5m bars, cumulative292, latest mark0.8429, new window high0.8485 low0.8409; original stop untouched; no reopening. No known Discord-confirmed active setups; worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "runtime_utc": "2026-11-09T23:16:12.000Z",
+      "status": "NO_NEW_QUALIFIED_ENTRY_SUI_RETEST_RECLAIM_INVALIDATED_ZEC_SELL_SIDE_SWEEP_RECLAIM_COUNTERTREND_HYPE_RETEST_PENDING",
+      "venue": "Binance USDⓈ-M perpetuals",
+      "symbols_scanned": 11,
+      "new_qualified_setups": 0,
+      "qualified_entry_triggers": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "active_alerted_setups_count": 0,
+      "watch_only_count": 45,
+      "market_regime": "11_of_11_4h_below_both_EMA20_EMA50; 11_of_11_daily_below_both_EMAs; 1h_four_above_both_four_below_both_three_mixed; 15m_five_above_both_four_below_both_two_mixed; latest_15m_volume_above_1x_in_BNB_SUI_ZEC_HYPE; ZEC_latest_15m_sell_side_sweep_reclaimed_1158.38_on_2.33x_volume",
+      "candle_cutoffs": {
+        "15m": "2026-11-09T23:14:59.999Z",
+        "1h": "2026-11-09T22:59:59.999Z",
+        "4h": "2026-11-09T19:59:59.999Z",
+        "1d": "2026-11-08T23:59:59.999Z"
+      },
+      "quote_snapshot_utc": "2026-11-09T23:16:31.000Z",
+      "derivatives_snapshots": {
+        "mark_and_funding": "2026-11-09T23:16:31.000Z",
+        "open_interest": "2026-11-09T23:00:00.000Z",
+        "taker_flow": "2026-11-09T23:00:00.000Z (LINK/SUI/ZEC latest available 22:45 UTC)",
+        "global_account_long_short": "2026-11-09T23:00:00.000Z",
+        "binance_adl_risk": "2026-11-09T23:00:00.512Z"
+      },
+      "watch_only_updated": [
+        "HYPEUSDT-S-20261109T1600Z-BRK-W01",
+        "ZECUSDT-S-20261109T2000Z-4H-BRK-W01",
+        "SUIUSDT-S-20261109T2200Z-15M-BRK-W01",
+        "ZECUSDT-L-20261109T2300Z-SSL-RECLAIM-W01"
+      ],
+      "invalidated_watch_only": [
+        "SUIUSDT-S-20261109T2200Z-15M-BRK-W01"
+      ],
+      "completed_user_exception": [
+        "SUIUSDT-S-20261107T0423Z-BRK-01"
+      ],
+      "terminal_unalerted_references": [
+        "BTCUSDT-S-20261109T0800Z-REBREAK-W01",
+        "BNBUSDT-S-20261109T0915Z-RETEST-01"
+      ],
+      "no_new_qualified_entry": true,
+      "notes": "Fresh 11-market Binance USDⓈ-M scan. Mark/funding/ticker snapshot 23:16:31Z; runtime 23:16:12Z (19-second timestamp skew). Latest completed 15m candles through23:14:59.999Z, 1h through22:59:59.999Z, 4h through19:59:59.999Z, daily through8Nov23:59:59.999Z. All11 completed4h and daily closes below EMA20/EMA50. 1h alignment: BTC,BNB,LINK,SUI above both; ETH,SOL,ADA,ZEC below both; XRP,DOGE,HYPE mixed. 15m alignment: BTC,ETH,BNB,XRP,HYPE above both; SOL,ADA,SUI,ZEC below both; DOGE,LINK mixed. Latest15m relative volume above1x only BNB1.142,SUI1.065,ZEC2.333,HYPE1.713; others below1x. ZEC 23:00-23:14:59.999Z candle swept prior20 low1158.38 to1152.80 and closed1162.69 back above on2.333x volume. This is a new countertrend sell-side sweep/reclaim observation, not a long entry: price remains below 15m/1h/4h/daily EMA20/EMA50, no close above sweep high1174.58 or separate retest. Existing ZEC short remains disqualified; no defensible short entry near support. SUI prior watch SUIUSDT-S-20261109T2200Z-15M-BRK-W01: four new completed15m bars. 22:15 candle closed0.8440 inside retest band; 22:30 candle closed0.8474 above entire upper edge0.8450, invalidating original retest-from-below thesis; 22:45 close0.8457 remained above; 23:00 candle returned to band but closed0.8431 above required0.8429 rejection threshold. Original watch invalidated, no reactivation. HYPE existing short watch: four new completed15m bars, window high75.805 below entry zone76.123-76.675; no retest or stop touch. Latest mark75.253; 15m close75.230 above EMA20/EMA50; 1h mixed, 4h/daily bearish. Hourly base OI+0.146%, notional+0.374%; taker0.6739 seller-dominant; long accounts61.92%; funding+0.001996%; ADL risk LOW. Derivatives across all11: BTC OI+1.055% base/+1.398% notional; ETH+0.015/+0.307; SOL-0.146/+0.336; BNB+0.142/+0.192; XRP-0.583/+0.390; DOGE-0.143/+0.010; ADA+0.256/+0.461; LINK+0.323/+0.482; SUI+0.009/+0.095; ZEC-0.557/-0.562; HYPE+0.146/+0.374. Latest taker ratios: BTC0.811,ETH0.667,SOL0.793,BNB1.219,XRP0.412,DOGE1.111,ADA0.818,LINK1.089,SUI0.887,ZEC0.474,HYPE0.674 (LINK/SUI/ZEC timestamp22:45, others23:00). Long-account share highest ETH79.17%,SOL77.26%,BTC73.52%,XRP74.88%; ZEC52.40%; all funding positive, HYPE0.001996%. Binance ADL risk LOW across all11; this is not a liquidation map. No reliable liquidation/force-order feed. User-directed SUI original short remains terminal at+2.577586R;12 new completed5m bars through23:14:59.999Z, cumulative304, latest mark0.8439, window high0.8487 low0.8409; original entry zone/stop not touched and target remains completed. No Discord-confirmed active setup; worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
     }
   ],
   "event_log": [
@@ -14988,6 +15135,98 @@
       "entry_alerts_sent": 0,
       "active_alerted_setups_count": 0,
       "watch_only_count": 44
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "watch_only_lifecycle_recheck",
+      "status": "HYPE_RETEST_PENDING_NO_ENTRY_ZONE_TOUCH",
+      "setup_id": "HYPEUSDT-S-20261109T1600Z-BRK-W01",
+      "new_completed_15m_bars": 4,
+      "entry_trigger_confirmed": false,
+      "discord_delivery_confirmed": false,
+      "latest_mark": 75.253,
+      "details": "Four new completed 15m bars through23:14:59.999Z; maximum high75.805 remains below entry zone76.123-76.675. No retest or stop touch. Latest 15m close75.230 above EMA20/50; 1h mixed; 4h/daily bearish. OI base+0.146%, notional+0.374%, taker0.6739 seller-dominant, long accounts61.92%, funding+0.001996%, ADL risk LOW. Still watch-only."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "watch_only_lifecycle_recheck",
+      "status": "SUI_BREAKDOWN_WATCH_INVALIDATED_BY_RECLAIM_ABOVE_ENTRY_BAND",
+      "setup_id": "SUIUSDT-S-20261109T2200Z-15M-BRK-W01",
+      "new_completed_15m_bars": 4,
+      "entry_trigger_confirmed": false,
+      "discord_delivery_confirmed": false,
+      "latest_mark": 0.8439,
+      "details": "22:15 candle closed0.8440 inside band; 22:30 candle closed0.8474 above entire0.8429-0.8450 band and invalidated retest-from-below; 22:45 close0.8457 remained above; 23:00 candle retested band but closed0.8431 above trigger0.8429. Original watch invalidated; no new entry."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "watch_only_lifecycle_recheck",
+      "status": "ZEC_OLD_SHORT_DISQUALIFIED_NEW_SELL_SIDE_SWEEP_RECLAIM_OBSERVED",
+      "setup_id": "ZECUSDT-S-20261109T2000Z-4H-BRK-W01",
+      "new_completed_15m_bars": 4,
+      "entry_trigger_confirmed": false,
+      "discord_delivery_confirmed": false,
+      "latest_mark": 1166.39,
+      "details": "Old short remains disqualified. New23:00 candle swept prior20 low1158.38 to1152.80 and closed1162.69 back above on2.333x volume. Countertrend exhaustion observation only; no long trigger."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "new_watch_only_observation",
+      "status": "ZEC_SELL_SIDE_SWEEP_RECLAIM_COUNTERTREND_NO_LONG_TRIGGER",
+      "setup_id": "ZECUSDT-L-20261109T2300Z-SSL-RECLAIM-W01",
+      "symbol": "ZECUSDT",
+      "direction": "LONG",
+      "entry_trigger_confirmed": false,
+      "discord_delivery_confirmed": false,
+      "details": "23:00-23:14:59.999Z 15m candle swept1158.38 to1152.80 and closed1162.69 above support on2.333x relative volume. Still below all 15m/1h/4h/daily EMA20/50; require close above sweep high1174.58 and separate retest, plus >=2R path. Watch only."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "user_directed_sui_post_target_monitoring",
+      "status": "COMPLETED_TARGET_1_POST_TARGET_CHECK_NO_STOP_TOUCH",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "discord_delivery_confirmed": false,
+      "new_completed_5m_bars": 12,
+      "cumulative_post_target_5m_bars": 304,
+      "latest_mark": 0.8439,
+      "realized_R": 2.5775862068965427,
+      "window_high": 0.8487,
+      "window_low": 0.8409,
+      "details": "12 new completed5m bars through23:14:59.999Z; cumulative post-target304. Entry zone0.8590-0.8610 and stop0.8715 not touched. Original target0.8300 remains terminal at+2.577586R; no reopening. Latest completed candle23:10-23:14:59.999 O/H/L/C0.8430/0.8443/0.8425/0.8431; mark0.8439."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "trade_lifecycle_reconciliation",
+      "status": "NO_DISCORD_CONFIRMED_ACTIVE_SETUPS_SUI_TERMINAL_BTC_BNB_UNALERTED_TERMINAL",
+      "active_alerted_setups_count": 0,
+      "triggered_unalerted_setups": [
+        "SUIUSDT-S-20261107T0423Z-BRK-01",
+        "BTCUSDT-S-20261109T0800Z-REBREAK-W01",
+        "BNBUSDT-S-20261109T0915Z-RETEST-01"
+      ],
+      "details": "No known Discord-confirmed active setups. SUI user-directed exception remains terminal+2.577586R; BTC/BNB unalerted reference shorts remain terminal at-1R reference outcomes. HYPE remains retest-pending; original SUI short watch invalidated; ZEC sell-side sweep observation is watch-only. Worker state partial_unverified; unknown state not merged."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "discord_delivery_capability_check",
+      "status": "NO_ALERT_DUE_NO_DIRECT_DISCORD_SENDER_OR_WORKFLOW_DISPATCH_ACTION",
+      "discord_delivery_confirmed": false,
+      "entry_alerts_due": 0,
+      "lifecycle_updates_due": 0,
+      "details": "No qualified entry trigger and no Discord-confirmed lifecycle update due. Existing alerts.yml has workflow_dispatch and configured Discord secrets, but this runtime has no direct Discord sender or GitHub workflow-dispatch action. No message sent or claimed; no webhook secret requested."
+    },
+    {
+      "timestamp_utc": "2026-11-09T23:16:31.000Z",
+      "event": "scan_completed",
+      "status": "NO_NEW_QUALIFIED_ENTRY_SUI_RETEST_RECLAIM_INVALIDATED_ZEC_SELL_SIDE_SWEEP_RECLAIM_COUNTERTREND_HYPE_RETEST_PENDING",
+      "symbols_scanned": 11,
+      "new_qualified_setups": 0,
+      "qualified_entry_triggers": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "active_alerted_setups_count": 0,
+      "watch_only_count": 45,
+      "details": "Fresh 11-market Binance USDⓈ-M scan. Mark/funding/ticker snapshot 23:16:31Z; runtime 23:16:12Z (19-second timestamp skew). Latest completed 15m candles through23:14:59.999Z, 1h through22:59:59.999Z, 4h through19:59:59.999Z, daily through8Nov23:59:59.999Z. All11 completed4h and daily closes below EMA20/EMA50. 1h alignment: BTC,BNB,LINK,SUI above both; ETH,SOL,ADA,ZEC below both; XRP,DOGE,HYPE mixed. 15m alignment: BTC,ETH,BNB,XRP,HYPE above both; SOL,ADA,SUI,ZEC below both; DOGE,LINK mixed. Latest15m relative volume above1x only BNB1.142,SUI1.065,ZEC2.333,HYPE1.713; others below1x. ZEC 23:00-23:14:59.999Z candle swept prior20 low1158.38 to1152.80 and closed1162.69 back above on2.333x volume. This is a new countertrend sell-side sweep/reclaim observation, not a long entry: price remains below 15m/1h/4h/daily EMA20/EMA50, no close above sweep high1174.58 or separate retest. Existing ZEC short remains disqualified; no defensible short entry near support. SUI prior watch SUIUSDT-S-20261109T2200Z-15M-BRK-W01: four new completed15m bars. 22:15 candle closed0.8440 inside retest band; 22:30 candle closed0.8474 above entire upper edge0.8450, invalidating original retest-from-below thesis; 22:45 close0.8457 remained above; 23:00 candle returned to band but closed0.8431 above required0.8429 rejection threshold. Original watch invalidated, no reactivation. HYPE existing short watch: four new completed15m bars, window high75.805 below entry zone76.123-76.675; no retest or stop touch. Latest mark75.253; 15m close75.230 above EMA20/EMA50; 1h mixed, 4h/daily bearish. Hourly base OI+0.146%, notional+0.374%; taker0.6739 seller-dominant; long accounts61.92%; funding+0.001996%; ADL risk LOW. Derivatives across all11: BTC OI+1.055% base/+1.398% notional; ETH+0.015/+0.307; SOL-0.146/+0.336; BNB+0.142/+0.192; XRP-0.583/+0.390; DOGE-0.143/+0.010; ADA+0.256/+0.461; LINK+0.323/+0.482; SUI+0.009/+0.095; ZEC-0.557/-0.562; HYPE+0.146/+0.374. Latest taker ratios: BTC0.811,ETH0.667,SOL0.793,BNB1.219,XRP0.412,DOGE1.111,ADA0.818,LINK1.089,SUI0.887,ZEC0.474,HYPE0.674 (LINK/SUI/ZEC timestamp22:45, others23:00). Long-account share highest ETH79.17%,SOL77.26%,BTC73.52%,XRP74.88%; ZEC52.40%; all funding positive, HYPE0.001996%. Binance ADL risk LOW across all11; this is not a liquidation map. No reliable liquidation/force-order feed. User-directed SUI original short remains terminal at+2.577586R;12 new completed5m bars through23:14:59.999Z, cumulative304, latest mark0.8439, window high0.8487 low0.8409; original entry zone/stop not touched and target remains completed. No Discord-confirmed active setup; worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
     }
   ],
   "triggered_unalerted_setups": [
@@ -15066,9 +15305,9 @@
         "No reliable liquidation/force-order feed was available."
       ],
       "latest_market_check": {
-        "as_of_runtime_utc": "2026-11-09T22:16:27.000Z",
-        "mark_server_time_utc": "2026-11-09T22:18:22.000Z",
-        "latest_mark_price": 0.8429,
+        "as_of_runtime_utc": "2026-11-09T23:16:12.000Z",
+        "mark_server_time_utc": "2026-11-09T23:16:31.000Z",
+        "latest_mark_price": 0.8439,
         "original_entry": 0.8599,
         "entry_zone": [
           0.859,
@@ -15082,30 +15321,30 @@
         "lifecycle_status": "completed_target_1",
         "realized_R": 2.5775862068965427,
         "new_completed_5m_bars_since_previous_check": 12,
-        "cumulative_post_target_5m_bars": 292,
-        "window_max_high": 0.8485,
+        "cumulative_post_target_5m_bars": 304,
+        "window_max_high": 0.8487,
         "window_min_low": 0.8409,
         "cumulative_post_target_max_high": 0.8694,
         "cumulative_post_target_min_low": 0.8,
         "latest_completed_5m_candle": {
-          "open_utc": "2026-11-09T22:10:00.000Z",
-          "close_utc": "2026-11-09T22:14:59.999Z",
-          "open": 0.8418,
-          "high": 0.8437,
-          "low": 0.8415,
-          "close": 0.8426
+          "open_utc": "2026-11-09T23:10:00.000Z",
+          "close_utc": "2026-11-09T23:14:59.999Z",
+          "open": 0.843,
+          "high": 0.8443,
+          "low": 0.8425,
+          "close": 0.8431
         },
-        "note": "12 new completed 5m bars from 21:15 through 22:14:59.999Z. Window high 0.8485 and low 0.8409; original entry zone 0.8590-0.8610 and stop 0.8715 were not touched. The original target 0.8300 was already completed on 8 Nov; the trade remains terminal at +2.577586R, no reopening or additional R. Latest mark 0.8429. Discord entry delivery remains unconfirmed."
+        "note": "12 new completed 5m bars from 22:15 through 23:14:59.999Z; cumulative post-target count 304. Window high 0.8487 and low 0.8409. Original entry zone 0.8590-0.8610 and stop 0.8715 not touched; original target 0.8300 was already completed on 8 Nov. Trade remains terminal at +2.577586R; no reopening or additional R. Latest mark 0.8439. Discord entry delivery remains unconfirmed."
       },
       "discord_delivery_confirmed": false,
       "discord_delivery_status": "not_sent",
       "discord_delivery_blocker": "This runner has no direct Discord send action and no GitHub Actions workflow-dispatch action. The existing alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but this run cannot invoke it or access the secrets. No delivery confirmation exists.",
       "active_alerted": false,
-      "last_checked_at_utc": "2026-11-09T22:18:22.000Z",
-      "latest_mark_price": 0.8429,
+      "last_checked_at_utc": "2026-11-09T23:16:31.000Z",
+      "latest_mark_price": 0.8439,
       "estimated_unrealized_R_at_latest_mark": null,
       "terminal_level_hit": true,
-      "last_candle_evidence": "Fresh Binance USDⓈ-M 5m check through 2026-11-09T22:14:59.999Z: 12 new completed bars since previous check; cumulative post-target bars 292. Window high 0.8485 and low 0.8409. Latest candle 22:10-22:14:59.999Z O/H/L/C 0.8418/0.8437/0.8415/0.8426. Mark 0.8429 at 22:18:22Z. Original entry zone and stop not touched in this window; original target remains terminal at +2.577586R. No reopening or additional R. Discord delivery not confirmed.",
+      "last_candle_evidence": "Fresh Binance USDⓈ-M 5m check through 2026-11-09T23:14:59.999Z: 12 new completed bars since prior check; cumulative post-target bars 304. Window high 0.8487 and low 0.8409. Latest completed candle 23:10-23:14:59.999Z O/H/L/C 0.8430/0.8443/0.8425/0.8431. Mark 0.8439 at 23:16:31Z. Original entry zone and stop not touched; original target remains terminal at +2.577586R. No reopening or additional R. Discord delivery not confirmed.",
       "post_entry_5m_bars_checked": 433,
       "max_high_since_entry_observed": 0.8694,
       "min_low_since_entry_observed": 0.8,
@@ -15118,11 +15357,11 @@
       "exit_reason": "original_target_1_hit",
       "exit_price": 0.83,
       "partial_exits": [],
-      "post_completion_5m_bars_checked": 292,
+      "post_completion_5m_bars_checked": 304,
       "post_completion_max_high": 0.8694,
       "post_completion_min_low": 0.8,
       "latest_mark": 0.8429,
-      "post_target_5m_bars_checked": 292
+      "post_target_5m_bars_checked": 304
     },
     {
       "setup_id": "BTCUSDT-S-20261109T0800Z-REBREAK-W01",
