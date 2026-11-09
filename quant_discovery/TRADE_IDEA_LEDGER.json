@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-09T08:01:52.772Z",
+  "updated_at_utc": "2026-11-09T08:21:39.000Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -1190,279 +1190,12 @@
     }
   ],
   "last_scan": {
-    "timestamp_utc": "2026-11-09T08:01:52.772Z",
-    "status": "NO_TRADE_ALL_11_4H_BREAKDOWN_CONFIRMED_POSTCONFIRMATION_RETEST_PENDING",
-    "venue": "Binance USDⓈ-M USDT perpetuals",
+    "timestamp_utc": "2026-11-09T08:21:39.000Z",
+    "status": "NO_TRADE_ALL_11_4H_BREAKDOWNS_RELIEF_BOUNCE_NO_POSTCONFIRMATION_RETEST",
     "symbols_scanned": 11,
     "new_qualified_setups": 0,
-    "qualified_entry_triggers": 0,
     "entry_alerts_due": 0,
-    "entry_alerts_sent": 0,
-    "completed_candle_cutoffs": {
-      "mark_and_ticker": "2026-11-09T08:01:52Z",
-      "completed_15m": "2026-11-09T07:59:59.999Z",
-      "completed_1h": "2026-11-09T07:59:59.999Z",
-      "completed_4h": "2026-11-09T07:59:59.999Z",
-      "completed_daily": "2026-11-08T23:59:59.999Z",
-      "oi_statistics": "2026-11-09T07:00:00Z",
-      "global_account_long_short_ratio": "2026-11-09T07:00:00Z"
-    },
-    "structure": {
-      "prior_supports_now_broken": {
-        "BTCUSDT": 74810.8,
-        "ETHUSDT": 2205.11,
-        "SOLUSDT": 88.24,
-        "BNBUSDT": 684.04,
-        "XRPUSDT": 1.1477,
-        "DOGEUSDT": 0.0701,
-        "ADAUSDT": 0.1776,
-        "LINKUSDT": 10.501,
-        "SUIUSDT": 0.83,
-        "ZECUSDT": 1212.4,
-        "HYPEUSDT": 76.236
-      },
-      "all_11_completed_4h_closes_below_prior_support": true,
-      "all_11_completed_1h_closes_below_ema20_ema50": true,
-      "post_confirmation_retest_rejections": 0,
-      "preconfirmation_zone_touches": [
-        "BTCUSDT",
-        "BNBUSDT",
-        "SUIUSDT",
-        "LINKUSDT",
-        "ZECUSDT"
-      ]
-    },
-    "watch_only_changes": {
-      "new": [
-        "BTCUSDT-S-20261109T0800Z-REBREAK-W01"
-      ],
-      "updated": [
-        "SUIUSDT-S-20261109T0630Z-REBREAK-W01",
-        "LINKUSDT-S-20261109T0630Z-REBREAK-W01"
-      ],
-      "not_qualified_due_to_rr": [
-        "BNBUSDT",
-        "ZECUSDT"
-      ],
-      "existing_breakdown_watches": [
-        "ETHUSDT-S-20261108T2200Z-CRASH-W01",
-        "SOLUSDT-S-20261108T2200Z-CRASH-W01",
-        "XRPUSDT-S-20261108T2115Z-BRK-W01",
-        "DOGEUSDT-S-20261108T2200Z-CRASH-W01",
-        "ADAUSDT-S-20261108T2200Z-CRASH-W01",
-        "HYPEUSDT-S-20261108T1730Z-BRK-W01"
-      ]
-    },
-    "market_snapshot": [
-      {
-        "symbol": "BTC",
-        "mark": 73772.628,
-        "change24h_pct": -2.819,
-        "quote_volume_24h": 10652776720,
-        "completed_15m_close": 73844.1,
-        "rsi15m": 21.53,
-        "vol_ratio15m": 1.136,
-        "taker_buy_sell15m": 0.988,
-        "rsi4h": 18.06,
-        "vol_ratio4h": 1.766,
-        "oi_change_06_to_07_pct": 0.203,
-        "long_account_pct": 74.29,
-        "funding_pct": 0.01
-      },
-      {
-        "symbol": "ETH",
-        "mark": 2090.498,
-        "change24h_pct": -6.636,
-        "quote_volume_24h": 9065613119,
-        "completed_15m_close": 2092.95,
-        "rsi15m": 18.98,
-        "vol_ratio15m": 1.183,
-        "taker_buy_sell15m": 1.064,
-        "rsi4h": 14.49,
-        "vol_ratio4h": 2.441,
-        "oi_change_06_to_07_pct": 0.3,
-        "long_account_pct": 79.52,
-        "funding_pct": -0.004676
-      },
-      {
-        "symbol": "SOL",
-        "mark": 85.48,
-        "change24h_pct": -4.213,
-        "quote_volume_24h": 1586685433,
-        "completed_15m_close": 85.53,
-        "rsi15m": 10,
-        "vol_ratio15m": 1.001,
-        "taker_buy_sell15m": 1.274,
-        "rsi4h": 21.82,
-        "vol_ratio4h": 1.703,
-        "oi_change_06_to_07_pct": 0.782,
-        "long_account_pct": 77.42,
-        "funding_pct": -0.006827
-      },
-      {
-        "symbol": "BNB",
-        "mark": 675.474,
-        "change24h_pct": -3.559,
-        "quote_volume_24h": 323790593,
-        "completed_15m_close": 676.24,
-        "rsi15m": 9.49,
-        "vol_ratio15m": 2.288,
-        "taker_buy_sell15m": 0.723,
-        "rsi4h": 27.57,
-        "vol_ratio4h": 1.873,
-        "oi_change_06_to_07_pct": 0.152,
-        "long_account_pct": 73.2,
-        "funding_pct": 0
-      },
-      {
-        "symbol": "XRP",
-        "mark": 1.0837,
-        "change24h_pct": -6.876,
-        "quote_volume_24h": 890969115,
-        "completed_15m_close": 1.0838,
-        "rsi15m": 17.86,
-        "vol_ratio15m": 0.886,
-        "taker_buy_sell15m": 0.716,
-        "rsi4h": 17.05,
-        "vol_ratio4h": 1.697,
-        "oi_change_06_to_07_pct": 0.381,
-        "long_account_pct": 73.51,
-        "funding_pct": 0.005481
-      },
-      {
-        "symbol": "DOGE",
-        "mark": 0.06802,
-        "change24h_pct": -4.547,
-        "quote_volume_24h": 377162837,
-        "completed_15m_close": 0.06805,
-        "rsi15m": 13.12,
-        "vol_ratio15m": 1.589,
-        "taker_buy_sell15m": 0.993,
-        "rsi4h": 15.91,
-        "vol_ratio4h": 1.682,
-        "oi_change_06_to_07_pct": 0.379,
-        "long_account_pct": 72.26,
-        "funding_pct": -0.00074
-      },
-      {
-        "symbol": "ADA",
-        "mark": 0.172024,
-        "change24h_pct": -4.498,
-        "quote_volume_24h": 118003697,
-        "completed_15m_close": 0.1723,
-        "rsi15m": 12.07,
-        "vol_ratio15m": 1.487,
-        "taker_buy_sell15m": 1.242,
-        "rsi4h": 16.18,
-        "vol_ratio4h": 1.529,
-        "oi_change_06_to_07_pct": 0.758,
-        "long_account_pct": 65.35,
-        "funding_pct": 0.002873
-      },
-      {
-        "symbol": "LINK",
-        "mark": 10.282,
-        "change24h_pct": -4.193,
-        "quote_volume_24h": 114998973,
-        "completed_15m_close": 10.269,
-        "rsi15m": 10.6,
-        "vol_ratio15m": 1.815,
-        "taker_buy_sell15m": 1.601,
-        "rsi4h": 26.04,
-        "vol_ratio4h": 1.476,
-        "oi_change_06_to_07_pct": 0.339,
-        "long_account_pct": 64.19,
-        "funding_pct": 0.008867
-      },
-      {
-        "symbol": "SUI",
-        "mark": 0.8094,
-        "change24h_pct": -5.178,
-        "quote_volume_24h": 158318413,
-        "completed_15m_close": 0.8093,
-        "rsi15m": 6.41,
-        "vol_ratio15m": 1.319,
-        "taker_buy_sell15m": 0.868,
-        "rsi4h": 21.05,
-        "vol_ratio4h": 1.308,
-        "oi_change_06_to_07_pct": 0.432,
-        "long_account_pct": 67.09,
-        "funding_pct": 0.006683
-      },
-      {
-        "symbol": "ZEC",
-        "mark": 1191.22,
-        "change24h_pct": -5.661,
-        "quote_volume_24h": 1703070549,
-        "completed_15m_close": 1192.89,
-        "rsi15m": 12.55,
-        "vol_ratio15m": 1.756,
-        "taker_buy_sell15m": 0.842,
-        "rsi4h": 22.46,
-        "vol_ratio4h": 0.981,
-        "oi_change_06_to_07_pct": 0.367,
-        "long_account_pct": 51.27,
-        "funding_pct": 0.01
-      },
-      {
-        "symbol": "HYPE",
-        "mark": 72.556,
-        "change24h_pct": -6.068,
-        "quote_volume_24h": 520770006,
-        "completed_15m_close": 72.666,
-        "rsi15m": 13.3,
-        "vol_ratio15m": 3.827,
-        "taker_buy_sell15m": 0.696,
-        "rsi4h": 16.99,
-        "vol_ratio4h": 1.706,
-        "oi_change_06_to_07_pct": 1.101,
-        "long_account_pct": 64.43,
-        "funding_pct": 0.002223
-      }
-    ],
-    "derivatives_summary": {
-      "oi_change_06_to_07_pct": {
-        "BTCUSDT": 0.203,
-        "ETHUSDT": 0.3,
-        "SOLUSDT": 0.782,
-        "BNBUSDT": 0.152,
-        "XRPUSDT": 0.381,
-        "DOGEUSDT": 0.379,
-        "ADAUSDT": 0.758,
-        "LINKUSDT": 0.339,
-        "SUIUSDT": 0.432,
-        "ZECUSDT": 0.367,
-        "HYPEUSDT": 1.101
-      },
-      "long_account_pct": {
-        "BTCUSDT": 74.29,
-        "ETHUSDT": 79.52,
-        "SOLUSDT": 77.42,
-        "BNBUSDT": 73.2,
-        "XRPUSDT": 73.51,
-        "DOGEUSDT": 72.26,
-        "ADAUSDT": 65.35,
-        "LINKUSDT": 64.19,
-        "SUIUSDT": 67.09,
-        "ZECUSDT": 51.27,
-        "HYPEUSDT": 64.43
-      },
-      "funding_pct": {
-        "BTCUSDT": 0.01,
-        "ETHUSDT": -0.004676,
-        "SOLUSDT": -0.006827,
-        "BNBUSDT": 0,
-        "XRPUSDT": 0.005481,
-        "DOGEUSDT": -0.00074,
-        "ADAUSDT": 0.002873,
-        "LINKUSDT": 0.008867,
-        "SUIUSDT": 0.006683,
-        "ZECUSDT": 0.01,
-        "HYPEUSDT": 0.002223
-      },
-      "liquidation_feed": "No reliable liquidation/force-order feed was available; no liquidation inference made."
-    },
-    "rationale": "The completed 04:00-07:59 UTC 4h candle closed below the prior support/reclaim level in all 11 monitored contracts. The previous five 4h reclaims (BTC, BNB, SUI, LINK, ZEC) have now failed on completed 4h data. The five prior support/retest areas were touched within that same 4h candle before its close; these are pre-confirmation touches and do not qualify as the required post-confirmation retest. Existing six breakdown shorts (ETH, SOL, XRP, DOGE, ADA, HYPE) remain extended and have not retested their supply zones. Latest completed 15m candles are mostly near session lows, RSI is deeply oversold, and taker flow is mixed rather than uniformly seller-dominant. OI rose in all 11 markets over 06:00-07:00 UTC, while global accounts remain long-heavy in 10 of 11 (ZEC near balanced). No new setup meets the post-confirmation 15m retest/rejection rule and >=2R quality gate. NO TRADE; do not chase."
+    "entry_alerts_sent": 0
   },
   "scan_history": [
     {
@@ -11042,6 +10775,12 @@
       "prior_reclaims_now_broken": 5,
       "post_confirmation_retest_rejections": 0,
       "details": "The completed 04:00-07:59 UTC 4h candle closed below the prior support/reclaim level in all 11 monitored contracts. The previous five 4h reclaims (BTC, BNB, SUI, LINK, ZEC) have now failed on completed 4h data. The five prior support/retest areas were touched within that same 4h candle before its close; these are pre-confirmation touches and do not qualify as the required post-confirmation retest. Existing six breakdown shorts (ETH, SOL, XRP, DOGE, ADA, HYPE) remain extended and have not retested their supply zones. Latest completed 15m candles are mostly near session lows, RSI is deeply oversold, and taker flow is mixed rather than uniformly seller-dominant. OI rose in all 11 markets over 06:00-07:00 UTC, while global accounts remain long-heavy in 10 of 11 (ZEC near balanced). No new setup meets the post-confirmation 15m retest/rejection rule and >=2R quality gate. NO TRADE; do not chase."
+    },
+    {
+      "timestamp_utc": "2026-11-09T08:21:39.000Z",
+      "event": "scan_completed",
+      "status": "NO_TRADE_ALL_11_4H_BREAKDOWNS_RELIEF_BOUNCE_NO_POSTCONFIRMATION_RETEST",
+      "details": "All eleven completed 4h closes remain below prior support. Latest completed 15m candles are green, but no post-confirmation retest or rejection occurred. NO TRADE."
     }
   ],
   "triggered_unalerted_setups": [
