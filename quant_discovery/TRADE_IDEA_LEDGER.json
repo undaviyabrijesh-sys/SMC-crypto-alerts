@@ -86,11 +86,11 @@
       "planned_rr": 2.5775862068965427,
       "entry_timestamp_utc": "2026-11-07T11:14:59.999Z",
       "discord_entry_delivery_confirmed": false,
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
-      "latest_mark_price": 0.8094,
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
+      "latest_mark_price": 0.8192,
       "estimated_unrealized_R_at_latest_mark": null,
       "confirmation": "43 completed post-entry 5m bars from 2026-11-07T11:15:00Z through 14:49:59.999Z; max high 0.8647 below original stop 0.8715, min low 0.8576 above original target 0.8300. Latest mark 0.8613; estimated paper result -0.1207R. Entry zone/reference was revisited; terminal levels untouched. Discord remains not sent.",
-      "last_candle_evidence": "Terminal paper trade remains completed at original target 0.8300 at 2026-11-08T21:54:59.999Z, before original stop 0.8715; realized gross +2.577586R. Fresh post-completion check at 2026-11-09T08:01:52.772Z: mark 0.8094; 28 completed 5m bars since target show max high 0.829 (still below target) and min low 0.8057; latest candle 07:55-07:59:59.999 UTC O/H/L/C 0.8085/0.8096/0.8073/0.8093. No reopening or additional R. Discord remains not sent; preserve triggered_unalerted_delivery_blocked.",
+      "last_candle_evidence": "The original target 0.8300 was hit at 2026-11-08T21:54:59.999Z. Across 125 completed 5m candles after target, maximum high was 0.8436 and minimum low 0.8000. The later path does not reopen the trade or add R. Preserve status triggered_unalerted_delivery_blocked; Discord remains unconfirmed.",
       "max_high_since_entry_observed": 0.8647,
       "min_low_since_entry_observed": 0.8,
       "terminal_level_hit": true,
@@ -110,7 +110,10 @@
         "high": 0.8388,
         "low": 0.821,
         "c": 0.8227
-      }
+      },
+      "post_completion_5m_bars_checked": 125,
+      "post_completion_max_high": 0.8436,
+      "post_completion_min_low": 0.8
     }
   ],
   "watch_only": [
@@ -593,7 +596,7 @@
       "symbol": "BNBUSDT",
       "direction": "SHORT",
       "timeframe": "15m + 1h",
-      "status": "old_short_watch_missed_support_broken_before_entry_new_breakdown_no_2r_path",
+      "status": "4h_breakdown_confirmed_but_no_defensible_2r_to_nearest_support",
       "entry_trigger_confirmed": false,
       "breakdown_candle": {
         "open_utc": "2026-11-08T14:00:00.000Z",
@@ -622,10 +625,10 @@
         "Daily remains below EMA20/50, but intraday structure is mixed.",
         "The proposed 684.04 target is the previous 4h 20-bar low; the path requires a confirmed break of 693.71 first."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "The old 684.04-697.88 short entry band was not retested after confirmation; the completed 04:00-07:59 UTC 4h candle closed 676.24 below 684.04. Original target 684.04 was crossed before any qualified entry. Nearest grounded 24h low 673.58 gives only about 1.55R from a 684.04 retest with a structural stop above 690.09, so no new >=2R watch entry.",
+      "last_check_evidence": "Completed 4h close 676.24 below 684.04; 15m high 678.63 and mark 681.93 remain below 684.04. Nearest support 673.58 does not provide a conservative 2R setup.",
       "latest_mark_price": 697.36985753,
       "qualified_entry": false
     },
@@ -666,7 +669,7 @@
       "symbol": "HYPEUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 15m",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "trigger_rule": "A completed 1h close below 76.236 is confirmed (21:00-21:59 UTC close 74.199). Wait for 4h candle close below 76.236, then a separate 15m retest into 76.236-76.412 from below and rejection. Recalculate >=2R; do not chase.",
       "entry_zone": [
@@ -686,11 +689,11 @@
         "4h support 76.236 is unbroken.",
         "Daily target 74.413 is a historical range low, not guaranteed demand."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
       "active_paper_position": false,
-      "last_check_evidence": "Latest completed 4h close 72.666 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 75, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase.",
+      "last_check_evidence": "HYPE 15m high 72.867 below retest zone 76.236-78.135. Latest completed 15m candle was green; no entry.",
       "qualified_entry": false
     },
     {
@@ -801,7 +804,7 @@
       "symbol": "XRPUSDT",
       "direction": "SHORT",
       "timeframe": "15m + 1h",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "breakdown_candle": {
         "open_utc": "2026-11-08T21:15:00Z",
@@ -830,10 +833,10 @@
         "15m RSI is approximately 35 and nearby 24h low 1.1404 may attract a bounce.",
         "No defensible stop/target >=2R has been assigned."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Latest completed 4h close 1.0838 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 1.1147, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase.",
+      "last_check_evidence": "XRP 15m high 1.0874 below retest zone 1.1477-1.1693. Latest completed 15m candle was green; no entry.",
       "qualified_entry": false
     },
     {
@@ -841,7 +844,7 @@
       "symbol": "ZECUSDT",
       "direction": "SHORT",
       "timeframe": "15m + 1h",
-      "status": "old_short_watch_remains_invalidated_new_4h_rebreak_confirmed_but_no_2r_path",
+      "status": "4h_breakdown_confirmed_but_no_defensible_2r_to_nearest_support",
       "entry_trigger_confirmed": false,
       "breakdown_candle": {
         "open_utc": "2026-11-08T21:15:00Z",
@@ -870,10 +873,10 @@
         "15m RSI approximately 29.6 is oversold.",
         "No defensible stop/target >=2R has been assigned."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Old short was invalidated by the prior 4h reclaim and is not reactivated. New 04:00-07:59 UTC 4h candle closed 1192.89 below 1212.40, but the 04:00-07:59 candle high 1241.63 touched the prior band before confirmation. A fresh post-08:00 retest is still required; nearest grounded 24h low 1176.98 gives only about 1.09R using a stop above 1244.90, so no >=2R setup is created.",
+      "last_check_evidence": "Completed 4h close 1192.89 below 1212.40; 15m high 1198 and mark 1204.79 remain below retest zone 1212.40-1241.63. Nearest support 1176.98 does not provide a conservative 2R setup.",
       "qualified_entry": false
     },
     {
@@ -881,7 +884,7 @@
       "symbol": "ETHUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 4h + 15m",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "entry_zone": [
@@ -899,17 +902,17 @@
         "1h OI contracted about 4.35% during the shock.",
         "Mark is far below the old support/retest zone."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Latest completed 4h close 2092.95 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 2145.78, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase."
+      "last_check_evidence": "ETH 15m high 2095.96 below retest zone 2205.11-2245.31. Latest completed 15m candle was green; no entry."
     },
     {
       "setup_id": "SOLUSDT-S-20261108T2200Z-CRASH-W01",
       "symbol": "SOLUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 4h + 15m",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "entry_zone": [
@@ -927,17 +930,17 @@
         "1h OI contracted about 3.10%.",
         "Current mark materially below the retest zone."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Latest completed 4h close 85.53 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 87.84, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase."
+      "last_check_evidence": "SOL 15m high 85.87 below retest zone 88.24-89.98. Latest completed 15m candle was green; no entry."
     },
     {
       "setup_id": "DOGEUSDT-S-20261108T2200Z-CRASH-W01",
       "symbol": "DOGEUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 4h + 15m",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "entry_zone": [
@@ -955,17 +958,17 @@
         "4h/daily candle context is not yet updated for the crash.",
         "Current price far below the retest zone."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Latest completed 4h close 0.06805 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 0.0699, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase."
+      "last_check_evidence": "DOGE 15m high 0.06843 below retest zone 0.07010-0.07164. Latest completed 15m candle was green; no entry."
     },
     {
       "setup_id": "ADAUSDT-S-20261108T2200Z-CRASH-W01",
       "symbol": "ADAUSDT",
       "direction": "SHORT",
       "timeframe": "1h + 4h + 15m",
-      "status": "4h_breakdown_confirmed_extended_selloff_retest_pending_no_chase",
+      "status": "4h_breakdown_valid_postconfirmation_retest_pending_no_chase",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "entry_zone": [
@@ -983,10 +986,10 @@
         "4h candle is incomplete; last completed 4h support remained above 0.1776.",
         "Current price is extended below the retest band."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
       "discord_alert_required": false,
       "discord_delivery_confirmed": false,
-      "last_check_evidence": "Latest completed 4h close 0.1723 remains below its prior breakdown support; the 04:00-07:59 UTC 15m window high was 0.1773, still below the established retest zone. No post-confirmation retest/rejection; price is near 24h low and 4h RSI is oversold. No chase.",
+      "last_check_evidence": "ADA 15m high 0.1728 below retest zone 0.17760-0.18120. Latest completed 15m candle was green; no entry.",
       "mechanical_trigger_condition_met": true,
       "follow_through_required": "Require a subsequent completed 15m close below 0.17730 with volume at least 1.0x the preceding-20 average, then re-evaluate whether a stop above the retest swing and a grounded target provide >=2R. Do not treat the marginal low-volume rejection as an entry."
     },
@@ -1054,7 +1057,7 @@
       "venue": "Binance USDⓈ-M perpetual",
       "direction": "SHORT",
       "timeframe": "15m + 1h; require 4h confirmation",
-      "status": "4h_rebreak_confirmed_preconfirmation_zone_touch_postconfirmation_retest_pending",
+      "status": "4h_rebreak_confirmed_postconfirmation_retest_not_touched_relief_bounce_only",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "discord_alert_required": false,
@@ -1077,8 +1080,8 @@
         "The 0.8000 target is the current 24h low and may attract a bounce.",
         "No reliable liquidation heatmap or force-order feed."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
-      "last_check_evidence": "Fresh completed 4h candle 04:00-07:59 UTC O/H/L/C 0.8338/0.8379/0.8057/0.8093 closed below 0.8300 on 1.31x prior-20 volume. The 04:30 15m candle high 0.8379 touched the old retest band before the 4h confirmation; no later post-08:00 completed 15m retest exists yet. Latest mark 0.8094 at 08:01:52 UTC. Keep entry 0.8300-0.8436, stop 0.8436, target 0.8000 and planned 2.21R unchanged; watch-only.",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
+      "last_check_evidence": "Completed 4h close 0.8093 below 0.8300. Latest completed 15m high 0.8127 and close 0.8122 remain below 0.8300-0.8436 zone. Mark 0.8192; no post-confirmation retest.",
       "preconfirmation_zone_touch": {
         "window_open_utc": "2026-11-09T04:00:00.000Z",
         "window_close_utc": "2026-11-09T07:59:59.999Z",
@@ -1103,7 +1106,7 @@
       "venue": "Binance USDⓈ-M perpetual",
       "direction": "SHORT",
       "timeframe": "15m + 1h; require 4h confirmation",
-      "status": "4h_rebreak_confirmed_preconfirmation_zone_touch_postconfirmation_retest_pending",
+      "status": "4h_rebreak_confirmed_postconfirmation_retest_not_touched_relief_bounce_only",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "discord_alert_required": false,
@@ -1126,8 +1129,8 @@
         "The 10.636 stop is a provisional structural stop based on the latest 15m prior-20 high; reassess after a qualifying retest without widening risk.",
         "No reliable liquidation heatmap or force-order feed."
       ],
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
-      "last_check_evidence": "Fresh completed 4h candle 04:00-07:59 UTC O/H/L/C 10.579/10.636/10.208/10.269 closed below 10.501 on 1.48x prior-20 volume. The 04:30 15m high 10.636 touched/overshot the old retest band before 4h confirmation; no later post-08:00 completed 15m retest exists yet. Latest mark 10.282 at 08:01:52 UTC. Keep entry 10.501-10.619, stop 10.636, target 10.100 and planned 2.97R unchanged; watch-only.",
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
+      "last_check_evidence": "Completed 4h close 10.269 below 10.501. Latest completed 15m high 10.305 and close 10.293 remain below 10.501-10.619 zone. Mark 10.382; no post-confirmation retest.",
       "preconfirmation_zone_touch": {
         "window_open_utc": "2026-11-09T04:00:00.000Z",
         "window_close_utc": "2026-11-09T07:59:59.999Z",
@@ -1152,7 +1155,7 @@
       "venue": "Binance USDⓈ-M perpetual",
       "direction": "SHORT",
       "timeframe": "4h confirmation + 15m retest",
-      "status": "new_4h_rebreak_confirmed_postconfirmation_retest_pending",
+      "status": "4h_breakdown_confirmed_postconfirmation_retest_not_touched_relief_bounce_only",
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
       "discord_alert_required": false,
@@ -1185,8 +1188,8 @@
         "four_hour_volume_ratio": 1.7656,
         "four_hour_rsi14": 18.06
       },
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
-      "last_check_evidence": "New 4h re-break confirmed; post-confirmation retest has not occurred. Latest mark 73772.63 at 08:01:52 UTC. Watch-only, no entry."
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
+      "last_check_evidence": "Completed 4h close 73844.10 below 74810.80 support. Latest completed 15m high 73935.70 and close 73854.00 remain below 74810.80-75067.70 retest zone. Mark 74154.80 from exchange snapshot; no post-confirmation retest."
     }
   ],
   "last_scan": {
@@ -1411,7 +1414,92 @@
         "BNBUSDT",
         "XRPUSDT",
         "HYPEUSDT"
-      ]
+      ],
+      "prior_supports_now_broken": {
+        "BTCUSDT": 74810.8,
+        "ETHUSDT": 2205.11,
+        "SOLUSDT": 88.24,
+        "BNBUSDT": 684.04,
+        "XRPUSDT": 1.1477,
+        "DOGEUSDT": 0.0701,
+        "ADAUSDT": 0.1776,
+        "LINKUSDT": 10.501,
+        "SUIUSDT": 0.83,
+        "ZECUSDT": 1212.4,
+        "HYPEUSDT": 76.236
+      },
+      "completed_4h_closes": {
+        "BTCUSDT": 73844.1,
+        "ETHUSDT": 2092.95,
+        "SOLUSDT": 85.53,
+        "BNBUSDT": 676.24,
+        "XRPUSDT": 1.0838,
+        "DOGEUSDT": 0.06805,
+        "ADAUSDT": 0.1723,
+        "LINKUSDT": 10.269,
+        "SUIUSDT": 0.8093,
+        "ZECUSDT": 1192.89,
+        "HYPEUSDT": 72.666
+      },
+      "post_confirmation_15m_highs": {
+        "BTCUSDT": 73935.7,
+        "ETHUSDT": 2095.96,
+        "SOLUSDT": 85.87,
+        "BNBUSDT": 678.63,
+        "XRPUSDT": 1.0874,
+        "DOGEUSDT": 0.06843,
+        "ADAUSDT": 0.1728,
+        "LINKUSDT": 10.305,
+        "SUIUSDT": 0.8127,
+        "ZECUSDT": 1198,
+        "HYPEUSDT": 72.867
+      },
+      "retest_zones": {
+        "BTCUSDT": [
+          74810.8,
+          75067.7
+        ],
+        "ETHUSDT": [
+          2205.11,
+          2245.31
+        ],
+        "SOLUSDT": [
+          88.24,
+          89.98
+        ],
+        "BNBUSDT": [
+          684.04,
+          690.09
+        ],
+        "XRPUSDT": [
+          1.1477,
+          1.1693
+        ],
+        "DOGEUSDT": [
+          0.0701,
+          0.07164
+        ],
+        "ADAUSDT": [
+          0.1776,
+          0.1812
+        ],
+        "LINKUSDT": [
+          10.501,
+          10.619
+        ],
+        "SUIUSDT": [
+          0.83,
+          0.8436
+        ],
+        "ZECUSDT": [
+          1212.4,
+          1241.63
+        ],
+        "HYPEUSDT": [
+          76.236,
+          78.135
+        ]
+      }
     },
     "rationale": "All eleven completed 4h closes remain below prior support and EMA20/EMA50; daily closes are also below EMA20/EMA50. The latest completed 15m candle is green in all eleven, a relief bounce, but every high remains below its post-confirmation retest zone. RSI remains deeply oversold and taker flow is mixed. BTC and ZEC made local 15m sweep/reclaims, not long triggers. No setup passes the post-confirmation retest/rejection and >=2R gate. NO TRADE; do not chase."
   },
@@ -10999,6 +11087,37 @@
       "event": "scan_completed",
       "status": "NO_TRADE_ALL_11_4H_BREAKDOWNS_RELIEF_BOUNCE_NO_POSTCONFIRMATION_RETEST",
       "details": "All eleven completed 4h closes remain below prior support. Latest completed 15m candles are green, but no post-confirmation retest or rejection occurred. NO TRADE."
+    },
+    {
+      "timestamp_utc": "2026-11-09T08:21:39.000Z",
+      "event": "watch_only_status_reconciliation",
+      "status": "ALL_ELEVEN_4H_BREAKDOWNS_CONFIRMED_RELIEF_BOUNCE_NO_POSTCONFIRMATION_RETEST",
+      "details": "All eleven completed 4h closes are below prior support. Latest completed 15m candle is green in all eleven but no high reached the post-confirmation retest zone. BTC and ZEC had local 15m sweep/reclaims; no long trigger. Existing BTC, SUI, LINK re-break watches and six established breakdown watches remain watch-only. BNB and ZEC still lack a defensible 2R path."
+    },
+    {
+      "timestamp_utc": "2026-11-09T08:21:39.000Z",
+      "event": "trade_lifecycle_reconciliation",
+      "status": "NO_OPEN_DISCORD_CONFIRMED_SETUP_USER_SUI_EXCEPTION_TERMINAL",
+      "active_alerted_setups_count": 0,
+      "triggered_unalerted_setups": [
+        {
+          "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+          "status": "triggered_unalerted_delivery_blocked",
+          "lifecycle_status": "completed_target_1",
+          "realized_R": 2.5775862068965427,
+          "latest_mark": 0.8192,
+          "post_target_max_high": 0.8436,
+          "post_target_min_low": 0.8,
+          "completed_5m_bars_after_target": 125
+        }
+      ],
+      "details": "The original target 0.8300 was hit at 2026-11-08T21:54:59.999Z. Across 125 completed 5m candles after target, maximum high was 0.8436 and minimum low 0.8000. The later path does not reopen the trade or add R. Preserve status triggered_unalerted_delivery_blocked; Discord remains unconfirmed."
+    },
+    {
+      "timestamp_utc": "2026-11-09T08:21:39.000Z",
+      "event": "discord_delivery_capability_check",
+      "status": "not_available_no_qualified_entry_alert_due",
+      "details": "No new setup passed the post-confirmation completed-15m retest/rejection and >=2R gate, so no entry alert was due. The repository alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but the available GitHub connector exposes no workflow-dispatch action and no direct Discord sender. No message was sent or claimed as delivered."
     }
   ],
   "triggered_unalerted_setups": [
@@ -11077,37 +11196,35 @@
         "No reliable liquidation/force-order feed was available."
       ],
       "latest_market_check": {
-        "as_of_utc": "2026-11-09T08:01:52.772Z",
-        "mark_price": 0.8094,
-        "unrealized_R_at_mark": null,
-        "post_completion_5m_bars_checked": 28,
-        "post_completion_max_high": 0.829,
-        "post_completion_min_low": 0.8057,
-        "first_stop_touch_candle": null,
-        "stop_touched": false,
-        "target_touched": true,
+        "as_of_runtime_utc": "2026-11-09T08:21:39.000Z",
+        "mark_server_time_utc": "2026-11-09T08:23:59.000Z",
+        "latest_mark_price": 0.8192,
+        "completed_5m_bars_since_target": 125,
+        "post_target_max_high": 0.8436,
+        "post_target_min_low": 0.8,
+        "latest_completed_5m_candle": {
+          "open_utc": "2026-11-09T08:15:00.000Z",
+          "close_utc": "2026-11-09T08:19:59.999Z",
+          "open": 0.8122,
+          "high": 0.8162,
+          "low": 0.8119,
+          "close": 0.8157
+        },
+        "original_target_already_hit": true,
+        "original_stop_retested_after_target": false,
         "lifecycle_status": "completed_target_1",
         "realized_R": 2.5775862068965427,
-        "completed_at_utc": "2026-11-08T21:54:59.999Z",
-        "post_completion_latest_5m_candle": {
-          "open_utc": "2026-11-09T07:55:00.000Z",
-          "close_utc": "2026-11-09T07:59:59.999Z",
-          "open": 0.8085,
-          "high": 0.8096,
-          "low": 0.8073,
-          "close": 0.8093
-        },
-        "post_completion_mark_not_used_for_realized_R": true
+        "note": "The original target 0.8300 was hit at 2026-11-08T21:54:59.999Z. Across 125 completed 5m candles after target, maximum high was 0.8436 and minimum low 0.8000. The later path does not reopen the trade or add R. Preserve status triggered_unalerted_delivery_blocked; Discord remains unconfirmed."
       },
       "discord_delivery_confirmed": false,
       "discord_delivery_status": "not_sent",
       "discord_delivery_blocker": "This runner has no direct Discord send action and no GitHub Actions workflow-dispatch action. The existing alerts.yml supports manual workflow_dispatch and references configured Discord secrets, but this run cannot invoke it or access the secrets. No delivery confirmation exists.",
       "active_alerted": false,
-      "last_checked_at_utc": "2026-11-09T08:01:52.772Z",
-      "latest_mark_price": 0.8094,
+      "last_checked_at_utc": "2026-11-09T08:21:39.000Z",
+      "latest_mark_price": 0.8192,
       "estimated_unrealized_R_at_latest_mark": null,
       "terminal_level_hit": true,
-      "last_candle_evidence": "Terminal paper trade remains completed at original target 0.8300 at 2026-11-08T21:54:59.999Z, before original stop 0.8715; realized gross +2.577586R. Fresh post-completion check at 2026-11-09T08:01:52.772Z: mark 0.8094; 28 completed 5m bars since target show max high 0.829 (still below target) and min low 0.8057; latest candle 07:55-07:59:59.999 UTC O/H/L/C 0.8085/0.8096/0.8073/0.8093. No reopening or additional R. Discord remains not sent; preserve triggered_unalerted_delivery_blocked.",
+      "last_candle_evidence": "The original target 0.8300 was hit at 2026-11-08T21:54:59.999Z. Across 125 completed 5m candles after target, maximum high was 0.8436 and minimum low 0.8000. The later path does not reopen the trade or add R. Preserve status triggered_unalerted_delivery_blocked; Discord remains unconfirmed.",
       "post_entry_5m_bars_checked": 412,
       "max_high_since_entry_observed": 0.8647,
       "min_low_since_entry_observed": 0.8401,
