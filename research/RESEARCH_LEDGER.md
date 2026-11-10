@@ -222,3 +222,21 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Code: `research/sr_rejection_intraday_backtest.py`; workflow `.github/workflows/sr-rejection-intraday-backtest.yml`; branch `ai-quant-rebuild`. Script commit `df3a7854dc83368ae320edcba9140f7ecce96616`; workflow commit `030c2047d32470d5778d6346bd9f99d7bbec9a6a`; daily-level expiry guard commit `193ab6973f495846eebb940a1ed0c8f070b892ad`.
 - Workflow [42814582640](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814582640) was triggered; await completion and inspect logs/artifacts before reporting performance.
 - Experimental only: no production changes, no orders or execution alerts, no `main` branch changes.
+
+
+### Intraday market-structure verification — detailed artifact audit
+
+- The corrected run's artifact (13755382983) was downloaded and both train/validation summary CSVs inspected.
+- Best training candidate: 5/5 pivot retest, 1.5 ATR stop, 3R target, no EMA filter, 07:00–13:00 UTC: 61 trades, 40.98% profitable, PF 1.321, +15.53R, DD -10.46R, losing streak 8. Matching validation: 11 trades, 18.18% profitable, PF 0.224, -9.32R, DD -9.32R, losing streak 4.
+- Best validation-only row: 5/5 pivot breakout, 1.5 ATR stop, 2R target, EMA50 filter, 13:00–19:00 UTC: 49 trades, 46.94% profitable, PF 1.127, +4.02R, DD -10.53R, streak 5. Its matching training period: 208 trades, PF 0.576, -74.86R, DD -80.51R, streak 11. No train/validation-consistent candidate; OOS correctly not evaluated.
+
+### Intraday support/resistance rejection — completed, rejected (2026-11-10)
+
+- Workflow [42814582640](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814582640) completed successfully; artifact ID 13763168703. Script compiled and 1,080 configurations executed.
+- Data: 70,079 BTCUSD 15m bars, 17,519 complete 1H, 4,379 complete 4H, 729 complete daily bars; zero 15m gaps; 2024-11-10 12:30 UTC to 2026-11-10 12:00 UTC. Dataset SHA-256 `3a78948aa55d5b693983aa3cf5625f277d13af2b3e5906080180d9a59a60c67d`. Train ends 2026-04-05 12:15 UTC; validation ends 2026-07-24 00:15 UTC.
+- Twelve configurations passed the train screen and were shortlisted; **zero passed validation; OOS was not evaluated**.
+- Best training row: prior-day high/low, 0.1 ATR penetration, reclaim, 1.5 ATR stop, 2R target, no EMA filter, 19:00–24:00 UTC: 45 trades, 55.56% profitable, PF 1.436, +10.25R, DD -8.37R, losing streak 3, positive in 66.7% of active months. Matching validation: only 9 trades, 55.56% profitable, PF 1.426, +2.07R, DD -1.48R, streak 1; below the 20-trade minimum.
+- Best validation-only row: prior-day level, break-rejection confirmation, 1 ATR stop, 3R target, no filter, 13:00–19:00 UTC: 9 trades, 55.56% profitable, PF 2.281, +6.98R, DD -2.66R, streak 2; matching training was 43 trades, PF 0.551, -19.41R, DD -25.36R, streak 16. This is not a valid candidate.
+- 4H-pivot variants had very small samples (3–5 trades in top rows). Do not interpret them as evidence of edge. Reject this exact mechanical model; this does not disprove discretionary support/resistance trading.
+- Costs and limitations remain 12bp assumed round trip; no funding or separate spread/slippage model; UTC time buckets; single BTCUSD instrument; 8h max hold; SL-first and adverse gap-through stop fills.
+- OOS was deliberately left untouched because no candidate passed validation.
