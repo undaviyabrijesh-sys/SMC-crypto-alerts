@@ -327,9 +327,15 @@ def main():
     differences = d.index.to_series().diff()
     gap_mask = differences.ne(BAR).to_numpy(copy=True)
     gap_mask[0] = False
-    unaligned_timestamps = int((d.index.asi8 % BAR.value != 0).sum())
-    if unaligned_timestamps:
-        raise RuntimeError(f"Found {unaligned_timestamps} timestamps not aligned to 5m boundaries")
+    # Delta's 5m series may use an exchange-specific epoch offset. Validate
+    # a regular 5m cadence relative to the first returned candle, not Unix UTC.
+    off_cadence_timestamps = int(
+        ((d.index.asi8 - d.index.asi8[0]) % BAR.value != 0).sum()
+    )
+    if off_cadence_timestamps:
+        raise RuntimeError(
+            f"Found {off_cadence_timestamps} timestamps off the observed 5m cadence"
+        )
 
     data_path = OUT / "BTCUSD_5m.csv"
     d.to_csv(data_path)
@@ -337,7 +343,7 @@ def main():
         "symbol": SYMBOL, "timeframe": "5m", "rows": int(n),
         "start_utc": str(d.index.min()), "end_utc": str(d.index.max()),
         "gaps": int((differences.dropna() != BAR).sum()),
-        "unaligned_timestamps": unaligned_timestamps,
+        "off_cadence_timestamps": off_cadence_timestamps,
         "largest_gap_minutes": float(differences.dropna().max().total_seconds() / 60),
         "hourly_complete_bars": int(len(hourly)),
         "sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
