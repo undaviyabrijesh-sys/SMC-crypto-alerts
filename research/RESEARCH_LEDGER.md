@@ -173,3 +173,19 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Evaluation: chronological 70/15/15 train/validation/OOS; choose using training and validation only, evaluate OOS once for the selected candidate; report monthly, long/short and UTC-bucket performance.
 - Costs and execution: carry forward the 12bp assumed round-trip cost, SL-first, adverse gap-through stop fill, skip gap-crossing/boundary trades and >5% stops; no funding/separate spread model unless historical data is successfully obtained.
 - Keep experimental and separate from production. No orders, execution alerts or main-branch changes.
+
+
+## BTCUSD — intraday EMA pullback continuation (new experiment; run triggered)
+
+- Hypothesis: a 15m pullback to EMA20/EMA50 followed by directional rejection may continue in the direction of a completed 1H EMA50 trend.
+- Data: Delta Exchange India BTCUSD 15m via the existing `crt_backtest.fetch("15m")` downloader; two-year lookback, incomplete current candle discarded. Script writes row count, UTC date range, gaps, largest gap, complete 1H bar count and CSV SHA-256.
+- Trend filters: completed 1H close above/below EMA50; compare (1) price side only, (2) EMA50 slope versus four completed 1H bars earlier, (3) slope plus EMA200 alignment. Completed 1H data only; no unfinished-hour lookahead.
+- Pullback: 15m low (long) or high (short) within 0.15 × 15m ATR(14) of EMA20 or EMA50; signal candle closes back on trend side.
+- Confirmation: close beyond previous 15m candle high/low, or strict bullish/bearish body engulfing. Entry at next 15m open.
+- Risk matrix: signal-candle low/high, 1.0 × ATR(14), or 1.5 × ATR(14) stop; 1.5R/2R/3R targets; all hours or UTC 00–07, 07–13, 13–19, 19–24. 540 total configurations; both directions are evaluated and reported separately.
+- Intraday controls: one position at a time/configuration; maximum 8h (32 15m bars), forced close at horizon; no sample-boundary or gap-crossing trades; reject stops >5% of entry.
+- Execution/costs: SL first on same-bar ambiguity; adverse gap-through stop fill; 12bp assumed round-trip cost; no funding or separate spread/slippage model; fee tier not verified.
+- Evaluation: chronological 70/15/15 train/validation/OOS. Train screen >=40 trades, positive net R, PF>=1.05, DD no worse than -25R; top 25 by net_R/abs(maxDD). Validation screen >=20 trades, positive net R, PF>=1.05, DD no worse than -15R, positive in >=50% active months. Evaluate OOS once for the single validation-selected configuration only; if none passes, OOS is not evaluated.
+- Code: `research/ema_pullback_intraday_backtest.py`; workflow `.github/workflows/ema-pullback-intraday-backtest.yml`; branch `ai-quant-rebuild`; workflow commit `21488e06efba32d08bffcc1f7a45a6da8dc1b488`; script commit `f37c1cb78827f762a59f9196a9fd8a89840200f9`.
+- Status: workflow auto-triggered by script push; awaiting completion and artifact inspection. Do not quote results until completed logs/artifacts are verified.
+- Limitations: single BTCUSD instrument; UTC buckets are time-of-day buckets, not exchange sessions; mechanical EMA touch/engulfing definitions; assumed costs; no funding, separate spread model, or portfolio leverage/correlation model. Experimental only; no production changes, orders or alerts.
