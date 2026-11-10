@@ -240,3 +240,17 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - 4H-pivot variants had very small samples (3–5 trades in top rows). Do not interpret them as evidence of edge. Reject this exact mechanical model; this does not disprove discretionary support/resistance trading.
 - Costs and limitations remain 12bp assumed round trip; no funding or separate spread/slippage model; UTC time buckets; single BTCUSD instrument; 8h max hold; SL-first and adverse gap-through stop fills.
 - OOS was deliberately left untouched because no candidate passed validation.
+
+
+## Next BTC intraday family — UTC-anchored VWAP deviation reversion (running)
+
+- Hypothesis: after a statistically meaningful intraday extension beyond a daily VWAP deviation band, a 15m close reclaiming the band may capture reversion toward VWAP.
+- Data: Delta BTCUSD 15m candles; exchange-reported candle volume is used as a weighting proxy. This is not a consolidated market-wide VWAP. Require a valid, positive volume series; record zero-volume bars, total volume, date coverage, gaps and CSV SHA-256.
+- VWAP: reset cumulative typical-price × volume and volume at 00:00 UTC. Compute volume-weighted standard deviation from cumulative first and second moments. Signal candle compares with VWAP and deviation bands shifted one full 15m candle, preventing use of its own volume/price to set the reference band.
+- Signal: previous close outside the prior lower/upper band and current close reclaims inside, while remaining on the outer side of VWAP. Compare simple reclaim with directional engulfing reclaim. Bands: 1.0, 1.5, 2.0 standard deviations.
+- Risk matrix: signal-candle extreme +0.1 ATR, 1 ATR or 1.5 ATR stop; 1.5R/2R/3R targets; optional completed-1H EMA50 trend-aligned filter; all hours or four UTC time buckets; long and short signals both evaluated.
+- Intraday controls: next 15m open entry; one position at a time/config; 8h maximum hold; force exit at horizon; 70/15/15 chronological split; fixed train/validation funnel; evaluate OOS once only if a candidate passes validation.
+- Execution/costs: SL first on same-bar ambiguity; adverse gap-through stop fill; 12bp assumed round-trip; no funding or separate spread/slippage model; skip gap-crossing, boundary-crossing and >5% stop trades.
+- Code: `research/vwap_reversion_intraday_backtest.py`; workflow `.github/workflows/vwap-reversion-intraday-backtest.yml`; branch `ai-quant-rebuild`; script commit `e8c861568e796ee2f24e4c13ebb167687cc85226`; workflow commit `556c9414a7d0bfbff05cc37a0aa2d4b09fa584f7`; session-boundary mask fix `c6172641b19e370206556b51715b83c3729257f6`.
+- Workflow [42814968615](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814968615) triggered; compile and backtest status to be checked. No performance claim until logs and artifacts are inspected.
+- Keep experimental only; no production changes, orders, execution alerts or `main` branch changes.
