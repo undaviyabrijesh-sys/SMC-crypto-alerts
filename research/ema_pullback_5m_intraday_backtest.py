@@ -37,32 +37,31 @@ MIN_VALIDATION_TRADES = 30
 MAX_TRAIN_CANDIDATES = 25
 
 
-def fetch_5m():
-    step = 300
+def fetch_candles(resolution, step_seconds, days):
     end = int(pd.Timestamp.now(tz="UTC").timestamp())
-    start = end - DAYS * 86400
+    start = end - days * 86400
     frames = []
     cursor = start
-    chunk = step * 1800
+    chunk = step_seconds * 1800
     while cursor < end:
         stop = min(cursor + chunk, end)
         response = requests.get(
             BASE,
-            params={"resolution": "5m", "symbol": SYMBOL, "start": cursor, "end": stop},
+            params={"resolution": resolution, "symbol": SYMBOL, "start": cursor, "end": stop},
             headers=HEADERS,
             timeout=40,
         )
         response.raise_for_status()
         payload = response.json()
         if payload.get("success") is not True:
-            raise RuntimeError(f"Delta API error for 5m candles: {payload}")
+            raise RuntimeError(f"Delta API error for {resolution} candles: {payload}")
         rows = payload.get("result") or []
         if rows:
             frames.append(pd.DataFrame(rows))
         cursor = stop
         time.sleep(0.08)
     if not frames:
-        raise RuntimeError("Delta returned no BTCUSD 5m candles")
+        raise RuntimeError(f"Delta returned no BTCUSD {resolution} candles")
     d = pd.concat(frames, ignore_index=True)
     d["timestamp"] = pd.to_datetime(pd.to_numeric(d["time"]), unit="s", utc=True)
     d = d.drop_duplicates("timestamp").sort_values("timestamp").set_index("timestamp")
@@ -74,10 +73,18 @@ def fetch_5m():
         & (d.low <= d[["open", "close", "high"]].min(axis=1))
     ]
     now = pd.Timestamp.now(tz="UTC")
-    d = d[d.index + BAR <= now]
+    d = d[d.index + pd.Timedelta(seconds=step_seconds) <= now]
     if d.empty:
-        raise RuntimeError("No closed BTCUSD 5m candles available")
+        raise RuntimeError(f"No closed BTCUSD {resolution} candles available")
     return d
+
+
+def fetch_5m():
+    return fetch_candles("5m", 300, DAYS)
+
+
+def fetch_1h():
+    return fetch_candles("1h", 3600, DAYS)
 
 
 def rma(series, length):
@@ -92,7 +99,7 @@ def rma(series, length):
     return pd.Series(out, index=series.index)
 
 
-def prepare_data(raw):
+def prepare_data(raw, hourly_raw):
     d = raw.sort_index().copy()
     d = d[~d.index.duplicated(keep="last")]
     previous = d.close.shift(1)
@@ -106,16 +113,19 @@ def prepare_data(raw):
             span=length, adjust=False, min_periods=length
         ).mean()
 
-    hourly = d.resample("1h", label="right", closed="left").agg(
-        {"open": "first", "high": "max", "low": "min", "close": "last"}
+    # Use Delta's native 1h candles instead of resampling 5m data onto UTC
+    # hour boundaries. The hourly EMA is exposed only after each 1h candle
+    # has fully closed. Reset EMA warm-up after any missing-hour discontinuity.
+    hourly = hourly_raw.sort_index().copy()
+    hourly = hourly[~hourly.index.duplicated(keep="last")]
+    hour_diff = hourly.index.to_series().diff()
+    segment = hour_diff.ne(pd.Timedelta("1h")).cumsum()
+    hourly["ema50"] = hourly.groupby(segment)["close"].transform(
+        lambda values: values.ewm(span=50, adjust=False, min_periods=50).mean()
     )
-    counts = d.close.resample("1h", label="right", closed="left").count()
-    hourly = hourly.loc[counts.reindex(hourly.index).eq(12)].dropna()
-    hourly["ema50"] = hourly.close.ewm(
-        span=50, adjust=False, min_periods=50
-    ).mean()
-    # 1h EMA becomes available only at the right-edge close of a complete hour.
-    d["ema50_1h"] = hourly.ema50.reindex(d.index, method="ffill")
+    available = hourly["ema50"].copy()
+    available.index = available.index + pd.Timedelta("1h")
+    d["ema50_1h"] = available.reindex(d.index, method="ffill")
     return d, true_range, hourly
 
 
@@ -313,9 +323,12 @@ def write_monthly(trades, path):
 
 def main():
     raw = fetch_5m()
-    d, true_range, hourly = prepare_data(raw)
+    hourly_raw = fetch_1h()
+    d, true_range, hourly = prepare_data(raw, hourly_raw)
     if len(d) < 50000:
         raise RuntimeError(f"Insufficient BTCUSD 5m history: {len(d)} rows")
+    if len(hourly) < 1000:
+        raise RuntimeError(f"Insufficient BTCUSD 1h context history: {len(hourly)} rows")
     n = len(d)
     train_end = int(n * 0.70)
     validation_end = int(n * 0.85)
@@ -327,26 +340,34 @@ def main():
     differences = d.index.to_series().diff()
     gap_mask = differences.ne(BAR).to_numpy(copy=True)
     gap_mask[0] = False
-    # Delta's 5m series may use an exchange-specific epoch offset. Validate
-    # a regular 5m cadence relative to the first returned candle, not Unix UTC.
-    off_cadence_timestamps = int(
-        ((d.index.asi8 - d.index.asi8[0]) % BAR.value != 0).sum()
-    )
-    if off_cadence_timestamps:
+    interval_seconds = differences.dropna().dt.total_seconds()
+    # Validate adjacent intervals, not every timestamp against the first bar.
+    # A single bad timestamp can shift the phase of all later bars and should
+    # not cause the entire remaining history to be mislabeled off-cadence.
+    off_grid_intervals = int((interval_seconds % 300 != 0).sum())
+    max_off_grid_intervals = max(5, int(n * 0.001))
+    if off_grid_intervals > max_off_grid_intervals:
         raise RuntimeError(
-            f"Found {off_cadence_timestamps} timestamps off the observed 5m cadence"
+            f"Too many irregular 5m intervals: {off_grid_intervals} "
+            f"(limit {max_off_grid_intervals}); inspect raw exchange timestamps"
         )
+    hourly_differences = hourly.index.to_series().diff()
+    hourly_gaps = int((hourly_differences.dropna() != pd.Timedelta("1h")).sum())
 
     data_path = OUT / "BTCUSD_5m.csv"
+    hourly_path = OUT / "BTCUSD_1h.csv"
     d.to_csv(data_path)
+    hourly.to_csv(hourly_path)
     data_quality = {
-        "symbol": SYMBOL, "timeframe": "5m", "rows": int(n),
-        "start_utc": str(d.index.min()), "end_utc": str(d.index.max()),
+        "symbol": SYMBOL, "timeframe": "5m",
+        "rows": int(n), "start_utc": str(d.index.min()), "end_utc": str(d.index.max()),
         "gaps": int((differences.dropna() != BAR).sum()),
-        "off_cadence_timestamps": off_cadence_timestamps,
-        "largest_gap_minutes": float(differences.dropna().max().total_seconds() / 60),
+        "off_grid_intervals": off_grid_intervals,
         "hourly_complete_bars": int(len(hourly)),
-        "sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
+        "hourly_gaps": hourly_gaps,
+        "largest_gap_minutes": float(differences.dropna().max().total_seconds() / 60),
+        "sha256_5m": hashlib.sha256(data_path.read_bytes()).hexdigest(),
+        "sha256_1h": hashlib.sha256(hourly_path.read_bytes()).hexdigest(),
         "train_end_utc": str(d.index[train_end]),
         "validation_end_utc": str(d.index[validation_end]),
         "oos_start_utc": str(d.index[validation_end]),
