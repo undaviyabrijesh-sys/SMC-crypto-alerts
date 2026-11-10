@@ -67,7 +67,8 @@ def prepare_data(raw):
     vwap = cum_pv / cum_vol.replace(0, np.nan)
     variance = (cum_p2v / cum_vol.replace(0, np.nan) - vwap.pow(2)).clip(lower=0)
     sd = np.sqrt(variance)
-    same_day = day == day.to_series().shift(1).array
+    day_series = pd.Series(day, index=d.index)
+    same_day = day_series.eq(day_series.shift(1))
     # Shift all reference statistics one candle: signal candle compares with
     # bands that were fully known before it opened.
     d["vwap_ref"] = vwap.shift(1).where(same_day)
