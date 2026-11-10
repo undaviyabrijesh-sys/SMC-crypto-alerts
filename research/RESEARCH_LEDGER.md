@@ -31,7 +31,7 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Matrix: 1H/4H/daily/weekly references; reclaim, displacement, MSS, MSS-retest and MSS-FVG proxies; 1.5R/2R/3R/4R/opposite-range targets; buffered/unbuffered stops; original/reversed direction; all hours or broad UTC session.
 - Cost/execution: assumed 12bp round trip; no funding; SL first on same 15m candle; chronological 70/30 split.
 - First full-matrix run [42774456358](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42774456358) hit the 60-minute job limit and was cancelled before summary output; its artifact contained only the raw 15m data file. The initial implementation repeatedly built full-length boolean masks for each reference window/configuration, causing excessive runtime.
-- Optimized code commit: `9e77270c1478185efdaad136e9f93c834737ea0e`; it precomputes positional reference-window slices and adds initial-equity drawdown, max losing streak and monthly outputs. Rerun: [42781880648](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781880648) (in progress at latest check).
+- Optimized code commit: `9e77270c1478185efdaad136e9f93c834737ea0e`; it precomputes positional reference-window slices and adds initial-equity drawdown, max losing streak and monthly outputs. Completed rerun: [42781880648](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781880648).
 - Audit cautions: MSS and FVG are mechanical proxies, not discretionary CRT; session ignores DST; variants run independently; stop distances above 5% of entry are skipped; exits are bounded to the next reference window, which gives different maximum holding horizons across reference timeframes. Treat outputs as exploratory until runtime and methodology audit are complete.
 
 ## BTCUSD — Fibonacci retracement (experimental)
@@ -89,5 +89,29 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Execution: one position at a time per exact configuration; 7-day maximum hold; skip trades without a full holding horizon before each sample boundary; SL first on same 15m candle; adverse gap-through stop fill; 12bp assumed round-trip cost; no funding or separate spread/slippage model; reject stops >5% of entry.
 - Matrix: 2 channel lengths × 2 stop types × 2 targets × 2 filters = 16 configurations, chronological 70/30 split, monthly breakdown, PF, net R, drawdown and max losing streak.
 - Code: `research/donchian_backtest.py`; workflow: `.github/workflows/donchian-backtest.yml`; branch `ai-quant-rebuild`; initial commit `998c792b8566842f7aa93d90d0d844b45007c8ef`; workflow commit `2393fa1fd235a30bb9f57203f14c48539af8a172`.
-- Status: workflow triggered automatically by push; awaiting run ID and verified outputs. Experimental only; no production/live changes.
+- Completed workflow: [42785378165](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42785378165). Experimental only; no production/live changes.
 - Audit note: this is a simple mechanical breakout baseline, not a complete Turtle system; no pyramiding, portfolio-level exposure, funding or dynamic trailing stop is modelled.
+
+
+## Completion audit — CRT v3 and Donchian (2026-11-10)
+
+### CRT v3 final audit
+- The optimized full-matrix workflow [42781880648](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781880648) completed successfully and uploaded the full trade, summary and monthly artifacts. Dataset: 70,079 BTCUSD 15m rows, 0 gaps, 2024-11-10 08:30 UTC to 2026-11-10 08:00 UTC; 70/30 split at 2026-04-05 08:15 UTC. Matrix: 1,520 configurations (760 per sample); 12bp assumed round-trip cost; no funding or separate spread/slippage model.
+- The highest OOS row was daily-reference MSS-retest, reversed direction, 4R target, 0.1 ATR buffer, London/NY UTC proxy: 49 trades, 44.90% profitable, PF 1.878, +17.55R, DD -5.55R, losing streak 4. Its matching training result was 112 trades, PF 0.746, -19.18R. It fails chronological consistency.
+- The highest training row was weekly MSS-retest, reversed, 4R, all hours: 14 trades, PF 3.076, +17.37R; its OOS result was 13 trades, PF 0.915, -1.09R. It also fails.
+- A more balanced daily MSS-FVG proxy, reversed direction, 4R, 0.1 ATR buffer, London/NY UTC proxy produced +7.61R/PF 1.176 on 107 training trades and +9.05R/PF 1.500 on 50 OOS trades (46.00% profitable, DD -2.78R, losing streak 6). However, it had 73 training and 36 OOS TIME exits; only 8/17 training months and 5/8 OOS months were positive, with July 2026 (+6.60R) the dominant OOS month. It is a research lead only, not a validated edge: the matrix contains 1,520 comparisons, so post-hoc selection is a major multiple-testing risk.
+- CRT v3 is a mechanical proxy, not discretionary CRT. Its stop fills are at the stop price on a hit and do not model adverse gap-through; this is an additional optimistic limitation. MSS/FVG are simplified candle rules; session is fixed UTC and ignores DST; no funding.
+
+### Donchian final audit
+- Completed workflow: [42785378165](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42785378165). Dataset: 70,079 BTCUSD 15m rows, 0 gaps, 2024-11-10 09:00 UTC to 2026-11-10 08:30 UTC; OOS split 2026-04-05 08:45 UTC. Sixteen configurations; 12bp assumed round-trip cost; no funding or separate spread/slippage model.
+- Best OOS row: 20-bar Donchian, prior-10-bar stop, 2R target, no EMA filter: 127 trades, 40.94% profitable, PF 1.094, +7.67R, DD -13.40R, losing streak 7. The matching training period was 424 trades, PF 0.781, -70.21R. The only positive OOS row is therefore not stable across the chronological split.
+- OOS monthly net R for that row: Apr -1.65, May +0.26, Jun -3.31, Jul +2.67, Aug +2.76, Sep -2.54, Oct +9.47. The aggregate OOS gain is concentrated in October; reject as unvalidated.
+- Stop handling is SL-first with adverse gap-through fills. The 1.5 ATR stop variants traded excessively and suffered very large losses; do not optimize around them.
+
+## BTCUSD — Liquidity sweep reversal (new experiment; running)
+- Hypothesis: a confirmed 1H swing high/low that is wicked through and reclaimed on 15m may identify a liquidity sweep reversal.
+- Exact causal rules: strict 3-left/3-right 1H pivots; pivot level becomes active only after the third right-hand 1H bar closes; latest confirmed high and low only; each level is consumed once by a sweep or breakout invalidation. Sweep = 15m wick beyond the level and close back inside. Test immediate next-open entry versus waiting up to four 15m bars for a close beyond the sweep candle in the reversal direction; for delayed confirmation, reject if the sweep extreme is retaken before entry.
+- Matrix: sweep threshold 0/0.1 × confirmation reclaim/break-sweep × stop buffer 0/0.1 ATR(15m) × target 1.5R/2R/3R × no filter/EMA50-aligned completed-1H filter × all hours/UTC 07:00–22:00 = 96 configurations. One position at a time per configuration; 48h max hold; 70/30 chronological split.
+- Execution: next 15m open; stop beyond sweep wick plus optional ATR buffer; same-bar SL/TP resolves SL first; adverse gap-through stop fill; reject stop distances >5%; skip trades crossing sample boundaries or a 15m data gap. Cost 12bp assumed round-trip; no funding or separate spread/slippage model.
+- Code: `research/liquidity_sweep_backtest.py` (latest code commit `697064a99d49ffd10112b6059c0a71c6bb5ec749`); workflow: `.github/workflows/liquidity-sweep-backtest.yml` (commit `92a539cd16db605709ce39df062991ae12ac8d84`); branch `ai-quant-rebuild`.
+- Status: workflow triggered by the workflow-file push; results not yet inspected. Exploratory only; no production changes.
