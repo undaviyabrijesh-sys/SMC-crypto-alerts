@@ -548,3 +548,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Triggered reproducible CI after workflow definition was added.
