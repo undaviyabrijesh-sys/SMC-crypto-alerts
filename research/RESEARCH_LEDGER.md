@@ -151,3 +151,25 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Code: `research/intraday_mss_backtest.py`; workflow: `.github/workflows/intraday-mss-backtest.yml`; branch `ai-quant-rebuild`; workflow commit `1622b51f14ed78b70cb9f363dade0c0f1c77d1b4`; script commit `27053cef89c4aec41ea381df98721b936ba741ad`.
 - Workflow run: [42797973294](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42797973294) — running at ledger entry time. Do not quote performance until run completes and artifacts are inspected.
 - Limitations: single BTCUSD instrument; UTC buckets are time-of-day buckets, not exchange sessions; mechanical BOS/retest definition; funding omitted; assumed 12bp cost not fee-tier verified. Experimental only; no production changes or orders.
+
+
+### Intraday market-structure break / retest result — completed, rejected (2026-11-10)
+
+- Workflow [42798099082](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42798099082) completed successfully; full artifact ID 13754712382 was downloaded and the train/validation CSVs inspected. Repository CI [42798099329](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42798099329) also passed, including compileall and the existing test suite.
+- Data: 70,079 BTCUSD 15m bars, 17,519 complete 1H bars, 0 gaps; 2024-11-10 10:30 UTC through 2026-11-10 10:00 UTC; SHA-256 `ae1a7df4dfcec9ab2f25f2b8a76b27b94c225a58f1970293e4179074045ebc97`. Train/validation split timestamps: 2026-04-05 10:15 UTC and 2026-07-23 22:15 UTC; OOS would start at the latter.
+- Matrix: 360 configurations. Ten met the training screen; all ten failed validation. The best training configuration (5/5 pivots, retest, 1.5 ATR stop, 3R, no EMA filter, 07:00–13:00 UTC) made +15.53R/PF 1.321 on 61 training trades, but its validation was -9.32R/PF 0.224 on 11 trades. The EMA-filtered sibling made +14.53R/PF 1.370 on 51 training trades, then -8.16R/PF 0.248 on 10 validation trades.
+- Best validation-only row (5/5 breakout, 1.5 ATR stop, 2R, 1H EMA50 filter, 13:00–19:00 UTC) made +4.02R/PF 1.127 on 49 validation trades, but the matching training segment was -74.86R/PF 0.576 on 208 trades, DD -80.51R and 11-loss streak. This is not a valid candidate.
+- No configuration passed the pre-registered train-to-validation selection funnel; **OOS was deliberately not evaluated**. No OOS return, win rate or drawdown should be claimed. Reject this exact mechanical BOS/retest setup for now; this does not reject all discretionary market-structure methods.
+- Execution assumptions: 8h maximum hold, one position at a time/configuration, 12bp assumed round-trip cost, no funding or separate spread/slippage model, SL-first same-bar ambiguity, adverse gap-through stop fills, 5% maximum stop-distance cap.
+- Follow-up code hardening: gap validation now checks the entire interval from breakout candle through the full holding horizon (commit `097baa99237da09890bffa2afa5cc68a86b2f275`). The completed dataset had zero gaps, so this defensive change does not alter the reported run; it is included for future datasets.
+
+## Next queued intraday BTC family — EMA pullback continuation
+
+- Hypothesis: when completed 1H trend is established, a 15m pullback to a short EMA followed by directional rejection may offer a cleaner intraday continuation entry than raw BOS/retest.
+- Trend: completed 1H close above/below EMA50, with EMA50 slope compared to four completed 1H bars earlier; long-only above/rising and short-only below/falling.
+- Pullback levels: 15m EMA20 or EMA50; candle must trade within 0.15 × 15m ATR(14) of the EMA and close back on the trend side.
+- Confirmation variants: close beyond prior 15m candle high/low, or bullish/bearish engulfing body. Entry next 15m open after confirmation.
+- Risk matrix: signal-candle swing extreme vs 1.0×/1.5× ATR(14) stop; 1.5R/2R/3R targets; maximum 8h holding; force-close at horizon; one position at a time.
+- Evaluation: chronological 70/15/15 train/validation/OOS; choose using training and validation only, evaluate OOS once for the selected candidate; report monthly, long/short and UTC-bucket performance.
+- Costs and execution: carry forward the 12bp assumed round-trip cost, SL-first, adverse gap-through stop fill, skip gap-crossing/boundary trades and >5% stops; no funding/separate spread model unless historical data is successfully obtained.
+- Keep experimental and separate from production. No orders, execution alerts or main-branch changes.
