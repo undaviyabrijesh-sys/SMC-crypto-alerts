@@ -156,7 +156,7 @@ def build_signals(d, family, penetration, confirmation, h4):
                 if high[i] >= level + penetration * atr[i] and close[i] < level:
                     used_high = True
                     sig_i = confirmation_index(i, "short", level, confirmation, day_end_for_i[i], high, low, close)
-                    if sig_i is not None and sig_i < n - 1:
+                    if sig_i is not None and sig_i + 1 <= day_end_for_i[i]:
                         signals.append({"setup_i": i, "signal_i": sig_i, "entry_i": sig_i + 1,
                                         "side": "short", "level": level, "extreme": high[i],
                                         "atr_setup": atr[i], "atr_signal": atr[sig_i], "family": family})
@@ -165,7 +165,7 @@ def build_signals(d, family, penetration, confirmation, h4):
                 if low[i] <= level - penetration * atr[i] and close[i] > level:
                     used_low = True
                     sig_i = confirmation_index(i, "long", level, confirmation, day_end_for_i[i], high, low, close)
-                    if sig_i is not None and sig_i < n - 1:
+                    if sig_i is not None and sig_i + 1 <= day_end_for_i[i]:
                         signals.append({"setup_i": i, "signal_i": sig_i, "entry_i": sig_i + 1,
                                         "side": "long", "level": level, "extreme": low[i],
                                         "atr_setup": atr[i], "atr_signal": atr[sig_i], "family": family})
