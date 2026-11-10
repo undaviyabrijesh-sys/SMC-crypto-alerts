@@ -33,7 +33,6 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - First full-matrix run [42774456358](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42774456358) hit the 60-minute job limit and was cancelled before summary output; its artifact contained only the raw 15m data file. The initial implementation repeatedly built full-length boolean masks for each reference window/configuration, causing excessive runtime.
 - Optimized code commit: `9e77270c1478185efdaad136e9f93c834737ea0e`; it precomputes positional reference-window slices and adds initial-equity drawdown, max losing streak and monthly outputs. Rerun: [42781880648](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781880648) (in progress at latest check).
 - Audit cautions: MSS and FVG are mechanical proxies, not discretionary CRT; session ignores DST; variants run independently; stop distances above 5% of entry are skipped; exits are bounded to the next reference window, which gives different maximum holding horizons across reference timeframes. Treat outputs as exploratory until runtime and methodology audit are complete.
-- Audit cautions: MSS and FVG are mechanical proxies, not discretionary CRT; session ignores DST; variants run independently; exits are bounded to the next reference window, which gives different maximum holding horizons across reference timeframes. Treat outputs as exploratory until runtime and methodology audit are complete.
 
 ## BTCUSD — Fibonacci retracement (experimental)
 
@@ -41,7 +40,7 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Code revision: initial `research/fibo_backtest.py`; workflow [run 42777665691](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42777665691).
 - Rules intended: 1H confirmed pivots with 3 bars left/right; retracement entry at 0.50, 0.618 or 0.50–0.618 zone; rejection, engulfing or previous-candle break confirmation; swing or 0.786 stop; 1.272/1.618 extension or 2R target; 15m execution.
 - Cost: assumed 12bp round trip; no funding; SL first on same candle; 7-day max holding period; chronological 70/30 split.
-- Status: still in progress at latest check. The initial code had a stale-leg validity issue and a time-exit calculation issue. Do not use its eventual results as final evidence.
+- Status: superseded. It had a stale-leg validity issue, a time-exit calculation issue and an incorrect drawdown baseline. Do not use its outputs.
 
 ### Corrected run
 - Corrected code commit: `5c5933b725cf1f226ed91c2af4c441ac1ddb6c9c`
@@ -54,15 +53,15 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Additional rule detail: trades with stop distance greater than 5% of entry price are skipped. A trade also ends when its Fibonacci leg expires at the next confirmed pivot, even if the 7-day cap has not elapsed; therefore many TIME exits are leg-expiry exits.
 - Remaining limitations: 12bp is assumed rather than fee-tier verified; no funding; no spread/slippage model beyond the flat cost; 1H pivots are a mechanical swing definition; no discretionary trend filter. The final 30% is OOS and must not be tuned against.
 
-## Next queued research family
+## BTCUSD — Supertrend (experimental)
 
-### Supertrend 15m BTCUSD baseline
+### Supertrend 15m BTCUSD baseline (completed; rejected)
 - Hypothesis: 15m Supertrend flips with ATR(7) × 2.5 may define a trend-following entry with the Supertrend line as initial stop and 2R target.
 - Variants to compare: Supertrend source = HL2 versus EMA(50); optional 1H EMA(50) direction filter; fixed initial Supertrend stop.
 - Entry: after a confirmed 15m direction flip, enter next 15m open. If entry is already beyond the stop, skip.
 - Execution: one position at a time per configuration; SL first if stop and target touch in the same candle; assume 12bp round-trip cost; no funding in baseline; chronological 70/30 split; report trade count, profitable %, PF, net R, max DD, losing streak and monthly stability.
 - Code: `research/supertrend_backtest.py`; workflow: [fixed implementation run 42781648124](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781648124). A prior pre-fix run 42781598401 is superseded.
-- Implementation: ATR(7) Wilder RMA × 2.5; source HL2 or 15m EMA50; optional completed-1H EMA50 direction filter; next-open entry after confirmed direction flip; fixed stop at signal-candle Supertrend line; 2R target; 7-day max hold; 12bp assumed round-trip cost; SL-first and adverse gap-through stop fill; chronological 70/30 split; monthly and losing-streak metrics.
+- Implementation: ATR(7) Wilder RMA × 2.5; source HL2 or 15m EMA50; optional completed-1H EMA50 direction filter; next-open entry after confirmed direction flip; fixed stop at signal-candle Supertrend line; 2R target; skip stop distances above 5% of entry; 7-day max hold; 12bp assumed round-trip cost; SL-first and adverse gap-through stop fill; chronological 70/30 split; monthly and losing-streak metrics.
 - Verified OOS result from fixed run [42781648124](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781648124): 70,079 15m bars, 0 gaps, 2024-11-10 08:30 UTC to 2026-11-10 08:00 UTC; OOS split 2026-04-05 08:15 UTC. Best OOS was EMA50 source/no 1H filter: 114 trades, 35.96% profitable, PF 0.938, net -4.99R, avg -0.044R, max DD -16.09R, max losing streak 9. EMA50 + 1H EMA50 filter: 103 trades, PF 0.827, net -13.45R, max DD -18.59R, streak 7. HL2/no filter: 234 trades, PF 0.645, net -69.17R, max DD -75.00R, streak 11. HL2 + 1H filter: 201 trades, PF 0.516, net -86.68R, max DD -86.68R, streak 14.
 - Monthly stability was poor: EMA50/no-filter was positive in Jul (+11.73R), Sep (+2.40R), Oct (+1.10R), and Nov (+1.84R on one trade), but negative in Apr, May, Jun and Aug. The isolated July result does not offset the overall negative OOS result.
 - Direction audit from trade-level artifact: EMA50 source/no-filter long-only was +4.67R OOS across 45 trades (PF 1.161, DD -6.52R, losing streak 6), but the same long-only variant was -12.52R in training across 121 trades (PF 0.859). The short side was negative in both periods. This is an OOS-only subgroup that fails chronological consistency and must not be promoted.
