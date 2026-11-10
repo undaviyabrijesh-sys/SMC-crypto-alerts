@@ -53,15 +53,26 @@ def choose_entry(w, sweep_i, side, extreme, confirm):
         return None
     return None
 
-def run_one(exe, ref, tf, confirm, target_mode, buffer_atr, reverse, session_name, session_hours):
-    delta=pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf]); lock=pd.Timestamp.min.tz_localize("UTC"); trades=[]
+def prepare_windows(exe, ref, tf):
+    """Precompute positional slices once; avoid rescanning the full 15m index per config."""
+    delta=pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf])
+    expected=int(delta/pd.Timedelta("15min")); idx=exe.index; windows=[]
     for rt,rr in ref.iterrows():
         start=rt+delta; end=start+delta
-        if start>=exe.index[-1] or start<=lock: continue
-        w=exe.loc[(exe.index>=start)&(exe.index<end)]
-        # Skip incomplete windows and windows containing missing 15m bars.
-        expected=int(delta/pd.Timedelta("15min"))
-        if len(w)!=expected or (w.index.to_series().diff().dropna()!=pd.Timedelta("15min")).any(): continue
+        if start>=idx[-1]: continue
+        lo=idx.searchsorted(start,side="left"); hi=idx.searchsorted(end,side="left")
+        if hi-lo!=expected: continue
+        wi=idx[lo:hi]
+        if (wi.to_series().diff().dropna()!=pd.Timedelta("15min")).any(): continue
+        windows.append((rt,rr,lo,hi))
+    return delta,windows
+
+def run_one(exe, windows, tf, confirm, target_mode, buffer_atr, reverse, session_name, session_hours):
+    delta=pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf]); lock=pd.Timestamp.min.tz_localize("UTC"); trades=[]
+    for rt,rr,lo,hi in windows:
+        start=rt+delta
+        if start<=lock: continue
+        w=exe.iloc[lo:hi]
         sig=None
         for i,b in enumerate(w.iloc[:-1].itertuples()):
             t=w.index[i]
@@ -113,32 +124,45 @@ def main():
         ref=resample(exe,rule)
         counts=exe.close.resample(rule,label="left",closed="left").count()
         ref=ref.loc[counts.reindex(ref.index).eq(int(pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf])/pd.Timedelta("15min")))]
+        _,windows=prepare_windows(exe,ref,tf)
         for confirm in CONFIRMS:
           for target in TARGETS:
            for buf in BUFFERS:
             for rev in (False,True):
              for sn,sh in SESSIONS.items():
-              alltr.extend(run_one(exe,ref,tf,confirm,target,buf,rev,sn,sh))
+              alltr.extend(run_one(exe,windows,tf,confirm,target,buf,rev,sn,sh))
     if not alltr: raise RuntimeError("No v3 trades produced")
     d=pd.DataFrame(alltr).sort_values("entry_time")
     d["sample"]=np.where(d.entry_time<split,"train","test")
     d.to_csv(OUT/"crt_v3_trades.csv",index=False)
     keys=["reference","confirm","target","buffer_atr","direction","session","sample"]
     rows=[]
-    for k,g in d.groupby(keys):
-        r=g.net_R; pos=r[r>0]; neg=r[r<0]; eq=r.cumsum(); dd=eq-eq.cummax()
-        rows.append(dict(zip(keys,k))|dict(trades=len(g),profitable_pct=round(100*(r>0).mean(),2),
+    def metrics(g):
+        g=g.sort_values("entry_time"); r=g.net_R; pos=r[r>0]; neg=r[r<0]
+        eq=r.cumsum().to_numpy(); dd=eq-np.maximum.accumulate(np.r_[0.0,eq])[1:]
+        streak=best=0
+        for v in r:
+            streak=streak+1 if v<0 else 0; best=max(best,streak)
+        return dict(trades=len(g),profitable_pct=round(100*(r>0).mean(),2),
           profit_factor=round(pos.sum()/abs(neg.sum()),3) if len(neg) and neg.sum()!=0 else None,
           net_R=round(r.sum(),2),avg_R=round(r.mean(),3),max_drawdown_R=round(min(0,dd.min()),2),
-          TP=int((g.outcome=="TP").sum()),SL=int((g.outcome=="SL").sum()),TIME=int((g.outcome=="TIME").sum())))
+          max_losing_streak=best,TP=int((g.outcome=="TP").sum()),SL=int((g.outcome=="SL").sum()),TIME=int((g.outcome=="TIME").sum()))
+    for k,g in d.groupby(keys,sort=False):
+        rows.append(dict(zip(keys,k))|metrics(g))
     s=pd.DataFrame(rows);s.to_csv(OUT/"crt_v3_summary.csv",index=False)
+    monthly=[]
+    for k,g in d.assign(month=d.entry_time.dt.strftime("%Y-%m")).groupby(keys+["month"],sort=False):
+        monthly.append(dict(zip(keys+["month"],k))|metrics(g))
+    pd.DataFrame(monthly).to_csv(OUT/"crt_v3_monthly.csv",index=False)
     meta={"rows_15m":len(exe),"start":str(exe.index.min()),"end":str(exe.index.max()),
       "gaps_15m":int((gap!=pd.Timedelta("15min")).sum()),"oos_split":str(split),
       "configurations":len(s),"round_trip_cost_assumption":COST_RATE,
       "notes":["MSS is a defined candle-break proxy, not discretionary swing-structure interpretation",
       "FVG is a mechanical 3-candle imbalance proxy","UTC 07:00-21:00 is a broad London/New York proxy; DST not modelled",
+      "Reference-window positional slices are precomputed once to keep the full matrix runtime tractable",
       "One trade at a time within each exact configuration; variants run independently",
       "Stop-first when SL and TP touch same 15m candle","No funding; cost is assumed not user fee-tier verified",
+      "Summary includes initial-equity drawdown, maximum losing streak and monthly breakdown",
       "Opposite-range target can be invalid and those signals are skipped",
       "Daily and weekly reference ranges use completed bars only"]}
     (OUT/"crt_v3_methodology.json").write_text(json.dumps(meta,indent=2))
