@@ -340,7 +340,7 @@ def main():
         "oos": (validation_end, n),
     }
     diffs = d.index.to_series().diff()
-    gap_mask = diffs.ne(BAR).to_numpy()
+    gap_mask = diffs.ne(BAR).to_numpy(copy=True)
     gap_mask[0] = False
 
     data_path = OUT / "BTCUSD_15m.csv"
