@@ -103,9 +103,10 @@ def build_squeeze_and_signals(d, tr, kc_mult, donchian_length):
             continue
 
         if run_length:
-            if run_length >= MIN_SQUEEZE_BARS:
-                last_squeeze_end = i - 1
-                last_squeeze_length = run_length
+            # The latest completed squeeze run supersedes any older run,
+            # even when the latest run is too short to qualify.
+            last_squeeze_end = i - 1
+            last_squeeze_length = run_length
             run_length = 0
 
         bars_after_release = i - last_squeeze_end
