@@ -43,9 +43,9 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 
 ### Corrected run
 - Corrected code commit: `5c5933b725cf1f226ed91c2af4c441ac1ddb6c9c`
-- Workflow: [run 42781365500](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781365500)
+- Initial corrected workflow: [run 42781365500](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781365500); final drawdown-corrected workflow: [run 42781653275](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781653275)
 - Corrections: require contiguous 1H pivot windows; reject ambiguous same-bar high/low pivots; expire a Fibonacci leg when the next pivot is confirmed; bound time-exit price/time to the 7-day holding window; add max losing streak and monthly breakdown outputs.
-- Status: running; no results inspected yet.
+- Status: both corrected runs were still in progress at the latest check; no results inspected yet.
 - Remaining limitations: 12bp is assumed rather than fee-tier verified; no funding; no spread/slippage model beyond the flat cost; 1H pivots are a mechanical swing definition; no discretionary trend filter. The final 30% is OOS and must not be tuned against.
 
 ## Next queued research family
@@ -55,7 +55,9 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Variants to compare: Supertrend source = HL2 versus EMA(50); optional 1H EMA(50) direction filter; fixed initial Supertrend stop.
 - Entry: after a confirmed 15m direction flip, enter next 15m open. If entry is already beyond the stop, skip.
 - Execution: one position at a time per configuration; SL first if stop and target touch in the same candle; assume 12bp round-trip cost; no funding in baseline; chronological 70/30 split; report trade count, profitable %, PF, net R, max DD, losing streak and monthly stability.
-- Status: not yet run. Keep separate from CRT and Fibonacci experiments.
+- Code: `research/supertrend_backtest.py`; workflow: [fixed implementation run 42781648124](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781648124). A prior pre-fix run 42781598401 is superseded.
+- Implementation: ATR(7) Wilder RMA × 2.5; source HL2 or 15m EMA50; optional completed-1H EMA50 direction filter; next-open entry after confirmed direction flip; fixed stop at signal-candle Supertrend line; 2R target; 7-day max hold; 12bp assumed round-trip cost; SL-first and adverse gap-through stop fill; chronological 70/30 split; monthly and losing-streak metrics.
+- Status: fixed implementation is running; no results inspected yet. Keep separate from CRT and Fibonacci experiments.
 
 ## Research standards
 - No lookahead: pivot levels become available only after right-side confirmation bars close; signal candle closes before next-open entry.
