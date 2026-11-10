@@ -98,7 +98,7 @@ def run_segment(d, source_mode, filter_mode, sample, split_time):
         if future.empty:
             i+=1; continue
         outcome="TIME"; exitp=float(future.iloc[-1].close); exitt=future.index[-1]
-        exit_i=entry_i
+        exit_i=entry_i+len(future)-1
         for j,(t,q) in enumerate(future.iterrows()):
             sl=(q.low<=stop) if side=="long" else (q.high>=stop)
             tp=(q.high>=target) if side=="long" else (q.low<=target)
@@ -123,7 +123,7 @@ def summarize(d, keys):
     out=[]
     for k,g in d.groupby(keys,sort=False):
         g=g.sort_values("entry_time"); r=g.net_R; pos=r[r>0]; neg=r[r<0]
-        dd=r.cumsum()-r.cumsum().cummax(); streak=best=0
+        equity=r.cumsum().to_numpy(); dd=equity-np.maximum.accumulate(np.r_[0.0,equity])[1:]; streak=best=0
         for v in r:
             streak=streak+1 if v<0 else 0; best=max(best,streak)
         vals=k if isinstance(k,tuple) else (k,)
