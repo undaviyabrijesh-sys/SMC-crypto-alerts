@@ -384,3 +384,7 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Selection: chronological 70/15/15; training >=80 trades, net R >0, PF >=1.05, DD >=-35R; shortlist top 25 by net-R/drawdown quality; validation >=30 trades, net R >0, PF >=1.05, DD >=-20R and >=50% positive active months; evaluate OOS once only for a single validation-selected candidate. Record monthly summaries, win rate, PF, net R, DD and losing streak.
 - Execution/costs: next-open entry; same-candle SL-first; adverse gap-through stop fill; fixed target fill; 2h time exit; skip gaps and sample-boundary-crossing trades; reject >5% stop distances. Retain 12bp assumed round-trip cost for comparability, but clearly flag that actual fee tier, funding and separate spread/slippage are not modelled. Tight 5m stop sensitivity to costs is a specific limitation.
 - Experimental only; do not change production/live rules, send execution alerts, place orders or modify `main`.
+
+
+- RSI implementation commit: `583b4cb0fff244f2211a9289763ac8bd818abd38`; workflow definition commit: `03d63c59084c0a0e29d0d6f4cb22c89a1f15bd23`; workflow-trigger commit: `704c30e61cfdee05e1c279ac5bcbd2cd85bd124f`.
+- RSI workflow [42882926862](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42882926862) has started on `ai-quant-rebuild`. At this ledger update, dependencies were still installing; compilation and backtest had not yet run. No RSI performance result is available at this point.
