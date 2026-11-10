@@ -11883,7 +11883,7 @@
       "entry_alerts_sent": 0,
       "active_alerted_setups_count": 0,
       "watch_only_count": 46,
-      "details": "Fresh Binance USDⓈ-M scan. Exchange mark/ticker timestamp 2026-11-10T00:45:15Z; scheduler runtime timestamp 00:44:07Z (exchange server clock about 68 seconds ahead). Latest completed 15m bars through00:44:59.999Z; 1h,4h and daily completed bars through23:59:59.999Z on 9 Nov. 4h and daily all11 below EMA20/EMA50. 1h: BTC/BNB above both, ETH/SOL/XRP/ADA/ZEC below both, DOGE/LINK/SUI/HYPE mixed. 15m: BNB/XRP above both; ETH/SOL/ADA/SUI/ZEC below both; BTC/DOGE/LINK/HYPE mixed. Latest15m relative volume above1x only DOGE1.269, ADA1.192, HYPE1.596; SUI0.982, others below1x. SUI prior 22:00 breakdown watch remains invalidated; new 00:15 breakdown close0.8407 below prior20 low0.8409 on1.496x, but next 00:30 candle low0.8394 and close0.8415 reclaimed support, so failed breakdown/no entry. ZEC sell-side sweep observation remains unconfirmed: after 23:00 sweep candle, 23:45 candle made marginal lower low1152.49 and closed1163.28; subsequent highs remained below1174.58; latest mark1170.20, all timeframes below EMA20/50. HYPE existing short watch entry zone76.123-76.675 not reached; six new completed15m bars since prior check, max high75.404, min74.613, latest close74.702 on1.596x volume; original stop76.95 and target72.439 not touched since setup creation (post-setup low74.201). Current marks BTC75007.90 ETH2125.31 SOL86.43 BNB690.339 XRP1.0976 DOGE0.06982 ADA0.1769 LINK10.635 SUI0.8414 ZEC1170.20 HYPE74.72. Funding positive all11, highest BNB0.01287%, BTC/DOGE/LINK0.0100%, ZEC0.009709%, HYPE0.001604%. 1h OI changes mixed: base OI BTC-0.172%,ETH-0.041%,SOL+0.154%,BNB+0.351%,XRP+0.087%,DOGE+0.195%,ADA+0.193%,LINK+0.125%,SUI+0.083%,ZEC+0.185%,HYPE-0.037%; notional OI mixed. Long-account shares highest ETH79.20%,SOL77.32%,BTC73.50%,XRP74.57%; ZEC53.81%. Taker buy/sell and liquidation/force-order data not available in this scan; do not infer liquidation clusters. User-directed SUI paper trade remains terminal at+2.577586R, 18 new completed5m bars since prior check, cumulative322, window high0.8464 low0.8394, latest mark0.8414; original entry zone/stop not touched, target remains completed, no reopening. No Discord-confirmed active setups. Worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
+      "details": "Fresh Binance USDⓈ-M scan. Exchange mark/ticker timestamp 2026-11-10T00:45:15Z; scheduler runtime timestamp 00:44:07Z (exchange server clock about 68 seconds ahead). Latest completed 15m bars through00:44:59.999Z; 1h,4h and daily completed bars through23:59:59.999Z on 9 Nov. 4h and daily all11 below EMA20/EMA50. 1h: BTC/BNB above both, ETH/SOL/XRP/ADA/ZEC below both, DOGE/LINK/SUI/HYPE mixed. 15m: BNB/XRP above both; ETH/SOL/ADA/SUI/ZEC below both; BTC/DOGE/LINK/HYPE mixed. Latest15m relative volume above1x only DOGE1.269, ADA1.192, HYPE1.596; SUI0.982, others below1x. SUI prior 22:00 breakdown watch remains invalidated; new 00:15 breakdown close0.8407 below prior20 low0.8409 on1.496x, but next 00:30 candle low0.8394 and close0.8415 reclaimed support, so failed breakdown/no entry. ZEC sell-side sweep observation remains unconfirmed: after 23:00 sweep candle, 23:45 candle made marginal lower low1152.49 and closed1163.28; subsequent highs remained below1174.58; latest mark1170.20, all timeframes below EMA20/50. HYPE existing short watch entry zone76.123-76.675 not reached; six new completed15m bars since prior check, max high75.404, min74.613, latest close74.702 on1.596x volume; original stop76.95 and target72.439 not touched since setup creation (post-setup low74.201). Current marks BTC75007.90 ETH2125.31 SOL86.43 BNB690.339 XRP1.0976 DOGE0.06982 ADA0.1769 LINK10.635 SUI0.8414 ZEC1170.20 HYPE74.72. Funding positive all11, highest BNB0.01287%, BTC/DOGE/LINK0.0100%, ZEC0.009709%, HYPE0.001604%. 1h OI changes mixed: base OI BTC-0.172%,ETH-0.041%,SOL+0.154%,BNB+0.351%,XRP+0.087%,DOGE+0.195%,ADA+0.193%,LINK+0.125%,SUI+0.083%,ZEC+0.185%,HYPE-0.037%; notional OI mixed. Long-account shares highest ETH79.20%,SOL77.32%,BTC73.50%,XRP74.57%; ZEC53.81%. Taker buy/sell and liquidation/force-order data not available in this scan; do not infer liquidation clusters. User-directed SUI paper trade remains terminal at+2.577586R, 18 new completed5m bars since prior check, cumulative322, window high0.8464 low0.8394, latest mark0.8414; original entry zone/stop not touched, target remains completed, no reopening. No Discord-confirmed active setups. Worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders. Latest available Binance USDⓈ-M 15m taker buy/sell ratios: BTC0.5068, ETH0.5426, SOL0.8082, BNB0.8352, XRP0.9888, DOGE0.9260, ADA0.6890, LINK1.1018, SUI1.2616, ZEC0.8601, HYPE0.5395. Timestamps are not fully synchronized: BTC/ETH/SOL/XRP/LINK/HYPE latest observations at00:15Z; BNB/DOGE/ADA/SUI/ZEC at00:30Z. Only LINK and SUI are buyer-dominant; remaining nine seller-dominant. Binance symbol-level ADL risk updated00:30Z is LOW for all eleven. ADL is not a liquidation map; no reliable force-order/liquidation cluster feed was available."
     }
   ],
   "event_log": [
@@ -15503,6 +15503,39 @@
       "active_alerted_setups_count": 0,
       "watch_only_count": 46,
       "details": "Fresh Binance USDⓈ-M scan. Exchange mark/ticker timestamp 2026-11-10T00:45:15Z; scheduler runtime timestamp 00:44:07Z (exchange server clock about 68 seconds ahead). Latest completed 15m bars through00:44:59.999Z; 1h,4h and daily completed bars through23:59:59.999Z on 9 Nov. 4h and daily all11 below EMA20/EMA50. 1h: BTC/BNB above both, ETH/SOL/XRP/ADA/ZEC below both, DOGE/LINK/SUI/HYPE mixed. 15m: BNB/XRP above both; ETH/SOL/ADA/SUI/ZEC below both; BTC/DOGE/LINK/HYPE mixed. Latest15m relative volume above1x only DOGE1.269, ADA1.192, HYPE1.596; SUI0.982, others below1x. SUI prior 22:00 breakdown watch remains invalidated; new 00:15 breakdown close0.8407 below prior20 low0.8409 on1.496x, but next 00:30 candle low0.8394 and close0.8415 reclaimed support, so failed breakdown/no entry. ZEC sell-side sweep observation remains unconfirmed: after 23:00 sweep candle, 23:45 candle made marginal lower low1152.49 and closed1163.28; subsequent highs remained below1174.58; latest mark1170.20, all timeframes below EMA20/50. HYPE existing short watch entry zone76.123-76.675 not reached; six new completed15m bars since prior check, max high75.404, min74.613, latest close74.702 on1.596x volume; original stop76.95 and target72.439 not touched since setup creation (post-setup low74.201). Current marks BTC75007.90 ETH2125.31 SOL86.43 BNB690.339 XRP1.0976 DOGE0.06982 ADA0.1769 LINK10.635 SUI0.8414 ZEC1170.20 HYPE74.72. Funding positive all11, highest BNB0.01287%, BTC/DOGE/LINK0.0100%, ZEC0.009709%, HYPE0.001604%. 1h OI changes mixed: base OI BTC-0.172%,ETH-0.041%,SOL+0.154%,BNB+0.351%,XRP+0.087%,DOGE+0.195%,ADA+0.193%,LINK+0.125%,SUI+0.083%,ZEC+0.185%,HYPE-0.037%; notional OI mixed. Long-account shares highest ETH79.20%,SOL77.32%,BTC73.50%,XRP74.57%; ZEC53.81%. Taker buy/sell and liquidation/force-order data not available in this scan; do not infer liquidation clusters. User-directed SUI paper trade remains terminal at+2.577586R, 18 new completed5m bars since prior check, cumulative322, window high0.8464 low0.8394, latest mark0.8414; original entry zone/stop not touched, target remains completed, no reopening. No Discord-confirmed active setups. Worker state.json remains partial_unverified and unknown state not merged. No qualified entry, no alert due, no exchange orders."
+    },
+    {
+      "timestamp_utc": "2026-11-10T00:45:15.000Z",
+      "event": "derivatives_context_recheck",
+      "status": "TAKER_FLOW_MOSTLY_SELLER_DOMINANT_ADL_LOW_ALL_SYMBOLS",
+      "symbols_scanned": 11,
+      "taker_buy_sell_ratio": {
+        "BTCUSDT": 0.5068,
+        "ETHUSDT": 0.5426,
+        "SOLUSDT": 0.8082,
+        "BNBUSDT": 0.8352,
+        "XRPUSDT": 0.9888,
+        "DOGEUSDT": 0.926,
+        "ADAUSDT": 0.689,
+        "LINKUSDT": 1.1018,
+        "SUIUSDT": 1.2616,
+        "ZECUSDT": 0.8601,
+        "HYPEUSDT": 0.5395
+      },
+      "adl_risk": {
+        "BTCUSDT": "LOW",
+        "ETHUSDT": "LOW",
+        "SOLUSDT": "LOW",
+        "BNBUSDT": "LOW",
+        "XRPUSDT": "LOW",
+        "DOGEUSDT": "LOW",
+        "ADAUSDT": "LOW",
+        "LINKUSDT": "LOW",
+        "SUIUSDT": "LOW",
+        "ZECUSDT": "LOW",
+        "HYPEUSDT": "LOW"
+      },
+      "details": "Latest available Binance USDⓈ-M 15m taker buy/sell ratios: BTC0.5068, ETH0.5426, SOL0.8082, BNB0.8352, XRP0.9888, DOGE0.9260, ADA0.6890, LINK1.1018, SUI1.2616, ZEC0.8601, HYPE0.5395. Timestamps are not fully synchronized: BTC/ETH/SOL/XRP/LINK/HYPE latest observations at00:15Z; BNB/DOGE/ADA/SUI/ZEC at00:30Z. Only LINK and SUI are buyer-dominant; remaining nine seller-dominant. Binance symbol-level ADL risk updated00:30Z is LOW for all eleven. ADL is not a liquidation map; no reliable force-order/liquidation cluster feed was available."
     }
   ],
   "triggered_unalerted_setups": [
