@@ -91,7 +91,8 @@ def build_signals(d, anchor_hour, buffer_atr):
         range_ids = np.arange(start, start + 4)
         if range_ids[-1] >= len(idx):
             continue
-        if not np.array_equal(idx[range_ids].asi8, (start_ts + np.arange(4) * BAR).asi8):
+        expected_range_times = pd.DatetimeIndex([start_ts + k * BAR for k in range(4)])
+        if not np.array_equal(idx[range_ids].asi8, expected_range_times.asi8):
             continue
         if start + 4 >= end or end > len(idx):
             continue
