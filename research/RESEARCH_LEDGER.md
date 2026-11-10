@@ -80,3 +80,14 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - No survivorship bias: BTCUSD single instrument for these experiments; future multi-asset studies must define an as-of universe.
 - No production or live rule changes; do not merge to `main`; no orders or execution alerts.
 - A negative or weak result rejects only the tested mechanical definition and assumptions, not the broad discretionary concept.
+
+
+## BTCUSD — Donchian breakout (new experiment; run triggered)
+
+- Hypothesis: a close outside a prior 20- or 55-bar Donchian channel may capture directional expansion more cleanly than a reactive indicator flip.
+- Rules: 15m close above/below the prior channel (rolling extrema shifted one bar); enter next 15m open. Fixed initial stop is either prior 10-bar opposite extreme or 1.5 × Wilder ATR(14) from entry. Fixed target 2R or 3R. Optional completed-1H EMA50 direction filter.
+- Execution: one position at a time per exact configuration; 7-day maximum hold; skip trades without a full holding horizon before each sample boundary; SL first on same 15m candle; adverse gap-through stop fill; 12bp assumed round-trip cost; no funding or separate spread/slippage model; reject stops >5% of entry.
+- Matrix: 2 channel lengths × 2 stop types × 2 targets × 2 filters = 16 configurations, chronological 70/30 split, monthly breakdown, PF, net R, drawdown and max losing streak.
+- Code: `research/donchian_backtest.py`; workflow: `.github/workflows/donchian-backtest.yml`; branch `ai-quant-rebuild`; initial commit `998c792b8566842f7aa93d90d0d844b45007c8ef`; workflow commit `2393fa1fd235a30bb9f57203f14c48539af8a172`.
+- Status: workflow triggered automatically by push; awaiting run ID and verified outputs. Experimental only; no production/live changes.
+- Audit note: this is a simple mechanical breakout baseline, not a complete Turtle system; no pyramiding, portfolio-level exposure, funding or dynamic trailing stop is modelled.
