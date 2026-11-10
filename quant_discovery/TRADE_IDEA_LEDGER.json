@@ -3120,6 +3120,56 @@
       "last_checked_at_utc": "2026-11-10T10:50:51.000Z",
       "latest_mark": 688.44,
       "last_check_evidence": "Completed 15m candle 10:30-10:44:59.999 UTC swept prior-20 low 687.69 to 687.27 and reclaimed to close 687.98 on 1.6459x volume. 1h close 691.34 was above EMA20/EMA50, but 4h/daily remain below both. Next completed 5m candle 10:45-10:49:59.999 UTC closed 688.47, below sweep high 689.07. Watch only; no entry, no alert."
+    },
+    {
+      "setup_id": "LINKUSDT-S-20261110T1030Z-15M-BRK-W01",
+      "symbol": "LINKUSDT",
+      "direction": "SHORT",
+      "timeframe": "15m breakdown + retest",
+      "status": "breakdown_watch_retest_pending",
+      "breakdown_confirmed": true,
+      "entry_trigger_confirmed": false,
+      "qualified_entry": false,
+      "discord_alert_required": false,
+      "discord_delivery_confirmed": false,
+      "active_alerted": false,
+      "breakdown_candle": {
+        "open_utc": "2026-11-10T10:30:00.000Z",
+        "close_utc": "2026-11-10T10:44:59.999Z",
+        "open": 10.485,
+        "high": 10.49,
+        "low": 10.407,
+        "close": 10.424,
+        "prior20_low": 10.458,
+        "relative_volume": 3.3077
+      },
+      "follow_through_5m": {
+        "open_utc": "2026-11-10T10:45:00.000Z",
+        "close_utc": "2026-11-10T10:49:59.999Z",
+        "open": 10.424,
+        "high": 10.433,
+        "low": 10.406,
+        "close": 10.432
+      },
+      "conditional_entry_zone": [
+        10.36,
+        10.388
+      ],
+      "conditional_stop": 10.49,
+      "conditional_target_1": 10.1,
+      "conditional_planned_rr_at_worst_entry": 2,
+      "trigger_rule": "Wait for a completed 15m close below 10.388 (24h low/nearby support), then a separate retest from below into 10.360-10.388 that closes back below 10.360. Only then consider a short using stop 10.49 and target 10.10; verify the actual fill still provides at least 2R.",
+      "confidence": 51,
+      "confidence_caveat": "Subjective watch score, not probability. The breakdown candle has 3.31x relative volume and all higher-timeframe EMAs are bearish, but notional OI contracted about 0.64% and the immediate 10.388 support has not broken. No entry yet.",
+      "key_risks": [
+        "Immediate 24h support 10.388 has not broken; the latest 5m low was 10.406.",
+        "Notional OI declined approximately 0.637% over 09:00-10:00 UTC, consistent with position reduction rather than clear fresh short buildup.",
+        "A bounce/reclaim above 10.458 would weaken the breakdown thesis.",
+        "The 10.10 target is a 4h structural support and may attract buyers."
+      ],
+      "latest_mark": 10.43228656,
+      "last_checked_at_utc": "2026-11-10T10:50:51.000Z",
+      "last_check_evidence": "Completed 15m candle 10:30-10:44:59.999 UTC closed 10.424 below preceding-20 low 10.458 on 3.3077x volume. The next completed 5m candle 10:45-10:49:59.999 UTC O/H/L/C 10.424/10.433/10.406/10.432 did not retest 10.458 and did not break 10.388 support. Watch only; no entry, no alert."
     }
   ],
   "last_scan": {
@@ -3136,8 +3186,8 @@
     "entry_alerts_sent": 0,
     "discord_delivery_confirmed": false,
     "active_alerted_setups_count": 0,
-    "watch_only_count": 52,
-    "new_watch_only_count": 1,
+    "watch_only_count": 53,
+    "new_watch_only_count": 2,
     "pending_unalerted_trigger_alerts": 1,
     "no_new_qualified_entry": true,
     "candle_cutoffs": {
@@ -3881,7 +3931,7 @@
     "sui_historical_realized_R": 2.5775862068965427,
     "sui_post_target_bars": 443,
     "discord_delivery_blocker": "No direct Discord sender and no GitHub Actions workflow-dispatch action are available in this runtime. No message sent or claimed.",
-    "notes": "Fresh 11-market scan. Binance mark/funding server snapshot 10:52:30.004Z was 99 seconds ahead of automation runtime 10:50:51Z; candle analysis filtered to completed close times. All 11 below both 15m, 4h and daily EMA20/EMA50; on 1h only BNB above both, remaining 10 below both. Five 15m sell-side sweep/reclaim observations: BTC (1.325x volume, below threshold), ETH (1.578x but countertrend against 1h/4h/daily), BNB (1.646x and 1h bullish but 5m close remains below sweep high and 4h/daily bearish), XRP (1.102x and existing short reference near TP2), SUI (1.664x but higher timeframes bearish). No new qualified entry. XRP prior unalerted reference short: 14 new completed 5m bars from09:40-10:49:59.999Z; window high1.0908 low1.0762, stop1.1080 untouched, TP1 already touched, final TP2 1.0760 not touched by0.0002. Mark1.07938556 gives hypothetical+2.6685R, not realized; no partial sizing defined, no paper position. User-directed SUI remains terminal+2.577586R with443 cumulative post-target bars;14 new bars, window high0.8425 low0.8314, original entry/stop/target not retouched in this interval. All 11 ADL LOW at10:30:00.449Z; no reliable force-order/liquidation feed. No exchange orders."
+    "notes": "Fresh 11-market scan. Binance mark/funding server snapshot 10:52:30.004Z was 99 seconds ahead of automation runtime 10:50:51Z; candle analysis filtered to completed close times. All 11 below both 15m, 4h and daily EMA20/EMA50; on 1h only BNB above both, remaining 10 below both. Five 15m sell-side sweep/reclaim observations: BTC (1.325x volume, below threshold), ETH (1.578x but countertrend against 1h/4h/daily), BNB (1.646x and 1h bullish but 5m close remains below sweep high and 4h/daily bearish), XRP (1.102x and existing short reference near TP2), SUI (1.664x but higher timeframes bearish). No new qualified entry. XRP prior unalerted reference short: 14 new completed 5m bars from09:40-10:49:59.999Z; window high1.0908 low1.0762, stop1.1080 untouched, TP1 already touched, final TP2 1.0760 not touched by0.0002. Mark1.07938556 gives hypothetical+2.6685R, not realized; no partial sizing defined, no paper position. User-directed SUI remains terminal+2.577586R with443 cumulative post-target bars;14 new bars, window high0.8425 low0.8314, original entry/stop/target not retouched in this interval. All 11 ADL LOW at10:30:00.449Z; no reliable force-order/liquidation feed. No exchange orders. LINKUSDT added as a conditional short watch only: completed15m breakdown close10.424 below prior20 low10.458 on3.31x volume; 5m follow-through remained below10.458 but above nearby10.388 support. Require a completed15m close below10.388 and a separate retest/rejection before considering a conditional10.36-10.388 short, stop10.49, target10.10, worst-case2R. No trigger yet."
   },
   "scan_history": [
     {
@@ -17191,8 +17241,8 @@
       "entry_alerts_sent": 0,
       "discord_delivery_confirmed": false,
       "active_alerted_setups_count": 0,
-      "watch_only_count": 52,
-      "new_watch_only_count": 1,
+      "watch_only_count": 53,
+      "new_watch_only_count": 2,
       "pending_unalerted_trigger_alerts": 1,
       "no_new_qualified_entry": true,
       "candle_cutoffs": {
@@ -17936,7 +17986,7 @@
       "sui_historical_realized_R": 2.5775862068965427,
       "sui_post_target_bars": 443,
       "discord_delivery_blocker": "No direct Discord sender and no GitHub Actions workflow-dispatch action are available in this runtime. No message sent or claimed.",
-      "notes": "Fresh 11-market scan. Binance mark/funding server snapshot 10:52:30.004Z was 99 seconds ahead of automation runtime 10:50:51Z; candle analysis filtered to completed close times. All 11 below both 15m, 4h and daily EMA20/EMA50; on 1h only BNB above both, remaining 10 below both. Five 15m sell-side sweep/reclaim observations: BTC (1.325x volume, below threshold), ETH (1.578x but countertrend against 1h/4h/daily), BNB (1.646x and 1h bullish but 5m close remains below sweep high and 4h/daily bearish), XRP (1.102x and existing short reference near TP2), SUI (1.664x but higher timeframes bearish). No new qualified entry. XRP prior unalerted reference short: 14 new completed 5m bars from09:40-10:49:59.999Z; window high1.0908 low1.0762, stop1.1080 untouched, TP1 already touched, final TP2 1.0760 not touched by0.0002. Mark1.07938556 gives hypothetical+2.6685R, not realized; no partial sizing defined, no paper position. User-directed SUI remains terminal+2.577586R with443 cumulative post-target bars;14 new bars, window high0.8425 low0.8314, original entry/stop/target not retouched in this interval. All 11 ADL LOW at10:30:00.449Z; no reliable force-order/liquidation feed. No exchange orders."
+      "notes": "Fresh 11-market scan. Binance mark/funding server snapshot 10:52:30.004Z was 99 seconds ahead of automation runtime 10:50:51Z; candle analysis filtered to completed close times. All 11 below both 15m, 4h and daily EMA20/EMA50; on 1h only BNB above both, remaining 10 below both. Five 15m sell-side sweep/reclaim observations: BTC (1.325x volume, below threshold), ETH (1.578x but countertrend against 1h/4h/daily), BNB (1.646x and 1h bullish but 5m close remains below sweep high and 4h/daily bearish), XRP (1.102x and existing short reference near TP2), SUI (1.664x but higher timeframes bearish). No new qualified entry. XRP prior unalerted reference short: 14 new completed 5m bars from09:40-10:49:59.999Z; window high1.0908 low1.0762, stop1.1080 untouched, TP1 already touched, final TP2 1.0760 not touched by0.0002. Mark1.07938556 gives hypothetical+2.6685R, not realized; no partial sizing defined, no paper position. User-directed SUI remains terminal+2.577586R with443 cumulative post-target bars;14 new bars, window high0.8425 low0.8314, original entry/stop/target not retouched in this interval. All 11 ADL LOW at10:30:00.449Z; no reliable force-order/liquidation feed. No exchange orders. LINKUSDT added as a conditional short watch only: completed15m breakdown close10.424 below prior20 low10.458 on3.31x volume; 5m follow-through remained below10.458 but above nearby10.388 support. Require a completed15m close below10.388 and a separate retest/rejection before considering a conditional10.36-10.388 short, stop10.49, target10.10, worst-case2R. No trigger yet."
     }
   ],
   "event_log": [
@@ -23122,6 +23172,25 @@
       "watch_only_count": 52,
       "discord_delivery_confirmed": false,
       "details": "No new qualified trade. XRP remains unalerted reference tracking with TP1 touched and TP2 not touched. SUI historical user-directed trade remains terminal +2.577586R. No reliable liquidation force-order feed. No exchange orders."
+    },
+    {
+      "timestamp_utc": "2026-11-10T10:50:51.000Z",
+      "event": "watch_only_observation_added",
+      "status": "LINK_BREAKDOWN_CONFIRMED_NEAR_SUPPORT_RETEST_PENDING",
+      "setup_id": "LINKUSDT-S-20261110T1030Z-15M-BRK-W01",
+      "symbol": "LINKUSDT",
+      "direction": "SHORT",
+      "qualified_entry": false,
+      "entry_alert_due": false,
+      "discord_delivery_confirmed": false,
+      "conditional_entry_zone": [
+        10.36,
+        10.388
+      ],
+      "conditional_stop": 10.49,
+      "conditional_target": 10.1,
+      "conditional_rr": 2,
+      "details": "15m close10.424 below prior20 low10.458 on3.3077x volume. Next completed5m close10.432 did not retest10.458 and stayed above10.388 support. Wait for 15m close below10.388 and separate retest/rejection. OI notional contracted0.637%; no entry or alert."
     }
   ],
   "triggered_unalerted_setups": [
