@@ -182,7 +182,7 @@ def build_signals(d, high_events, low_events, sweep_atr, confirm_mode):
                 "atr_sweep": float(atr[i]),
             }
         )
-    return signals
+    return sorted(signals, key=lambda item: item["entry_i"])
 
 
 def metrics(group):
