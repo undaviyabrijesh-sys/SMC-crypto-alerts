@@ -132,7 +132,7 @@ def main():
     d.to_csv(OUT/"fibo_trades.csv",index=False)
     keys=["direction","entry_mode","confirm","stop_mode","target_mode","sample"]; sums=[]
     def metrics(g):
-        r=g.net_R; pos=r[r>0]; neg=r[r<0]; dd=r.cumsum()-r.cumsum().cummax()
+        r=g.net_R; pos=r[r>0]; neg=r[r<0]; equity=r.cumsum().to_numpy(); dd=equity-np.maximum.accumulate(np.r_[0.0,equity])[1:]
         streak=best=0
         for v in r:
             streak=streak+1 if v<0 else 0
