@@ -124,7 +124,14 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Best OOS row was positive in only 3 of 8 OOS months (one of those months had a single trade); monthly returns were concentrated and unstable. Reject this exact mechanical pivot-sweep model. This does not reject discretionary liquidity-sweep/SMC trading generally.
 - Limitations: 1H 3/3 pivots and latest-level-only logic are mechanical; fixed UTC session ignores DST; no funding or separate spread/slippage model; 12bp is assumed, not fee-tier verified. OOS matrix comparisons still create selection risk even though no OOS row was positive.
 
-## Next queued BTC research family — swing market-structure break / retest continuation
-- Hypothesis: a 15m close beyond a causally confirmed 1H swing high/low may have a continuation edge, especially when the broken level is retested and reclaimed.
-- Preregistered baseline for next run: strict 1H 3/3 and 5/5 pivots; close beyond latest confirmed swing level; compare next-open breakout entry versus retest within eight 15m bars; stop at breakout-candle opposite extreme or 1.5 × ATR(14); 2R/3R target; optional completed-1H EMA50 alignment and UTC session filter; one position at a time; 48h max hold; 70/30 chronological split; same conservative SL-first/gap-through execution and 12bp cost assumption.
-- Keep it experimental and separate. Do not select parameters on the OOS segment or modify production.
+## Next BTC research family — intraday market-structure break / retest continuation (scope revised 2026-11-10)
+
+- User clarified that the research objective is intraday trading. The prior swing-style framing is superseded; do not run a 48h swing-hold study as the next experiment.
+- Hypothesis: an intraday 15m close beyond a causally confirmed 1H swing high/low may produce a continuation edge, particularly after a controlled retest and reclaim.
+- Intraday constraints: 15m execution; 1H structure context only; strict maximum holding time of 8 hours; force-close any open position at the 8h horizon; no positions carried beyond that horizon. Test UTC session buckets separately (00:00–06:59, 07:00–12:59, 13:00–18:59, 19:00–23:59) as well as all-hours. Crypto is 24/7, so these are research buckets, not claims about exchange sessions.
+- Causal structure: strict confirmed 1H 3/3 and 5/5 pivots; a pivot becomes usable only after its right-side confirmation bars close. Use latest eligible swing high/low; no future pivot knowledge.
+- Entries: compare next-15m-open entry after a close beyond the confirmed level against a retest/reclaim entry within eight 15m bars. Cancel a pending retest if the level is decisively reclaimed against the breakout direction or the setup expires.
+- Risk variations: stop at breakout-candle opposite extreme or 1.0/1.5 × 15m ATR(14); targets 1.5R/2R/3R; optional completed-1H EMA50 alignment. One position at a time per configuration.
+- Execution: SL first when stop and target touch within the same 15m candle; adverse gap-through stop fill; 12bp assumed round-trip cost; no funding or separate spread/slippage model (state this limitation); reject stops >5% of entry; skip data-gap-crossing and sample-boundary trades.
+- Evaluation: chronological 70/15/15 train/validation/OOS split (not the earlier 70/30 split), with rules and candidate selection frozen before OOS evaluation. Report trade count, profitable rate, PF, net R, max drawdown, losing streak, monthly results, and UTC-bucket stability. Apply a minimum sample-size warning; do not promote a tiny-sample winner.
+- Keep this intraday study experimental. No live/production rule changes, no merge to main, no orders or execution alerts.
