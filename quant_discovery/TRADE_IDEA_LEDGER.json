@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-11-10T10:50:51.000Z",
+  "updated_at_utc": "2026-11-10T11:52:13.000Z",
   "purpose": "Persistent cross-run ledger for Crypto Trade-Idea Desk. Only Discord-confirmed entry alerts belong in active_alerted_setups.",
   "operating_rules": {
     "research_only": true,
@@ -2946,7 +2946,7 @@
       "venue": "Binance USDⓈ-M perpetual",
       "direction": "SHORT",
       "timeframe": "15m buyside-liquidity sweep and rejection",
-      "status": "triggered_unalerted_delivery_blocked",
+      "status": "completed_target_2_unalerted_reference",
       "trigger_confirmed": true,
       "entry_trigger_confirmed": true,
       "qualified_entry": true,
@@ -2998,55 +2998,48 @@
         "Exchange mark clock was ahead of the scheduled runtime; candle timestamps were filtered using completed close times."
       ],
       "latest_market_check": {
-        "as_of_utc": "2026-11-10T10:50:51.000Z",
-        "mark_server_time_utc": "2026-11-10T10:52:30.004Z",
-        "mark": 1.07938556,
-        "entry_zone_still_valid": false,
-        "mark_drift_from_reference": -0.0208144400000001,
-        "new_completed_5m_bars": 14,
-        "post_trigger_completed_5m_bars": 43,
-        "window_high": 1.0908,
-        "window_low": 1.0762,
-        "reference_entry_touched_since_previous_check": false,
-        "reference_entry_touched": true,
+        "as_of_utc": "2026-11-10T11:52:13.000Z",
+        "mark_server_time_utc": "2026-11-10T11:53:23.000Z",
+        "mark": 1.08008914,
+        "original_entry": 1.1002,
+        "original_stop": 1.108,
+        "target_1": 1.0892,
+        "target_2": 1.076,
+        "new_completed_5m_bars_since_previous_check": 11,
+        "window_high": 1.0847,
+        "window_low": 1.074,
+        "entry_touched_since_previous_check": false,
         "stop_touched_since_previous_check": false,
-        "stop_touched": false,
         "target_1_touched_since_previous_check": false,
+        "target_2_touched_since_previous_check": true,
         "target_1_touched": true,
-        "target_2_touched_since_previous_check": false,
-        "target_2_touched": false,
-        "first_target_1_touch_candle": {
-          "open_utc": "2026-11-10T08:15:00.000Z",
-          "close_utc": "2026-11-10T08:19:59.999Z",
-          "open": 1.0898,
-          "high": 1.0905,
-          "low": 1.0886,
-          "close": 1.0895
+        "target_2_touched": true,
+        "first_target_2_touch_candle": {
+          "open_utc": "2026-11-10T11:30:00.000Z",
+          "close_utc": "2026-11-10T11:34:59.999Z",
+          "open": 1.0792,
+          "high": 1.0792,
+          "low": 1.074,
+          "close": 1.0783
         },
-        "latest_completed_5m_candle": {
-          "open_utc": "2026-11-10T10:45:00.000Z",
-          "close_utc": "2026-11-10T10:49:59.999Z",
-          "open": 1.0788,
-          "high": 1.0793,
-          "low": 1.0769,
-          "close": 1.0787
-        },
-        "target_1_reference_R": 1.4102564,
-        "reference_mark_to_entry_R": 2.6685,
+        "lifecycle_status": "completed_target_2_unalerted_reference",
+        "reference_outcome_R": 3.102564102564091,
         "realized_R": null,
-        "interpretation": "14 new completed 5m candles from 09:40 through 10:49:59.999 UTC. Window high 1.0908 remains below original stop 1.1080; window low 1.0762 remains above final TP2 1.0760 by 0.0002. TP1 1.0892 was already touched in the earlier 08:15 candle and remains a milestone only; no partial exit size was specified. Latest mark 1.07938556 gives hypothetical mark-to-entry +2.6685R, not realized. This remains reference-only/unalerted and is not an active paper position."
+        "paper_position_open": false,
+        "active_alerted": false,
+        "discord_delivery_confirmed": false
       },
       "discord_delivery_confirmed": false,
       "discord_delivery_status": "not_sent",
       "discord_delivery_attempted": false,
-      "discord_delivery_blocker": "No direct Discord sender and no GitHub Actions workflow-dispatch action are available in this runtime. The trigger's alert remains undelivered; do not claim delivery.",
+      "discord_delivery_blocker": "No direct Discord sender or GitHub Actions workflow-dispatch action is available in this runtime. No message was sent or claimed.",
       "active_alerted": false,
       "paper_position_open": false,
       "reference_tracking_only": true,
-      "lifecycle_status": "tp1_touched_unalerted_reference_open_tp2_pending",
+      "lifecycle_status": "completed_target_2_unalerted_reference",
       "realized_R": null,
-      "reference_R_if_stop_or_target_reached": null,
-      "last_checked_at_utc": "2026-11-10T10:50:51.000Z",
+      "reference_R_if_stop_or_target_reached": 3.102564102564091,
+      "last_checked_at_utc": "2026-11-10T11:52:13.000Z",
       "reference_entry_touched": true,
       "reference_entry_touched_at_utc": "2026-11-10T07:15:00.000Z",
       "reference_entry_touch_candle": {
@@ -3058,12 +3051,12 @@
         "close": 1.1001
       },
       "max_high_since_entry_observed": 1.105,
-      "min_low_since_entry_observed": 1.0762,
+      "min_low_since_entry_observed": 1.074,
       "stop_touched": false,
       "target_1_touched": true,
-      "target_2_touched": false,
+      "target_2_touched": true,
       "reference_mark_to_entry_R": 1.6911654,
-      "last_check_evidence": "14 new completed 5m candles 09:40-10:49:59.999 UTC. Window high 1.0908, low 1.0762. Stop 1.1080 untouched; TP1 1.0892 was already touched; final TP2 1.0760 not touched (low stayed 0.0002 above). Latest mark 1.07938556; hypothetical +2.6685R is not realized. Latest 5m candle O/H/L/C 1.0788/1.0793/1.0769/1.0787. No partial exit quantity defined. Discord still not delivered; watch-only/reference tracking only.",
+      "last_check_evidence": "11 new completed 5m candles from 10:55 through 11:49:59.999 UTC. Window high 1.0847 and low 1.0740. TP2 1.0760 first touched in 11:30-11:34:59.999 UTC candle O/H/L/C 1.0792/1.0792/1.0740/1.0783; stop 1.1080 not touched. TP1 was previously touched. No same-candle ambiguity. Reference-only outcome +3.1026R if fully exited at TP2; realized_R remains null because no Discord-confirmed paper position.",
       "first_target_1_touch_candle": {
         "open_utc": "2026-11-10T08:15:00.000Z",
         "close_utc": "2026-11-10T08:19:59.999Z",
@@ -3072,7 +3065,22 @@
         "low": 1.0886,
         "close": 1.0895
       },
-      "latest_mark_price": 1.07938556
+      "latest_mark_price": 1.08008914,
+      "terminal_level_hit": true,
+      "first_target_2_touch_candle": {
+        "open_utc": "2026-11-10T11:30:00.000Z",
+        "close_utc": "2026-11-10T11:34:59.999Z",
+        "open": 1.0792,
+        "high": 1.0792,
+        "low": 1.074,
+        "close": 1.0783
+      },
+      "completed_at_utc": "2026-11-10T11:34:59.999Z",
+      "exit_reason": "original_target_2_hit_reference_only",
+      "exit_price": 1.076,
+      "reference_outcome_R": 3.102564102564091,
+      "partial_exits": [],
+      "target_2_touched_at_utc": "2026-11-10T11:34:59.999Z"
     },
     {
       "setup_id": "BNBUSDT-L-20261110T1030Z-SSL-RECLAIM-W01",
@@ -3126,7 +3134,7 @@
       "symbol": "LINKUSDT",
       "direction": "SHORT",
       "timeframe": "15m breakdown + retest",
-      "status": "breakdown_watch_retest_pending",
+      "status": "breakdown_watch_weakened_by_reclaim_retest_pending_no_entry",
       "breakdown_confirmed": true,
       "entry_trigger_confirmed": false,
       "qualified_entry": false,
@@ -3167,9 +3175,25 @@
         "A bounce/reclaim above 10.458 would weaken the breakdown thesis.",
         "The 10.10 target is a 4h structural support and may attract buyers."
       ],
-      "latest_mark": 10.43228656,
-      "last_checked_at_utc": "2026-11-10T10:50:51.000Z",
-      "last_check_evidence": "Completed 15m candle 10:30-10:44:59.999 UTC closed 10.424 below preceding-20 low 10.458 on 3.3077x volume. The next completed 5m candle 10:45-10:49:59.999 UTC O/H/L/C 10.424/10.433/10.406/10.432 did not retest 10.458 and did not break 10.388 support. Watch only; no entry, no alert."
+      "latest_mark": 10.45924833,
+      "last_checked_at_utc": "2026-11-10T11:52:13.000Z",
+      "last_check_evidence": "11 new completed 5m candles from 10:55 through 11:49:59.999 UTC. The 11:00-11:14:59.999 UTC 15m candle reclaimed 10.458 and closed at 10.472. The later 11:30-11:44 15m candle closed at 10.448, while the 11:45-11:49 5m candle closed at 10.460 above 10.458. No completed 15m close below 10.388, no retest into 10.360-10.388 and no rejection. Watch weakened; no entry.",
+      "latest_market_check": {
+        "as_of_utc": "2026-11-10T11:52:13.000Z",
+        "mark": 10.45924833,
+        "new_completed_5m_bars_since_previous_check": 11,
+        "window_high": 10.485,
+        "window_low": 10.419,
+        "required_15m_close_below_10_388_confirmed": false,
+        "retest_confirmed": false,
+        "rejection_confirmed": false,
+        "reclaim_15m_close": 10.472,
+        "reclaim_15m_close_utc": "2026-11-10T11:14:59.999Z",
+        "latest_15m_close": 10.448,
+        "latest_5m_close": 10.46,
+        "entry_trigger_confirmed": false,
+        "discord_delivery_confirmed": false
+      }
     }
   ],
   "last_scan": {
@@ -17987,6 +18011,33 @@
       "sui_post_target_bars": 443,
       "discord_delivery_blocker": "No direct Discord sender and no GitHub Actions workflow-dispatch action are available in this runtime. No message sent or claimed.",
       "notes": "Fresh 11-market scan. Binance mark/funding server snapshot 10:52:30.004Z was 99 seconds ahead of automation runtime 10:50:51Z; candle analysis filtered to completed close times. All 11 below both 15m, 4h and daily EMA20/EMA50; on 1h only BNB above both, remaining 10 below both. Five 15m sell-side sweep/reclaim observations: BTC (1.325x volume, below threshold), ETH (1.578x but countertrend against 1h/4h/daily), BNB (1.646x and 1h bullish but 5m close remains below sweep high and 4h/daily bearish), XRP (1.102x and existing short reference near TP2), SUI (1.664x but higher timeframes bearish). No new qualified entry. XRP prior unalerted reference short: 14 new completed 5m bars from09:40-10:49:59.999Z; window high1.0908 low1.0762, stop1.1080 untouched, TP1 already touched, final TP2 1.0760 not touched by0.0002. Mark1.07938556 gives hypothetical+2.6685R, not realized; no partial sizing defined, no paper position. User-directed SUI remains terminal+2.577586R with443 cumulative post-target bars;14 new bars, window high0.8425 low0.8314, original entry/stop/target not retouched in this interval. All 11 ADL LOW at10:30:00.449Z; no reliable force-order/liquidation feed. No exchange orders. LINKUSDT added as a conditional short watch only: completed15m breakdown close10.424 below prior20 low10.458 on3.31x volume; 5m follow-through remained below10.458 but above nearby10.388 support. Require a completed15m close below10.388 and a separate retest/rejection before considering a conditional10.36-10.388 short, stop10.49, target10.10, worst-case2R. No trigger yet."
+    },
+    {
+      "timestamp_utc": "2026-11-10T11:52:13.000Z",
+      "runtime_utc": "2026-11-10T11:52:13.000Z",
+      "market_data_asof_utc": "2026-11-10T11:53:23.000Z",
+      "venue": "Binance USDⓈ-M perpetuals",
+      "symbols_scanned": 11,
+      "new_qualified_setups": 0,
+      "qualified_entry_triggers": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "discord_delivery_confirmed": false,
+      "active_alerted_setups_count": 0,
+      "watch_only_count": 53,
+      "candle_cutoffs": {
+        "fifteen_minute": "2026-11-10T11:44:59.999Z",
+        "five_minute": "2026-11-10T11:49:59.999Z",
+        "one_hour": "2026-11-10T10:59:59.999Z",
+        "four_hour": "2026-11-10T07:59:59.999Z",
+        "daily": "2026-11-09T23:59:59.999Z"
+      },
+      "timeframe_alignment": "All 11 contracts below EMA20 and EMA50 on 15m, 1h, 4h and daily.",
+      "prior_xrp_setup_status": "completed_target_2_unalerted_reference",
+      "prior_xrp_reference_outcome_R": 3.102564102564091,
+      "prior_xrp_realized_R": null,
+      "link_watch_status": "breakdown_watch_weakened_by_reclaim_retest_pending_no_entry",
+      "notes": "Fresh 11-market Binance USD-M scan. No new qualified entry. XRP TP2 1.0760 first touched in 11:30-11:34:59.999 UTC 5m candle low 1.0740; stop 1.1080 untouched. Reference-only result +3.1026R; realized_R null because never Discord-confirmed or active paper position. LINK breakdown watch weakened by reclaim above 10.458; no close below 10.388 and no retest/rejection. OI latest available 09:00-10:00 UTC; taker sample 11:45-11:49:59 UTC for BTC, ETH, SOL, XRP and LINK. No reliable liquidation feed. No exchange orders."
     }
   ],
   "event_log": [
@@ -23191,6 +23242,64 @@
       "conditional_target": 10.1,
       "conditional_rr": 2,
       "details": "15m close10.424 below prior20 low10.458 on3.3077x volume. Next completed5m close10.432 did not retest10.458 and stayed above10.388 support. Wait for 15m close below10.388 and separate retest/rejection. OI notional contracted0.637%; no entry or alert."
+    },
+    {
+      "timestamp_utc": "2026-11-10T11:52:13.000Z",
+      "event": "watch_only_lifecycle_update",
+      "status": "XRP_TP2_TOUCHED_UNALERTED_REFERENCE_TERMINAL",
+      "setup_id": "XRPUSDT-S-20261110T0700Z-BSL-SWEEP-01",
+      "symbol": "XRPUSDT",
+      "direction": "SHORT",
+      "new_completed_5m_bars": 11,
+      "latest_mark": 1.08008914,
+      "window_high": 1.0847,
+      "window_low": 1.074,
+      "stop_touched": false,
+      "target_1_touched": true,
+      "target_2_touched": true,
+      "first_target_2_touch_candle": {
+        "open_utc": "2026-11-10T11:30:00.000Z",
+        "close_utc": "2026-11-10T11:34:59.999Z",
+        "open": 1.0792,
+        "high": 1.0792,
+        "low": 1.074,
+        "close": 1.0783
+      },
+      "reference_outcome_R": 3.102564102564091,
+      "realized_R": null,
+      "discord_delivery_confirmed": false,
+      "active_alerted": false,
+      "details": "TP2 touched in 11:30-11:34:59.999 UTC candle; no stop touch or same-candle ambiguity. Reference-only outcome, not realized paper P&L."
+    },
+    {
+      "timestamp_utc": "2026-11-10T11:52:13.000Z",
+      "event": "watch_only_lifecycle_recheck",
+      "status": "LINK_BREAKDOWN_WATCH_WEAKENED_RECLAIM_NO_ENTRY",
+      "setup_id": "LINKUSDT-S-20261110T1030Z-15M-BRK-W01",
+      "symbol": "LINKUSDT",
+      "direction": "SHORT",
+      "reclaim_15m_close": 10.472,
+      "latest_15m_close": 10.448,
+      "latest_5m_close": 10.46,
+      "required_15m_close_below_10_388": false,
+      "retest_confirmed": false,
+      "entry_trigger_confirmed": false,
+      "discord_delivery_confirmed": false,
+      "details": "The breakdown watch had a 15m reclaim above 10.458 and a later 5m close above 10.458. No close below 10.388 and no retest/rejection."
+    },
+    {
+      "timestamp_utc": "2026-11-10T11:52:13.000Z",
+      "event": "scan_completed",
+      "status": "NO_NEW_QUALIFIED_ENTRY_XRP_REFERENCE_TP2_COMPLETED",
+      "symbols_scanned": 11,
+      "qualified_entry_triggers": 0,
+      "entry_alerts_due": 0,
+      "entry_alerts_sent": 0,
+      "pending_unalerted_trigger_alerts": 0,
+      "active_alerted_setups_count": 0,
+      "watch_only_count": 53,
+      "discord_delivery_confirmed": false,
+      "details": "No new qualified trade. XRP unalerted reference completed at TP2; reference-only +3.1026R, not realized paper P&L. Historical SUI remains terminal +2.577586R. No reliable liquidation feed; no exchange orders."
     }
   ],
   "triggered_unalerted_setups": [
