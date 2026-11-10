@@ -135,3 +135,19 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Execution: SL first when stop and target touch within the same 15m candle; adverse gap-through stop fill; 12bp assumed round-trip cost; no funding or separate spread/slippage model (state this limitation); reject stops >5% of entry; skip data-gap-crossing and sample-boundary trades.
 - Evaluation: chronological 70/15/15 train/validation/OOS split (not the earlier 70/30 split), with rules and candidate selection frozen before OOS evaluation. Report trade count, profitable rate, PF, net R, max drawdown, losing streak, monthly results, and UTC-bucket stability. Apply a minimum sample-size warning; do not promote a tiny-sample winner.
 - Keep this intraday study experimental. No live/production rule changes, no merge to main, no orders or execution alerts.
+
+
+## BTCUSD — intraday market-structure break / retest (run in progress)
+
+- Scope: user clarified intraday only. This replaces the prior 48h swing-hold framing for the next study.
+- Hypothesis: a 15m close through a causally confirmed 1H swing level may continue intraday; a retest/reclaim may improve entry quality.
+- Data: Delta Exchange India BTCUSD 15m, fetched fresh at execution; two-year API lookback, incomplete current candle discarded; script records exact row count, UTC range, gaps and CSV SHA-256.
+- Structure: strict 1H pivot high/low with symmetric 3/3 or 5/5 bars; level is usable only after the right-side confirmation hour closes. First 15m close through latest confirmed level creates a BOS event.
+- Entry matrix: next-open breakout vs first retest/reclaim within eight 15m bars; cancel retest if close crosses back through the broken level.
+- Risk matrix: breakout-candle opposite extreme, 1.0× 15m Wilder ATR(14), or 1.5× ATR; targets 1.5R/2R/3R; no filter vs completed-1H EMA50 alignment; all hours vs UTC buckets 00–07, 07–13, 13–19, 19–24.
+- Intraday controls: one position at a time per configuration; maximum 8h / 32 15m bars; force close at horizon; no sample-boundary or data-gap-crossing trades; reject stop distances >5%.
+- Costs/execution: assumed 12bp round trip deducted as entry × 0.0012 / initial risk; fee tier not verified; no funding or separate spread/slippage model; same-bar stop/target ambiguity resolves stop first; adverse gap-through stop fill.
+- Evaluation: chronological 70% train / 15% validation / 15% OOS. Train screen: >=40 trades, positive net R, PF>=1.05, max DD>=-25R; shortlist top 25 by net_R/abs(maxDD). Validation screen: >=20 trades, positive net R, PF>=1.05, max DD>=-15R, positive in >=50% of active months. Select one by validation net_R/abs(maxDD); evaluate OOS once for that selected configuration only. If no candidate passes, OOS is not evaluated.
+- Code: `research/intraday_mss_backtest.py`; workflow: `.github/workflows/intraday-mss-backtest.yml`; branch `ai-quant-rebuild`; workflow commit `1622b51f14ed78b70cb9f363dade0c0f1c77d1b4`; script commit `27053cef89c4aec41ea381df98721b936ba741ad`.
+- Workflow run: [42797973294](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42797973294) — running at ledger entry time. Do not quote performance until run completes and artifacts are inspected.
+- Limitations: single BTCUSD instrument; UTC buckets are time-of-day buckets, not exchange sessions; mechanical BOS/retest definition; funding omitted; assumed 12bp cost not fee-tier verified. Experimental only; no production changes or orders.
