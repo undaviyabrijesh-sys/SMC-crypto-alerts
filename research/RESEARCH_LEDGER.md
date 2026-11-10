@@ -64,7 +64,16 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Implementation: ATR(7) Wilder RMA × 2.5; source HL2 or 15m EMA50; optional completed-1H EMA50 direction filter; next-open entry after confirmed direction flip; fixed stop at signal-candle Supertrend line; 2R target; 7-day max hold; 12bp assumed round-trip cost; SL-first and adverse gap-through stop fill; chronological 70/30 split; monthly and losing-streak metrics.
 - Verified OOS result from fixed run [42781648124](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42781648124): 70,079 15m bars, 0 gaps, 2024-11-10 08:30 UTC to 2026-11-10 08:00 UTC; OOS split 2026-04-05 08:15 UTC. Best OOS was EMA50 source/no 1H filter: 114 trades, 35.96% profitable, PF 0.938, net -4.99R, avg -0.044R, max DD -16.09R, max losing streak 9. EMA50 + 1H EMA50 filter: 103 trades, PF 0.827, net -13.45R, max DD -18.59R, streak 7. HL2/no filter: 234 trades, PF 0.645, net -69.17R, max DD -75.00R, streak 11. HL2 + 1H filter: 201 trades, PF 0.516, net -86.68R, max DD -86.68R, streak 14.
 - Monthly stability was poor: EMA50/no-filter was positive in Jul (+11.73R), Sep (+2.40R), Oct (+1.10R), and Nov (+1.84R on one trade), but negative in Apr, May, Jun and Aug. The isolated July result does not offset the overall negative OOS result.
-- Conclusion: none of the four configurations showed a positive OOS edge after assumed 12bp round-trip costs. Do not promote to validated/live. Keep separate from CRT and Fibonacci experiments.
+- Direction audit from trade-level artifact: EMA50 source/no-filter long-only was +4.67R OOS across 45 trades (PF 1.161, DD -6.52R, losing streak 6), but the same long-only variant was -12.52R in training across 121 trades (PF 0.859). The short side was negative in both periods. This is an OOS-only subgroup that fails chronological consistency and must not be promoted.
+- Conclusion: none of the four pre-specified aggregate configurations showed a positive OOS edge after assumed 12bp round-trip costs. The isolated long-side OOS gain is inconsistent with training. Do not promote to validated/live. Keep separate from CRT and Fibonacci experiments.
+
+## Next queued research family
+
+### Donchian breakout BTCUSD baseline
+- Hypothesis: a close beyond a prior rolling high/low may capture directional expansion better than a reactive Supertrend flip.
+- Initial rules to preregister: 15m close breaks prior 20-bar or 55-bar Donchian boundary (boundaries shifted one bar); enter next 15m open; stop at prior 10-bar opposite extreme or 1.5 ATR; 2R/3R target; optional completed-1H EMA50 direction filter; one position at a time; 7-day max hold.
+- Execution assumptions: same-bar SL first; adverse gap-through stop fill; 12bp round-trip cost; no funding in baseline; chronological 70/30 split; monthly and losing-streak reporting.
+- Status: planned only; not yet run. Freeze OOS rules before execution.
 
 ## Research standards
 - No lookahead: pivot levels become available only after right-side confirmation bars close; signal candle closes before next-open entry.
