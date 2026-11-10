@@ -1,5 +1,6 @@
 """Exploratory CRT backtest on public Delta Exchange India BTCUSD candles.
 Signals use closed reference candles and 15m sweep/reclaim closes; entry is next 15m open.
+Tests both the original direction and the exact opposite direction with symmetric risk.
 Same-bar SL/TP ambiguity is resolved as SL first. Results are research, not a validated edge.
 """
 import time, hashlib, json
@@ -53,7 +54,7 @@ def fetch(tf):
     d.to_csv(OUT / f"BTCUSD_{tf}.csv")
     return d
 
-def backtest(ref, exe, target_mode, buffer_atr=False):
+def backtest(ref, exe, target_mode, buffer_atr=False, reverse=False):
     # Each fully closed reference candle is tested only after its close.
     ref = ref.copy()
     ref["atr"] = (ref.high-ref.low).rolling(14).mean()
@@ -76,11 +77,15 @@ def backtest(ref, exe, target_mode, buffer_atr=False):
             if b.high > rr.high and rr.low < b.close < rr.high:
                 side="short"; extreme=float(b.high); entry=float(bars.iloc[j+1].open); et=bars.index[j+1]; break
         if not side or not np.isfinite(entry): continue
+        signal_side=side
         atr=float(rr.atr) if pd.notna(rr.atr) else float(rr.high-rr.low)
         pad=0.1*atr if buffer_atr else 0.0
-        stop=extreme-pad if side=="long" else extreme+pad
-        risk=entry-stop if side=="long" else stop-entry
+        signal_stop=extreme-pad if signal_side=="long" else extreme+pad
+        risk=entry-signal_stop if signal_side=="long" else signal_stop-entry
         if risk<=0 or risk/entry>0.05: continue
+        # Reverse mode keeps the same trigger and entry, but trades the opposite direction.
+        side=("short" if signal_side=="long" else "long") if reverse else signal_side
+        stop=entry+risk if side=="short" else entry-risk
         if target_mode=="range":
             target=float(rr.high if side=="long" else rr.low)
         else:
@@ -98,7 +103,8 @@ def backtest(ref, exe, target_mode, buffer_atr=False):
         # Transparent conservative friction assumption: 0.06% each side, expressed in R.
         cost=(entry*0.0012)/risk
         trades.append({"reference_tf":ref.attrs["tf"],"target":target_mode,
-          "atr_buffer":buffer_atr,"side":side,"reference_time":rt,"entry_time":et,
+          "atr_buffer":buffer_atr,"direction":"reversed" if reverse else "original",
+          "signal_side":signal_side,"side":side,"reference_time":rt,"entry_time":et,
           "entry":entry,"stop":stop,"target_price":target,"exit_time":exitt,
           "exit":exitp,"outcome":outcome,"gross_R":gross,"estimated_cost_R":cost,
           "net_R":gross-cost})
@@ -121,14 +127,15 @@ def main():
         r=data[tf].copy(); r.attrs["tf"]=tf
         for target in ["1.5","2","3","range"]:
             for buff in [False,True]:
-                t=backtest(r,exe,target,buff)
-                if not t.empty: alltr.append(t)
+                for reverse in [False, True]:
+                    t=backtest(r,exe,target,buff,reverse=reverse)
+                    if not t.empty: alltr.append(t)
     trades=pd.concat(alltr,ignore_index=True) if alltr else pd.DataFrame()
     if trades.empty:
         raise RuntimeError("No CRT trades found; inspect data and signal definitions.")
     trades.to_csv(OUT/"crt_trades.csv",index=False)
     summaries=[]
-    keys=["reference_tf","target","atr_buffer"]
+    keys=["reference_tf","target","atr_buffer","direction"]
     for k,g in trades.groupby(keys):
         r=g.net_R
         wins=r[r>0]; losses=r[r<0]
@@ -145,7 +152,7 @@ def main():
     summary.to_csv(OUT/"crt_summary.csv",index=False)
     (OUT/"data_quality.json").write_text(json.dumps(coverage,indent=2))
     print("DATA QUALITY"); print(pd.DataFrame(coverage).to_string(index=False))
-    print("\nCRT SUMMARY (exploratory; estimated 12bp round-trip costs)"); print(summary.to_string(index=False))
+    print("\nCRT SUMMARY (exploratory; estimated 12bp round-trip costs; original vs reversed)"); print(summary.to_string(index=False))
     print(f"\nArtifacts: {OUT}/crt_summary.csv, crt_trades.csv, data_quality.json")
 
 if __name__=="__main__": main()
