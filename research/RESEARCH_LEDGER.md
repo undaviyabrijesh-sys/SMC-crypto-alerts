@@ -202,3 +202,23 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - **No configuration passed the pre-registered train-to-validation funnel; OOS was deliberately not evaluated.** Do not report OOS performance or promote this mechanical EMA pullback model.
 - Execution/cost assumptions: 8h max hold; one position at a time/config; 12bp assumed round-trip; no funding or separate spread/slippage model; SL-first same-bar resolution; adverse gap-through stop fill; >5% stop distances and gap/boundary-crossing trades skipped.
 - Next step: stop broad EMA parameter search for now. Test a structurally distinct intraday support/resistance rejection model with levels formed from confirmed prior-day and completed 4H swing ranges, strict causal availability, rejection/close confirmation, structural/ATR stops and 1.5R/2R/3R targets. Keep the same 8h cap, 70/15/15 funnel and OOS embargo.
+
+
+## Intraday market-structure break/retest — corrected verification run (2026-11-10)
+
+- Corrected verification workflow [42798388761](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42798388761) completed successfully on branch `ai-quant-rebuild`; artifact ID 13755382983.
+- Data: 70,079 BTCUSD 15m candles, 17,519 complete 1H candles, zero 15m gaps; 2024-11-10 10:30 UTC to 2026-11-10 10:00 UTC. Dataset SHA-256 `ae1a7df4dfcec9ab2f25f2b8a76b27b94c225a58f1970293e4179074045ebc97`. Chronological boundaries: train ends 2026-04-05 10:15 UTC; validation ends 2026-07-23 22:15 UTC.
+- Matrix: 360 configurations. Ten passed the training screen and were shortlisted; zero passed the preregistered validation screen. **OOS was not evaluated.** This confirms no candidate qualified for OOS; do not promote the mechanical BOS/retest model.
+- The rerun includes the defensive gap-window check; no data gaps were present, so the correction did not change this dataset's coverage result.
+
+## BTCUSD — intraday support/resistance rejection (new experiment; running)
+
+- Hypothesis: rejection of a fully known prior-day high/low or causally confirmed 4H swing level, followed by a 15m reclaim or break of the rejection candle, may provide an intraday mean-reversion edge.
+- Levels: previous completed UTC-day high/low (not current-day developing extremes); strict 4H 2/2 and 3/3 swing pivots, available only after all right-side confirmation bars close. Each level is consumed once by rejection or invalidation; pivot levels are replaced by newer confirmed pivots. Delayed confirmation is cancelled if the level is invalidated or replaced before confirmation.
+- Signal: sweep/penetration through level by 0 or 0.1 × 15m ATR(14), then close back inside. Compare immediate reclaim entry with a close beyond the rejection candle extreme within four 15m bars. Enter next 15m open; prior-day-level entries must occur before that level expires at the next UTC day.
+- Matrix: 3 level families × 2 penetration thresholds × 2 confirmations × 3 stops (rejection wick + 0.1 ATR, 1 ATR, 1.5 ATR) × 3 targets (1.5R/2R/3R) × 2 completed-1H EMA50 filters × 5 UTC time buckets = 1,080 configurations.
+- Execution/evaluation: one position at a time/config; maximum 8h/32 15m bars; forced time exit; 70/15/15 chronological split; training screen >=40 trades, positive net R, PF>=1.05, drawdown >=-25R; shortlist top 25; validation screen >=20 trades, positive net R, PF>=1.05, drawdown >=-15R, positive in >=50% active months; OOS only for one validation-selected candidate. Same-bar SL first, adverse gap-through stop fill, skip >5% stops and gap/boundary-crossing trades.
+- Costs/limitations: assumed 12bp round-trip; actual fee tier unverified; no funding or separate spread/slippage model. UTC buckets are time-of-day bins, not exchange sessions. Single BTCUSD instrument.
+- Code: `research/sr_rejection_intraday_backtest.py`; workflow `.github/workflows/sr-rejection-intraday-backtest.yml`; branch `ai-quant-rebuild`. Script commit `df3a7854dc83368ae320edcba9140f7ecce96616`; workflow commit `030c2047d32470d5778d6346bd9f99d7bbec9a6a`; daily-level expiry guard commit `193ab6973f495846eebb940a1ed0c8f070b892ad`.
+- Workflow [42814582640](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814582640) was triggered; await completion and inspect logs/artifacts before reporting performance.
+- Experimental only: no production changes, no orders or execution alerts, no `main` branch changes.
