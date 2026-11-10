@@ -35,25 +35,34 @@ def confirmed_pivots(h):
     out=[]
     H=h.high.to_numpy(); L=h.low.to_numpy(); ix=h.index
     for i in range(PIVOT_L,len(h)-PIVOT_R):
+        # Reject pivot windows that bridge missing 1H candles.
+        window=ix[i-PIVOT_L:i+PIVOT_R+1]
+        if (window.to_series().diff().dropna()!=pd.Timedelta("1h")).any(): continue
         # Strict pivot; confirmation is available only after right-hand bars close.
-        if H[i]>=max(H[i-PIVOT_L:i+PIVOT_R+1]) and H[i]>max(H[i-PIVOT_L:i]) and H[i]>max(H[i+1:i+PIVOT_R+1]):
+        is_high=(H[i]>=max(H[i-PIVOT_L:i+PIVOT_R+1]) and H[i]>max(H[i-PIVOT_L:i]) and H[i]>max(H[i+1:i+PIVOT_R+1]))
+        is_low=(L[i]<=min(L[i-PIVOT_L:i+PIVOT_R+1]) and L[i]<min(L[i-PIVOT_L:i]) and L[i]<min(L[i+1:i+PIVOT_R+1]))
+        # A single wide candle cannot be both anchors in the same pivot sequence.
+        if is_high and not is_low:
             out.append((ix[i+PIVOT_R]+pd.Timedelta("1h"),ix[i],"H",float(H[i])))
-        if L[i]<=min(L[i-PIVOT_L:i+PIVOT_R+1]) and L[i]<min(L[i-PIVOT_L:i]) and L[i]<min(L[i+1:i+PIVOT_R+1]):
+        elif is_low and not is_high:
             out.append((ix[i+PIVOT_R]+pd.Timedelta("1h"),ix[i],"L",float(L[i])))
     return sorted(out,key=lambda x:x[0])
 def make_legs(h):
     piv=confirmed_pivots(h); legs=[]
-    for a,b in zip(piv,piv[1:]):
+    for i,(a,b) in enumerate(zip(piv,piv[1:])):
+        # A leg expires when the next pivot is confirmed; stale fib levels are not tradable.
+        valid_until=piv[i+2][0] if i+2<len(piv) else h.index[-1]+pd.Timedelta("1h")
         if a[2]=="L" and b[2]=="H" and b[3]>a[3]:
-            legs.append(dict(available=b[0],direction="long",low=a[3],high=b[3],pivot_low=a[1],pivot_high=b[1]))
+            legs.append(dict(available=b[0],valid_until=valid_until,direction="long",low=a[3],high=b[3],pivot_low=a[1],pivot_high=b[1]))
         elif a[2]=="H" and b[2]=="L" and b[3]<a[3]:
-            legs.append(dict(available=b[0],direction="short",low=b[3],high=a[3],pivot_low=b[1],pivot_high=a[1]))
+            legs.append(dict(available=b[0],valid_until=valid_until,direction="short",low=b[3],high=a[3],pivot_low=b[1],pivot_high=a[1]))
     return legs
 def build_trades(x,legs,entry_mode,confirm,stop_mode,target_mode):
     trades=[]; locked_until=x.index[0]-pd.Timedelta("1min")
     for leg in legs:
         start=max(leg["available"],leg["pivot_high"],leg["pivot_low"])
-        w=x.loc[x.index>=start]
+        # The fib leg is valid only until the next confirmed pivot changes structure.
+        w=x.loc[(x.index>=start)&(x.index<leg["valid_until"])]
         if len(w)<3: continue
         lo,hi=leg["low"],leg["high"]; span=hi-lo
         if span<=0: continue
@@ -89,10 +98,10 @@ def build_trades(x,legs,entry_mode,confirm,stop_mode,target_mode):
                 ext=float(target_mode)
                 target=(lo+ext*span) if long else (hi-ext*span)
                 if (long and target<=entry) or ((not long) and target>=entry): continue
-            future=w.loc[et:]
+            # Set the time-exit from the bounded holding window, not the full remaining dataset.
+            future=w.loc[(w.index>=et)&(w.index<et+pd.Timedelta("7D"))]
+            if future.empty: continue
             outcome="TIME"; exitp=float(future.iloc[-1].close); exitt=future.index[-1]
-            # Limit horizon to 7 days per trade.
-            future=future.loc[future.index<et+pd.Timedelta("7D")]
             for ft,q in future.iterrows():
                 sl=q.low<=stop if long else q.high>=stop
                 tp=q.high>=target if long else q.low<=target
@@ -119,25 +128,38 @@ def main():
         for tm in TARGETS:
          rows.extend(build_trades(x,legs,em,cf,sm,tm))
     if not rows: raise RuntimeError("No trades generated")
-    d=pd.DataFrame(rows); d["sample"]=np.where(d.entry_time<split,"train","test")
+    d=pd.DataFrame(rows).sort_values("entry_time"); d["sample"]=np.where(d.entry_time<split,"train","test")
     d.to_csv(OUT/"fibo_trades.csv",index=False)
     keys=["direction","entry_mode","confirm","stop_mode","target_mode","sample"]; sums=[]
-    for k,g in d.groupby(keys):
+    def metrics(g):
         r=g.net_R; pos=r[r>0]; neg=r[r<0]; dd=r.cumsum()-r.cumsum().cummax()
-        sums.append(dict(zip(keys,k))|dict(trades=len(g),win_pct=round((r>0).mean()*100,2),
+        streak=best=0
+        for v in r:
+            streak=streak+1 if v<0 else 0
+            best=max(best,streak)
+        return dict(trades=len(g),win_pct=round((r>0).mean()*100,2),
           PF=round(pos.sum()/abs(neg.sum()),3) if len(neg) and neg.sum()!=0 else None,
           net_R=round(r.sum(),2),avg_R=round(r.mean(),3),max_DD_R=round(min(0,dd.min()),2),
-          TP=int((g.outcome=="TP").sum()),SL=int((g.outcome=="SL").sum()),TIME=int((g.outcome=="TIME").sum())))
+          max_losing_streak=best,TP=int((g.outcome=="TP").sum()),SL=int((g.outcome=="SL").sum()),TIME=int((g.outcome=="TIME").sum()))
+    for k,g in d.groupby(keys,sort=False):
+        sums.append(dict(zip(keys,k))|metrics(g))
     s=pd.DataFrame(sums); s.to_csv(OUT/"fibo_summary.csv",index=False)
+    monthly=[]
+    for k,g in d.assign(month=d.entry_time.dt.strftime("%Y-%m")).groupby(keys+["month"],sort=False):
+        monthly.append(dict(zip(keys+["month"],k))|metrics(g))
+    pd.DataFrame(monthly).to_csv(OUT/"fibo_monthly.csv",index=False)
     meta={"symbol":SYMBOL,"rows_15m":len(x),"start":str(x.index.min()),"end":str(x.index.max()),
       "gaps_15m":int((x.index.to_series().diff().dropna()!=pd.Timedelta("15min")).sum()),
       "confirmed_1h_pivots":len(confirmed_pivots(h)),"swing_legs":len(legs),"oos_split":str(split),
       "round_trip_cost_assumption":COST,"pivot_left_right_bars":[PIVOT_L,PIVOT_R],
-      "notes":["1H pivots become usable only after three subsequent 1H bars close",
-      "15m execution; one trade at a time per configuration","SL assumed first if stop and target touch in same 15m bar",
-      "7-day maximum holding period","12bp round-trip cost is an estimate, not user fee-tier verified",
-      "No funding, spread or slippage beyond assumed cost","OOS is chronological final 30%; variants are independent",
-      "Fibonacci leg is last consecutive confirmed alternating 1H pivot pair; no discretionary trend filter"]}
+      "notes":["1H pivots become usable only after three subsequent contiguous 1H bars close",
+      "15m execution; one trade at a time per configuration","Each fib leg expires when the next pivot is confirmed",
+      "SL assumed first if stop and target touch in same 15m bar","7-day maximum holding period with time exit at last bar within that window",
+      "12bp round-trip cost is an estimate, not user fee-tier verified",
+      "No funding; spread and slippage are represented only by the assumed 12bp cost",
+      "OOS is chronological final 30%; variants are independent",
+      "Fibonacci leg is last consecutive confirmed alternating 1H pivot pair; no discretionary trend filter",
+      "Monthly performance and maximum consecutive losing trades are included in outputs"]}
     (OUT/"fibo_methodology.json").write_text(json.dumps(meta,indent=2))
     print("FIBO META",json.dumps(meta)); print("TOP OOS")
     print(s[s["sample"]=="test"].sort_values("net_R",ascending=False).head(30).to_string(index=False))
