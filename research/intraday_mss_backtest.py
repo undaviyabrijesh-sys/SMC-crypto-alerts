@@ -261,7 +261,7 @@ def simulate_config(d, signals, config, start_i, end_i, gap_mask):
                 continue
 
         # Any missing 15m bar inside the holding window invalidates the test.
-        if gap_mask[entry_i + 1 : entry_i + MAX_HOLD_BARS].any():
+        if gap_mask[sig["breakout_i"] : entry_i + MAX_HOLD_BARS].any():
             continue
 
         entry = float(opens[entry_i])
