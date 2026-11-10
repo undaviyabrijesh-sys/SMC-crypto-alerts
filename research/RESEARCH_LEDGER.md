@@ -108,10 +108,23 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - OOS monthly net R for that row: Apr -1.65, May +0.26, Jun -3.31, Jul +2.67, Aug +2.76, Sep -2.54, Oct +9.47. The aggregate OOS gain is concentrated in October; reject as unvalidated.
 - Stop handling is SL-first with adverse gap-through fills. The 1.5 ATR stop variants traded excessively and suffered very large losses; do not optimize around them.
 
-## BTCUSD — Liquidity sweep reversal (new experiment; running)
+## BTCUSD — Liquidity sweep reversal (completed; rejected)
 - Hypothesis: a confirmed 1H swing high/low that is wicked through and reclaimed on 15m may identify a liquidity sweep reversal.
 - Exact causal rules: strict 3-left/3-right 1H pivots; pivot level becomes active only after the third right-hand 1H bar closes; latest confirmed high and low only; each level is consumed once by a sweep or breakout invalidation. Sweep = 15m wick beyond the level and close back inside. Test immediate next-open entry versus waiting up to four 15m bars for a close beyond the sweep candle in the reversal direction; for delayed confirmation, reject if the sweep extreme is retaken before entry.
 - Matrix: sweep threshold 0/0.1 × confirmation reclaim/break-sweep × stop buffer 0/0.1 ATR(15m) × target 1.5R/2R/3R × no filter/EMA50-aligned completed-1H filter × all hours/UTC 07:00–22:00 = 96 configurations. One position at a time per configuration; 48h max hold; 70/30 chronological split.
 - Execution: next 15m open; stop beyond sweep wick plus optional ATR buffer; same-bar SL/TP resolves SL first; adverse gap-through stop fill; reject stop distances >5%; skip trades crossing sample boundaries or a 15m data gap. Cost 12bp assumed round-trip; no funding or separate spread/slippage model.
 - Code: `research/liquidity_sweep_backtest.py` (latest code commit `697064a99d49ffd10112b6059c0a71c6bb5ec749`); workflow: `.github/workflows/liquidity-sweep-backtest.yml` (commit `92a539cd16db605709ce39df062991ae12ac8d84`); branch `ai-quant-rebuild`.
-- Status: workflow triggered by the workflow-file push; results not yet inspected. Exploratory only; no production changes.
+- Completed workflow: [42789356031](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42789356031); artifact ID 13750911922. The workflow completed successfully and its trade, summary and monthly CSVs were inspected. Exploratory only; no production changes.
+
+
+### Liquidity sweep result
+- Data: 70,079 BTCUSD 15m rows, 0 gaps, 2024-11-10 09:30 UTC to 2026-11-10 09:00 UTC; 17,519 complete 1H bars; OOS split 2026-04-05 09:15 UTC. The exact 15m CSV SHA-256 is recorded in `liquidity_sweep_methodology.json`.
+- All 96 OOS configurations were negative after the assumed 12bp round-trip cost; none had PF above 1. The least-bad OOS row was 0.1 ATR sweep threshold, immediate reclaim, no stop buffer, 3R target, EMA50-aligned filter, London/NY UTC proxy: 24 trades, 33.33% profitable, PF 0.735, -7.12R, DD -8.02R, losing streak 4 (8 TP / 16 SL).
+- The best training row was 0.1 ATR sweep threshold, break-sweep confirmation, 0.1 ATR stop buffer, 3R, EMA50-aligned, London/NY proxy: 35 trades, PF 1.199, +5.50R. Its matching OOS result was 21 trades, PF 0.465, -10.97R, DD -10.97R, losing streak 5. This is a clear train/OOS failure.
+- Best OOS row was positive in only 3 of 8 OOS months (one of those months had a single trade); monthly returns were concentrated and unstable. Reject this exact mechanical pivot-sweep model. This does not reject discretionary liquidity-sweep/SMC trading generally.
+- Limitations: 1H 3/3 pivots and latest-level-only logic are mechanical; fixed UTC session ignores DST; no funding or separate spread/slippage model; 12bp is assumed, not fee-tier verified. OOS matrix comparisons still create selection risk even though no OOS row was positive.
+
+## Next queued BTC research family — swing market-structure break / retest continuation
+- Hypothesis: a 15m close beyond a causally confirmed 1H swing high/low may have a continuation edge, especially when the broken level is retested and reclaimed.
+- Preregistered baseline for next run: strict 1H 3/3 and 5/5 pivots; close beyond latest confirmed swing level; compare next-open breakout entry versus retest within eight 15m bars; stop at breakout-candle opposite extreme or 1.5 × ATR(14); 2R/3R target; optional completed-1H EMA50 alignment and UTC session filter; one position at a time; 48h max hold; 70/30 chronological split; same conservative SL-first/gap-through execution and 12bp cost assumption.
+- Keep it experimental and separate. Do not select parameters on the OOS segment or modify production.
