@@ -254,3 +254,27 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Code: `research/vwap_reversion_intraday_backtest.py`; workflow `.github/workflows/vwap-reversion-intraday-backtest.yml`; branch `ai-quant-rebuild`; script commit `e8c861568e796ee2f24e4c13ebb167687cc85226`; workflow commit `556c9414a7d0bfbff05cc37a0aa2d4b09fa584f7`; session-boundary mask fix `c6172641b19e370206556b51715b83c3729257f6`.
 - Workflow [42814968615](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814968615) triggered; compile and backtest status to be checked. No performance claim until logs and artifacts are inspected.
 - Keep experimental only; no production changes, orders, execution alerts or `main` branch changes.
+
+
+### Intraday UTC-anchored VWAP deviation reversion — completed, rejected (2026-11-10)
+
+- Workflow [42814968615](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42814968615) completed successfully; artifact ID 13763903797. Script compiled and all 540 configurations executed.
+- Dataset: Delta BTCUSD 15m, 70,079 rows, 0 missing intervals; 2024-11-10 12:30 UTC to 2026-11-10 12:00 UTC; 17,519 complete 1H bars; 80 zero-volume bars; total reported candle volume 7,243,420,002. Dataset CSV SHA-256 `1384d16567016d08b47ccc8ebe6999e88fe123475919675693fc333d3487b076`. Train ends 2026-04-05 12:15 UTC; validation ends 2026-07-24 00:15 UTC; OOS begins 2026-07-24 00:15 UTC.
+- Rules: UTC-day cumulative typical-price × exchange-reported volume VWAP and volume-weighted standard deviation; band references lagged one full 15m candle; previous close outside band followed by close reclaiming inside but still outside VWAP; simple reclaim or engulfing-reclaim; 1.0/1.5/2.0 SD bands; signal-extreme +0.1 ATR, 1 ATR or 1.5 ATR stop; 1.5R/2R/3R target; optional completed-1H EMA50 direction filter; all hours or four UTC time buckets; next 15m open; 8h max hold.
+- Funnel: only 1 of 540 configs passed training; it was shortlisted, but 0 passed validation. OOS was correctly not evaluated.
+- Best training config: 2 SD band, engulfing reclaim, 1.5 ATR stop, 3R target, no EMA filter, 07:00–13:00 UTC: 131 trades, 39.69% profitable, PF 1.071, +7.42R, average +0.057R/trade, DD -12.50R, losing streak 6; 61.1% positive active months. Matching validation: 21 trades, 33.33% profitable, PF 0.632, -7.47R, DD -12.65R, losing streak 4, 0% positive active months.
+- Best validation-only row: 1.5 SD, engulfing reclaim, 1.5 ATR stop, 2R target, no filter, 00:00–07:00 UTC: 72 trades, 51.39% profitable, PF 1.216, +9.29R, DD -16.77R, losing streak 7, 75% positive active months. Matching training was 375 trades, PF 0.608, -119.98R, DD -140.37R, losing streak 13. Severe train/validation inconsistency; reject.
+- Methodology: chronological 70/15/15; one position/config; SL first; adverse gap-through stop fill; 12bp assumed round-trip; no funding or separate spread/slippage model. Delta candle volume is an exchange-specific contract-volume proxy, not consolidated market-wide VWAP. OOS remains untouched.
+- Code: `research/vwap_reversion_intraday_backtest.py`; workflow `.github/workflows/vwap-reversion-intraday-backtest.yml`; final code commit `c6172641b19e370206556b51715b83c3729257f6`. Artifact contents (train/validation summaries and data-quality JSON) were downloaded and audited.
+
+## Next BTC intraday family — UTC opening-range breakout (running)
+
+- Hypothesis: the first 15m close outside a completed one-hour UTC opening range may capture intraday expansion. This is a mechanical ORB baseline, not a discretionary market-session strategy.
+- Data: Delta BTCUSD 15m; same 730-day fetch and causal completed-1H EMA50 context; dataset SHA-256, coverage and gaps to be recorded after run.
+- Opening ranges: four completed 15m bars beginning at UTC 00:00, 07:00, 13:00 or 19:00. During the following UTC block, take only the first 15m close outside the range, with 0 or 0.1 × signal-bar ATR(14) breakout buffer; enter next 15m open.
+- Matrix: 4 UTC anchors × 2 breakout buffers × 4 stops (opposite range edge, breakout-candle extreme + 0.1 ATR, 1 ATR, 1.5 ATR) × 4 targets (1.5R/2R/3R/4R) × 2 filters (none/completed-1H EMA50 aligned) = 256 configurations.
+- Execution: one position at a time/config; max 8h/32 15m bars; force time exit; one first-breakout signal per opening-range block; reject >5% stop; skip gaps and sample-boundary trades; same-bar SL first; adverse gap-through stop fill; target gaps receive no favourable improvement.
+- Selection: chronological 70/15/15; train >=40 trades, positive net R, PF>=1.05, DD >=-25R; shortlist top 25 by net-R/drawdown; validation >=20 trades, positive net R, PF>=1.05, DD >=-15R, positive in >=50% active months; evaluate OOS once only if a candidate passes validation.
+- Costs: 12bp assumed round trip; actual fee tier unverified; no funding or separate spread/slippage model. UTC anchors are fixed clock buckets, not DST-adjusted London/NY opens.
+- Code: `research/intraday_orb_backtest.py`; workflow `.github/workflows/intraday-orb-backtest.yml`; branch `ai-quant-rebuild`; workflow commit `f1d0131da78331a74408e900431368182020262d`; script commit `757caed5495903332c54ecd5210c04c2e57f0106`.
+- Workflow [42823428170](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/42823428170) was triggered; inspect completion, logs and artifact before reporting any performance. Experimental only; no live/production changes.
