@@ -327,6 +327,9 @@ def main():
     differences = d.index.to_series().diff()
     gap_mask = differences.ne(BAR).to_numpy(copy=True)
     gap_mask[0] = False
+    unaligned_timestamps = int((d.index.asi8 % BAR.value != 0).sum())
+    if unaligned_timestamps:
+        raise RuntimeError(f"Found {unaligned_timestamps} timestamps not aligned to 5m boundaries")
 
     data_path = OUT / "BTCUSD_5m.csv"
     d.to_csv(data_path)
@@ -334,6 +337,7 @@ def main():
         "symbol": SYMBOL, "timeframe": "5m", "rows": int(n),
         "start_utc": str(d.index.min()), "end_utc": str(d.index.max()),
         "gaps": int((differences.dropna() != BAR).sum()),
+        "unaligned_timestamps": unaligned_timestamps,
         "largest_gap_minutes": float(differences.dropna().max().total_seconds() / 60),
         "hourly_complete_bars": int(len(hourly)),
         "sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
