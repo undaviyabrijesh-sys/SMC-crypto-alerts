@@ -54,7 +54,7 @@ def choose_entry(w, sweep_i, side, extreme, confirm):
     return None
 
 def run_one(exe, ref, tf, confirm, target_mode, buffer_atr, reverse, session_name, session_hours):
-    delta=pd.Timedelta(tf); lock=pd.Timestamp.min.tz_localize("UTC"); trades=[]
+    delta=pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf]); lock=pd.Timestamp.min.tz_localize("UTC"); trades=[]
     for rt,rr in ref.iterrows():
         start=rt+delta; end=start+delta
         if start>=exe.index[-1] or start<=lock: continue
@@ -112,7 +112,7 @@ def main():
     for tf,rule in REFS.items():
         ref=resample(exe,rule)
         counts=exe.close.resample(rule,label="left",closed="left").count()
-        ref=ref.loc[counts.reindex(ref.index).eq(int(pd.Timedelta(tf)/pd.Timedelta("15min")))]
+        ref=ref.loc[counts.reindex(ref.index).eq(int(pd.Timedelta({"1h":"1h","4h":"4h","daily":"1D","weekly":"7D"}[tf])/pd.Timedelta("15min")))]
         for confirm in CONFIRMS:
           for target in TARGETS:
            for buf in BUFFERS:
