@@ -216,7 +216,7 @@ def simulate(d, signals, config, start_i, end_i, gap_mask):
             continue
         if config["direction"] == "short_only" and side != "short":
             continue
-        if not in_session(idx[signal_i], config["session"]):
+        if not in_session(idx[entry_i], config["session"]):
             continue
         if config["filter"] == "ema50_1h":
             e = ema1h[signal_i]
