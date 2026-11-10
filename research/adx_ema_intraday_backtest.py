@@ -68,9 +68,7 @@ def prepare_data(raw):
         ],
         axis=1,
     ).max(axis=1)
-    d["atr14"] = d.groupby("segment", group_keys=False).apply(
-        lambda g: rma(tr.loc[g.index], 14), include_groups=False
-    ).reset_index(level=0, drop=True) if False else np.nan
+    d["atr14"] = np.nan
     # Explicit per-segment assignment avoids cross-gap indicator carry.
     for _, g in d.groupby("segment", sort=False):
         idx = g.index
@@ -94,8 +92,9 @@ def prepare_data(raw):
         minus_smoothed = rma(minus_dm.loc[idx], 14)
         plus_di = 100.0 * plus_smoothed / atr.replace(0.0, np.nan)
         minus_di = 100.0 * minus_smoothed / atr.replace(0.0, np.nan)
-        denom = (plus_di + minus_di).replace(0.0, np.nan)
-        dx = (100.0 * (plus_di - minus_di).abs() / denom).fillna(0.0)
+        denom = plus_di + minus_di
+        dx = 100.0 * (plus_di - minus_di).abs() / denom.replace(0.0, np.nan)
+        dx = dx.mask(denom.eq(0.0), 0.0)
         d.loc[idx, "plus_di"] = plus_di.to_numpy()
         d.loc[idx, "minus_di"] = minus_di.to_numpy()
         d.loc[idx, "adx14"] = rma(dx, 14).to_numpy()
@@ -139,7 +138,7 @@ def build_signals(d, ema_length, adx_threshold, adx_rising, confirmation):
             continue
         if adx[i] < adx_threshold:
             continue
-        if adx_rising and (not np.isfinite(adx[i - 3]) or adx[i] <= adx[i - 3]):
+        if adx_rising and (i < 3 or not np.isfinite(adx[i - 3]) or adx[i] <= adx[i - 3]):
             continue
 
         long_base = lows[i] <= ema[i] and closes[i] > opens[i]
