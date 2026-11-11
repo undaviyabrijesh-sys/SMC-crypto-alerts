@@ -190,7 +190,7 @@ def simulate(d, events, cfg, start_i, end_i):
                     risk_check = stop - candidate
                     if risk_check <= 0 or risk_check / candidate > 0.05:
                         break
-                    fill_i, entry = k, candidate
+                    fill_i, entry, fill_at_open = k, candidate, candidate_at_open
                     break
                 if cl[k] > float(ev["external_level"]):
                     break
