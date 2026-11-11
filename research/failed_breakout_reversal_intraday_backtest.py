@@ -305,10 +305,11 @@ def main():
     gaps = int((d.index.to_series().diff().dropna() != BAR).sum())
     n = len(d)
     train_end, val_end = int(n * 0.70), int(n * 0.85)
+    # Never touch OOS during the configuration sweep. It is reserved for
+    # one candidate only after both chronological selection gates pass.
     samples = (
         ("train", 0, train_end),
         ("validation", train_end, val_end),
-        ("oos", val_end, n),
     )
     dataset_hash = hashlib.sha256(d.to_csv().encode()).hexdigest()
 
