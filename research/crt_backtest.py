@@ -51,7 +51,7 @@ def fetch(tf):
     # Discard current, not-yet-closed candle.
     now = pd.Timestamp.now(tz="UTC")
     d = d[d.index + pd.Timedelta(minutes=MINS[tf]) <= now]
-    d.to_csv(OUT / f"BTCUSD_{tf}.csv")
+    d.to_csv(OUT / f"{SYMBOL}_{tf}.csv")
     return d
 
 def backtest(ref, exe, target_mode, buffer_atr=False, reverse=False):
