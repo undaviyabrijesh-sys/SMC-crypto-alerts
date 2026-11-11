@@ -1,4 +1,4 @@
-name: Derivatives history archive (one-time)
+name: Derivatives history archive (two-year BTC/ETH)
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   archive:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_DERIVATIVES_ARCHIVE:')
-    name: Download and verify funding, mark and OI history
+    name: Download and verify two-year BTC/ETH funding, mark and OI history
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -33,15 +33,16 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.txt
 
-      - name: Download three years of derivatives history
+      - name: Download two years of BTC/ETH derivatives history
         run: >-
           python bootstrap_derivatives_history.py
-          --years 3
+          --years 2
+          --symbols BTC ETH
           --output-dir derivatives_history
           --request-delay 0.25
           --retries 6
 
-      - name: Verify all nine datasets and hashes
+      - name: Verify all six BTC/ETH datasets and hashes
         run: |
           python - <<'PY'
           import config
@@ -55,7 +56,7 @@ jobs:
           datasets = manifest.get("datasets", {})
           expected = {
               f"{alias}_{details['delta_symbol']}_{series}_{timeframe}"
-              for alias, details in config.SYMBOLS.items()
+              for alias in ("BTC", "ETH")
               for series, timeframe in (("funding", "1h"), ("mark", "5m"), ("open_interest", "1h"))
           }
           errors = []
@@ -87,8 +88,8 @@ jobs:
                   "sha256": digest,
               })
           report = {
-              "status": "passed" if not errors and len(datasets) == 9 else "failed",
-              "expected_dataset_count": 9,
+              "status": "passed" if not errors and len(datasets) == 6 else "failed",
+              "expected_dataset_count": 6,
               "actual_dataset_count": len(datasets),
               "total_candles": sum(row["rows"] for row in rows),
               "datasets": rows, "errors": errors,
@@ -129,7 +130,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: salty-quant-derivatives-3y-${{ github.run_id }}
+          name: salty-quant-derivatives-2y-btc-eth-${{ github.run_id }}
           path: derivatives_history/
           if-no-files-found: warn
           compression-level: 6
