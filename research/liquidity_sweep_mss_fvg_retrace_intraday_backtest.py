@@ -22,9 +22,9 @@ OUT = Path("liquidity_fvg_retrace_results")
 OUT.mkdir(exist_ok=True)
 
 COSTS = (6, 12, 20)
-EXTERNAL_STRENGTHS = (2, 3)
-LOCAL_STRENGTHS = (2, 3)
-MSS_WAITS = (4, 8)
+EXTERNAL_STRENGTHS = (3,)
+LOCAL_STRENGTHS = (3,)
+MSS_WAITS = (8,)
 DISPLACEMENT_MODES = (
     ("body_0.5_atr_close_quartile", 0.5, True),
     ("body_0.75_atr_close_quartile", 0.75, True),
@@ -151,6 +151,7 @@ def simulate(d, events, cfg, start_i, end_i):
         pending_end = min(end_i, mi + 1 + MAX_PENDING)
         fill_i = None
         entry = None
+        fill_at_open = False
         for k in range(mi + 1, pending_end):
             if seg[k] != seg[mi]:
                 break
@@ -160,15 +161,17 @@ def simulate(d, events, cfg, start_i, end_i):
                     break
                 if op[k] <= limit:
                     candidate = float(op[k])
+                    candidate_at_open = True
                 elif lo[k] <= limit:
                     candidate = limit
+                    candidate_at_open = False
                 else:
                     candidate = None
                 if candidate is not None:
                     risk_check = candidate - stop
                     if risk_check <= 0 or risk_check / candidate > 0.05:
                         break
-                    fill_i, entry = k, candidate
+                    fill_i, entry, fill_at_open = k, candidate, candidate_at_open
                     break
                 if cl[k] < float(ev["external_level"]):
                     break
@@ -177,8 +180,10 @@ def simulate(d, events, cfg, start_i, end_i):
                     break
                 if op[k] >= limit:
                     candidate = float(op[k])
+                    candidate_at_open = True
                 elif hi[k] >= limit:
                     candidate = limit
+                    candidate_at_open = False
                 else:
                     candidate = None
                 if candidate is not None:
@@ -225,6 +230,16 @@ def simulate(d, events, cfg, start_i, end_i):
         exit_i = trade_end - 1
         exit_price = float(cl[exit_i])
         for k in range(fill_i, trade_end):
+            # A touch-filled limit and target on the same OHLC bar have unknown order.
+            # Give no TP credit on that fill bar; still honour a stop touch.
+            if k == fill_i and not fill_at_open:
+                if side == "long" and lo[k] <= stop:
+                    outcome, exit_price, exit_i = "SL", stop, k
+                    break
+                if side == "short" and hi[k] >= stop:
+                    outcome, exit_price, exit_i = "SL", stop, k
+                    break
+                continue
             # Gap exits first; then stop before target for ambiguous OHLC candles.
             if side == "long":
                 if op[k] <= stop:
@@ -273,6 +288,7 @@ def simulate(d, events, cfg, start_i, end_i):
             "sweep_time": d.index[si],
             "mss_time": d.index[mi],
             "entry_time": d.index[fill_i],
+            "fill_type": "at_open" if fill_at_open else "intrabar_touch",
             "exit_time": d.index[exit_i],
             "fvg_bottom": ev["fvg_bottom"],
             "fvg_top": ev["fvg_top"],
@@ -435,6 +451,7 @@ def main():
         "validation_end_utc": str(d.index[val_end - 1]),
         "oos_start_utc": str(d.index[val_end]),
         "matrix_configurations": len(configs),
+        "fixed_structure_baseline": {"external_pivot_strength": 3, "local_pivot_strength": 3, "mss_wait_bars": 8},
         "fvg_event_counts_by_displacement_mode": event_counts,
         "train_eligible": len(eligible), "shortlisted": len(shortlist),
         "validation_pass": len(passed),
@@ -445,6 +462,7 @@ def main():
             "bearish": "high of MSS candle < low two 15m candles earlier",
             "entry": "limit placed only after MSS close; retracement depth 50% or 75% from proximal FVG edge",
             "expiry": "8 subsequent 15m candles; unfilled order is cancelled",
+            "same_bar_ambiguity": "if a limit fills intrabar and target is also touched in that OHLC candle, no TP credit is given on the fill candle; stop is still honoured" ,
         },
         "displacement": "MSS directional body >= 0.5 or 0.75 ATR14 and close in directional outer quartile",
         "stop": "beyond full sweep-to-MSS excursion plus 0 or 0.1 x ATR14 at sweep",
@@ -452,7 +470,7 @@ def main():
         "max_hold": "32 15m candles (8h) after fill",
         "cost_sensitivity_bps": list(COSTS),
         "cost_assumption": "6/12/20bp round-trip; no funding or separate spread/slippage",
-        "split": "chronological 70/15/15; train screen, top-10 shortlist, validation; untouched OOS evaluated once only if a candidate passes both gates",
+        "split": "chronological 70/15/15; fixed 3/3 pivots and 8-bar MSS wait; 48-entry/exit/filter configurations; train screen, top-10 shortlist, validation; untouched OOS evaluated once only if a candidate passes both gates",
         "selection": {
             "train": ">=40 trades, net_R>0, PF>=1.05, max DD no worse than -25R, >=50% positive active months",
             "validation": ">=20 trades, net_R>0, PF>=1.05, max DD no worse than -15R, >=50% positive active months",
