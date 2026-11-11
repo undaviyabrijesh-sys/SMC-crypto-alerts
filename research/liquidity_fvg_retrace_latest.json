@@ -1,0 +1,98 @@
+{
+  "commit_sha": "7f0c3e5f0a7bc3220ed271879be93d8a1ef77437",
+  "job_status": "success",
+  "matching_validation": null,
+  "methodology": {
+    "cost_assumption": "6/12/20bp round-trip; no funding or separate spread/slippage",
+    "cost_sensitivity_bps": [
+      6,
+      12,
+      20
+    ],
+    "dataset_sha256": "cab51bb5bc23d11fc3fa5d14023ee75d1e6d0ca7b51d985412af3943171c3603",
+    "displacement": "MSS directional body >= 0.5 or 0.75 ATR14 and close in directional outer quartile",
+    "end_utc": "2026-11-11 23:00:00+00:00",
+    "fixed_structure_baseline": {
+      "external_pivot_strength": 3,
+      "local_pivot_strength": 3,
+      "mss_wait_bars": 8
+    },
+    "fvg_definition": {
+      "bearish": "high of MSS candle < low two 15m candles earlier",
+      "bullish": "low of MSS candle > high two 15m candles earlier",
+      "entry": "limit placed only after MSS close; retracement depth 50% or 75% from proximal FVG edge",
+      "expiry": "8 subsequent 15m candles; unfilled order is cancelled",
+      "same_bar_ambiguity": "if a limit fills intrabar and target is also touched in that OHLC candle, no TP credit is given on the fill candle; stop is still honoured"
+    },
+    "fvg_event_counts_by_displacement_mode": {
+      "body_0.5_atr_close_quartile": 35,
+      "body_0.75_atr_close_quartile": 29
+    },
+    "gaps_15m": 0,
+    "limitations": "12bp is assumed, not fee-tier verified; no funding or separate spread/slippage; fixed UTC-free session (all hours); mechanical swing/MSS/FVG rules are not discretionary SMC; stop-first OHLC ambiguity; one pending order/position at a time per configuration",
+    "matrix_configurations": 48,
+    "max_hold": "32 15m candles (8h) after fill",
+    "oos_evaluated": false,
+    "oos_start_utc": "2026-07-25 11:15:00+00:00",
+    "rows_15m": 70079,
+    "rows_1h_complete": 17519,
+    "selected_oos_config": null,
+    "selection": {
+      "shortlist": "top 10 by train net_R/(abs(max_drawdown_R)+1)",
+      "train": ">=40 trades, net_R>0, PF>=1.05, max DD no worse than -25R, >=50% positive active months",
+      "validation": ">=20 trades, net_R>0, PF>=1.05, max DD no worse than -15R, >=50% positive active months"
+    },
+    "shortlisted": 0,
+    "split": "chronological 70/15/15; fixed 3/3 pivots and 8-bar MSS wait; 48-entry/exit/filter configurations; train screen, top-10 shortlist, validation; untouched OOS evaluated once only if a candidate passes both gates",
+    "start_utc": "2024-11-11 23:30:00+00:00",
+    "stop": "beyond full sweep-to-MSS excursion plus 0 or 0.1 x ATR14 at sweep",
+    "symbol": "BTCUSD",
+    "target": "1.5R, 2R or 3R",
+    "timeframe": "15m execution; 1h confirmed external swing levels; completed 4h EMA regime",
+    "train_eligible": 0,
+    "train_end_utc": "2026-04-06 23:00:00+00:00",
+    "validation_end_utc": "2026-07-25 11:00:00+00:00",
+    "validation_pass": 0
+  },
+  "oos_status": "OOS NOT EVALUATED: no candidate passed the pre-registered train/validation gates.",
+  "recorded_at_utc": "2026-11-11T23:16:03.338640+00:00",
+  "selected_candidate_cost_sensitivity": {},
+  "selected_candidate_monthly_12bp": [],
+  "selected_candidate_regime_12bp": [],
+  "shortlisted_count": 0,
+  "status": "outputs_available",
+  "top_shortlisted_train_candidate": null,
+  "train_eligible_count": 0,
+  "train_nonzero_best_by_net_R": {
+    "SL": 2,
+    "TIME": 2,
+    "TP": 2,
+    "avg_R": 0.306,
+    "config_id": "h1p3_mss3_wait8_body_0.5_atr_close_quartile_fvg0.5_buf0.1_2.0R_none",
+    "max_drawdown_R": -1.14,
+    "max_losing_streak": 1,
+    "net_R": 1.84,
+    "positive_month_fraction": 0.6,
+    "profit_factor": 1.814,
+    "trades": 6,
+    "win_rate_pct": 66.67
+  },
+  "validation_nonzero_best_by_net_R": {
+    "SL": 0,
+    "TIME": 0,
+    "TP": 2,
+    "avg_R": 2.746,
+    "config_id": "h1p3_mss3_wait8_body_0.5_atr_close_quartile_fvg0.75_buf0.1_3.0R_none",
+    "max_drawdown_R": 0.0,
+    "max_losing_streak": 0,
+    "net_R": 5.49,
+    "positive_month_fraction": 1.0,
+    "profit_factor": null,
+    "trades": 2,
+    "win_rate_pct": 100.0
+  },
+  "validation_pass_count": 0,
+  "workflow_run_attempt": "1",
+  "workflow_run_id": "43118416655",
+  "workflow_run_url": "https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43118416655"
+}
