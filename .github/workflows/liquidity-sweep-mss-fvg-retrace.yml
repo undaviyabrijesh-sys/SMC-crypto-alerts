@@ -176,6 +176,6 @@ jobs:
           cp /tmp/liquidity_fvg_retrace_latest.json research/liquidity_fvg_retrace_latest.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/liquidity_fvg_retrace_latest.json
+          git add -f research/liquidity_fvg_retrace_latest.json
           git commit -m "Record FVG retracement research run ${GITHUB_RUN_ID}"
           git push origin HEAD:ai-quant-rebuild
