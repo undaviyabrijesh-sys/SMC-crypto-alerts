@@ -455,7 +455,7 @@ def main():
     print("METHODOLOGY")
     print(json.dumps(methodology, indent=2))
     print("\nTOP TRAIN (12bp, nonzero trades)")
-    print(tr.sort_values("net_R", ascending=False).head(15).to_string(index=False))
+    print(tr[tr.trades > 0].sort_values("net_R", ascending=False).head(15).to_string(index=False))
     print("\nTOP VALIDATION (12bp, nonzero trades)")
     print(va[va.trades > 0].sort_values("net_R", ascending=False).head(15).to_string(index=False))
     print(f"\nTRAIN ELIGIBLE={len(eligible)} SHORTLIST={len(shortlist)} VALIDATION PASS={len(passed)}")
