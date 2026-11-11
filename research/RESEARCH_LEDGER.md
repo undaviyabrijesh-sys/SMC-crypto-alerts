@@ -608,3 +608,9 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - BTCUSD data: 15m 70,079 rows (2024-11-11 23:30 to 2026-11-11 23:00 UTC), 1h 17,519 rows, 4h 4,379 rows, 1d 729 rows; all reported zero gaps. Round-trip cost 12bp (0.06% each side) in the existing engine.
 - Full-period exploratory best by net R: daily reference, 3R target, ATR buffer, original direction: 516 trades, 15.31% win rate, PF 0.766, -91.30R, max DD -99.66R. Best 4h reference: 2R target, ATR buffer, original direction: 2,917 trades, 18.99% win rate, PF 0.475, -1,198.35R, max DD -1,204.59R. Best 1h reference: 2R target, ATR buffer, reversed direction: 9,096 trades, 14.29% win rate, PF 0.247, -6,091.57R, max DD -6,094.13R.
 - Decision: no CRT variant is promoted. Because the script does not perform chronological splits, these are only full-period exploratory diagnostics; do not treat them as validation or OOS evidence. Existing CRT mechanical family remains rejected.
+
+
+## Research CI resource control — 2026-11-12
+
+- Added a branch-scoped concurrency group to `.github/workflows/ci.yml` with `cancel-in-progress: true` so superseded deterministic CI runs do not continue consuming GitHub Actions minutes after a newer commit arrives. This affects only the research branch workflow execution; it does not change any strategy or production rules.
+- The CI run triggered by the change [43120134302](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43120134302) completed successfully. Research commits remain on `ai-quant-rebuild`; `main` was not modified.
