@@ -43,7 +43,7 @@ The raw 1h `FUNDING:` candles are repeated hourly values, not hourly cashflows:
 - ETH value changes occur at those same boundaries except one isolated 2024-11-29 09:00 UTC observation.
 - After 2025-09-08, the observed BTC and ETH change points align with 00:00/08:00/16:00 UTC. This matches Delta's current documented 8-hour funding schedule.
 
-This is a cadence/shape observation, not proof of historical settlement attribution. Do not sum repeated hourly values. Do not apply a funding payment to a trade until the exact historical candle-to-realization mapping and event-time exposure have been cross-checked.
+Delta's current guide explicitly says the 8-hour method became effective at 5:30pm IST on 2025-09-08; before that it used minute-by-minute funding exchanges. Treat pre-2025-09-08 funding as a separate methodology regime and exclude it from any current 8-hour event replay. The post-change cadence matches the documented 00:00/08:00/16:00 UTC schedule, but this is still a cadence/shape observation, not proof of the historical candle-to-realization mapping. Do not sum repeated hourly values. Do not apply funding to a trade until an event-level settlement cross-check and event-time position exposure are implemented.
 
 ## Current public contract/cost context
 
