@@ -27,3 +27,12 @@ The one-time GitHub Actions workflow retains the archive as a 14-day artifact fo
 - Use mark price only for the intended valuation/liquidation checks; traded-price OHLC remains the trade execution proxy until bid/ask/depth history is available.
 - Use open interest as a separately lagged research feature, never as an unlagged future-known input.
 - Do not convert a price-only paper result into an exchange PnL claim. Spread, depth, contract rules, margin and settlement conversion still require dedicated validation.
+
+
+## Current bounded automation run — 2026-11-12
+
+The one-time GitHub Actions workflow has been scoped to **two years of BTC and ETH only** for the first full coverage audit. It requests six raw series: BTC/ETH funding (1h), mark price (5m) and open interest (1h). This is a workflow-specific override; the collector CLI still supports the broader three-year BTC/ETH/XAUT archive.
+
+The run is not considered complete until the six expected dataset keys, non-empty CSVs, row counts, SHA-256 hashes, first/last timestamps, requested and observed coverage, and gaps are verified. Funding values remain raw API units. Do not infer per-event rate scaling or apply funding to trade P&L until settlement timing and sign convention are established. Mark-price history remains separate from traded-price OHLCV.
+
+The first workflow attempt exposed a verifier variable-reference bug after download; a corrected run is queued. No archive coverage result is claimed yet.
