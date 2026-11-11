@@ -55,7 +55,7 @@ jobs:
           manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
           datasets = manifest.get("datasets", {})
           expected = {
-              f"{alias}_{details['delta_symbol']}_{series}_{timeframe}"
+              f"{alias}_{config.SYMBOLS[alias]['delta_symbol']}_{series}_{timeframe}"
               for alias in ("BTC", "ETH")
               for series, timeframe in (("funding", "1h"), ("mark", "5m"), ("open_interest", "1h"))
           }
