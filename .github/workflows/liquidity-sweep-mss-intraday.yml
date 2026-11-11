@@ -1,0 +1,36 @@
+name: BTC confirmed-liquidity sweep plus MSS research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/liquidity_sweep_mss_intraday_backtest.py"
+      - ".github/workflows/liquidity-sweep-mss-intraday.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile liquidity sweep and MSS research
+        run: python -m py_compile research/liquidity_sweep_mss_intraday_backtest.py
+      - name: Run preregistered 768-configuration matrix
+        run: python research/liquidity_sweep_mss_intraday_backtest.py
+      - name: Upload liquidity sweep research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-liquidity-sweep-mss
+          path: liquidity_mss_results/
+          if-no-files-found: warn
+          retention-days: 30
