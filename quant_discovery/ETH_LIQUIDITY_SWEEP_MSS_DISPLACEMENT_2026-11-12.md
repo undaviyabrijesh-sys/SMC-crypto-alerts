@@ -50,7 +50,7 @@ Configuration: 1h external pivot 2; 15m local pivot 2; MSS window 4; no stop buf
 | Positive active months | 60% | 0% |
 | TP / SL / TIME | 6 / 10 / 24 | 0 / 8 / 4 |
 
-Validation monthly net R: April -0.06R, May -2.12R, June -4.53R, July -1.23R. Validation regime net R: bull -1.48R (4 trades), mixed/unavailable -0.80R (2), bear -5.67R (6).
+Validation monthly net R: April -0.06R, May -2.12R, June -4.53R, July -1.23R. ETH regime net R: train mixed/unavailable +8.94R (18 trades), bear +0.94R (15), bull +2.41R (7); validation bull -1.48R (4), mixed/unavailable -0.80R (2), bear -5.67R (6). BTC regime on the same selected candidate: train bear +3.62R (16 trades), bull +3.76R (8), mixed/unavailable +4.92R (16); validation bear -3.35R (4), bull -1.54R (4), mixed/unavailable -3.05R (4). Validation was negative in every BTC regime bucket.
 
 ### Cost sensitivity for this same candidate
 
