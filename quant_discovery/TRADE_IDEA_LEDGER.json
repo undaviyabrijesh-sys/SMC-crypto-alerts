@@ -148,7 +148,7 @@
         "mark_to_entry_reference_R_not_realized": 3.3859689655172245,
         "paper_position_open": false
       },
-      "last_check_evidence": "47 new completed 5m candles from 2026-11-11T03:20:00Z through 07:14:59.999Z. Window high 0.8350, low 0.8157. Original entry zone 0.8590-0.8610 and stop 0.8715 were not touched. Original target 0.8300 retouched after terminal completion in the 04:00-04:04:59.999Z candle (O/H/L/C 0.8309/0.8328/0.8298/0.8319). Latest completed candle 07:10-07:14:59.999Z O/H/L/C 0.8186/0.8193/0.8169/0.8172; latest mark 0.8188. Hypothetical mark-to-entry +3.5431R is not additional realized R. Preserve terminal historical result +2.577586R and triggered_unalerted_delivery_blocked status; do not reopen.",
+      "last_check_evidence": "52 completed 5m bars from 19:25 to 23:44:59.999 UTC. Window high 0.8402, low 0.8089. Entry zone and stop untouched. Target retouched after terminal completion at 22:30 UTC. Latest completed candle 23:40-23:44:59.999 UTC O/H/L/C 0.8204/0.8207/0.8182/0.8206; mark 0.82062276. Mark-to-entry +3.3860R is hypothetical only; historical realized reference remains +2.577586R.",
       "mark_to_entry_reference_R_not_realized": 3.3859689655172245,
       "target_retouched_since_previous_check": true,
       "stop_touched_since_previous_check": false,
@@ -3614,23 +3614,72 @@
     "timeframe_alignment": {
       "15m": {
         "above_both": [],
-        "below_both": 11,
-        "mixed": 0
+        "below_both": [
+          "BTCUSDT",
+          "ETHUSDT",
+          "SOLUSDT",
+          "BNBUSDT",
+          "XRPUSDT",
+          "DOGEUSDT",
+          "ADAUSDT",
+          "LINKUSDT",
+          "SUIUSDT",
+          "ZECUSDT",
+          "HYPEUSDT"
+        ],
+        "mixed": []
       },
       "1h": {
         "above_both": [],
-        "below_both": 11,
-        "mixed": 0
+        "below_both": [
+          "BTCUSDT",
+          "ETHUSDT",
+          "SOLUSDT",
+          "BNBUSDT",
+          "XRPUSDT",
+          "DOGEUSDT",
+          "ADAUSDT",
+          "LINKUSDT",
+          "SUIUSDT",
+          "ZECUSDT",
+          "HYPEUSDT"
+        ],
+        "mixed": []
       },
       "4h": {
         "above_both": [],
-        "below_both": 10,
-        "mixed": 1
+        "below_both": [
+          "BTCUSDT",
+          "ETHUSDT",
+          "SOLUSDT",
+          "XRPUSDT",
+          "DOGEUSDT",
+          "ADAUSDT",
+          "LINKUSDT",
+          "SUIUSDT",
+          "ZECUSDT",
+          "HYPEUSDT"
+        ],
+        "mixed": [
+          "BNBUSDT"
+        ]
       },
       "1d": {
         "above_both": [],
-        "below_both": 11,
-        "mixed": 0
+        "below_both": [
+          "BTCUSDT",
+          "ETHUSDT",
+          "SOLUSDT",
+          "BNBUSDT",
+          "XRPUSDT",
+          "DOGEUSDT",
+          "ADAUSDT",
+          "LINKUSDT",
+          "SUIUSDT",
+          "ZECUSDT",
+          "HYPEUSDT"
+        ],
+        "mixed": []
       }
     },
     "fresh_15m_sweeps_latest_candle": 0,
@@ -3685,7 +3734,445 @@
     "sui_post_target_bars": 843,
     "sui_mark_to_entry_reference_R_not_realized": 3.3859689655172245,
     "discord_delivery_blocker": "No qualifying trigger, so no alert was due; no direct Discord sender or GitHub workflow-dispatch action is exposed in this runtime.",
-    "notes": "All 11 markets are below both 15m, 1h and daily EMA20/EMA50; 10/11 below both on 4h, BNB mixed. RSI is weak. Recent 15m sweep/reclaim attempts lacked follow-through or were undercut. Price is pressing nearby support, so shorts lack a defensible 2R path before support and oversold daily momentum argues against chasing. OI notional declined in all 11; funding positive in all 11. No qualified setup."
+    "notes": "All 11 markets are below both 15m, 1h and daily EMA20/EMA50; 10/11 below both on 4h, BNB mixed. RSI is weak. Recent 15m sweep/reclaim attempts lacked follow-through or were undercut. Price is pressing nearby support, so shorts lack a defensible 2R path before support and oversold daily momentum argues against chasing. OI notional declined in all 11; funding positive in all 11. No qualified setup.",
+    "ema_values_15m": {
+      "BTCUSDT": {
+        "ema20": 74167.4693,
+        "ema50": 74128.4554
+      },
+      "ETHUSDT": {
+        "ema20": 2066.0588,
+        "ema50": 2067.63
+      },
+      "SOLUSDT": {
+        "ema20": 84.0833,
+        "ema50": 84.2049
+      },
+      "BNBUSDT": {
+        "ema20": 683.809,
+        "ema50": 684.04
+      },
+      "XRPUSDT": {
+        "ema20": 1.0574832,
+        "ema50": 1.0599745
+      },
+      "DOGEUSDT": {
+        "ema20": 0.06803544,
+        "ema50": 0.06824972
+      },
+      "ADAUSDT": {
+        "ema20": 0.17593698,
+        "ema50": 0.17648455
+      },
+      "LINKUSDT": {
+        "ema20": 10.3069375,
+        "ema50": 10.3606341
+      },
+      "SUIUSDT": {
+        "ema20": 0.82972245,
+        "ema50": 0.83237933
+      },
+      "ZECUSDT": {
+        "ema20": 986.1255,
+        "ema50": 992.6198
+      },
+      "HYPEUSDT": {
+        "ema20": 72.397225,
+        "ema50": 72.6728877
+      }
+    },
+    "ema_values_1h": {
+      "BTCUSDT": {
+        "ema20": 74082.3356,
+        "ema50": 74193.1044
+      },
+      "ETHUSDT": {
+        "ema20": 2068.433,
+        "ema50": 2083.6872
+      },
+      "SOLUSDT": {
+        "ema20": 84.2108,
+        "ema50": 84.638
+      },
+      "BNBUSDT": {
+        "ema20": 684.0336,
+        "ema50": 684.6478
+      },
+      "XRPUSDT": {
+        "ema20": 1.0618472,
+        "ema50": 1.0726174
+      },
+      "DOGEUSDT": {
+        "ema20": 0.06836523,
+        "ema50": 0.06870895
+      },
+      "ADAUSDT": {
+        "ema20": 0.17663583,
+        "ema50": 0.17668151
+      },
+      "LINKUSDT": {
+        "ema20": 10.3850599,
+        "ema50": 10.4322782
+      },
+      "SUIUSDT": {
+        "ema20": 0.8329491,
+        "ema50": 0.8337561
+      },
+      "ZECUSDT": {
+        "ema20": 1003.3324,
+        "ema50": 1057.089
+      },
+      "HYPEUSDT": {
+        "ema20": 72.790543,
+        "ema50": 73.237264
+      }
+    },
+    "ema_values_4h": {
+      "BTCUSDT": {
+        "ema20": 74523.7818,
+        "ema50": 75713.6409
+      },
+      "ETHUSDT": {
+        "ema20": 2108.6681,
+        "ema50": 2178.8702
+      },
+      "SOLUSDT": {
+        "ema20": 85.5417,
+        "ema50": 88.6485
+      },
+      "BNBUSDT": {
+        "ema20": 686.673,
+        "ema50": 694.4218
+      },
+      "XRPUSDT": {
+        "ema20": 1.0903561,
+        "ema50": 1.1476437
+      },
+      "DOGEUSDT": {
+        "ema20": 0.06928202,
+        "ema50": 0.07122281
+      },
+      "ADAUSDT": {
+        "ema20": 0.17764883,
+        "ema50": 0.18235127
+      },
+      "LINKUSDT": {
+        "ema20": 10.5132089,
+        "ema50": 10.7533974
+      },
+      "SUIUSDT": {
+        "ema20": 0.83831992,
+        "ema50": 0.85666825
+      },
+      "ZECUSDT": {
+        "ema20": 1104.8164,
+        "ema50": 1178.6664
+      },
+      "HYPEUSDT": {
+        "ema20": 74.0687437,
+        "ema50": 76.8960309
+      }
+    },
+    "ema_values_1d": {
+      "BTCUSDT": {
+        "ema20": 77759.5316,
+        "ema50": 78931.8213
+      },
+      "ETHUSDT": {
+        "ema20": 2267.9086,
+        "ema50": 2353.2866
+      },
+      "SOLUSDT": {
+        "ema20": 94.1403,
+        "ema50": 99.3509
+      },
+      "BNBUSDT": {
+        "ema20": 708.8386,
+        "ema50": 719.1799
+      },
+      "XRPUSDT": {
+        "ema20": 1.2234776,
+        "ema50": 1.2887494
+      },
+      "DOGEUSDT": {
+        "ema20": 0.07470002,
+        "ema50": 0.07917441
+      },
+      "ADAUSDT": {
+        "ema20": 0.19350723,
+        "ema50": 0.20742075
+      },
+      "LINKUSDT": {
+        "ema20": 11.2056504,
+        "ema50": 11.6694894
+      },
+      "SUIUSDT": {
+        "ema20": 0.89725962,
+        "ema50": 0.9300549
+      },
+      "ZECUSDT": {
+        "ema20": 1221.0015,
+        "ema50": 1206.9899
+      },
+      "HYPEUSDT": {
+        "ema20": 79.9682115,
+        "ema50": 81.0486389
+      }
+    },
+    "rsi14_method": "Wilder smoothing",
+    "rsi14_15m": {
+      "BTCUSDT": 41.6857,
+      "ETHUSDT": 38.2233,
+      "SOLUSDT": 32.7532,
+      "BNBUSDT": 26.8953,
+      "XRPUSDT": 37.329,
+      "DOGEUSDT": 34.35,
+      "ADAUSDT": 34.903,
+      "LINKUSDT": 33.9453,
+      "SUIUSDT": 36.1435,
+      "ZECUSDT": 33.0687,
+      "HYPEUSDT": 39.1206
+    },
+    "rsi14_1h": {
+      "BTCUSDT": 47.3585,
+      "ETHUSDT": 43.6753,
+      "SOLUSDT": 43.3609,
+      "BNBUSDT": 45.245,
+      "XRPUSDT": 42.5162,
+      "DOGEUSDT": 38.0021,
+      "ADAUSDT": 40.331,
+      "LINKUSDT": 35.5357,
+      "SUIUSDT": 40.182,
+      "ZECUSDT": 37.891,
+      "HYPEUSDT": 39.4816
+    },
+    "rsi14_4h": {
+      "BTCUSDT": 45.5846,
+      "ETHUSDT": 38.7363,
+      "SOLUSDT": 41.7938,
+      "BNBUSDT": 48.2604,
+      "XRPUSDT": 34.6654,
+      "DOGEUSDT": 42.0322,
+      "ADAUSDT": 47.6523,
+      "LINKUSDT": 45.708,
+      "SUIUSDT": 47.8673,
+      "ZECUSDT": 25.3719,
+      "HYPEUSDT": 41.2017
+    },
+    "rsi14_1d": {
+      "BTCUSDT": 33.9801,
+      "ETHUSDT": 29.5292,
+      "SOLUSDT": 23.7974,
+      "BNBUSDT": 37.9749,
+      "XRPUSDT": 23.687,
+      "DOGEUSDT": 30.9821,
+      "ADAUSDT": 31.0083,
+      "LINKUSDT": 36.9153,
+      "SUIUSDT": 37.9196,
+      "ZECUSDT": 37.4323,
+      "HYPEUSDT": 34.9189
+    },
+    "relative_volume_15m": {
+      "BTCUSDT": 0.8066,
+      "ETHUSDT": 1.197,
+      "SOLUSDT": 2.1208,
+      "BNBUSDT": 3.96,
+      "XRPUSDT": 0.9212,
+      "DOGEUSDT": 1.3785,
+      "ADAUSDT": 1.1742,
+      "LINKUSDT": 1.0866,
+      "SUIUSDT": 0.9992,
+      "ZECUSDT": 0.9925,
+      "HYPEUSDT": 1.007
+    },
+    "relative_volume_1h": {
+      "BTCUSDT": 0.8502,
+      "ETHUSDT": 1.1866,
+      "SOLUSDT": 1.2457,
+      "BNBUSDT": 1.1892,
+      "XRPUSDT": 0.8724,
+      "DOGEUSDT": 2.1431,
+      "ADAUSDT": 2.3613,
+      "LINKUSDT": 2.6087,
+      "SUIUSDT": 1.4762,
+      "ZECUSDT": 0.8863,
+      "HYPEUSDT": 1.4957
+    },
+    "relative_volume_4h": {
+      "BTCUSDT": 1.0674,
+      "ETHUSDT": 0.8944,
+      "SOLUSDT": 0.7926,
+      "BNBUSDT": 0.8224,
+      "XRPUSDT": 0.846,
+      "DOGEUSDT": 0.7618,
+      "ADAUSDT": 0.9203,
+      "LINKUSDT": 0.916,
+      "SUIUSDT": 1.018,
+      "ZECUSDT": 1.6548,
+      "HYPEUSDT": 1.0331
+    },
+    "local_support_resistance_15m": {
+      "BTCUSDT": {
+        "support": 73444.5,
+        "resistance": 74771.4
+      },
+      "ETHUSDT": {
+        "support": 2034.55,
+        "resistance": 2091.04
+      },
+      "SOLUSDT": {
+        "support": 82.13,
+        "resistance": 85.35
+      },
+      "BNBUSDT": {
+        "support": 677.14,
+        "resistance": 689.28
+      },
+      "XRPUSDT": {
+        "support": 1.0403,
+        "resistance": 1.0692
+      },
+      "DOGEUSDT": {
+        "support": 0.06632,
+        "resistance": 0.06911
+      },
+      "ADAUSDT": {
+        "support": 0.1716,
+        "resistance": 0.1786
+      },
+      "LINKUSDT": {
+        "support": 10.001,
+        "resistance": 10.51
+      },
+      "SUIUSDT": {
+        "support": 0.8089,
+        "resistance": 0.8423
+      },
+      "ZECUSDT": {
+        "support": 951.1,
+        "resistance": 1014.44
+      },
+      "HYPEUSDT": {
+        "support": 70.582,
+        "resistance": 73.856
+      }
+    },
+    "structural_support_resistance_4h": {
+      "BTCUSDT": {
+        "support": 72691,
+        "resistance": 76168.8
+      },
+      "ETHUSDT": {
+        "support": 2003.57,
+        "resistance": 2245.31
+      },
+      "SOLUSDT": {
+        "support": 81.25,
+        "resistance": 89.98
+      },
+      "BNBUSDT": {
+        "support": 670.23,
+        "resistance": 701.41
+      },
+      "XRPUSDT": {
+        "support": 1.0301,
+        "resistance": 1.1693
+      },
+      "DOGEUSDT": {
+        "support": 0.06652,
+        "resistance": 0.07164
+      },
+      "ADAUSDT": {
+        "support": 0.17,
+        "resistance": 0.1833
+      },
+      "LINKUSDT": {
+        "support": 10.088,
+        "resistance": 10.828
+      },
+      "SUIUSDT": {
+        "support": 0.8,
+        "resistance": 0.8694
+      },
+      "ZECUSDT": {
+        "support": 960.56,
+        "resistance": 1293
+      },
+      "HYPEUSDT": {
+        "support": 70.347,
+        "resistance": 78.135
+      }
+    },
+    "taker_buy_sell_ratio_5m_at_2340utc": {
+      "BTCUSDT": 0.97112,
+      "ETHUSDT": 0.74593,
+      "SOLUSDT": 1.09924,
+      "BNBUSDT": 2.72621,
+      "XRPUSDT": 1.25064,
+      "DOGEUSDT": 0.50615,
+      "ADAUSDT": 0.70422,
+      "LINKUSDT": 1.32736,
+      "SUIUSDT": 2.13409,
+      "ZECUSDT": 0.88894,
+      "HYPEUSDT": 0.83812
+    },
+    "global_long_short_ratio_1h_at_23utc": {
+      "BTCUSDT": {
+        "long_share": 0.7184,
+        "short_share": 0.2816,
+        "ratio": 2.5511
+      },
+      "ETHUSDT": {
+        "long_share": 0.7594,
+        "short_share": 0.2406,
+        "ratio": 3.1563
+      },
+      "SOLUSDT": {
+        "long_share": 0.7696,
+        "short_share": 0.2304,
+        "ratio": 3.3403
+      },
+      "BNBUSDT": {
+        "long_share": 0.7231,
+        "short_share": 0.2769,
+        "ratio": 2.6114
+      },
+      "XRPUSDT": {
+        "long_share": 0.75,
+        "short_share": 0.25,
+        "ratio": 3
+      },
+      "DOGEUSDT": {
+        "long_share": 0.7154,
+        "short_share": 0.2846,
+        "ratio": 2.5137
+      },
+      "ADAUSDT": {
+        "long_share": 0.6677,
+        "short_share": 0.3323,
+        "ratio": 2.0093
+      },
+      "LINKUSDT": {
+        "long_share": 0.658,
+        "short_share": 0.342,
+        "ratio": 1.924
+      },
+      "SUIUSDT": {
+        "long_share": 0.6799,
+        "short_share": 0.3201,
+        "ratio": 2.124
+      },
+      "ZECUSDT": {
+        "long_share": 0.4814,
+        "short_share": 0.5186,
+        "ratio": 0.9283
+      },
+      "HYPEUSDT": {
+        "long_share": 0.5991,
+        "short_share": 0.4009,
+        "ratio": 1.4944
+      }
+    }
   },
   "scan_history": [
     {
@@ -23019,23 +23506,72 @@
       "timeframe_alignment": {
         "15m": {
           "above_both": [],
-          "below_both": 11,
-          "mixed": 0
+          "below_both": [
+            "BTCUSDT",
+            "ETHUSDT",
+            "SOLUSDT",
+            "BNBUSDT",
+            "XRPUSDT",
+            "DOGEUSDT",
+            "ADAUSDT",
+            "LINKUSDT",
+            "SUIUSDT",
+            "ZECUSDT",
+            "HYPEUSDT"
+          ],
+          "mixed": []
         },
         "1h": {
           "above_both": [],
-          "below_both": 11,
-          "mixed": 0
+          "below_both": [
+            "BTCUSDT",
+            "ETHUSDT",
+            "SOLUSDT",
+            "BNBUSDT",
+            "XRPUSDT",
+            "DOGEUSDT",
+            "ADAUSDT",
+            "LINKUSDT",
+            "SUIUSDT",
+            "ZECUSDT",
+            "HYPEUSDT"
+          ],
+          "mixed": []
         },
         "4h": {
           "above_both": [],
-          "below_both": 10,
-          "mixed": 1
+          "below_both": [
+            "BTCUSDT",
+            "ETHUSDT",
+            "SOLUSDT",
+            "XRPUSDT",
+            "DOGEUSDT",
+            "ADAUSDT",
+            "LINKUSDT",
+            "SUIUSDT",
+            "ZECUSDT",
+            "HYPEUSDT"
+          ],
+          "mixed": [
+            "BNBUSDT"
+          ]
         },
         "1d": {
           "above_both": [],
-          "below_both": 11,
-          "mixed": 0
+          "below_both": [
+            "BTCUSDT",
+            "ETHUSDT",
+            "SOLUSDT",
+            "BNBUSDT",
+            "XRPUSDT",
+            "DOGEUSDT",
+            "ADAUSDT",
+            "LINKUSDT",
+            "SUIUSDT",
+            "ZECUSDT",
+            "HYPEUSDT"
+          ],
+          "mixed": []
         }
       },
       "fresh_15m_sweeps_latest_candle": 0,
@@ -23090,7 +23626,445 @@
       "sui_post_target_bars": 843,
       "sui_mark_to_entry_reference_R_not_realized": 3.3859689655172245,
       "discord_delivery_blocker": "No qualifying trigger, so no alert was due; no direct Discord sender or GitHub workflow-dispatch action is exposed in this runtime.",
-      "notes": "All 11 markets are below both 15m, 1h and daily EMA20/EMA50; 10/11 below both on 4h, BNB mixed. RSI is weak. Recent 15m sweep/reclaim attempts lacked follow-through or were undercut. Price is pressing nearby support, so shorts lack a defensible 2R path before support and oversold daily momentum argues against chasing. OI notional declined in all 11; funding positive in all 11. No qualified setup."
+      "notes": "All 11 markets are below both 15m, 1h and daily EMA20/EMA50; 10/11 below both on 4h, BNB mixed. RSI is weak. Recent 15m sweep/reclaim attempts lacked follow-through or were undercut. Price is pressing nearby support, so shorts lack a defensible 2R path before support and oversold daily momentum argues against chasing. OI notional declined in all 11; funding positive in all 11. No qualified setup.",
+      "ema_values_15m": {
+        "BTCUSDT": {
+          "ema20": 74167.4693,
+          "ema50": 74128.4554
+        },
+        "ETHUSDT": {
+          "ema20": 2066.0588,
+          "ema50": 2067.63
+        },
+        "SOLUSDT": {
+          "ema20": 84.0833,
+          "ema50": 84.2049
+        },
+        "BNBUSDT": {
+          "ema20": 683.809,
+          "ema50": 684.04
+        },
+        "XRPUSDT": {
+          "ema20": 1.0574832,
+          "ema50": 1.0599745
+        },
+        "DOGEUSDT": {
+          "ema20": 0.06803544,
+          "ema50": 0.06824972
+        },
+        "ADAUSDT": {
+          "ema20": 0.17593698,
+          "ema50": 0.17648455
+        },
+        "LINKUSDT": {
+          "ema20": 10.3069375,
+          "ema50": 10.3606341
+        },
+        "SUIUSDT": {
+          "ema20": 0.82972245,
+          "ema50": 0.83237933
+        },
+        "ZECUSDT": {
+          "ema20": 986.1255,
+          "ema50": 992.6198
+        },
+        "HYPEUSDT": {
+          "ema20": 72.397225,
+          "ema50": 72.6728877
+        }
+      },
+      "ema_values_1h": {
+        "BTCUSDT": {
+          "ema20": 74082.3356,
+          "ema50": 74193.1044
+        },
+        "ETHUSDT": {
+          "ema20": 2068.433,
+          "ema50": 2083.6872
+        },
+        "SOLUSDT": {
+          "ema20": 84.2108,
+          "ema50": 84.638
+        },
+        "BNBUSDT": {
+          "ema20": 684.0336,
+          "ema50": 684.6478
+        },
+        "XRPUSDT": {
+          "ema20": 1.0618472,
+          "ema50": 1.0726174
+        },
+        "DOGEUSDT": {
+          "ema20": 0.06836523,
+          "ema50": 0.06870895
+        },
+        "ADAUSDT": {
+          "ema20": 0.17663583,
+          "ema50": 0.17668151
+        },
+        "LINKUSDT": {
+          "ema20": 10.3850599,
+          "ema50": 10.4322782
+        },
+        "SUIUSDT": {
+          "ema20": 0.8329491,
+          "ema50": 0.8337561
+        },
+        "ZECUSDT": {
+          "ema20": 1003.3324,
+          "ema50": 1057.089
+        },
+        "HYPEUSDT": {
+          "ema20": 72.790543,
+          "ema50": 73.237264
+        }
+      },
+      "ema_values_4h": {
+        "BTCUSDT": {
+          "ema20": 74523.7818,
+          "ema50": 75713.6409
+        },
+        "ETHUSDT": {
+          "ema20": 2108.6681,
+          "ema50": 2178.8702
+        },
+        "SOLUSDT": {
+          "ema20": 85.5417,
+          "ema50": 88.6485
+        },
+        "BNBUSDT": {
+          "ema20": 686.673,
+          "ema50": 694.4218
+        },
+        "XRPUSDT": {
+          "ema20": 1.0903561,
+          "ema50": 1.1476437
+        },
+        "DOGEUSDT": {
+          "ema20": 0.06928202,
+          "ema50": 0.07122281
+        },
+        "ADAUSDT": {
+          "ema20": 0.17764883,
+          "ema50": 0.18235127
+        },
+        "LINKUSDT": {
+          "ema20": 10.5132089,
+          "ema50": 10.7533974
+        },
+        "SUIUSDT": {
+          "ema20": 0.83831992,
+          "ema50": 0.85666825
+        },
+        "ZECUSDT": {
+          "ema20": 1104.8164,
+          "ema50": 1178.6664
+        },
+        "HYPEUSDT": {
+          "ema20": 74.0687437,
+          "ema50": 76.8960309
+        }
+      },
+      "ema_values_1d": {
+        "BTCUSDT": {
+          "ema20": 77759.5316,
+          "ema50": 78931.8213
+        },
+        "ETHUSDT": {
+          "ema20": 2267.9086,
+          "ema50": 2353.2866
+        },
+        "SOLUSDT": {
+          "ema20": 94.1403,
+          "ema50": 99.3509
+        },
+        "BNBUSDT": {
+          "ema20": 708.8386,
+          "ema50": 719.1799
+        },
+        "XRPUSDT": {
+          "ema20": 1.2234776,
+          "ema50": 1.2887494
+        },
+        "DOGEUSDT": {
+          "ema20": 0.07470002,
+          "ema50": 0.07917441
+        },
+        "ADAUSDT": {
+          "ema20": 0.19350723,
+          "ema50": 0.20742075
+        },
+        "LINKUSDT": {
+          "ema20": 11.2056504,
+          "ema50": 11.6694894
+        },
+        "SUIUSDT": {
+          "ema20": 0.89725962,
+          "ema50": 0.9300549
+        },
+        "ZECUSDT": {
+          "ema20": 1221.0015,
+          "ema50": 1206.9899
+        },
+        "HYPEUSDT": {
+          "ema20": 79.9682115,
+          "ema50": 81.0486389
+        }
+      },
+      "rsi14_method": "Wilder smoothing",
+      "rsi14_15m": {
+        "BTCUSDT": 41.6857,
+        "ETHUSDT": 38.2233,
+        "SOLUSDT": 32.7532,
+        "BNBUSDT": 26.8953,
+        "XRPUSDT": 37.329,
+        "DOGEUSDT": 34.35,
+        "ADAUSDT": 34.903,
+        "LINKUSDT": 33.9453,
+        "SUIUSDT": 36.1435,
+        "ZECUSDT": 33.0687,
+        "HYPEUSDT": 39.1206
+      },
+      "rsi14_1h": {
+        "BTCUSDT": 47.3585,
+        "ETHUSDT": 43.6753,
+        "SOLUSDT": 43.3609,
+        "BNBUSDT": 45.245,
+        "XRPUSDT": 42.5162,
+        "DOGEUSDT": 38.0021,
+        "ADAUSDT": 40.331,
+        "LINKUSDT": 35.5357,
+        "SUIUSDT": 40.182,
+        "ZECUSDT": 37.891,
+        "HYPEUSDT": 39.4816
+      },
+      "rsi14_4h": {
+        "BTCUSDT": 45.5846,
+        "ETHUSDT": 38.7363,
+        "SOLUSDT": 41.7938,
+        "BNBUSDT": 48.2604,
+        "XRPUSDT": 34.6654,
+        "DOGEUSDT": 42.0322,
+        "ADAUSDT": 47.6523,
+        "LINKUSDT": 45.708,
+        "SUIUSDT": 47.8673,
+        "ZECUSDT": 25.3719,
+        "HYPEUSDT": 41.2017
+      },
+      "rsi14_1d": {
+        "BTCUSDT": 33.9801,
+        "ETHUSDT": 29.5292,
+        "SOLUSDT": 23.7974,
+        "BNBUSDT": 37.9749,
+        "XRPUSDT": 23.687,
+        "DOGEUSDT": 30.9821,
+        "ADAUSDT": 31.0083,
+        "LINKUSDT": 36.9153,
+        "SUIUSDT": 37.9196,
+        "ZECUSDT": 37.4323,
+        "HYPEUSDT": 34.9189
+      },
+      "relative_volume_15m": {
+        "BTCUSDT": 0.8066,
+        "ETHUSDT": 1.197,
+        "SOLUSDT": 2.1208,
+        "BNBUSDT": 3.96,
+        "XRPUSDT": 0.9212,
+        "DOGEUSDT": 1.3785,
+        "ADAUSDT": 1.1742,
+        "LINKUSDT": 1.0866,
+        "SUIUSDT": 0.9992,
+        "ZECUSDT": 0.9925,
+        "HYPEUSDT": 1.007
+      },
+      "relative_volume_1h": {
+        "BTCUSDT": 0.8502,
+        "ETHUSDT": 1.1866,
+        "SOLUSDT": 1.2457,
+        "BNBUSDT": 1.1892,
+        "XRPUSDT": 0.8724,
+        "DOGEUSDT": 2.1431,
+        "ADAUSDT": 2.3613,
+        "LINKUSDT": 2.6087,
+        "SUIUSDT": 1.4762,
+        "ZECUSDT": 0.8863,
+        "HYPEUSDT": 1.4957
+      },
+      "relative_volume_4h": {
+        "BTCUSDT": 1.0674,
+        "ETHUSDT": 0.8944,
+        "SOLUSDT": 0.7926,
+        "BNBUSDT": 0.8224,
+        "XRPUSDT": 0.846,
+        "DOGEUSDT": 0.7618,
+        "ADAUSDT": 0.9203,
+        "LINKUSDT": 0.916,
+        "SUIUSDT": 1.018,
+        "ZECUSDT": 1.6548,
+        "HYPEUSDT": 1.0331
+      },
+      "local_support_resistance_15m": {
+        "BTCUSDT": {
+          "support": 73444.5,
+          "resistance": 74771.4
+        },
+        "ETHUSDT": {
+          "support": 2034.55,
+          "resistance": 2091.04
+        },
+        "SOLUSDT": {
+          "support": 82.13,
+          "resistance": 85.35
+        },
+        "BNBUSDT": {
+          "support": 677.14,
+          "resistance": 689.28
+        },
+        "XRPUSDT": {
+          "support": 1.0403,
+          "resistance": 1.0692
+        },
+        "DOGEUSDT": {
+          "support": 0.06632,
+          "resistance": 0.06911
+        },
+        "ADAUSDT": {
+          "support": 0.1716,
+          "resistance": 0.1786
+        },
+        "LINKUSDT": {
+          "support": 10.001,
+          "resistance": 10.51
+        },
+        "SUIUSDT": {
+          "support": 0.8089,
+          "resistance": 0.8423
+        },
+        "ZECUSDT": {
+          "support": 951.1,
+          "resistance": 1014.44
+        },
+        "HYPEUSDT": {
+          "support": 70.582,
+          "resistance": 73.856
+        }
+      },
+      "structural_support_resistance_4h": {
+        "BTCUSDT": {
+          "support": 72691,
+          "resistance": 76168.8
+        },
+        "ETHUSDT": {
+          "support": 2003.57,
+          "resistance": 2245.31
+        },
+        "SOLUSDT": {
+          "support": 81.25,
+          "resistance": 89.98
+        },
+        "BNBUSDT": {
+          "support": 670.23,
+          "resistance": 701.41
+        },
+        "XRPUSDT": {
+          "support": 1.0301,
+          "resistance": 1.1693
+        },
+        "DOGEUSDT": {
+          "support": 0.06652,
+          "resistance": 0.07164
+        },
+        "ADAUSDT": {
+          "support": 0.17,
+          "resistance": 0.1833
+        },
+        "LINKUSDT": {
+          "support": 10.088,
+          "resistance": 10.828
+        },
+        "SUIUSDT": {
+          "support": 0.8,
+          "resistance": 0.8694
+        },
+        "ZECUSDT": {
+          "support": 960.56,
+          "resistance": 1293
+        },
+        "HYPEUSDT": {
+          "support": 70.347,
+          "resistance": 78.135
+        }
+      },
+      "taker_buy_sell_ratio_5m_at_2340utc": {
+        "BTCUSDT": 0.97112,
+        "ETHUSDT": 0.74593,
+        "SOLUSDT": 1.09924,
+        "BNBUSDT": 2.72621,
+        "XRPUSDT": 1.25064,
+        "DOGEUSDT": 0.50615,
+        "ADAUSDT": 0.70422,
+        "LINKUSDT": 1.32736,
+        "SUIUSDT": 2.13409,
+        "ZECUSDT": 0.88894,
+        "HYPEUSDT": 0.83812
+      },
+      "global_long_short_ratio_1h_at_23utc": {
+        "BTCUSDT": {
+          "long_share": 0.7184,
+          "short_share": 0.2816,
+          "ratio": 2.5511
+        },
+        "ETHUSDT": {
+          "long_share": 0.7594,
+          "short_share": 0.2406,
+          "ratio": 3.1563
+        },
+        "SOLUSDT": {
+          "long_share": 0.7696,
+          "short_share": 0.2304,
+          "ratio": 3.3403
+        },
+        "BNBUSDT": {
+          "long_share": 0.7231,
+          "short_share": 0.2769,
+          "ratio": 2.6114
+        },
+        "XRPUSDT": {
+          "long_share": 0.75,
+          "short_share": 0.25,
+          "ratio": 3
+        },
+        "DOGEUSDT": {
+          "long_share": 0.7154,
+          "short_share": 0.2846,
+          "ratio": 2.5137
+        },
+        "ADAUSDT": {
+          "long_share": 0.6677,
+          "short_share": 0.3323,
+          "ratio": 2.0093
+        },
+        "LINKUSDT": {
+          "long_share": 0.658,
+          "short_share": 0.342,
+          "ratio": 1.924
+        },
+        "SUIUSDT": {
+          "long_share": 0.6799,
+          "short_share": 0.3201,
+          "ratio": 2.124
+        },
+        "ZECUSDT": {
+          "long_share": 0.4814,
+          "short_share": 0.5186,
+          "ratio": 0.9283
+        },
+        "HYPEUSDT": {
+          "long_share": 0.5991,
+          "short_share": 0.4009,
+          "ratio": 1.4944
+        }
+      }
     }
   ],
   "event_log": [
@@ -29401,7 +30375,7 @@
       "post_completion_min_low": 0.8,
       "latest_mark": 0.8334,
       "post_target_5m_bars_checked": 843,
-      "last_check_evidence": "47 new completed 5m candles from 2026-11-11T03:20:00Z through 07:14:59.999Z. Window high 0.8350, low 0.8157. Original entry zone 0.8590-0.8610 and stop 0.8715 were not touched. Original target 0.8300 retouched after terminal completion in the 04:00-04:04:59.999Z candle (O/H/L/C 0.8309/0.8328/0.8298/0.8319). Latest completed candle 07:10-07:14:59.999Z O/H/L/C 0.8186/0.8193/0.8169/0.8172; latest mark 0.8188. Hypothetical mark-to-entry +3.5431R is not additional realized R. Preserve terminal historical result +2.577586R and triggered_unalerted_delivery_blocked status; do not reopen.",
+      "last_check_evidence": "52 completed 5m bars from 19:25 to 23:44:59.999 UTC. Window high 0.8402, low 0.8089. Entry zone and stop untouched. Target retouched after terminal completion at 22:30 UTC. Latest completed candle 23:40-23:44:59.999 UTC O/H/L/C 0.8204/0.8207/0.8182/0.8206; mark 0.82062276. Mark-to-entry +3.3860R is hypothetical only; historical realized reference remains +2.577586R.",
       "mark_to_entry_reference_R_not_realized": 3.3859689655172245,
       "target_retouched_since_previous_check": true,
       "stop_touched_since_previous_check": false,
