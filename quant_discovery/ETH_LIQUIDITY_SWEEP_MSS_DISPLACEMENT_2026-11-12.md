@@ -32,7 +32,7 @@ Chronological split: 70% train, 15% validation, 15% reserved OOS. Train gate: >=
 
 - Displacement event counts: none 142; 0.5 ATR 132; 0.75 ATR 102; 0.5 ATR + outer-quartile close 95; 0.75 ATR + outer-quartile close 75.
 - **139 training-eligible configurations**, all with no HTF filter; 25 shortlisted; **0 validation passes**. ETH 4h EMA and BTC 4h EMA filters each produced zero training-eligible candidates. No shortlisted candidate had positive validation net R. **OOS was not evaluated.**
-- The best validation-only row was only 4 trades (+2.83R, 75% win rate, PF 3.632); this is far below the 20-trade minimum. Among validation rows with >=20 trades, the best was -3.65R over 20 trades, 40% wins, PF 0.671, max DD -4.90R.
+- The best validation-only row was only 4 trades (+2.83R, 75% win rate, PF 3.632); its matching training result was 13 trades, -1.94R, PF 0.675. It is far below the 20-trade minimum and also failed in training. Among validation rows with >=20 trades, the best was -3.65R over 20 trades, 40% wins, PF 0.671, max DD -4.90R.
 
 ### Top training selection-score candidate
 
