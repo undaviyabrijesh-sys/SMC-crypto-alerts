@@ -160,7 +160,7 @@ jobs:
               "oos_status": (root / "oos_status.txt").read_text().strip() if (root / "oos_status.txt").exists() else "No OOS status file.",
           }
           Path("/tmp/liquidity_fvg_retrace_latest.json").write_text(
-              json.dumps(result, indent=2, sort_keys=True) + "\\n"
+              json.dumps(result, indent=2, sort_keys=True) + "\n"
           )
           print(json.dumps({
               "status": result["status"],
