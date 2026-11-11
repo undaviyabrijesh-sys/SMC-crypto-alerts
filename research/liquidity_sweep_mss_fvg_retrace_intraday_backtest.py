@@ -240,13 +240,13 @@ def simulate(d, events, cfg, start_i, end_i):
                     outcome, exit_price, exit_i = "SL", stop, k
                     break
                 continue
-            # Gap exits first; then stop before target for ambiguous OHLC candles.
+            # Gap exits first; adverse stop gaps fill at open. Fixed targets fill at target\n            # without favourable gap improvement; stop wins ambiguous intrabar candles.
             if side == "long":
                 if op[k] <= stop:
                     outcome, exit_price, exit_i = "SL", float(op[k]), k
                     break
                 if op[k] >= target:
-                    outcome, exit_price, exit_i = "TP", float(op[k]), k
+                    outcome, exit_price, exit_i = "TP", target, k
                     break
                 if lo[k] <= stop:
                     outcome, exit_price, exit_i = "SL", stop, k
@@ -259,7 +259,7 @@ def simulate(d, events, cfg, start_i, end_i):
                     outcome, exit_price, exit_i = "SL", float(op[k]), k
                     break
                 if op[k] <= target:
-                    outcome, exit_price, exit_i = "TP", float(op[k]), k
+                    outcome, exit_price, exit_i = "TP", target, k
                     break
                 if hi[k] >= stop:
                     outcome, exit_price, exit_i = "SL", stop, k
