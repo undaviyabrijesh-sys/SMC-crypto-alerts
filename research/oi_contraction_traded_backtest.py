@@ -37,13 +37,23 @@ def complete_hours(b):
     x["price_1h"]=x.close.pct_change()
     return x
 
-def build(oi,b):
+def build(oi,b,quality_filter=False):
     for idx,step,label in ((oi.index,H1,"OI 1h"),(b.index,M15,"BTC traded 15m")):
         if idx.to_series().diff().dropna().ne(step).any(): raise ValueError(f"{label} gap; no fill")
     h=complete_hours(b)
     o=oi.copy(); o.index=o.index+H1
     f=pd.DataFrame(index=o.index); f["oi_close"]=o.close.astype(float)
-    f["oi_pct"]=f.oi_close.pct_change()
+    # Non-positive OI sentinels are missing observations, never valid zero exposure.
+    oi_levels=f.oi_close.where(f.oi_close>0)
+    raw_oi_pct=oi_levels.pct_change(fill_method=None)
+    f["oi_pct_raw"]=raw_oi_pct
+    f["oi_spike_flag"]=raw_oi_pct.abs()>.20
+    f["oi_pct"]=raw_oi_pct
+    # In the quality sensitivity, remove >20% hourly jumps BEFORE rolling
+    # z-score estimation. This also removes the following return if the
+    # level snaps back, preventing a bad candle from contaminating the baseline.
+    if quality_filter:
+        f["oi_pct"]=f["oi_pct"].mask(f["oi_spike_flag"])
     r=f.oi_pct.rolling(LOOKBACK,min_periods=MIN_PERIODS)
     f["oi_z"]=(f.oi_pct-r.mean().shift(1))/r.std(ddof=0).shift(1).replace(0,np.nan)
     f=f.join(h[["price_1h","close"]],how="inner")
@@ -131,7 +141,7 @@ def metrics(t):
 
 def run(oi_path,price_path,out,quality=False):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
-    oi,b=load(oi_path),load(price_path);f,atr=build(oi,b);a,bb=bounds(f.index)
+    oi,b=load(oi_path),load(price_path);f,atr=build(oi,b,quality_filter=quality);a,bb=bounds(f.index)
     configs=list(itertools.product((1.5,2.5),(90,95),("continuation","reversal"),(1.,1.5),(1.5,2.,3.)))
     matrix=[];trades=[];costs=[];monthly=[];regimes=[]
     for z,q,mode,sm,trg in configs:
@@ -178,14 +188,17 @@ def run(oi_path,price_path,out,quality=False):
       "split":"chronological 70/15/15","configurations":len(configs),
       "training_eligible":int(md.train_gate.sum()),"validation_passes":int(md.validation_gate.sum()),
       "event_counts_after_8h_cooldown":events_count,"quality_filter_enabled":quality,
-      "quality_filter_definition":"exclude abs OI pct >20% or abs 1h traded-price return >5%; post-inspection sensitivity only",
+      "quality_filter_definition":"mask non-positive OI levels as missing and mask >20% OI close-to-close jumps BEFORE rolling z-score estimation; also exclude candidate events with abs 1h traded-price return >5%; post-inspection sensitivity only",
+      "oi_nonpositive_levels":int((oi.close<=0).sum()),
+      "oi_gt20pct_changes":int((oi.close.where(oi.close>0).pct_change(fill_method=None).abs()>.20).sum()),
       "signal":"1h OI pct change <0 and z-score <= -1.5/-2.5 against prior 168h; abs traded-price 1h close return >= prior 168h q90/q95",
       "execution":"next 15m open after OI close; ATR14 Wilder from prior completed 15m bar; 1.0/1.5 ATR stop; 1.5/2/3R target; 8h max hold; 8h event cooldown; one position/config",
       "costs":"12bp primary; 6/12/20bp sensitivity for train-eligible candidates; OOS only after validation pass; funding excluded",
       "fills":"same-bar SL first; adverse stop gap at worse open; target gap at target; time exit at final 15m close",
       "selection_gates":"train >=40 trades, validation >=20 trades; PF>1 and net R>0 in both; OOS only after both gates",
       "notes":["OI units/sampling semantics are unverified; raw data contain extreme hourly changes.",
-        "Primary run uses raw observations; quality-filter mode is a post-inspection sensitivity.",
+        "Non-positive OI levels are treated as missing in both modes; quality sensitivity masks >20% OI changes before z-score calculation so outliers cannot contaminate the rolling baseline.",
+        "Primary mode retains positive >20% OI changes; quality-filter mode is a post-inspection sensitivity.",
         "No separate spread model; flat round-trip cost sensitivity only."]}
     (out/"metadata.json").write_text(json.dumps(meta,indent=2)+"\n")
     print(json.dumps(meta,indent=2));print(md[md.train_gate].to_string(index=False))
@@ -197,7 +210,26 @@ def self_test():
     assert exit_fill(1,115,120,112,90,110)==(110,"TP")
     assert exit_fill(-1,115,120,112,110,90)==(115,"SL")
     assert exit_fill(-1,85,88,80,110,90)==(90,"TP")
-    print("6 execution-order self-tests passed")
+    # A large OI level jump and snap-back must be absent from the quality
+    # z-score input, rather than being filtered only after the z-score exists.
+    oi_idx=pd.date_range("2024-01-01",periods=220,freq="1h")
+    levels=1000.0+np.arange(220,dtype=float)
+    levels[180]*=1.5
+    levels[190]=0.0
+    oi_test=pd.DataFrame({"open":levels,"high":levels,"low":levels,"close":levels},index=oi_idx)
+    px_idx=pd.date_range(oi_idx[0],periods=220*4,freq="15min")
+    px_close=50000.0+np.arange(len(px_idx),dtype=float)
+    px_test=pd.DataFrame({"open":px_close,"high":px_close+5,"low":px_close-5,
+        "close":px_close,"volume":1.0},index=px_idx)
+    raw_features,_=build(oi_test,px_test,quality_filter=False)
+    clean_features,_=build(oi_test,px_test,quality_filter=True)
+    spike_time=oi_idx[180]+H1
+    assert spike_time in raw_features.index
+    assert spike_time not in clean_features.index
+    assert spike_time+H1 not in clean_features.index
+    zero_time=oi_idx[190]+H1
+    assert zero_time not in raw_features.index and zero_time+H1 not in raw_features.index
+    print("7 execution/data-quality self-tests passed")
 
 def main():
     p=argparse.ArgumentParser()
