@@ -102,9 +102,9 @@ jobs:
           --retries 6
       - name: Run preregistered BTC ETH pair matrix
         run: |
-          python research/btc_eth_pairs_mean_reversion_backtest.py \\
-            --btc-csv historical_data/BTC_15m.csv \\
-            --eth-csv historical_data/ETH_15m.csv \\
+          python research/btc_eth_pairs_mean_reversion_backtest.py \
+            --btc-csv historical_data/BTC_15m.csv \
+            --eth-csv historical_data/ETH_15m.csv \
             --output-dir results/btc-eth-pairs
       - name: Add verified pair research summary
         if: always()
@@ -133,10 +133,10 @@ jobs:
                                     "train_profit_factor","train_net_R","train_compounded_net_return_pct",
                                     "validation_trades","validation_profit_factor","validation_net_R",
                                     "validation_compounded_net_return_pct","train_gate","validation_gate") if c in d]
-                  print("\\n## Training-eligible candidates")
+                  print("\n## Training-eligible candidates")
                   a=d[d.train_gate].sort_values(["train_profit_factor","train_net_R"],ascending=False)
                   print(a[cols].head(10).to_string(index=False) if len(a) else "None")
-                  print("\\n## Validation passes")
+                  print("\n## Validation passes")
                   b=d[d.validation_gate]
                   print(b[cols].to_string(index=False) if len(b) else "None")
               for name,title in (("diagnostic_monthly.csv","Monthly diagnostics"),
