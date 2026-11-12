@@ -130,18 +130,14 @@ def confirmed_external_levels(m15,h1,strength):
     seg=h1.segment.to_numpy(); out=[]
     for p in range(strength,len(h1)-strength):
         if not np.all(seg[p-strength:p+strength+1]==seg[p]): continue
+        confirmed_at=h1.index[p+strength]
+        # Strictly right: the 15m candle ending at confirmed_at is not usable.
+        available_i=int(m15.index.searchsorted(confirmed_at,side="right"))
+        if available_i>=len(m15): continue
         if hi[p]>np.max(hi[p-strength:p]) and hi[p]>=np.max(hi[p+1:p+strength+1]):
-            side="high"; level=float(hi[p])
-        elif lo[p]<np.min(lo[p-strength:p]) and lo[p]<=np.min(lo[p+1:p+strength+1]):
-            side="low"; level=float(lo[p])
-        else:
-            side=None
-        if side:
-            confirmed_at=h1.index[p+strength]
-            # Strictly right: the 15m candle ending at confirmed_at is not usable.
-            available_i=int(m15.index.searchsorted(confirmed_at,side="right"))
-            if available_i<len(m15):
-                out.append((available_i,side,level,h1.index[p]))
+            out.append((available_i,"high",float(hi[p]),h1.index[p]))
+        if lo[p]<np.min(lo[p-strength:p]) and lo[p]<=np.min(lo[p+1:p+strength+1]):
+            out.append((available_i,"low",float(lo[p]),h1.index[p]))
     return sorted(out,key=lambda x:(x[0],x[1]))
 
 def confirmed_local_swings(m15,strength):
