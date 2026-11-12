@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: oi-contraction-btc-${{ github.ref }}
+  group: oi-contraction-btc-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
