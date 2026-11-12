@@ -400,7 +400,7 @@ def self_test() -> None:
     parsed = parse_candles(rows, "BTCUSD", "5m")
     assert latest_completed(parsed, 300, 1200)["time"] == 900
     assert latest_completed(parsed, 300, 1199)["time"] == 600
-    ticker = {"oi": "11.1", "oi_value": "0.0111", "oi_value_usd": "700"}
+    ticker = {"oi": "11.1", "oi_value": "10.9", "oi_value_usd": "700"}
     comparison = value_comparison(11.1, ticker)
     assert comparison["oi_contract_count"]["within_5pct"]
     assert comparison["oi_value_base"]["within_5pct"]
