@@ -1,0 +1,104 @@
+name: BTC ETH rolling residual pair mean reversion
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/btc_eth_pairs_mean_reversion_backtest.py"
+      - ".github/workflows/btc-eth-pairs-mean-reversion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btc-eth-pairs-mean-reversion-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pair-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic pair tests
+        run: |
+          python -m py_compile research/btc_eth_pairs_mean_reversion_backtest.py
+          python research/btc_eth_pairs_mean_reversion_backtest.py --self-test
+      - name: Download two years of BTC and ETH traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC ETH
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC ETH pair matrix
+        run: |
+          python research/btc_eth_pairs_mean_reversion_backtest.py \
+            --btc-csv historical_data/BTC_15m.csv \
+            --eth-csv historical_data/ETH_15m.csv \
+            --output-dir results/btc-eth-pairs
+      - name: Add verified research summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          import pandas as pd
+          p=Path("results/btc-eth-pairs")
+          print("# BTC/ETH rolling residual pair mean-reversion study")
+          m=p/"metadata.json"
+          if not m.exists():
+              print("No metadata produced; inspect the failed step logs.")
+          else:
+              x=json.loads(m.read_text())
+              for k in ("btc_rows","eth_rows","aligned_rows","start_utc","end_utc",
+                        "btc_gap_count","eth_gap_count","aligned_gap_count",
+                        "configurations","training_eligible","validation_passes","oos_evaluated"):
+                  print(f"- {k}: {x.get(k)}")
+              print(f"- selected config: {x.get('selected_config')}")
+              q=p/"matrix.csv"
+              if q.exists():
+                  d=pd.read_csv(q)
+                  cols=[c for c in ("beta_lookback","z_lookback","entry_z","stop_z","target_z",
+                                    "max_hold","direction","corr_min","train_trades",
+                                    "train_profit_factor","train_net_R","train_compounded_net_return_pct",
+                                    "validation_trades","validation_profit_factor","validation_net_R",
+                                    "validation_compounded_net_return_pct","train_gate","validation_gate") if c in d]
+                  print("\n## Training-eligible candidates")
+                  a=d[d.train_gate].sort_values(["train_profit_factor","train_net_R"],ascending=False)
+                  print(a[cols].head(10).to_string(index=False) if len(a) else "None")
+                  print("\n## Validation passes")
+                  b=d[d.validation_gate]
+                  print(b[cols].to_string(index=False) if len(b) else "None")
+              for name,title in (("diagnostic_monthly.csv","Monthly diagnostics"),
+                                 ("diagnostic_regimes.csv","Regime diagnostics"),
+                                 ("cost_sensitivity.csv","Cost sensitivity")):
+                  q=p/name
+                  if q.exists():
+                      print(f"\n## {title}")
+                      d=pd.read_csv(q)
+                      print(d.head(80).to_string(index=False))
+          PY
+      - name: Retain raw inputs and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-eth-pairs-mean-reversion-${{ github.run_id }}
+          path: |
+            historical_data/BTC_15m.csv
+            historical_data/ETH_15m.csv
+            historical_data/manifest.json
+            historical_data/coverage.csv
+            results/btc-eth-pairs/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
