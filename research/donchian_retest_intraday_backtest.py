@@ -193,7 +193,7 @@ def simulate(d, sigs, cfg, sample, start, end, cost):
             if why: exitp,outcome,exiti=float(fp),why,j; break
         gross=direction*(exitp-entry)/risk
         cost_r=(cost/10000)*entry/risk
-        rows.append({"sample":sample,"breakout_time":idx[bi],"signal_time":idx[si],"entry_time":idx[ei],
+        rows.append({"config_id":"|".join(str(cfg[k]) for k in ("channel","buffer","tolerance","window","confirm","stop","target","filter","direction","session","volume_filter")),"sample":sample,"breakout_time":idx[bi],"signal_time":idx[si],"entry_time":idx[ei],
             "exit_time":idx[exiti],"side":side,"channel":cfg["channel"],"buffer":cfg["buffer"],
             "tolerance":cfg["tolerance"],"window":cfg["window"],"confirm":cfg["confirm"],
             "stop":cfg["stop"],"target":cfg["target"],"filter":cfg["filter"],"direction":cfg["direction"],
@@ -260,8 +260,8 @@ def run(csv, out):
     pd.DataFrame(cost_rows).to_csv(out/"cost_sensitivity.csv",index=False)
     if trade_frames:
         trades=pd.concat(trade_frames,ignore_index=True); trades.to_csv(out/"selected_trades_12bp.csv",index=False)
-        trades.assign(month=trades.exit_time.dt.strftime("%Y-%m")).groupby(["sample","month"]).net_R.agg(["count","sum","mean"]).reset_index().to_csv(out/"monthly.csv",index=False)
-        trades.groupby(["sample","regime"]).net_R.agg(["count","sum","mean"]).reset_index().to_csv(out/"regimes.csv",index=False)
+        trades.assign(month=trades.exit_time.dt.strftime("%Y-%m")).groupby(["config_id","sample","month"]).net_R.agg(["count","sum","mean"]).reset_index().to_csv(out/"monthly.csv",index=False)
+        trades.groupby(["config_id","sample","regime"]).net_R.agg(["count","sum","mean"]).reset_index().to_csv(out/"regimes.csv",index=False)
     else:
         pd.DataFrame().to_csv(out/"selected_trades_12bp.csv",index=False)
         pd.DataFrame().to_csv(out/"monthly.csv",index=False); pd.DataFrame().to_csv(out/"regimes.csv",index=False)
