@@ -268,7 +268,7 @@ def run(csv, out):
     meta={"classification":"experimental price-only backtest","symbol":"BTCUSD","timeframe":"15m",
         "rows":len(d),"start_utc":d.index.min().isoformat(),"end_utc":d.index.max().isoformat(),
         "gaps":int((d.index.to_series().diff().dropna()!=BAR).sum()),"zero_volume_bars":int((d.volume==0).sum()),
-        "sha256":sha(csv),"train_end_utc":d.index[tr_end-1].isoformat(),"validation_end_utc":d.index[va_end-1].isoformat(),
+        "sha256":sha256(csv),"train_end_utc":d.index[tr_end-1].isoformat(),"validation_end_utc":d.index[va_end-1].isoformat(),
         "configurations":len(configs),"train_eligible":int(m.train_gate.sum()),"shortlisted":len(short),
         "validation_passes":len(passes),"oos_evaluated":selected is not None,
         "costs":"6/12/20bp assumed round-trip; 12bp primary; no funding or separate spread/slippage model",
