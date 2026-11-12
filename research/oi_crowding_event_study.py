@@ -113,6 +113,7 @@ def metrics(x: pd.DataFrame, asset: str, split: str, spec: str) -> dict:
 
 
 def run(data_dir: Path, out_dir: Path) -> dict:
+    out_dir.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((data_dir / "manifest.json").read_text())
     summaries, sensitivity, monthly, main_events, meta = [], [], [], [], {}
     for asset in ("BTC", "ETH"):
