@@ -720,3 +720,15 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Local verification before dispatch: py_compile passed; six deterministic tests passed for close-availability timestamps, future perturbation invariance, event cooldown, 4h split-boundary safety, no forward outcome across a missing 5m interval, and complete 5m-to-1h OHLC aggregation. A separate 20,000-row synthetic integration run also exercised event selection and matched-control pairing (33 events, 33 matched pairs); synthetic figures are test fixtures, not market results.
 - Dedicated two-year workflow has not yet completed at ledger entry time. Do not report market event counts, data coverage, cross-venue correlation or forward-return findings until its job summary, published JSON and artifact are inspected. No strategy is promoted from this event study.
 - Research-only branch; no production/live strategy changes, orders, execution alerts or main modifications.
+
+
+## BTC intraday — OI contraction trade-backtest data-quality correction (2026-11-12)
+
+- User instruction: prioritize finding a repeatable intraday trading edge; this experiment converts the earlier OI-contraction observation into an explicitly rule-based BTC trade backtest.
+- Code audit found that the prior quality-filter branch removed >20% hourly OI jumps only after computing the rolling OI z-score. Such observations could therefore contaminate the rolling baseline even when the event itself was filtered out.
+- Correction: non-positive OI levels are now treated as missing in both primary and sensitivity modes. In quality-filter mode, >20% hourly OI close-to-close changes are masked BEFORE rolling z-score estimation; the resulting return to a prior level is also naturally missing. No interpolation or forward fill is used. The primary raw mode retains positive >20% changes as an intentionally unfiltered comparator.
+- Added deterministic regression coverage using synthetic hourly OI series with a >20% level jump/snap-back and a zero-OI sentinel; assert those observations are excluded from quality-filter features and zero-level observations are excluded from both modes.
+- Existing strategy rules remain: negative 1H OI change with z-score threshold 1.5/2.5 plus 1H traded-price impulse beyond prior 168h q90/q95; continuation vs reversal; ATR(14) stop 1.0/1.5; target 1.5R/2R/3R; 8h event cooldown and max holding; next 15m open; same-bar SL first, adverse stop gap at worse open, target at target; flat cost sensitivity 6/12/20bp; funding excluded.
+- Split and selection rules: chronological 70/15/15; training >=40 trades and PF>1/net R>0; validation >=20 trades and PF>1/net R>0; OOS only for a candidate passing both gates.
+- Known limitation: OI units/sampling semantics remain under reconciliation; raw and quality-filtered runs are diagnostic experiments, not validated trading strategies. The >20% filter is post-inspection sensitivity, not the primary selection rule.
+- Code commit: `49fb1026afaffc21a50ec7aa3ac370b979bd2caf`; triggered workflow by commit-message prefix `RUN_OI_CONTRACTION_BACKTEST:`. Results pending verified GitHub Actions completion.
