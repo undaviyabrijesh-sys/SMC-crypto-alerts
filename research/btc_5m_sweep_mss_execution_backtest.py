@@ -102,7 +102,7 @@ def complete_resample(d,rule,expected):
 def prepare(raw):
     d=raw.sort_index().copy()
     d["segment"]=d.index.to_series().diff().ne(BAR).cumsum().astype(int)
-    prev=d.close.shift(1)
+    prev=d.groupby("segment").close.shift(1)
     tr=pd.concat([d.high-d.low,(d.high-prev).abs(),(d.low-prev).abs()],axis=1).max(axis=1)
     d["atr5"]=rma_segmented(tr,d.segment,14)
     m15=complete_resample(d,"15min",3)
@@ -117,7 +117,7 @@ def prepare(raw):
         s=h4[col].reindex(d.index,method="ffill")
         last_time=pd.Series(h4.index,index=h4.index).reindex(d.index,method="ffill")
         age=pd.Series(d.index,index=d.index)-last_time
-        s=s.mask(age>H4)
+        s=s.mask(age>=H4)
         d[f"h4_{col}"]=s
     bull=(d.h4_close>d.h4_ema50)&(d.h4_ema50>d.h4_ema200)
     bear=(d.h4_close<d.h4_ema50)&(d.h4_ema50<d.h4_ema200)
@@ -444,13 +444,25 @@ def self_test():
     z=latest_fvg(x,idx[0],idx[3]+BAR,"long")
     assert z is not None and z[0]==100.0 and z[1]==105.0
     assert latest_fvg(x,idx[0],idx[2],"long") is None
+    # ATR true range must reset at a data-gap segment; first bar after a gap
+    # uses its own high-low, not the previous segment's close.
+    gi=pd.date_range("2026-01-02 00:00",periods=4,freq="5min",tz="UTC").append(
+        pd.date_range("2026-01-02 01:00",periods=4,freq="5min",tz="UTC"))
+    gd=pd.DataFrame({"open":[100,101,102,103,200,201,202,203],
+        "high":[101,102,103,104,201,202,203,204],
+        "low":[99,100,101,102,199,200,201,202],
+        "close":[100,101,102,103,200,201,202,203]},index=gi)
+    gs=gi.to_series().diff().ne(BAR).cumsum().astype(int)
+    gp=gd.groupby(gs).close.shift(1)
+    gtr=pd.concat([gd.high-gd.low,(gd.high-gp).abs(),(gd.low-gp).abs()],axis=1).max(axis=1)
+    assert gtr.iloc[4]==2.0
     # Conservative same-bar ordering and adverse stop gaps.
     assert fill_exit("long",100,120,80,90,110)==(90,"SL")
     assert fill_exit("short",100,120,80,110,90)==(110,"SL")
     assert fill_exit("long",85,95,80,90,110)==(85,"SL")
     assert fill_exit("short",115,120,112,110,90)==(115,"SL")
     assert fill_exit("long",115,120,112,90,110)==(110,"TP")
-    print("7 causality/FVG/execution self-tests passed")
+    print("8 causality/FVG/gap-reset/execution self-tests passed")
 
 def main():
     p=argparse.ArgumentParser()
