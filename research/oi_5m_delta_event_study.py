@@ -73,13 +73,31 @@ def request_json(session: requests.Session, url: str, params: dict,
     raise StudyError(f"HTTP retries exhausted: {last_error}")
 
 
+def classify_candle_quality(api_symbol: str, vals: dict[str, float],
+                            volume: float, ts: int) -> str | None:
+    """Validate OHLCV; quarantine zero-valued OI sentinels instead of treating them as data."""
+    if not all(math.isfinite(v) for v in (*vals.values(), volume)) or volume < 0:
+        raise StudyError(f"Non-finite/negative-volume Delta candle: {api_symbol} at {ts}")
+    if vals["high"] < max(vals["open"], vals["close"], vals["low"]):
+        raise StudyError(f"Invalid high bound: {api_symbol} at {ts}")
+    if vals["low"] > min(vals["open"], vals["close"], vals["high"]):
+        raise StudyError(f"Invalid low bound: {api_symbol} at {ts}")
+    if min(vals.values()) < 0:
+        raise StudyError(f"Negative OHLC: {api_symbol} at {ts}")
+    if api_symbol.startswith("OI:") and min(vals.values()) <= 0:
+        return "non_positive_oi_sentinel"
+    if min(vals.values()) <= 0:
+        raise StudyError(f"Non-positive traded-price OHLC: {api_symbol} at {ts}")
+    return None
+
+
 def fetch_delta_series(session: requests.Session, api_symbol: str, resolution: str,
                        step: int, start_epoch: int, end_epoch: int,
                        output_path: Path, request_delay: float = 0.12) -> dict:
-    """Download inclusive Delta chunks and retain only fully closed candles."""
+    """Download closed candles; quarantine non-positive OI sentinels as explicit gaps."""
     if end_epoch <= start_epoch:
         raise ValueError("end must be later than start")
-    rows, response_hash, requests_count = [], hashlib.sha256(), 0
+    rows, rejected_oi_rows, response_hash, requests_count = [], [], hashlib.sha256(), 0
     cursor, span = int(start_epoch), step * DELTA_MAX_CANDLES - 1
     while cursor < end_epoch:
         chunk_end = min(end_epoch - 1, cursor + span)
@@ -100,14 +118,11 @@ def fetch_delta_series(session: requests.Session, api_symbol: str, resolution: s
                 volume = float(item.get("volume", 0.0) or 0.0)
             except (KeyError, TypeError, ValueError, OverflowError) as exc:
                 raise StudyError(f"Malformed Delta candle: {api_symbol} {resolution}") from exc
-            if not all(math.isfinite(v) for v in (*vals.values(), volume)) or volume < 0:
-                raise StudyError(f"Non-finite Delta candle: {api_symbol} {resolution}")
-            if vals["high"] < max(vals["open"], vals["close"], vals["low"]):
-                raise StudyError(f"Invalid high bound: {api_symbol} at {ts}")
-            if vals["low"] > min(vals["open"], vals["close"], vals["high"]):
-                raise StudyError(f"Invalid low bound: {api_symbol} at {ts}")
-            if min(vals.values()) < 0 or (api_symbol.startswith("OI:") and min(vals.values()) <= 0):
-                raise StudyError(f"Invalid non-positive OHLC: {api_symbol} at {ts}")
+            quality_flag = classify_candle_quality(api_symbol, vals, volume, ts)
+            if quality_flag:
+                rejected_oi_rows.append({"timestamp": ts, **vals, "volume": volume,
+                                         "quality_flag": quality_flag})
+                continue
             rows.append({"timestamp": ts, **vals, "volume": volume})
         cursor = chunk_end + 1
         if request_delay:
@@ -125,6 +140,14 @@ def fetch_delta_series(session: requests.Session, api_symbol: str, resolution: s
         raise StudyError(f"No fully closed Delta rows: {api_symbol} {resolution}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(output_path, index=False, float_format="%.12g")
+    quarantine_path = None
+    if rejected_oi_rows:
+        quarantine_path = output_path.with_name(
+            f"{output_path.stem}_quarantined_nonpositive_oi.csv")
+        rejected = pd.DataFrame(rejected_oi_rows)
+        rejected["timestamp"] = pd.to_datetime(rejected.timestamp, unit="s", utc=True)
+        rejected = rejected.drop_duplicates("timestamp", keep="last").sort_values("timestamp")
+        rejected.to_csv(quarantine_path, index=False, float_format="%.12g")
     idx = pd.DatetimeIndex(frame.timestamp)
     delta = idx.to_series().diff().dropna().dt.total_seconds()
     return {
@@ -137,6 +160,12 @@ def fetch_delta_series(session: requests.Session, api_symbol: str, resolution: s
         "largest_gap_seconds": int(delta.max()) if len(delta) else 0,
         "csv_sha256": sha256_file(output_path),
         "response_bytes_sha256": response_hash.hexdigest(),
+        "quarantined_nonpositive_oi_rows": int(len(rejected_oi_rows)),
+        "quarantine_csv_path": str(quarantine_path) if quarantine_path else None,
+        "quarantine_csv_sha256": sha256_file(quarantine_path) if quarantine_path else None,
+        "quarantined_timestamp_examples_utc": [
+            pd.to_datetime(x["timestamp"], unit="s", utc=True).isoformat()
+            for x in rejected_oi_rows[:20]],
         "request_count": requests_count, "csv_path": str(output_path)}
 
 
@@ -536,7 +565,8 @@ def run(args) -> dict:
         "## Data quality"]
     for asset, q in quality.items():
         agg = q["five_to_one_hour_aggregation"]
-        md.append(f"- **{asset}:** OI5m {q['oi_5m_rows']:,}; traded price5m {q['price_5m_rows']:,}; OI1h {q['oi_1h_rows']:,}; 5m/1h OI match {agg['matches_within_0_1pct']}/{agg['common_hours']} common hours ({agg['match_fraction_pct']}%); gaps OI5m {q['oi_5m_gaps']}, price5m {q['price_5m_gaps']}, OI1h {q['oi_1h_gaps']}.")
+        oi_meta = data_meta[f"{asset}_oi_5m"]
+        md.append(f"- **{asset}:** OI5m {q['oi_5m_rows']:,}; traded price5m {q['price_5m_rows']:,}; OI1h {q['oi_1h_rows']:,}; quarantined non-positive OI5m rows {oi_meta['quarantined_nonpositive_oi_rows']}; 5m/1h OI match {agg['matches_within_0_1pct']}/{agg['common_hours']} common hours ({agg['match_fraction_pct']}%); gaps OI5m {q['oi_5m_gaps']}, price5m {q['price_5m_gaps']}, OI1h {q['oi_1h_gaps']}.")
     md += ["", "## Event summaries"]
     for row in summaries:
         if row["threshold_pct"] in (2.0, 5.0) and row["cooldown_minutes"] == 60:
@@ -582,7 +612,23 @@ def self_test() -> None:
     assert len(agg) == 1 and agg.iloc[0].open == sample.open.iloc[0]
     assert agg.iloc[0].high == sample.high.max() and agg.iloc[0].low == sample.low.min()
     assert agg.iloc[0].close == sample.close.iloc[-1]
-    print("6 OI 5m causality, cooldown, gap and aggregation tests passed")
+    # Zero OI candles are quarantined as missing data; zero traded prices remain fatal.
+    assert classify_candle_quality("OI:BTCUSD", {"open": 0.0, "high": 0.0,
+        "low": 0.0, "close": 0.0}, 0.0, int(t0.timestamp())) == "non_positive_oi_sentinel"
+    assert classify_candle_quality("OI:BTCUSD", {"open": 100.0, "high": 101.0,
+        "low": 99.0, "close": 100.5}, 0.0, int(t0.timestamp())) is None
+    price_rejected = False
+    try:
+        classify_candle_quality("BTCUSD", {"open": 0.0, "high": 0.0,
+            "low": 0.0, "close": 0.0}, 0.0, int(t0.timestamp()))
+    except StudyError:
+        price_rejected = True
+    assert price_rejected
+    # Quarantined OI gaps split segments and prevent forward outcomes crossing the gap.
+    og = build_features(oi.drop(idx[350]), px)
+    assert og.loc[idx[349] + pd.Timedelta(minutes=5), "segment"] != og.loc[idx[351] + pd.Timedelta(minutes=5), "segment"]
+    assert pd.isna(og.loc[idx[349] + pd.Timedelta(minutes=5), "fwd_price_1h_pct"])
+    print("8 OI 5m causality, cooldown, gap, quarantine and aggregation tests passed")
 
 
 def build_parser():
