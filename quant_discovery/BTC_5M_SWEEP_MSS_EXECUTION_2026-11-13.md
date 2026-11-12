@@ -120,9 +120,11 @@ Neither retest mode produced enough stable trades to pass.
 
 The candidate is cost-sensitive and does not survive the 12bp primary assumption.
 
-## Additional audit finding
+## Timestamp-convention audit
 
-The older `research/liquidity_sweep_mss_intraday_backtest.py` maps a confirmed 1h pivot to right-labelled 15m candles using `searchsorted(side="left")`. This can make the 15m candle ending at the same timestamp as the 1h pivot confirmation eligible to use that pivot. The new 5m study uses strict-right mapping. Previously reported 15m liquidity-sweep and displacement results should be treated as requiring a causal re-run before being used as reliable baselines.
+The older `research/liquidity_sweep_mss_intraday_backtest.py` keeps its source 15m candles on their original **open timestamps**, while its derived 1h candles are right-labelled at their close. Therefore `searchsorted(side="left")` maps a 1h pivot-confirmation close to the 15m candle that **opens** at that timestamp—the first 15m candle after the 1h confirmation. That mapping is causal; no lookahead defect is established in the older engine by this code.
+
+The new study instead derives 15m candles with right-labelled close timestamps, so it correctly uses `searchsorted(side="right")` to skip the 15m candle that ends at the 1h confirmation timestamp. These are different timestamp conventions with consistent availability rules, not a defect in the older engine. Earlier 15m results do not need to be re-run for this specific reason.
 
 ## Next research step
 
