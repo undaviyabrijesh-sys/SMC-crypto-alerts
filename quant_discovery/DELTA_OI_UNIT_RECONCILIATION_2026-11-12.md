@@ -63,3 +63,23 @@ Build a bounded 5m base-OI event dataset for BTCUSD and ETHUSD around large Delt
 - Artifact: [13926042971](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43180579326/artifacts/13926042971)
 
 The run's 14 deterministic OI semantics tests, repository-wide compilation, live Delta audit, and existing CI test suite all passed. No live orders, execution alerts, or production strategy changes.
+
+
+## Repeat snapshot and 1h OI event study
+
+A second live audit at 2026-11-12 08:11:58 UTC reproduced the same field mapping. Ticker ages were 1.6s (BTC) and 1.0s (ETH); 5m/1h candle closes remained within 0.29%–0.88% of base OI, and 12/12 recent hourly closes again matched the final 5m close. The product conversion ratios remained 0.001 BTC and 0.01 ETH, confirming the same live field discrepancy in a second snapshot.
+
+A separate descriptive event study used 17,531 hourly Delta BTC OI candles and 70,079 BTC 15m traded-price candles. Events were absolute OI close changes of at least 10%, separated by an 8-hour cooldown, with chronological 70/15/15 splits.
+
+| Event | Split | Events | Mean 8h BTC return | Median 8h return | Positive |
+|---|---|---:|---:|---:|---:|
+| OI contraction | Train | 462 | +0.081% | +0.118% | 54.3% |
+| OI contraction | Validation | 71 | +0.226% | +0.168% | 53.5% |
+| OI contraction | OOS | 41 | +0.023% | -0.117% | 43.9% |
+| OI expansion | Train | 411 | -0.038% | +0.034% | 50.9% |
+| OI expansion | Validation | 40 | -0.046% | +0.013% | 50.0% |
+| OI expansion | OOS | 23 | +0.110% | +0.048% | 52.2% |
+
+A price-only matched control used the event-hour direction and training-defined quintiles of absolute price return and price range. At 8h, contraction events exceeded their matched control by +0.058% train and +0.288% validation, but underperformed by -0.095% OOS. Expansion differences were -0.036%, +0.002%, and +0.039% respectively. This does not establish a stable incremental edge.
+
+**Decision:** keep OI contraction/expansion rejected as a trading hypothesis. The next step is a bounded 5m base-OI event dataset with same-time Delta price and Binance controls, not a parameter search or live signal.
