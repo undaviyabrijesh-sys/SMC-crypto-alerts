@@ -645,3 +645,17 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Raw OI hourly pct changes include extremes (BTC min approximately -57.8%, max +114.9%); absolute units/sampling semantics are unverified. Do not infer liquidation events from these jumps without reconciliation. Funding remains excluded pending event-level settlement mapping. Traded-price OHLC is used for signal and fills; mark price is not used.
 - Six deterministic execution-order self-tests passed; script compilation and local raw/filtered matrix execution passed against the exact archived CSVs. A dedicated GitHub Actions workflow now downloads two years of BTCUSD traded 15m and OI data, runs raw primary plus filtered sensitivity, and retains hashes/results as artifacts.
 - Decision: reject the mechanical OI-contraction/price-impulse strategy. Next: reconcile OI series units/sampling against Delta ticker data and an independent source before designing another derivatives-positioning strategy.
+
+
+## Fresh full-data GitHub Actions rerun — successful (2026-11-12 07:42 UTC)
+
+- Workflow run: https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43177146399
+- Reproducible inputs and outputs artifact: https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43177146399/artifacts/13924985913
+- The workflow downloaded fresh two-year inputs, ran the raw primary matrix and post-inspection sensitivity, generated the summary, and successfully uploaded all 14 files. The initial attempt had an artifact-name escaping error; the workflow interpolation was corrected and this rerun passed.
+- Fresh BTC OI 1h: 17,531 rows, 2024-11-11 20:00 UTC to 2026-11-12 06:00 UTC, SHA-256 c4f85f738b55bdc316e4c0745b0093e9f45a3a00658c3baab550836314659609.
+- Fresh BTCUSD traded 15m: 70,127 rows, 2024-11-11 19:45 UTC to 2026-11-12 07:15 UTC, SHA-256 3934aadf4b36704cf26c21de9a887a674716e4d87fc28a4fa992ba526f3ff6ac.
+- Valid feature rows: 17,458; first available 2024-11-14 22:00 UTC; last 2026-11-12 07:00 UTC. Train boundary 2026-04-08 01:54 UTC; validation boundary 2026-07-26 04:27 UTC.
+- Results were unchanged: raw primary 1 training-eligible, 0 validation passes; raw candidate train 128 trades/+3.49R/PF1.047 and validation 36 trades/-3.75R/PF0.823. OOS was not evaluated for the raw primary.
+- The post-inspection filter still yielded 5 training-eligible and 4 validation-pass candidates; all four failed OOS at 12bp, -14.61R to -16.53R with PF 0.338–0.396. No strategy promoted.
+- Deterministic quant CI passed on the same corrected branch commit.
+- Delta's official ticker schema distinguishes oi (number of outstanding contracts), oi_value (base-currency value), and oi_value_usd. The historical OI:BTCUSD candle series has not yet been mapped to one of these ticker measures. Next step is a timestamp-aligned live ticker vs last-closed historical OI candle reconciliation, not more parameter tuning.
