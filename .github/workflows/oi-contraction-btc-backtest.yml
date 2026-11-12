@@ -1,0 +1,109 @@
+name: BTC OI contraction trade backtest
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oi-contraction-btc-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_OI_CONTRACTION_BACKTEST:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Run deterministic execution tests
+        run: |
+          python -m compileall -q research/oi_contraction_traded_backtest.py
+          python research/oi_contraction_traded_backtest.py --self-test
+      - name: Download two years of BTCUSD traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Download two years of BTC OI candles
+        run: >-
+          python bootstrap_derivatives_history.py
+          --years 2
+          --symbols BTC
+          --series open_interest
+          --output-dir derivatives_history
+          --request-delay 0.25
+          --retries 6
+      - name: Run raw-data primary matrix
+        run: |
+          python research/oi_contraction_traded_backtest.py \
+            --oi-csv derivatives_history/BTC_open_interest_1h.csv \
+            --price-15m-csv historical_data/BTC_15m.csv \
+            --output-dir results/oi-contraction-raw
+      - name: Run post-inspection data-quality sensitivity
+        run: |
+          python research/oi_contraction_traded_backtest.py \
+            --oi-csv derivatives_history/BTC_open_interest_1h.csv \
+            --price-15m-csv historical_data/BTC_15m.csv \
+            --output-dir results/oi-contraction-quality-filtered \
+            --quality-filter
+      - name: Add verified results to job summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          import pandas as pd
+          print("# BTC OI contraction trade backtest")
+          for label, root in (
+              ("Raw primary", Path("results/oi-contraction-raw")),
+              ("Quality-filter sensitivity", Path("results/oi-contraction-quality-filtered")),
+          ):
+              p = root / "metadata.json"
+              if not p.exists():
+                  print(f"## {label}: no metadata produced")
+                  continue
+              m = json.loads(p.read_text())
+              matrix = pd.read_csv(root / "matrix.csv")
+              print(f"## {label}")
+              print(f"- Data rows: OI {m['oi_rows']:,}; BTC 15m {m['price_15m_rows']:,}")
+              print(f"- Training eligible: {m['training_eligible']}; validation passes: {m['validation_passes']}")
+              print(f"- Split boundaries: train {m['train_end_utc']}; validation {m['validation_end_utc']}")
+              for _, row in matrix[matrix.train_gate].iterrows():
+                  print(f"- Train candidate z={row.zthr}, q={row.q}, {row['mode']}, stop={row.stop_mult} ATR, target={row.target_r}R: "
+                        f"train {row.train_trades} trades / PF {row.train_profit_factor:.3f} / {row.train_net_r:.2f}R; "
+                        f"validation {row.validation_trades} / PF {row.validation_profit_factor:.3f} / {row.validation_net_r:.2f}R")
+              cost_path = root / "cost_sensitivity.csv"
+              if cost_path.exists() and cost_path.stat().st_size:
+                  cost = pd.read_csv(cost_path)
+                  for _, row in cost[(cost.cost_bps == 12) & (cost.split == "oos")].iterrows():
+                      print(f"- Selected OOS z={row.zthr}, q={row.q}, target={row.target_r}R: "
+                            f"{row.trades} trades, PF {row.profit_factor:.3f}, net {row.net_r:.2f}R, "
+                            f"DD {row.max_drawdown_r:.2f}R, losing streak {row.max_losing_streak}")
+          PY
+      - name: Retain inputs and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-oi-contraction-research-\${{ github.run_id }}
+          path: |
+            results/
+            historical_data/BTC_15m.csv
+            derivatives_history/BTC_open_interest_1h.csv
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
