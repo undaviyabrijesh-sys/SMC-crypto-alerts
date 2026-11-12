@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: oi-contraction-btc-\${{ github.ref }}
+  group: oi-contraction-btc-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -99,7 +99,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-oi-contraction-research-\${{ github.run_id }}
+          name: btc-oi-contraction-research-${{ github.run_id }}
           path: |
             results/
             historical_data/BTC_15m.csv
