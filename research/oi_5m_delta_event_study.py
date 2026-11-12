@@ -233,7 +233,7 @@ def build_features(oi: pd.DataFrame, price: pd.DataFrame) -> pd.DataFrame:
 def select_events(features: pd.DataFrame, threshold_pct: float,
                   cooldown_bars: int) -> pd.DataFrame:
     """Select using only current OI change, segment and event time, never outcomes."""
-    x = features[features.oi_pct.abs() * 100 >= threshold_pct].copy()
+    x = features[(features.oi_pct.abs() * 100 >= threshold_pct) & features.split_safe_4h].copy()
     if x.empty:
         return x
     keep, last_by_segment = [], {}
@@ -261,6 +261,12 @@ def label_splits(features: pd.DataFrame) -> pd.DataFrame:
     out = features.copy()
     out["split"] = np.where(out.index <= a, "train",
         np.where(out.index <= b, "validation", "oos"))
+    split_end = pd.Series(index=out.index, dtype="datetime64[ns, UTC]")
+    split_end.loc[out.split == "train"] = a
+    split_end.loc[out.split == "validation"] = b
+    split_end.loc[out.split == "oos"] = out.index.max()
+    out["split_end"] = split_end
+    out["split_safe_4h"] = (out.index + pd.Timedelta(hours=4)) <= split_end.to_numpy()
     return out
 
 
@@ -302,7 +308,7 @@ def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
     work["price_direction"] = np.select([work.price_ret_5m > 0, work.price_ret_5m < 0],
         ["up", "down"], default="flat")
     work["is_event"] = work.oi_pct.abs() * 100 >= threshold_pct
-    controls, used, pairs = work[~work.is_event], set(), []
+    controls, used, pairs = work[(~work.is_event) & work.split_safe_4h], set(), []
     for t, ev in main_events.sort_index().iterrows():
         if ev.price_direction == "flat" or pd.isna(ev.fwd_price_4h_pct):
             continue
@@ -553,18 +559,21 @@ def self_test() -> None:
         "low": oi_close - 0.2, "close": oi_close, "volume": 0.0}, index=idx)
     px = pd.DataFrame({"open": px_close - 1, "high": px_close + 5,
         "low": px_close - 5, "close": px_close, "volume": 10.0}, index=idx)
-    f1 = build_features(oi, px)
+    f1 = label_splits(build_features(oi, px))
     assert f1.index[0] == idx[0] + pd.Timedelta(minutes=5)
     # Future perturbations must not change historical OI z-scores or events.
     oi2 = oi.copy()
     oi2.iloc[400:, oi2.columns.get_loc("close")] *= 1.2
-    f2 = build_features(oi2, px)
+    f2 = label_splits(build_features(oi2, px))
     pd.testing.assert_series_equal(f1.oi_z.iloc[:400], f2.oi_z.iloc[:400])
     e1, e2 = select_events(f1, 0.01, 12), select_events(f2, 0.01, 12)
     cutoff = idx[400] + pd.Timedelta(minutes=5)
     assert e1.index[e1.index < cutoff].equals(e2.index[e2.index < cutoff])
     for _, g in e1.groupby("segment"):
         assert (g.index.to_series().diff().dropna() >= pd.Timedelta(hours=1)).all()
+    split_features = label_splits(build_features(oi, px))
+    safe = split_features[split_features.split_safe_4h]
+    assert ((safe.index + pd.Timedelta(hours=4)) <= safe.split_end).all()
     # Future returns cannot bridge a missing 5m interval.
     fg = build_features(oi.drop(idx[350]), px.drop(idx[350]))
     assert pd.isna(fg.loc[idx[350], "fwd_price_1h_pct"])
