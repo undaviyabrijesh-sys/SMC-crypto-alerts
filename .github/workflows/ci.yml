@@ -31,6 +31,16 @@ jobs:
         run: python -m compileall -q .
       - name: Run Delta OI semantics reconciliation unit tests
         run: python research/oi_semantics_reconciliation.py --self-test
+      - name: Run live Delta OI ticker and candle reconciliation
+        run: |
+          python research/oi_semantics_reconciliation.py --output-dir "$RUNNER_TEMP/oi-semantics" --symbols BTCUSD,ETHUSD
+          cat "$RUNNER_TEMP/oi-semantics/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload Delta OI semantics reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-oi-semantics-${{ github.run_id }}
+          path: ${{ runner.temp }}/oi-semantics/
+          retention-days: 30
       - name: Run offline visual pipeline tests
         run: python test_visual_pipeline.py
       - name: Run independent visual-first contracts and mocked paper cycle
