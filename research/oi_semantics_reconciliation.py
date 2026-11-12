@@ -48,6 +48,76 @@ def numeric(value: Any, label: str, *, positive: bool = True) -> float:
     return out
 
 
+def normalize_epoch_timestamp(value: Any) -> tuple[float, str]:
+    """Normalize Delta ticker timestamps; current payloads may use microseconds."""
+    raw = numeric(value, "ticker.timestamp")
+    if raw >= 10**14:
+        return raw / 1_000_000.0, "microseconds"
+    if raw >= 10**11:
+        return raw / 1_000.0, "milliseconds"
+    return raw, "seconds"
+
+
+def product_conversion_check(ticker: dict, product: dict) -> dict:
+    """Check whether ticker oi multiplied by contract_value explains oi_value."""
+    try:
+        oi = numeric(ticker.get("oi"), "ticker.oi")
+        oi_value = numeric(ticker.get("oi_value"), "ticker.oi_value")
+        contract_value = numeric(product.get("contract_value"), "product.contract_value")
+    except AuditError:
+        return {"status": "unavailable"}
+    product_unit = product.get("contract_unit_currency")
+    value_unit = ticker.get("oi_value_symbol")
+    units_match = bool(product_unit and value_unit and str(product_unit).upper() == str(value_unit).upper())
+    if not units_match:
+        return {
+            "status": "unit_mismatch_or_unknown",
+            "contract_value": contract_value,
+            "contract_unit_currency": product_unit,
+            "oi_value_symbol": value_unit,
+        }
+    implied_base = oi * contract_value
+    ratio = implied_base / oi_value
+    return {
+        "status": "checked",
+        "contract_value": contract_value,
+        "contract_unit_currency": product_unit,
+        "oi_value_symbol": value_unit,
+        "units_match": True,
+        "implied_base_from_ticker_oi": implied_base,
+        "ticker_oi_value_base": oi_value,
+        "implied_base_to_oi_value_ratio": ratio,
+        "within_5pct": abs(ratio - 1.0) <= MATCH_TOLERANCE_PCT / 100.0,
+        "implied_contract_count_from_oi_value": oi_value / contract_value,
+        "ticker_oi_to_implied_contract_count_ratio": oi / (oi_value / contract_value),
+    }
+
+
+def ticker_value_diagnostics(ticker: dict) -> dict:
+    """Check whether oi duplicates oi_value and whether USD conversion implies mark."""
+    out = {}
+    try:
+        oi = numeric(ticker.get("oi"), "ticker.oi")
+        base = numeric(ticker.get("oi_value"), "ticker.oi_value")
+        ratio = oi / base
+        out["oi_vs_oi_value_relative_difference_pct"] = (ratio - 1.0) * 100.0
+        out["oi_and_oi_value_numerically_identical"] = abs(ratio - 1.0) <= 1e-9
+    except AuditError:
+        out["oi_and_oi_value_numerically_identical"] = None
+    try:
+        base = numeric(ticker.get("oi_value"), "ticker.oi_value")
+        usd = numeric(ticker.get("oi_value_usd"), "ticker.oi_value_usd")
+        mark = numeric(ticker.get("mark_price"), "ticker.mark_price")
+        implied_price = usd / base
+        ratio = implied_price / mark
+        out["oi_usd_conversion_implied_price"] = implied_price
+        out["mark_price"] = mark
+        out["usd_conversion_vs_mark_difference_pct"] = (ratio - 1.0) * 100.0
+    except AuditError:
+        out["oi_usd_conversion_implied_price"] = None
+    return out
+
+
 def get_payload(session: requests.Session, path: str, params: dict | None = None) -> tuple[Any, dict]:
     response = session.get(
         f"{BASE_URL}{path}",
@@ -192,9 +262,32 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
     if ticker_result.get("symbol") not in (None, symbol):
         raise AuditError(f"{symbol}: ticker symbol mismatch")
     ticker_oi = numeric(ticker_result.get("oi"), f"{symbol}.ticker.oi")
-    ticker_ts = numeric(ticker_result.get("timestamp"), f"{symbol}.ticker.timestamp")
-    asof_epoch = time.time()
-    ticker_age = max(0.0, asof_epoch - ticker_ts)
+    ticker_ts_raw = numeric(ticker_result.get("timestamp"), f"{symbol}.ticker.timestamp")
+    ticker_ts, ticker_timestamp_unit = normalize_epoch_timestamp(ticker_ts_raw)
+    server_date = ticker_meta.get("server_date_header_utc")
+    asof_epoch = (
+        datetime.fromisoformat(server_date.replace("Z", "+00:00")).timestamp()
+        if server_date else time.time()
+    )
+    ticker_age = asof_epoch - ticker_ts
+
+    product_result, product_meta = get_payload(session, f"/v2/products/{symbol}")
+    if not isinstance(product_result, dict):
+        raise AuditError(f"{symbol}: product result is not an object")
+    product_info = {
+        "id": product_result.get("id"),
+        "symbol": product_result.get("symbol"),
+        "description": product_result.get("description"),
+        "contract_type": product_result.get("contract_type"),
+        "notional_type": product_result.get("notional_type"),
+        "contract_value": product_result.get("contract_value"),
+        "contract_unit_currency": product_result.get("contract_unit_currency"),
+        "quoting_asset": product_result.get("quoting_asset"),
+        "underlying_asset": product_result.get("underlying_asset"),
+        "settling_asset": product_result.get("settling_asset"),
+    }
+    product_conversion = product_conversion_check(ticker_result, product_result)
+    ticker_diagnostics = ticker_value_diagnostics(ticker_result)
 
     histories = {}
     history_meta = {}
@@ -242,7 +335,7 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
         }
 
     cross = cross_resolution_check(histories["1h"], histories["5m"], asof_epoch)
-    fresh = ticker_age <= MAX_TICKER_AGE_SECONDS
+    fresh = -30.0 <= ticker_age <= MAX_TICKER_AGE_SECONDS
     field_names = ("oi_contract_count", "oi_value_base", "oi_value_usd")
     matches = {}
     for field in field_names:
@@ -262,7 +355,11 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
         field for field, by_tf in matches.items()
         if fresh and (by_tf["5m"] or by_tf["1h"])
     ]
-    if strong:
+    fields_identical = ticker_diagnostics.get("oi_and_oi_value_numerically_identical") is True
+    if strong and fields_identical and "oi_contract_count" in strong and "oi_value_base" in strong:
+        classification = "strong_scale_match_but_oi_field_identity_ambiguous"
+        likely_field = ["oi_contract_count", "oi_value_base"]
+    elif strong:
         classification = "strong_same_scale_match"
         likely_field = strong
     elif provisional:
@@ -275,11 +372,14 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
     return {
         "symbol": symbol,
         "ticker_received_at_utc": datetime.fromtimestamp(asof_epoch, timezone.utc).isoformat(),
+        "ticker_timestamp_raw": ticker_ts_raw,
+        "ticker_timestamp_unit_inferred": ticker_timestamp_unit,
+        "ticker_timestamp_utc": datetime.fromtimestamp(ticker_ts, timezone.utc).isoformat(),
         "ticker_age_seconds": ticker_age,
         "ticker_fresh_within_15m": fresh,
         "ticker": {
             "symbol": ticker_result.get("symbol"),
-            "timestamp": ticker_ts,
+            "timestamp_raw": ticker_ts_raw,
             "oi": ticker_oi,
             "oi_value": ticker_result.get("oi_value"),
             "oi_value_symbol": ticker_result.get("oi_value_symbol"),
@@ -287,6 +387,10 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
             "mark_price": ticker_result.get("mark_price"),
             "close": ticker_result.get("close"),
         },
+        "ticker_value_diagnostics": ticker_diagnostics,
+        "product": product_info,
+        "product_request": product_meta,
+        "product_conversion_check": product_conversion,
         "ticker_request": ticker_meta,
         "history_requests": history_meta,
         "latest_completed_candles": selected,
@@ -295,6 +399,10 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
         "classification": classification,
         "candidate_ticker_field": likely_field,
         "interpretation": (
+            "The OI candles match the ticker OI scale in both resolutions, but ticker oi "
+            "and oi_value are numerically identical in this snapshot. Product contract-value "
+            "conversion must resolve whether oi is a contract count or already base-asset OI."
+            if classification == "strong_scale_match_but_oi_field_identity_ambiguous" else
             "Historical OI close is scale-compatible with the named ticker field(s) "
             "within 5% in the indicated completed resolutions. This is one live "
             "snapshot, not proof of historical units or sampling semantics."
