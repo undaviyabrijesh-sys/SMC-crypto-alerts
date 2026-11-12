@@ -433,6 +433,7 @@ def run(btc_path: Path, eth_path: Path, out: Path):
         "train_end_utc": pair.index[bounds["train"][1]].isoformat(),
         "validation_end_utc": pair.index[bounds["validation"][1]].isoformat(),
         "split": "chronological 70/15/15 by aligned 15m row index",
+        "timestamp_convention": "CSV index is candle-open UTC; z uses that candle's completed close; signal is available at index+15m and both legs enter at the next candle open",
         "configurations": len(configs),
         "training_eligible": int(md.train_gate.sum()),
         "validation_passes": int(md.validation_gate.sum()),
