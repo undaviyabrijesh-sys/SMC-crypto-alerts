@@ -7,7 +7,6 @@ on:
     paths:
       - "research/donchian_retest_intraday_backtest.py"
       - ".github/workflows/donchian-retest-intraday-backtest.yml"
-      - "research/RESEARCH_LEDGER.md"
   workflow_dispatch:
 
 permissions:
