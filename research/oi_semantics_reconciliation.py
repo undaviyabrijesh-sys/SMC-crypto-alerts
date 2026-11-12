@@ -28,6 +28,13 @@ INTERVALS = {"5m": 300, "1h": 3600}
 MATCH_TOLERANCE_PCT = 5.0
 MAX_TICKER_AGE_SECONDS = 900
 
+ANOMALY_WINDOWS = [
+    {"label": "2025-12-21_09UTC", "start": 1766307600, "end": 1766314800},
+    {"label": "2026-08-19_15UTC", "start": 1787151600, "end": 1787158800},
+    {"label": "2026-10-29_14UTC", "start": 1793282400, "end": 1793289600},
+    {"label": "2026-11-08_21UTC", "start": 1794171600, "end": 1794178800},
+]
+
 
 class AuditError(RuntimeError):
     pass
@@ -116,6 +123,67 @@ def ticker_value_diagnostics(ticker: dict) -> dict:
     except AuditError:
         out["oi_usd_conversion_implied_price"] = None
     return out
+
+
+def classify_oi_scale_match(
+    matches: dict, fresh: bool, ticker_diagnostics: dict, product_conversion: dict
+) -> tuple[str, list[str], str]:
+    strong = [
+        field for field, by_tf in matches.items()
+        if fresh and by_tf["5m"] and by_tf["1h"]
+    ]
+    provisional = [
+        field for field, by_tf in matches.items()
+        if fresh and (by_tf["5m"] or by_tf["1h"])
+    ]
+    fields_identical = ticker_diagnostics.get("oi_and_oi_value_numerically_identical") is True
+    conversion_checked = product_conversion.get("status") == "checked"
+    conversion_matches = product_conversion.get("within_5pct") is True
+
+    if (
+        strong and fields_identical and conversion_checked
+        and product_conversion.get("units_match") is True and not conversion_matches
+        and "oi_value_base" in strong
+    ):
+        return (
+            "strong_base_asset_match_ticker_oi_contract_count_semantics_conflict",
+            ["oi_value_base"],
+            "Historical OI candles match base-asset oi_value in both resolutions. "
+            "Ticker oi is numerically identical to oi_value, but multiplying oi by "
+            "the product contract_value does not reproduce oi_value. Do not treat "
+            "ticker oi as a raw contract count despite the generic docs label."
+        )
+    if strong and conversion_matches:
+        return (
+            "strong_contract_count_to_base_value_match",
+            strong,
+            "The product contract_value conversion reconciles ticker contract count "
+            "to base-asset oi_value, and the historical OI candles match in both resolutions."
+        )
+    if strong and fields_identical:
+        return (
+            "strong_scale_match_but_oi_field_identity_ambiguous",
+            strong,
+            "The OI candles match both resolutions, but ticker oi and oi_value are "
+            "numerically identical in this snapshot and product conversion did not resolve them."
+        )
+    if strong:
+        return (
+            "strong_same_scale_match",
+            strong,
+            "Historical OI closes match the named ticker field(s) within 5% in both completed resolutions."
+        )
+    if provisional:
+        return (
+            "provisional_single_resolution_match",
+            provisional,
+            "Only one completed resolution matches the fresh ticker; treat the mapping as provisional."
+        )
+    return (
+        "unresolved_no_fresh_scale_match",
+        [],
+        "No fresh ticker field matches the completed OI candles within tolerance. Quarantine raw OI changes."
+    )
 
 
 def get_payload(session: requests.Session, path: str, params: dict | None = None) -> tuple[Any, dict]:
@@ -255,6 +323,97 @@ def cross_resolution_check(
     }
 
 
+def compare_hourly_to_5m(hourly: list[dict], five_minute: list[dict]) -> dict:
+    five_by_open = {row["time"]: row for row in five_minute}
+    comparisons = []
+    for hour in hourly:
+        hour_end = hour["time"] + 3600
+        bars = [
+            five_by_open[t]
+            for t in range(hour["time"], hour_end, 300)
+            if t in five_by_open
+        ]
+        if len(bars) != 12:
+            comparisons.append({
+                "hour_open_utc": datetime.fromtimestamp(hour["time"], timezone.utc).isoformat(),
+                "five_minute_bars": len(bars),
+                "complete_12_bars": False,
+                "ohlc_match_within_0_1pct": False,
+            })
+            continue
+        aggregate = {
+            "open": bars[0]["open"],
+            "high": max(row["high"] for row in bars),
+            "low": min(row["low"] for row in bars),
+            "close": bars[-1]["close"],
+        }
+        diffs = {
+            key: (aggregate[key] / hour[key] - 1.0) * 100.0
+            for key in ("open", "high", "low", "close")
+        }
+        close_moves = [
+            (bars[i]["close"] / bars[i-1]["close"] - 1.0) * 100.0
+            for i in range(1, len(bars))
+        ]
+        comparisons.append({
+            "hour_open_utc": datetime.fromtimestamp(hour["time"], timezone.utc).isoformat(),
+            "five_minute_bars": len(bars),
+            "complete_12_bars": True,
+            "hourly_ohlc": {key: hour[key] for key in ("open", "high", "low", "close")},
+            "aggregated_5m_ohlc": aggregate,
+            "relative_difference_pct": diffs,
+            "ohlc_match_within_0_1pct": all(abs(value) <= 0.1 for value in diffs.values()),
+            "max_abs_5m_close_change_pct": max((abs(value) for value in close_moves), default=0.0),
+        })
+    complete = [row for row in comparisons if row.get("complete_12_bars")]
+    return {
+        "hourly_candles": len(hourly),
+        "complete_5m_groups": len(complete),
+        "ohlc_matches_within_0_1pct": sum(row.get("ohlc_match_within_0_1pct", False) for row in complete),
+        "comparisons": comparisons,
+    }
+
+
+def fetch_anomaly_windows(session: requests.Session, symbol: str) -> list[dict]:
+    reports = []
+    for window in ANOMALY_WINDOWS:
+        item = {"label": window["label"], "start": window["start"], "end": window["end"]}
+        try:
+            hourly_raw, hourly_meta = get_payload(
+                session,
+                "/v2/history/candles",
+                {
+                    "resolution": "1h",
+                    "symbol": f"OI:{symbol}",
+                    "start": str(window["start"]),
+                    "end": str(window["end"]),
+                },
+            )
+            five_raw, five_meta = get_payload(
+                session,
+                "/v2/history/candles",
+                {
+                    "resolution": "5m",
+                    "symbol": f"OI:{symbol}",
+                    "start": str(window["start"]),
+                    "end": str(window["end"]),
+                },
+            )
+            hourly = parse_candles(hourly_raw, symbol, "1h")
+            five = parse_candles(five_raw, symbol, "5m")
+            item.update({
+                "status": "ok" if hourly and five else "missing_historical_rows",
+                "hourly_request_sha256": hourly_meta["payload_sha256"],
+                "five_minute_request_sha256": five_meta["payload_sha256"],
+                "five_minute_rows": len(five),
+                "aggregation_check": compare_hourly_to_5m(hourly, five),
+            })
+        except Exception as exc:
+            item.update({"status": "error", "error": f"{type(exc).__name__}: {exc}"})
+        reports.append(item)
+    return reports
+
+
 def fetch_symbol(session: requests.Session, symbol: str) -> dict:
     ticker_result, ticker_meta = get_payload(session, f"/v2/tickers/{symbol}")
     if not isinstance(ticker_result, dict):
@@ -347,27 +506,10 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
             )
             for resolution in INTERVALS
         }
-    strong = [
-        field for field, by_tf in matches.items()
-        if fresh and by_tf["5m"] and by_tf["1h"]
-    ]
-    provisional = [
-        field for field, by_tf in matches.items()
-        if fresh and (by_tf["5m"] or by_tf["1h"])
-    ]
-    fields_identical = ticker_diagnostics.get("oi_and_oi_value_numerically_identical") is True
-    if strong and fields_identical and "oi_contract_count" in strong and "oi_value_base" in strong:
-        classification = "strong_scale_match_but_oi_field_identity_ambiguous"
-        likely_field = ["oi_contract_count", "oi_value_base"]
-    elif strong:
-        classification = "strong_same_scale_match"
-        likely_field = strong
-    elif provisional:
-        classification = "provisional_single_resolution_match"
-        likely_field = provisional
-    else:
-        classification = "unresolved_no_fresh_scale_match"
-        likely_field = []
+    classification, likely_field, interpretation = classify_oi_scale_match(
+        matches, fresh, ticker_diagnostics, product_conversion
+    )
+    anomaly_drilldown = fetch_anomaly_windows(session, symbol)
 
     return {
         "symbol": symbol,
@@ -398,18 +540,8 @@ def fetch_symbol(session: requests.Session, symbol: str) -> dict:
         "scale_match_by_field": matches,
         "classification": classification,
         "candidate_ticker_field": likely_field,
-        "interpretation": (
-            "The OI candles match the ticker OI scale in both resolutions, but ticker oi "
-            "and oi_value are numerically identical in this snapshot. Product contract-value "
-            "conversion must resolve whether oi is a contract count or already base-asset OI."
-            if classification == "strong_scale_match_but_oi_field_identity_ambiguous" else
-            "Historical OI close is scale-compatible with the named ticker field(s) "
-            "within 5% in the indicated completed resolutions. This is one live "
-            "snapshot, not proof of historical units or sampling semantics."
-            if likely_field else
-            "The single snapshot does not identify a ticker field within tolerance. "
-            "Do not use raw historical OI percentage jumps as positioning events."
-        ),
+        "anomaly_window_drilldown": anomaly_drilldown,
+        "interpretation": interpretation,
     }
 
 
