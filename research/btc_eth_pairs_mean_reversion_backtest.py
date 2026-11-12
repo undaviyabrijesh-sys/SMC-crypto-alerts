@@ -287,7 +287,9 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
         net_pair_return_pct = gross_pair_return_pct - cost_bps / 100.0
         rows.append({
             "split": split_name, "entry_time": f.index[entry_i],
-            "signal_time": f.index[sig_i], "exit_time": f.index[exit_i],
+            "signal_candle_open_time": f.index[sig_i],
+            "signal_close_time": f.index[sig_i] + BAR,
+            "exit_time": f.index[exit_i],
             "side": "long_spread" if side == 1 else "short_spread",
             "beta": beta, "entry_z": entry_z, "exit_z": exit_z,
             "entry_btc": float(f.btc_open.iloc[entry_i]),
