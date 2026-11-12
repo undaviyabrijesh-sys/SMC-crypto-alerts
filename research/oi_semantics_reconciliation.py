@@ -592,7 +592,7 @@ def write_outputs(output_dir: Path, symbols: list[str]) -> dict:
         "- This is a data-semantics audit, not a strategy result.",
         "",
         "| Contract | Classification | Candidate ticker field | Ticker age | 5m vs base OI | 1h vs base OI | Contract conversion | 1h/5m matched hours |",
-        "|---|---|---|---:|---:|---:|---:|",
+        "|---|---|---|---:|---:|---:|---:|---:|",
     ]
     for item in reports:
         def fmt(res):
@@ -607,6 +607,33 @@ def write_outputs(output_dir: Path, symbols: list[str]) -> dict:
             f"{item['ticker_age_seconds']:.1f}s | {fmt('5m')} | {fmt('1h')} | "
             f"{item['product_conversion_check'].get('within_5pct', 'n/a')} | {cross['matched_hours']} |"
         )
+    lines += ["", "## Product-unit reconciliation", ""]
+    for item in reports:
+        conversion = item["product_conversion_check"]
+        diagnostics = item["ticker_value_diagnostics"]
+        if conversion.get("status") == "checked":
+            lines.append(
+                f"- {item['symbol']}: product contract_value={conversion['contract_value']} "
+                f"{conversion['contract_unit_currency']}; ticker oi × contract_value / "
+                f"oi_value = {conversion['implied_base_to_oi_value_ratio']:.6f}; "
+                f"USD/base implied price vs mark = "
+                f"{diagnostics.get('usd_conversion_vs_mark_difference_pct', float('nan')):+.4f}%."
+            )
+    lines += [
+        "",
+        "## Historical anomaly 5m/1h aggregation checks",
+        "",
+        "| Contract | Window | 5m rows | Complete 1h groups | 1h OHLC matches | Status |",
+        "|---|---|---:|---:|---:|---|",
+    ]
+    for item in reports:
+        for window in item["anomaly_window_drilldown"]:
+            check = window.get("aggregation_check", {})
+            lines.append(
+                f"| {item['symbol']} | {window['label']} | {window.get('five_minute_rows', 0)} | "
+                f"{check.get('complete_5m_groups', 0)} | "
+                f"{check.get('ohlc_matches_within_0_1pct', 0)} | {window['status']} |"
+            )
     if errors:
         lines += ["", "## Errors", ""]
         lines += [f"- {e['symbol']}: {e['error']}" for e in errors]
@@ -667,17 +694,44 @@ def self_test() -> None:
     assert diagnostics["oi_and_oi_value_numerically_identical"]
     assert abs(diagnostics["usd_conversion_vs_mark_difference_pct"]) < 1e-9
 
-    hourly = [{"time": 0, "open": 10, "high": 11, "low": 9, "close": 10.8}]
+    conflict_ticker = {
+        "oi": "1062.105", "oi_value": "1062.105", "oi_value_symbol": "BTC",
+    }
+    conflict_product = {"contract_value": "0.001", "contract_unit_currency": "BTC"}
+    conflict = product_conversion_check(conflict_ticker, conflict_product)
+    assert conflict["status"] == "checked" and not conflict["within_5pct"]
+    same_fields = ticker_value_diagnostics(conflict_ticker)
+    matches = {
+        "oi_contract_count": {"5m": True, "1h": True},
+        "oi_value_base": {"5m": True, "1h": True},
+        "oi_value_usd": {"5m": False, "1h": False},
+    }
+    classification, fields, _ = classify_oi_scale_match(matches, True, same_fields, conflict)
+    assert classification == "strong_base_asset_match_ticker_oi_contract_count_semantics_conflict"
+    assert fields == ["oi_value_base"]
+
+    hourly = [{"time": 0, "open": 100, "high": 113, "low": 99, "close": 112}]
     five = [
-        {"time": 0, "open": 10, "high": 10.5, "low": 9.5, "close": 10.1},
-        {"time": 300, "open": 10.1, "high": 10.5, "low": 10, "close": 10.2},
-        {"time": 3300, "open": 10.2, "high": 10.9, "low": 10.1, "close": 10.8},
+        {"time": i * 300, "open": 100 + i, "high": 102 + i, "low": 99 + i, "close": 101 + i}
+        for i in range(12)
     ]
-    cross = cross_resolution_check(hourly, five, 3600)
-    assert cross["matched_hours"] == 1 and cross["within_1pct"] == 1
+    cross = compare_hourly_to_5m(hourly, five)
+    assert cross["complete_5m_groups"] == 1
+    assert cross["ohlc_matches_within_0_1pct"] == 1
+
+    history_cross = cross_resolution_check(
+        [{"time": 0, "open": 10, "high": 11, "low": 9, "close": 10.8}],
+        [
+            {"time": 0, "open": 10, "high": 10.5, "low": 9.5, "close": 10.1},
+            {"time": 300, "open": 10.1, "high": 10.5, "low": 10, "close": 10.2},
+            {"time": 3300, "open": 10.2, "high": 10.9, "low": 10.1, "close": 10.8},
+        ],
+        3600,
+    )
+    assert history_cross["matched_hours"] == 1 and history_cross["within_1pct"] == 1
     stats = cadence_stats(parsed, 300)
     assert stats["rows"] == 5 and stats["gap_count"] == 0
-    print("10 OI semantics reconciliation self-tests passed")
+    print("14 OI semantics reconciliation self-tests passed")
 
 
 def main() -> None:
