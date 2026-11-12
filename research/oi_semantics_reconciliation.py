@@ -459,21 +459,21 @@ def write_outputs(output_dir: Path, symbols: list[str]) -> dict:
         "- Scope: BTCUSD and ETHUSD; public ticker plus completed 5m/1h OI candles.",
         "- This is a data-semantics audit, not a strategy result.",
         "",
-        "| Contract | Classification | Candidate ticker field | Ticker age | 5m OI close vs ticker oi | 1h OI close vs ticker oi | 1h/5m matched hours |",
+        "| Contract | Classification | Candidate ticker field | Ticker age | 5m vs base OI | 1h vs base OI | Contract conversion | 1h/5m matched hours |",
         "|---|---|---|---:|---:|---:|---:|",
     ]
     for item in reports:
         def fmt(res):
             row = item["latest_completed_candles"].get(res, {})
             comp = row.get("comparison") or {}
-            val = comp.get("oi_contract_count")
+            val = comp.get("oi_value_base")
             return f"{val['relative_difference_pct']:+.3f}%" if val else "n/a"
         candidate = ", ".join(item["candidate_ticker_field"]) or "unresolved"
         cross = item["cross_resolution_1h_vs_5m"]
         lines.append(
             f"| {item['symbol']} | {item['classification']} | {candidate} | "
-            f"{item['ticker_age_seconds']:.0f}s | {fmt('5m')} | {fmt('1h')} | "
-            f"{cross['matched_hours']} |"
+            f"{item['ticker_age_seconds']:.1f}s | {fmt('5m')} | {fmt('1h')} | "
+            f"{item['product_conversion_check'].get('within_5pct', 'n/a')} | {cross['matched_hours']} |"
         )
     if errors:
         lines += ["", "## Errors", ""]
@@ -482,9 +482,9 @@ def write_outputs(output_dir: Path, symbols: list[str]) -> dict:
         "",
         "## Interpretation rules",
         "",
-        "- A strong same-scale match requires a fresh ticker (<=15 minutes) and both the latest completed 5m and 1h OI candle closes within 5% of the same ticker field.",
+        "- A strong scale match requires a fresh ticker (age from the HTTP Date header to the normalized ticker timestamp) and both completed 5m/1h OI closes within 5% of the same ticker field. Timestamp units are inferred as seconds, milliseconds or microseconds.",
         "- A single-resolution match is provisional only.",
-        "- A match does not establish that all historical jumps are genuine; repeated snapshots and independent unit reconciliation are still required.",
+        "- If ticker oi and oi_value are numerically identical, a one-snapshot match cannot distinguish contract count from base-asset value. Use product contract_value × contract count and contract_unit_currency to test the conversion. A match does not establish that all historical jumps are genuine; repeated snapshots and independent unit reconciliation are still required.",
         "- If unresolved, quarantine raw OI percentage-change signals. Do not tune or backtest another OI strategy from the ambiguous series.",
         "",
         "## Official documentation",
@@ -508,11 +508,33 @@ def self_test() -> None:
     parsed = parse_candles(rows, "BTCUSD", "5m")
     assert latest_completed(parsed, 300, 1200)["time"] == 900
     assert latest_completed(parsed, 300, 1199)["time"] == 600
+
+    seconds, unit = normalize_epoch_timestamp(1794470534)
+    assert seconds == 1794470534 and unit == "seconds"
+    milliseconds, unit = normalize_epoch_timestamp(1794470534338)
+    assert abs(milliseconds - 1794470534.338) < 1e-6 and unit == "milliseconds"
+    microseconds, unit = normalize_epoch_timestamp(1794470534338862)
+    assert abs(microseconds - 1794470534.338862) < 1e-6 and unit == "microseconds"
+
     ticker = {"oi": "11.1", "oi_value": "10.9", "oi_value_usd": "700"}
     comparison = value_comparison(11.1, ticker)
     assert comparison["oi_contract_count"]["within_5pct"]
     assert comparison["oi_value_base"]["within_5pct"]
     assert not comparison["oi_value_usd"]["within_5pct"]
+
+    matching_ticker = {
+        "oi": "1000", "oi_value": "1", "oi_value_symbol": "BTC",
+        "oi_value_usd": "2000", "mark_price": "2000",
+    }
+    matching_product = {"contract_value": "0.001", "contract_unit_currency": "BTC"}
+    conversion = product_conversion_check(matching_ticker, matching_product)
+    assert conversion["status"] == "checked" and conversion["within_5pct"]
+    diagnostics = ticker_value_diagnostics({
+        "oi": "1", "oi_value": "1", "oi_value_usd": "2000", "mark_price": "2000"
+    })
+    assert diagnostics["oi_and_oi_value_numerically_identical"]
+    assert abs(diagnostics["usd_conversion_vs_mark_difference_pct"]) < 1e-9
+
     hourly = [{"time": 0, "open": 10, "high": 11, "low": 9, "close": 10.8}]
     five = [
         {"time": 0, "open": 10, "high": 10.5, "low": 9.5, "close": 10.1},
@@ -523,7 +545,7 @@ def self_test() -> None:
     assert cross["matched_hours"] == 1 and cross["within_1pct"] == 1
     stats = cadence_stats(parsed, 300)
     assert stats["rows"] == 5 and stats["gap_count"] == 0
-    print("5 OI semantics reconciliation self-tests passed")
+    print("10 OI semantics reconciliation self-tests passed")
 
 
 def main() -> None:
