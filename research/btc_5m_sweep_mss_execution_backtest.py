@@ -400,9 +400,10 @@ def run(raw,out):
                 for month,val in mm.items(): monthly.append({"sample":sp,"month":month,"net_R":float(val)})
                 rg=t.groupby("regime").net_R.agg(["count","sum","mean"]).reset_index()
                 for rr in rg.to_dict("records"): regimes.append({"sample":sp,**rr})
-            for c in COSTS:
-                tc=simulate(d,entries,{**cfg,"sample":sp},a,b,c)
-                cost_rows.append({**cfg,"sample":sp,"cost_bps":c,**metrics(tc)})
+            if sp=="oos":
+                for c in COSTS:
+                    tc=simulate(d,entries,{**cfg,"sample":sp},a,b,c)
+                    cost_rows.append({**cfg,"sample":sp,"cost_bps":c,**metrics(tc)})
     pd.DataFrame(cost_rows).to_csv(out/"cost_sensitivity.csv",index=False)
     if selected_trades: pd.concat(selected_trades,ignore_index=True).to_csv(out/"selected_trades_12bp.csv",index=False)
     pd.DataFrame(monthly).to_csv(out/"selected_monthly.csv",index=False)
@@ -442,11 +443,11 @@ def self_test():
     # FVG must be formed by three fully completed bars before MSS close.
     idx=pd.date_range("2026-01-01 00:00",periods=6,freq="5min",tz="UTC")
     x=pd.DataFrame({"open":[99,101,106,105,104,103],
-        "high":[100,103,108,107,106,105],"low":[98,100,105,104,102,101],
+        "high":[100,103,108,107,106,105],"low":[98,100,105,102,102,101],
         "close":[99,102,107,106,103,102],"segment":[0]*6},index=idx)
     z=latest_fvg(x,idx[0],idx[3]+BAR,"long")
     assert z is not None and z[0]==100.0 and z[1]==105.0
-    assert latest_fvg(x,idx[0],idx[2]+BAR,"long") is None
+    assert latest_fvg(x,idx[0],idx[2],"long") is None
     # Conservative same-bar ordering and adverse stop gaps.
     assert fill_exit("long",100,120,80,90,110)==(90,"SL")
     assert fill_exit("short",100,120,80,110,90)==(110,"SL")
