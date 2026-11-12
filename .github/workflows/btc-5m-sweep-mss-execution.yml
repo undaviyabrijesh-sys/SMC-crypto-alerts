@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: btc-5m-sweep-mss-\${{ github.ref }}
+  group: btc-5m-sweep-mss-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -59,19 +59,19 @@ jobs:
                                     "train_gate","validation_gate") if c in d.columns]
                   print("\n## Gate-passing configurations")
                   z=d[d.validation_gate] if "validation_gate" in d else d.iloc[0:0]
-                  print(z[cols].to_markdown(index=False) if len(z) else "None")
+                  print(z[cols].to_string(index=False) if len(z) else "None")
               t=p/"selected_trades_12bp.csv"
               if t.exists():
                   d=pd.read_csv(t)
                   if "sample" in d:
                       print("\n## Selected 12bp trade counts")
-                      print(d.groupby("sample").size().to_markdown())
+                      print(d.groupby("sample").size().to_string())
           PY
       - name: Retain data and reproducible outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-5m-sweep-mss-\${{ github.run_id }}
+          name: btc-5m-sweep-mss-${{ github.run_id }}
           path: results/btc-5m-sweep-mss/
           if-no-files-found: warn
           compression-level: 6
