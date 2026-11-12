@@ -379,6 +379,41 @@ def run(raw,out):
                     cost_rows.append({**cfg,"sample":sp,"cost_bps":c,**m})
     md=pd.DataFrame(matrix)
     md.to_csv(out/"matrix.csv",index=False)
+
+    # Preserve auditable trade-level/month/regime diagnostics even when no
+    # configuration passes validation. These diagnostics never promote a
+    # candidate or trigger OOS evaluation.
+    diagnostic_trades=[]; diagnostic_monthly=[]; diagnostic_regimes=[]
+    diagnostic_specs=[]
+    train_rows=md[md.train_gate].sort_values(
+        ["train_profit_factor","train_positive_month_fraction","train_max_drawdown_R","train_net_R"],
+        ascending=[False,False,False,False])
+    if not train_rows.empty:
+        diagnostic_specs.append(("best_train_candidate",train_rows.iloc[0]))
+    val_rows=md[md.validation_trades>=MIN_VALIDATION].sort_values(
+        ["validation_profit_factor","validation_net_R"],ascending=[False,False])
+    if not val_rows.empty:
+        diagnostic_specs.append(("best_validation_candidate_min20",val_rows.iloc[0]))
+    for label,dr in diagnostic_specs:
+        dc={k:dr[k] for k in configs[0]}
+        de=caches[(dc["ext_strength"],dc["local_strength"],dc["mss_wait"])][dc["entry_mode"]]
+        for sp in ("train","validation"):
+            a,b=splits[sp]
+            dt=simulate(d,de,{**dc,"sample":sp},a,b,12)
+            if dt.empty: continue
+            dt["diagnostic_label"]=label
+            diagnostic_trades.append(dt)
+            mm=dt.assign(month=dt.entry_time.dt.strftime("%Y-%m")).groupby("month").net_R.agg(["count","sum","mean"]).reset_index()
+            for rr in mm.to_dict("records"):
+                diagnostic_monthly.append({"candidate":label,"sample":sp,**rr})
+            rg=dt.groupby("regime").net_R.agg(["count","sum","mean"]).reset_index()
+            for rr in rg.to_dict("records"):
+                diagnostic_regimes.append({"candidate":label,"sample":sp,**rr})
+    if diagnostic_trades:
+        pd.concat(diagnostic_trades,ignore_index=True).to_csv(out/"diagnostic_trades_12bp.csv",index=False)
+    pd.DataFrame(diagnostic_monthly).to_csv(out/"diagnostic_monthly.csv",index=False)
+    pd.DataFrame(diagnostic_regimes).to_csv(out/"diagnostic_regimes.csv",index=False)
+
     passes=md[md.validation_gate].copy()
     selected=None
     if not passes.empty:
