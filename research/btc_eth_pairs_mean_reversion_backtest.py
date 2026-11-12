@@ -86,8 +86,9 @@ def add_regime(pair: pd.DataFrame) -> pd.DataFrame:
     h["ema50"] = h.btc_close.ewm(span=50, adjust=False, min_periods=50).mean()
     h["ema200"] = h.btc_close.ewm(span=200, adjust=False, min_periods=200).mean()
     h["regime"] = np.select(
-        [h.btc_close > h.ema50, h.btc_close < h.ema50],
-        ["above_ema50", "below_ema50"],
+        [(h.btc_close > h.ema50) & (h.ema50 > h.ema200),
+         (h.btc_close < h.ema50) & (h.ema50 < h.ema200)],
+        ["bull", "bear"],
         default="range_or_unavailable",
     )
     h.loc[h.ema50.isna() | h.ema200.isna(), "regime"] = "range_or_unavailable"
@@ -194,6 +195,7 @@ def metrics(t: pd.DataFrame) -> dict:
         "profit_factor": float(gross_wins / gross_losses) if gross_losses > 0 else None,
         "net_R": float(r.sum()),
         "avg_R": float(r.mean()),
+        "compounded_net_return_pct": float((np.prod(1.0 + x.net_pair_return_pct.to_numpy(float) / 100.0) - 1.0) * 100.0),
         "max_drawdown_R": float(dd.min()),
         "max_losing_streak": int(mx),
         "positive_month_fraction": float((monthly > 0).mean()) if len(monthly) else 0.0,
@@ -281,6 +283,8 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
         # pair notional. beta is the BTC hedge notional per 1 ETH notional.
         cost_R = (cost_bps / 10000.0) * (1.0 + beta) / (risk_z * sigma)
         net_R = gross_R - cost_R
+        gross_pair_return_pct = 100.0 * side * (exit_z - entry_z) * sigma / (1.0 + beta)
+        net_pair_return_pct = gross_pair_return_pct - cost_bps / 100.0
         rows.append({
             "split": split_name, "entry_time": f.index[entry_i],
             "signal_time": f.index[sig_i], "exit_time": f.index[exit_i],
@@ -291,7 +295,9 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
             "exit_btc": float(f.btc_close.iloc[exit_i]),
             "exit_eth": float(f.eth_close.iloc[exit_i]),
             "outcome": outcome, "gross_R": gross_R, "cost_R": cost_R,
-            "net_R": net_R, "cost_bps_per_leg_round_trip": cost_bps,
+            "net_R": net_R, "gross_pair_return_pct": gross_pair_return_pct,
+            "net_pair_return_pct": net_pair_return_pct,
+            "cost_bps_per_leg_round_trip": cost_bps,
             "btc_regime_1h": str(f.btc_regime_1h.iloc[entry_i]),
             "hold_bars": exit_i - entry_i + 1,
             **cfg,
@@ -434,6 +440,7 @@ def run(btc_path: Path, eth_path: Path, out: Path):
         "entry_exit": "next 15m open for both legs; freeze signal-time alpha/beta/mean/std; stop z 3.5/4.0; target z 0/0.5; max hold 24h/48h; one pair position at a time/config",
         "hedge_ratio": "positive beta only, constrained to 0.25-4.0; 1 ETH notional versus beta BTC notional",
         "costs": "6/12/20bp assumed round-trip per leg; 12bp per leg primary; funding, borrow, separate spread and market impact excluded",
+        "return_convention": "net pair return percentage is per gross pair notional (1 ETH leg + beta BTC leg), before funding; compounded sequentially for reporting; net R divides the same pair P&L by the fixed residual-spread stop distance",
         "execution": "synthetic log-spread OHLC uses adverse cross-leg extremes; stop checked before target; adverse stop gaps at observed open; target at target; timeout at final close",
         "selection_gates": "train >=40 trades, PF>=1.05, net R>0, positive months>=50%, DD>=-20R; validation >=20 trades, PF>=1.05, net R>0, positive months>=50%, DD>=-12R; OOS only after one validation pass",
         "limitations": [
