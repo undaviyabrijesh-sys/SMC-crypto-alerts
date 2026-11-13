@@ -24,7 +24,9 @@ jobs:
         run: python -m pip install --upgrade pip pandas numpy requests
       - name: Compile failed-breakout reversal research
         run: python -m py_compile research/failed_breakout_reversal_intraday_backtest.py
-      - name: Run preregistered 768-configuration matrix
+      - name: Run deterministic execution, gap-reset and volatility-causality tests
+        run: python research/failed_breakout_reversal_intraday_backtest.py --self-test
+      - name: Run preregistered 3,072-configuration volatility-regime matrix
         run: python research/failed_breakout_reversal_intraday_backtest.py
       - name: Upload failed-breakout research outputs
         if: always()
