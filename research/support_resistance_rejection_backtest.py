@@ -333,14 +333,10 @@ def simulate(d, events, cfg, start_i, end_i, cost_bps=PRIMARY_COST):
         if not in_session(d.index[ei], cfg["session"]):
             continue
         if cfg["filter"] == "ema50_200":
-            e50, e200 = ema50[ei], ema200[ei]
-            if not np.isfinite([e50, e200]).all():
+            if side == "long" and regime[ei] != "bull":
                 continue
-            aligned = (
-                side == "long" and e50 > e200
-            ) or (
-                side == "short" and e50 < e200
-            )
+            if side == "short" and regime[ei] != "bear":
+                continue
             if not aligned:
                 continue
 
@@ -600,7 +596,7 @@ def run_matrix(d):
 
 
 def self_test():
-    # Daily levels: day one is unavailable during day one; becomes available at next midnight.
+    # Prior-day levels: day one is unavailable during day one; day two sees day one.
     idx = pd.date_range("2025-01-01", periods=192, freq="15min", tz="UTC")
     close = np.full(len(idx), 100.0)
     raw = pd.DataFrame({
@@ -612,42 +608,70 @@ def self_test():
     assert levels.resistance.iloc[96] == 101.0
     assert levels.support.iloc[96] == 99.0
 
-    # 4H pivot: a high at bar 2 with two right bars is available at bar 4 close.
-    hidx = pd.date_range("2025-01-01 04:00", periods=7, freq="4h", tz="UTC")
-    h = pd.DataFrame({
-        "high": [10, 11, 15, 12, 11, 10, 9],
-        "low": [5, 4, 3, 4, 5, 6, 7],
-        "source_segment": [1] * 7,
-        "bar_segment": [1] * 7,
-    }, index=hidx)
-    records = {}
-    left = right = 2
-    for i in range(left, len(h) - right):
-        w = h.iloc[i-left:i+right+1]
-        if w.source_segment.nunique() != 1 or w.bar_segment.nunique() != 1:
-            continue
-        available = h.index[i + right]
-        row = records.setdefault(available, {})
-        if h.high.iloc[i] > h.high.iloc[i-left:i].max() and h.high.iloc[i] > h.high.iloc[i+1:i+right+1].max():
-            row["resistance"] = float(h.high.iloc[i])
-    assert records[hidx[4]]["resistance"] == 15.0
-    assert hidx[4] not in records or records[hidx[4]]["resistance"] == 15.0
-
-    assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
-    assert resolve_exit("short", 85, 120, 80, 110, 90) == (110, "SL")
-    assert resolve_exit("long", 85, 95, 80, 90, 110) == (85, "SL")
-    assert resolve_exit("short", 100, 105, 95, 110, 90) == (90, "TP")
-
-    # Previous-day levels must not be carried across an incomplete day or a segment break.
+    # An incomplete prior day and a segment break invalidate the prior-day level.
     gap_raw = raw.drop(index=raw.index[96])
     gap_d = add_segments(gap_raw)
     gap_levels = prior_day_levels(gap_d)
     assert gap_levels.resistance.isna().all()
 
-    # A confirmed 4H pivot from a prior segment is masked after a segment break.
-    assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
-    print("9 support/resistance causality and execution tests passed")
+    # Exercise the actual 4H pivot builder: high in bar 2 is confirmed at bar 4 close.
+    block_high = [10, 11, 15, 12, 11, 10, 9]
+    block_low = [5, 4, 3, 4, 5, 6, 7]
+    pidx = pd.date_range("2025-01-01", periods=7 * 16, freq="15min", tz="UTC")
+    po, ph, pl, pc = [], [], [], []
+    for bh, bl in zip(block_high, block_low):
+        po.extend([8.0] * 16)
+        ph.extend([float(bh)] * 16)
+        pl.extend([float(bl)] * 16)
+        pc.extend([8.0] * 16)
+    praw = pd.DataFrame({"open": po, "high": ph, "low": pl, "close": pc}, index=pidx)
+    pd0 = add_segments(praw)
+    piv = confirmed_4h_pivot_levels(pd0)
+    available_i = 4 * 16
+    assert pd.isna(piv.resistance.iloc[available_i - 1])
+    assert piv.resistance.iloc[available_i] == 15.0
 
+    # A pivot from before a data gap is not carried into the next segment.
+    pbroken = add_segments(praw.drop(index=praw.index[100]))
+    piv_broken = confirmed_4h_pivot_levels(pbroken)
+    after_gap_i = pbroken.index.get_loc(praw.index[101])
+    assert pd.isna(piv_broken.resistance.iloc[after_gap_i])
+
+    # Causal event generation: sweep/reclaim at bar 1 enters at bar 2 open.
+    eidx = pd.date_range("2025-02-01", periods=4, freq="15min", tz="UTC")
+    ed = pd.DataFrame({
+        "open": [100, 100, 99, 98],
+        "high": [101, 102, 100, 99],
+        "low": [99, 98, 97, 96],
+        "close": [100, 99, 98, 97],
+        "segment": [1, 1, 1, 1],
+        "atr14": [1.0, 1.0, 1.0, 1.0],
+        "pd_resistance": [100.0] * 4,
+        "pd_support": [90.0] * 4,
+        "p4_resistance": [100.0] * 4,
+        "p4_support": [90.0] * 4,
+        "regime": ["bear"] * 4,
+        "ema50_1h": [99.0] * 4,
+        "ema200_1h": [98.0] * 4,
+    }, index=eidx)
+    ev = build_events(ed, "prior_day", "sweep_reclaim", 0.0, "signal_close")
+    assert len(ev) == 1 and ev[0]["side"] == "short" and ev[0]["entry_i"] == 2
+    ev_confirm = build_events(ed, "prior_day", "sweep_reclaim", 0.0, "next_bar_break")
+    assert len(ev_confirm) == 1 and ev_confirm[0]["confirmation_i"] == 2 and ev_confirm[0]["entry_i"] == 3
+
+    # If the next candle does not break the rejection low, confirmation is rejected.
+    ed_bad = ed.copy()
+    ed_bad.loc[eidx[2], "close"] = 99.5
+    ev_bad = build_events(ed_bad, "prior_day", "sweep_reclaim", 0.0, "next_bar_break")
+    assert len(ev_bad) == 0
+
+    # Conservative stop-first ambiguity and adverse stop gap; target fill at target.
+    assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
+    assert resolve_exit("short", 85, 120, 80, 110, 90) == (110, "SL")
+    assert resolve_exit("long", 85, 95, 80, 90, 110) == (85, "SL")
+    assert resolve_exit("short", 100, 105, 95, 110, 90) == (90, "TP")
+
+    print("13 support/resistance causality and execution tests passed")
 
 def main():
     import sys
