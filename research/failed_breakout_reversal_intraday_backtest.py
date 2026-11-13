@@ -4,6 +4,7 @@ A close outside a prior channel is treated as a failed breakout only if price
 closes back inside the same frozen channel boundary within a short window.
 Entry is next-bar open in the reversal direction. Research-only.
 """
+import argparse
 import hashlib
 import itertools
 import json
@@ -27,6 +28,9 @@ TARGETS = (1.5, 2.0, 3.0, 4.0)
 HTF_FILTERS = ("none", "ema50_200")
 DIRECTIONS = ("both", "long_only", "short_only")
 SESSIONS = ("all", "07-19")
+VOL_REGIME_FILTERS = ("all", "low", "mid", "high")
+VOL_LOOKBACK = 2880  # 30 days of 15m bars
+VOL_MIN_PERIODS = 720  # 7.5 days before regime labels are emitted
 MIN_TRAIN = 40
 MIN_VALIDATION = 20
 MAX_SHORTLIST = 25
@@ -73,7 +77,9 @@ def prepare(raw):
     ).agg({"open": "first", "high": "max", "low": "min", "close": "last"})
     counts = d.close.resample("1h", label="right", closed="left").count()
     seg_counts = d.segment.resample("1h", label="right", closed="left").nunique()
+    source_segment = d.segment.resample("1h", label="right", closed="left").first()
     h = h.loc[counts.eq(4) & seg_counts.eq(1)].dropna()
+    h["source_segment"] = source_segment.reindex(h.index).astype(int)
     hseg = h.index.to_series().diff().ne(pd.Timedelta("1h")).cumsum()
     h["ema50"] = h.groupby(hseg).close.transform(
         lambda s: s.ewm(span=50, adjust=False, min_periods=50).mean()
@@ -81,13 +87,41 @@ def prepare(raw):
     h["ema200"] = h.groupby(hseg).close.transform(
         lambda s: s.ewm(span=200, adjust=False, min_periods=200).mean()
     )
-    for c in ("close", "ema50", "ema200"):
-        d[f"h_{c}"] = h[c].reindex(d.index, method="ffill")
+    hctx = h[["close", "ema50", "ema200", "source_segment"]].reindex(
+        d.index, method="ffill"
+    )
+    # Do not carry a completed hourly candle or EMA across a raw-data gap.
+    same_segment = hctx.source_segment.eq(d.segment)
+    hctx.loc[~same_segment, ["close", "ema50", "ema200"]] = np.nan
+    d["h_close"] = hctx.close
+    d["h_ema50"] = hctx.ema50
+    d["h_ema200"] = hctx.ema200
     bull = (d.h_close > d.h_ema50) & (d.h_ema50 > d.h_ema200)
     bear = (d.h_close < d.h_ema50) & (d.h_ema50 < d.h_ema200)
     d["regime"] = np.select(
         [bull, bear], ["bull", "bear"], default="mixed_or_unavailable"
     )
+
+    # Causal volatility regime: compare current ATR/price only with prior
+    # observations from the same contiguous segment. Quantile baselines are
+    # shifted one bar so the current candle cannot influence its own threshold.
+    d["atr_pct"] = d.atr14 / d.close
+    d["vol_q33"] = np.nan
+    d["vol_q67"] = np.nan
+    d["vol_regime"] = "unavailable"
+    for _, g in d.groupby("segment", sort=False):
+        q33 = g.atr_pct.rolling(
+            VOL_LOOKBACK, min_periods=VOL_MIN_PERIODS
+        ).quantile(0.33).shift(1)
+        q67 = g.atr_pct.rolling(
+            VOL_LOOKBACK, min_periods=VOL_MIN_PERIODS
+        ).quantile(0.67).shift(1)
+        d.loc[g.index, "vol_q33"] = q33.to_numpy()
+        d.loc[g.index, "vol_q67"] = q67.to_numpy()
+    valid_vol = d[["atr_pct", "vol_q33", "vol_q67"]].notna().all(axis=1)
+    d.loc[valid_vol & (d.atr_pct <= d.vol_q33), "vol_regime"] = "low"
+    d.loc[valid_vol & (d.atr_pct > d.vol_q33) & (d.atr_pct <= d.vol_q67), "vol_regime"] = "mid"
+    d.loc[valid_vol & (d.atr_pct > d.vol_q67), "vol_regime"] = "high"
     return d
 
 
@@ -188,6 +222,57 @@ def trade_metrics(g, bps):
     )
 
 
+def resolve_exit(side, open_price, high, low, stop, target):
+    """Conservative OHLC fill: stop first, with adverse stop-gap execution."""
+    if side == "short":
+        if high >= stop:
+            return max(open_price, stop), "SL"
+        if low <= target:
+            return target, "TP"
+    else:
+        if low <= stop:
+            return min(open_price, stop), "SL"
+        if high >= target:
+            return target, "TP"
+    return None, None
+
+
+def self_test():
+    # Same-bar stop and target: stop must win for both directions.
+    assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
+    assert resolve_exit("short", 100, 120, 80, 110, 90) == (110, "SL")
+    # Adverse stop gaps fill at the worse opening price.
+    assert resolve_exit("long", 85, 95, 80, 90, 110) == (85, "SL")
+    assert resolve_exit("short", 115, 120, 112, 110, 90) == (115, "SL")
+    # Target fills at target, not at a favourable opening gap.
+    assert resolve_exit("long", 115, 120, 112, 90, 110) == (110, "TP")
+    assert resolve_exit("short", 85, 88, 80, 110, 90) == (90, "TP")
+
+    # A synthetic gap must reset the hourly context and volatility baseline.
+    rng = np.random.default_rng(19)
+    idx1 = pd.date_range("2024-01-01", periods=1000, freq="15min", tz="UTC")
+    idx2 = pd.date_range(idx1[-1] + pd.Timedelta(hours=2), periods=1000, freq="15min", tz="UTC")
+    idx = idx1.append(idx2)
+    close = 50000 + np.cumsum(rng.normal(0, 12, len(idx)))
+    op = np.r_[close[0], close[:-1]]
+    raw = pd.DataFrame({
+        "open": op, "high": np.maximum(op, close) + 5,
+        "low": np.minimum(op, close) - 5, "close": close,
+    }, index=idx)
+    prepared = prepare(raw)
+    assert prepared.loc[idx2[0], "h_close"] != prepared.loc[idx2[0], "h_close"]
+    assert prepared.loc[idx2[0], "vol_regime"] == "unavailable"
+
+    # Future perturbations cannot change previously computed volatility labels.
+    changed = raw.copy()
+    cut = idx1[800]
+    changed.loc[changed.index > cut, ["open", "high", "low", "close"]] *= 1.08
+    altered = prepare(changed)
+    compare = prepared.index <= cut
+    assert prepared.loc[compare, "vol_regime"].equals(altered.loc[compare, "vol_regime"])
+    print("8 failed-breakout execution, gap-reset and volatility-causality tests passed")
+
+
 def simulate(d, events, cfg, start_i, end_i):
     op = d.open.to_numpy(float)
     hi = d.high.to_numpy(float)
@@ -213,6 +298,12 @@ def simulate(d, events, cfg, start_i, end_i):
             continue
         entry_time = d.index[ei]
         if cfg["session"] == "07-19" and not (7 <= entry_time.hour < 19):
+            continue
+        observed_vol_regime = str(d.vol_regime.iloc[ei])
+        if (
+            cfg["vol_regime_filter"] != "all"
+            and observed_vol_regime != cfg["vol_regime_filter"]
+        ):
             continue
         if cfg["htf_filter"] == "ema50_200":
             if not np.isfinite([hc[ei], e50[ei], e200[ei]]).all():
@@ -249,17 +340,12 @@ def simulate(d, events, cfg, start_i, end_i):
         exit_i = end_trade - 1
         exit_price = float(cl[exit_i])
         for k in range(ei, end_trade):
-            stop_hit = hi[k] >= stop if side == "short" else lo[k] <= stop
-            target_hit = lo[k] <= target if side == "short" else hi[k] >= target
-            # Conservative ambiguity: stop takes priority over target.
-            if stop_hit:
-                outcome = "SL"
-                exit_price = max(stop, float(op[k])) if side == "short" else min(stop, float(op[k]))
-                exit_i = k
-                break
-            if target_hit:
-                outcome = "TP"
-                exit_price = target
+            fill, reason = resolve_exit(
+                side, float(op[k]), float(hi[k]), float(lo[k]), stop, target
+            )
+            if reason:
+                outcome = reason
+                exit_price = float(fill)
                 exit_i = k
                 break
 
@@ -274,6 +360,8 @@ def simulate(d, events, cfg, start_i, end_i):
             "htf_filter": cfg["htf_filter"],
             "direction": cfg["direction"],
             "session": cfg["session"],
+            "vol_regime_filter": cfg["vol_regime_filter"],
+            "vol_regime": observed_vol_regime,
             "sample": cfg["sample"],
             "side": side,
             "breakout_time": d.index[bi],
@@ -320,17 +408,18 @@ def main():
     configs = []
     for values in itertools.product(
         CHANNELS, FAIL_WINDOWS, CONFIRMATIONS, STOP_BUFFERS, TARGETS,
-        HTF_FILTERS, DIRECTIONS, SESSIONS
+        HTF_FILTERS, DIRECTIONS, SESSIONS, VOL_REGIME_FILTERS
     ):
-        ch, fw, confirm, sb, target, htf, direction, session = values
+        ch, fw, confirm, sb, target, htf, direction, session, vol_filter = values
         cfg_id = (
             f"dc{ch}_fail{fw}_{confirm}_stopbuf{sb}_{target}R_"
-            f"{htf}_{direction}_{session}"
+            f"{htf}_{direction}_{session}_vol{vol_filter}"
         )
         configs.append(dict(
             config_id=cfg_id, channel=ch, fail_window=fw,
             confirmation=confirm, stop_buffer=sb, target_r=target,
             htf_filter=htf, direction=direction, session=session,
+            vol_regime_filter=vol_filter,
         ))
 
     trade_rows, summary_rows, monthly_rows, regime_rows = [], [], [], []
@@ -433,6 +522,8 @@ def main():
         "validation_end_utc": str(d.index[val_end - 1]),
         "oos_start_utc": str(d.index[val_end]),
         "matrix_configurations": len(configs),
+        "volatility_regime_filter_values": list(VOL_REGIME_FILTERS),
+        "volatility_regime_definition": "ATR14/close classified against prior 30-day rolling 33rd/67th percentiles, min 7.5d observations, shifted one 15m bar and reset at every data gap",
         "train_eligible": len(eligible), "shortlisted": len(shortlist),
         "validation_pass": len(passed),
         "selected_oos_config": None if selected is None else selected.config_id,
@@ -464,4 +555,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+    else:
+        main()
