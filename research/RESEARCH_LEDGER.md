@@ -889,3 +889,9 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Fresh CSV SHA-256: BTC `2280f793cbd3ccab787aefa73096338a269f1cda4222c680a11188590bb349f5`; ETH `9d3b6a6bcd5f35af3471f473255d1dc8c15b4468691707347940eb3ba806beaa`.
 - Matrix independently re-inspected from artifact 14018992574: 576 configurations, zero training-eligible, zero validation passes, OOS not evaluated. Best training-net configuration and best validation-PF candidate reproduce the same metrics as the earlier artifact within displayed precision.
 - Decision remains reject. The rerun confirms the prior conclusion; it does not create a new candidate.
+
+
+### EMA51 workflow execution note — 2026-11-13
+
+- Repository workflow run [43386574210](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386574210) completed deterministic tests, BTC download, the full 288-configuration matrix and the job summary successfully; only the final artifact upload failed because the artifact name contained a literal backslash.
+- Fixed concurrency/artifact names at commit `1f9cdec805c6395e6230c853ef7af9b59fe85399`. Clean rerun [43386763734](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386763734) passed initial tests and was in historical-data download at the last status check. The locally completed full matrix remains the source for the diagnostic metrics above until the clean rerun's artifact is independently inspected.
