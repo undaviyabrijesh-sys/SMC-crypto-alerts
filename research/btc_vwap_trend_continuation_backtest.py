@@ -475,10 +475,11 @@ def run(price_path: Path, out_dir: Path):
         row["train_gate"] = bool(train_gate)
         matrix.append(row)
         if train_gate:
-            cfg_key = (float(cfg["band_atr"]), str(cfg["confirmation"]), float(cfg["volume_mult"]),
-                   str(cfg["stop"]), float(cfg["target_r"]), str(cfg["session"]),
-                   bool(cfg["four_hour_slope_filter"]))
-        candidate_trades[cfg_key] = (cfg, signals, train, validation, mt, mv)
+            cfg_key = (float(cfg["band_atr"]), str(cfg["confirmation"]),
+                       float(cfg["volume_mult"]), str(cfg["stop"]),
+                       float(cfg["target_r"]), str(cfg["session"]),
+                       bool(cfg["four_hour_slope_filter"]))
+            candidate_trades[cfg_key] = (cfg, signals, train, validation, mt, mv)
 
     md = pd.DataFrame(matrix)
     md.to_csv(out_dir / "matrix.csv", index=False)
