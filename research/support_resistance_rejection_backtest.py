@@ -124,25 +124,39 @@ def confirmed_4h_pivot_levels(d, left=2, right=2):
     """Last confirmed 4H pivot high/low, available after right-side bars close."""
     h = complete_resample(d, "4h", 16, H4, "4h")
     records = {}
+    last_resistance = np.nan
+    last_support = np.nan
+    active_bar_segment = None
     for i in range(left, len(h) - right):
+        bar_segment = int(h.bar_segment.iloc[i])
+        if active_bar_segment != bar_segment:
+            last_resistance = np.nan
+            last_support = np.nan
+            active_bar_segment = bar_segment
         window = h.iloc[i-left:i+right+1]
         if window.source_segment.nunique() != 1 or window.bar_segment.nunique() != 1:
             continue
-        available = h.index[i + right]
-        row = records.setdefault(available, {})
         high, low = float(h.high.iloc[i]), float(h.low.iloc[i])
+        new_level = False
         if high > float(h.high.iloc[i-left:i].max()) and high > float(h.high.iloc[i+1:i+right+1].max()):
-            row["resistance"] = high
-            row["source_segment"] = int(h.source_segment.iloc[i])
+            last_resistance = high
+            new_level = True
         if low < float(h.low.iloc[i-left:i].min()) and low < float(h.low.iloc[i+1:i+right+1].min()):
-            row["support"] = low
-            row["source_segment"] = int(h.source_segment.iloc[i])
+            last_support = low
+            new_level = True
+        if new_level:
+            available = h.index[i + right]
+            records[available] = {
+                "resistance": last_resistance,
+                "support": last_support,
+                "source_segment": int(h.source_segment.iloc[i]),
+            }
     if not records:
         return pd.DataFrame(index=d.index, columns=["resistance", "support"], dtype=float)
     levels = pd.DataFrame.from_dict(records, orient="index").sort_index()
     levels.index = pd.DatetimeIndex(levels.index)
     aligned = levels.reindex(d.index, method="ffill")
-    # A confirmed level from a prior data segment is not carried across a gap.
+    # A confirmed level from a prior raw-data segment is not carried across a gap.
     same_segment = aligned.source_segment.eq(d.segment)
     aligned.loc[~same_segment, ["resistance", "support"]] = np.nan
     return aligned[["resistance", "support"]]
@@ -616,7 +630,7 @@ def self_test():
 
     # Exercise the actual 4H pivot builder: high in bar 2 is confirmed at bar 4 close.
     block_high = [10, 11, 15, 12, 11, 10, 9]
-    block_low = [5, 4, 3, 4, 5, 6, 7]
+    block_low = [5, 4, 6, 3, 5, 6, 7]
     pidx = pd.date_range("2025-01-01", periods=7 * 16, freq="15min", tz="UTC")
     po, ph, pl, pc = [], [], [], []
     for bh, bl in zip(block_high, block_low):
@@ -630,6 +644,9 @@ def self_test():
     available_i = 5 * 16
     assert pd.isna(piv.resistance.iloc[available_i - 1])
     assert piv.resistance.iloc[available_i] == 15.0
+    # A later confirmed pivot low must not erase the still-active last pivot high.
+    assert piv.resistance.iloc[96] == 15.0
+    assert piv.support.iloc[96] == 3.0
 
     # A pivot from before a data gap is not carried into the next segment.
     pbroken = add_segments(praw.drop(index=praw.index[100]))
