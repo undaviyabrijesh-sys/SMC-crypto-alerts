@@ -104,6 +104,6 @@ The original 50-point stop buffer and 2R target were explicitly tested. The fail
 - Engine: `research/btc_ema51_break_trigger_intraday_backtest.py`
 - Workflow: `.github/workflows/btc-ema51-break-trigger.yml`
 - Research ledger: `research/RESEARCH_LEDGER.md`
-- Local full matrix completed on the archived BTC input; the repository GitHub Actions rerun is tracked separately at [run 43386574210](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386574210).
+- Local full matrix completed on the archived BTC input. GitHub Actions run [43386574210](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386574210) independently completed the download, deterministic tests, 288-configuration matrix and summary, but its final artifact-upload step failed because the artifact name contained a literal backslash. The workflow name was corrected at commit `1f9cdec805c6395e6230c853ef7af9b59fe85399`; clean rerun [43386763734](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386763734) was in progress at the historical-data download stage at the latest check.
 
 No production rules, live alerts, orders or main branch were changed.
