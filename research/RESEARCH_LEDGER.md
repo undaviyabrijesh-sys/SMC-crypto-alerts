@@ -862,3 +862,21 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Decision: reject. No OOS evaluation. The validation winner's training loss and the best training candidate's weak PF/low monthly consistency fail the preregistered gates.
 - Workflow nuance: historical downloads, all 576 configurations, matrix and diagnostic artifacts completed. The final job-summary step failed only because it attempted to read an intentionally empty `cost_sensitivity.csv` with pandas, raising `EmptyDataError`; artifact upload succeeded. A guard for empty CSVs was committed at `8618726295127fe42773a6adb618bacdd34e80e0`; this workflow-file change triggers a clean reproducibility rerun.
 - Limitations: residual mean reversion is not proof of cointegration/stationarity; funding/borrow and exact account fees are not verified; synthetic spread OHLC cannot reconstruct exact intrabar ordering of two independent legs.
+
+
+## BTCUSD — 1H/15m EMA51 pullback-break trigger (2026-11-13)
+
+- Report: `quant_discovery/BTC_EMA51_BREAK_TRIGGER_2026-11-13.md`.
+- Code: `research/btc_ema51_break_trigger_intraday_backtest.py`; workflow: `.github/workflows/btc-ema51-break-trigger.yml`; GitHub Actions rerun: [43386574210](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386574210).
+- Hypothesis: use completed 1H close vs EMA51 for direction; a completed 15m green candle near EMA51 sets a short trigger at its low (long mirror uses red candle/high); stop beyond signal extreme with 0/25/50 point buffer; target 1.5R/2R/3R.
+- Exact variations: 15m EMA51 band intersects at 0.10/0.20 ATR14; pending entry expires after 3/6 bars; short-only/long-only; all hours/07:00–19:00 UTC; 1H EMA51 side only or side plus four-completed-hour EMA slope. Max hold 32 bars (8h). 288 configurations.
+- Data: BTCUSD 15m, 70,127 rows, 2024-11-12 15:15 UTC to 2026-11-13 02:45 UTC; zero gaps and duplicates; 80 zero-volume bars. SHA-256 `f31d3c0b9ddb13a1355ea78d569af7971f8517b4c2e5812ff82bd96ae9775e1e`. Input extracted from archived artifact in pair run 43357538018.
+- Execution: completed 15m signal becomes active at next bar; stop-entry at trigger or worse opening gap; cancel pending order if open gaps through stop; same-bar stop first; adverse stop gap at worse open; target at target; one pending/active position; no full 8h holding horizon crosses split. 13 local deterministic tests passed.
+- Costs: assumed 12bp round trip per single leg primary; diagnostic 6/12/20bp. No separate spread/order-book or market-impact model; no contract-specific settlement P&L.
+- Split: chronological 70/15/15; train end 2026-04-07 23:15 UTC; validation end 2026-07-26 13:00 UTC.
+- Selection: 288 configs; zero training-eligible; zero validation passes; OOS not evaluated.
+- Best training-net candidate (0.10 ATR, 6-bar expiry, 50-point buffer, 3R, short-only, 07:00–19:00 UTC, EMA side+slope): train 309 trades, win 29.13%, PF 0.662, -100.92R, DD -106.44R, losing streak 12, positive months 16.7%; validation 46 trades, win 26.09%, PF 0.703, -12.09R, DD -17.11R, losing streak 9, positive months 25%.
+- Best validation-PF candidate with >=20 trades (0.20 ATR, 3-bar expiry, 50-point buffer, 2R, short-only, 07:00–19:00 UTC, EMA-side): train 348 trades, win 33.33%, PF 0.543, -149.41R, DD -149.41R, losing streak 15, positive months 16.7%; validation 53 trades, win 41.51%, PF 0.819, -7.15R, DD -12.94R, losing streak 6, positive months 50%.
+- Cost sensitivity: best training-net candidate train -39.41/-100.92/-182.95R and validation -4.47/-12.09/-22.27R at 6/12/20bp. Best validation-PF candidate train -74.42/-149.41/-249.41R and validation +3.31/-7.15/-21.10R. The low-cost validation-only gain is paired with severe training losses.
+- Decision: reject; the original 50-point/2R setup family is consistently negative; no OOS evaluation.
+- Local full-matrix execution completed on the hashed archived input. GitHub Actions repository rerun is pending/independently tracked; do not describe its performance artifact as verified until it completes.
