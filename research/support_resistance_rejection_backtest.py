@@ -327,8 +327,6 @@ def simulate(d, events, cfg, start_i, end_i, cost_bps=PRIMARY_COST):
     cl = d.close.to_numpy(float)
     seg = d.segment.to_numpy()
     regime = d.regime.to_numpy()
-    ema50 = d.ema50_1h.to_numpy(float)
-    ema200 = d.ema200_1h.to_numpy(float)
     rows = []
     last_exit = start_i - 1
     for ev in events:
@@ -350,8 +348,6 @@ def simulate(d, events, cfg, start_i, end_i, cost_bps=PRIMARY_COST):
             if side == "long" and regime[ei] != "bull":
                 continue
             if side == "short" and regime[ei] != "bear":
-                continue
-            if not aligned:
                 continue
 
         entry = float(op[ei])
