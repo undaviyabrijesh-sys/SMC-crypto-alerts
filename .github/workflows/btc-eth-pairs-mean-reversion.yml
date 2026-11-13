@@ -83,10 +83,15 @@ jobs:
                                  ("diagnostic_regimes.csv","Regime diagnostics"),
                                  ("cost_sensitivity.csv","Cost sensitivity")):
                   q=p/name
-                  if q.exists():
+                  if q.exists() and q.stat().st_size > 1:
                       print(f"\n## {title}")
-                      d=pd.read_csv(q)
-                      print(d.head(80).to_string(index=False))
+                      try:
+                          d=pd.read_csv(q)
+                          print(d.head(80).to_string(index=False) if len(d) else "No rows")
+                      except pd.errors.EmptyDataError:
+                          print("No rows (empty CSV)")
+                  elif q.exists():
+                      print(f"\n## {title}: no qualifying rows")
           PY
       - name: Retain raw inputs and reproducible outputs
         if: always()
