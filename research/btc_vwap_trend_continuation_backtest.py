@@ -475,7 +475,10 @@ def run(price_path: Path, out_dir: Path):
         row["train_gate"] = bool(train_gate)
         matrix.append(row)
         if train_gate:
-            candidate_trades[json.dumps(cfg, sort_keys=True)] = (cfg, signals, train, validation, mt, mv)
+            cfg_key = (float(cfg["band_atr"]), str(cfg["confirmation"]), float(cfg["volume_mult"]),
+                   str(cfg["stop"]), float(cfg["target_r"]), str(cfg["session"]),
+                   bool(cfg["four_hour_slope_filter"]))
+        candidate_trades[cfg_key] = (cfg, signals, train, validation, mt, mv)
 
     md = pd.DataFrame(matrix)
     md.to_csv(out_dir / "matrix.csv", index=False)
@@ -489,7 +492,10 @@ def run(price_path: Path, out_dir: Path):
                 "band_atr", "confirmation", "volume_mult", "stop", "target_r",
                 "session", "four_hour_slope_filter"
             )}
-            key = json.dumps(key_cfg, sort_keys=True)
+            key = (float(key_cfg["band_atr"]), str(key_cfg["confirmation"]),
+                   float(key_cfg["volume_mult"]), str(key_cfg["stop"]),
+                   float(key_cfg["target_r"]), str(key_cfg["session"]),
+                   bool(key_cfg["four_hour_slope_filter"]))
             cfg, signals, train, validation, mt, mv = candidate_trades[key]
             validation_gate = (
                 mv["trades"] >= MIN_VALIDATION and mv["profit_factor"] is not None
@@ -536,7 +542,6 @@ def run(price_path: Path, out_dir: Path):
             "target_r": row.target_r, "session": row.session,
             "four_hour_slope_filter": bool(row.four_hour_slope_filter),
         }
-        key = json.dumps(cfg, sort_keys=True)
         signals = build_signals(d, cfg["band_atr"], cfg["confirmation"],
                                 cfg["volume_mult"], cfg["four_hour_slope_filter"])
         trades = simulate(d, signals, cfg, *bounds[split_name], 12)
