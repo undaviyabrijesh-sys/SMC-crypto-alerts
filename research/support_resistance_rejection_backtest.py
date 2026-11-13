@@ -669,7 +669,7 @@ def self_test():
     assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
     assert resolve_exit("short", 85, 120, 80, 110, 90) == (110, "SL")
     assert resolve_exit("long", 85, 95, 80, 90, 110) == (85, "SL")
-    assert resolve_exit("short", 100, 105, 95, 110, 90) == (90, "TP")
+    assert resolve_exit("short", 100, 105, 85, 110, 90) == (90, "TP")
 
     print("13 support/resistance causality and execution tests passed")
 
