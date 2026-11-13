@@ -906,3 +906,20 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Best validation-PF with >=20 trades (0.20 ATR, expiry 3, 50-point buffer, 2R, short-only, 07–19 UTC, EMA-side): train 348 trades, win 33.62%, PF 0.551, -146.41R, DD -148.14R, losing streak 15, positive months 3/18; validation 54 trades, win 40.74%, PF 0.788, -8.72R, DD -12.94R, losing streak 6, positive months 2/4.
 - Cost sensitivity at 6/12/20bp: best training-net train -35.90/-101.08/-187.98R, validation -11.95/-20.85/-32.71R; best validation-PF train -71.42/-146.41/-246.41R, validation +2.02/-8.72/-23.05R.
 - Regime diagnostics: both selected diagnostics were short-only bear-regime trades and negative in both train and validation. Decision remains reject, OOS not evaluated. The clean CI artifact figures supersede the earlier local provisional figures in the preceding ledger entry.
+
+
+## Next preregistered hypothesis — BTC VWAP trend continuation (planned 2026-11-13)
+
+This is intentionally distinct from the existing `vwap_reversion_intraday_backtest.py`, which tests deviation-band mean reversion. No results exist yet.
+
+- Market/data: BTCUSD traded 5m execution candles with completed 15m and 1H context; two-year history; preserve gaps and segment features.
+- Trend regime: long only when completed 1H close > EMA50 and EMA50 > EMA200; short only for the inverse. Optional four-hour EMA50 slope confirmation.
+- VWAP context: UTC-day cumulative typical-price VWAP using exchange candle volume; signal uses only completed 15m bars. Require VWAP slope over four completed 15m bars to agree with direction and 15m close on the trend side of VWAP.
+- 5m trigger: price pulls back into a 0.10/0.20 ATR band around the current completed 15m VWAP, then a completed 5m candle closes back on the trend side; enter next 5m open. Compare reclaim-close confirmation with break of the prior 5m candle extreme.
+- Relative-volume filters: none, 1.0x or 1.5x the prior 20-bar 5m median; never include the current bar in the baseline.
+- Stops: signal-candle extreme, 1.0 ATR or 1.5 ATR; targets 1.5R/2R/3R; maximum hold 4h; one position at a time.
+- Sessions: all hours, 07:00–13:00 UTC, 13:00–19:00 UTC.
+- Costs: 6/12/20bp assumed round trip; exact account fee tier, funding settlement cashflows and spread/market impact must be separately reconciled before any promotion.
+- Split/selection: chronological 70/15/15; minimum 40 train and 20 validation trades; PF >=1.05, positive net R, >=50% positive months, DD no worse than -20R train/-12R validation; OOS only after both gates. All feature and holding windows must stay inside contiguous data segments and split boundaries.
+- Execution: next 5m open; same-bar stop before target; adverse stop gap at worse open; target at target; no future higher-timeframe candle leakage.
+- This is a preregistered research plan only; do not describe it as executed or profitable until the workflow and artifact are independently verified.
