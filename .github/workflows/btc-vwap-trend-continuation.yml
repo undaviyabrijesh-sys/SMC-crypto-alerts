@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: btc-vwap-trend-continuation-\${{ github.ref }}
+  group: btc-vwap-trend-continuation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -101,7 +101,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-vwap-trend-continuation-\${{ github.run_id }}
+          name: btc-vwap-trend-continuation-${{ github.run_id }}
           path: |
             historical_data/BTC_5m.csv
             historical_data/manifest.json
