@@ -880,3 +880,12 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 - Cost sensitivity: best training-net candidate train -39.41/-100.92/-182.95R and validation -4.47/-12.09/-22.27R at 6/12/20bp. Best validation-PF candidate train -74.42/-149.41/-249.41R and validation +3.31/-7.15/-21.10R. The low-cost validation-only gain is paired with severe training losses.
 - Decision: reject; the original 50-point/2R setup family is consistently negative; no OOS evaluation.
 - Local full-matrix execution completed on the hashed archived input. GitHub Actions repository rerun is pending/independently tracked; do not describe its performance artifact as verified until it completes.
+
+
+### Pair-study reproducibility rerun — 2026-11-13
+
+- The empty-CSV summary guard was verified in [run 43385575204](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43385575204): all steps, including the research matrix, job summary and artifact upload, completed successfully.
+- Fresh rerun dataset: 70,127 aligned BTC/ETH 15m rows, 2024-11-12 19:30 UTC to 2026-11-13 07:00 UTC; zero BTC/ETH/aligned gaps; BTC/ETH zero-volume counts 80/85.
+- Fresh CSV SHA-256: BTC `2280f793cbd3ccab787aefa73096338a269f1cda4222c680a11188590bb349f5`; ETH `9d3b6a6bcd5f35af3471f473255d1dc8c15b4468691707347940eb3ba806beaa`.
+- Matrix independently re-inspected from artifact 14018992574: 576 configurations, zero training-eligible, zero validation passes, OOS not evaluated. Best training-net configuration and best validation-PF candidate reproduce the same metrics as the earlier artifact within displayed precision.
+- Decision remains reject. The rerun confirms the prior conclusion; it does not create a new candidate.
