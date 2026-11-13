@@ -923,3 +923,22 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Split/selection: chronological 70/15/15; minimum 40 train and 20 validation trades; PF >=1.05, positive net R, >=50% positive months, DD no worse than -20R train/-12R validation; OOS only after both gates. All feature and holding windows must stay inside contiguous data segments and split boundaries.
 - Execution: next 5m open; same-bar stop before target; adverse stop gap at worse open; target at target; no future higher-timeframe candle leakage.
 - This is a preregistered research plan only; do not describe it as executed or profitable until the workflow and artifact are independently verified.
+
+
+
+### BTC VWAP trend-continuation implementation — 2026-11-13
+
+- Implemented the previously preregistered continuation hypothesis as a separate study; this is not a modification of the older UTC-anchored VWAP reversion experiment.
+- Code: \`research/btc_vwap_trend_continuation_backtest.py\`; workflow: \`.github/workflows/btc-vwap-trend-continuation.yml\`.
+- Market/data: BTCUSD Delta traded-price 5m OHLCV; workflow downloads two years via \`bootstrap_historical_data.py\`; derives only complete 15m, 1h and 4h bars from contiguous 5m segments.
+- Signal rules: completed 1h close > EMA50 > EMA200 for longs, inverse for shorts; completed 15m UTC-day anchored typical-price VWAP slope over four bars must agree and completed 15m close must be on the trend side; completed 5m candle must intersect a 0.10/0.20 ATR5 band around latest completed 15m VWAP and confirm either a close reclaim or close beyond prior 5m extreme; entry at next 5m open.
+- Filters: current completed 5m volume compared with median of prior 20 completed 5m bars (none, 1.0x, 1.5x); optional completed 4h EMA50 slope over three completed 4h bars; sessions all UTC, 07:00–13:00 UTC, 13:00–19:00 UTC.
+- Risk: signal-candle extreme or 1.0/1.5 ATR5 stop; 1.5R/2R/3R target; maximum 4h hold; one position per configuration; next-open entry; same-bar stop before target; adverse stop-gap fill at worse open; invalid if next open is through stop.
+- Matrix: 2 VWAP bands x 2 confirmations x 3 volume filters x 3 stop types x 3 targets x 3 sessions x 2 4h filters = 432 configurations.
+- Costs: 6/12/20bp assumed round trip on one BTC leg; primary matrix 12bp. Exact account fee tier, separate spread/market impact and funding remain unverified/excluded. Delta candle volume is exchange-specific, not consolidated market volume.
+- Split/gates: chronological 70/15/15 by 5m row count; train >=40 trades, PF>=1.05, positive net R, max DD >=-20R and >=50% positive active months; shortlist top 25 by net R / absolute drawdown; validation >=20 trades, PF>=1.05, positive net R, max DD >=-12R and >=50% positive active months; one OOS candidate only if both gates pass.
+- Causality controls: 5m trigger uses completed signal candle; 15m/1h/4h contexts are as-of joined only at completed-bar availability time; rolling volume median shifted one 5m bar; all rolling features reset at data gaps; incomplete resampled bars excluded; UTC VWAP resets at the UTC-day boundary. A further guard rejects reclaim comparisons across the VWAP UTC-day reset.
+- Deterministic self-tests cover same-bar stop priority, adverse stop gaps, next-bar context availability, shifted volume baseline and a synthetic valid trend/VWAP trigger.
+- Code commits: engine \`daa179ebacf1272cbaa0ce7e86fa33599fea1d2e\`; candidate-key hardening \`10b999276d3118b502f684760dd97c75b5088dfe\`; gate-indentation correction \`debcf1aac024cefca0c28ffccb5732bc358fcda1\`; workflow expression fix \`29ae52ac0eea1efe95635f99fb00ea2d436d67a7\`; VWAP day-reset guard \`9d4e20d8635690349b3a66adfe6c6ac9b24b6442\`.
+- Workflow run \`43415410715\` at commit \`29ae52a\` passed compilation and the initial deterministic tests, then began downloading the two-year 5m BTC dataset. A new run \`43415470933\` was queued for commit \`9d4e20d\` after the UTC-day reset guard; final matrix results and artifact are pending independent verification.
+- No performance result is available yet. Do not report this experiment as completed or profitable until the latest run's steps, summary and artifact are inspected.
