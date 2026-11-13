@@ -895,3 +895,14 @@ This ledger records reproducible experiments only. "Completed" means the workflo
 
 - Repository workflow run [43386574210](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386574210) completed deterministic tests, BTC download, the full 288-configuration matrix and the job summary successfully; only the final artifact upload failed because the artifact name contained a literal backslash.
 - Fixed concurrency/artifact names at commit `1f9cdec805c6395e6230c853ef7af9b59fe85399`. Clean rerun [43386763734](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386763734) passed initial tests and was in historical-data download at the last status check. The locally completed full matrix remains the source for the diagnostic metrics above until the clean rerun's artifact is independently inspected.
+
+
+### EMA51 clean GitHub verification — supersedes earlier local provisional figures (2026-11-13)
+
+- Clean workflow [43386763734](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386763734) completed successfully; artifact [14018582805](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43386763734/artifacts/14018582805) was downloaded and independently inspected.
+- Verified CI input: 70,127 BTCUSD 15m rows, 2024-11-12 19:45 UTC to 2026-11-13 07:15 UTC; zero gaps; 80 zero-volume rows; SHA-256 `12d7d7c6d29d98d8a20e58e79301ab713aaf7005c32633d7bf6b2ceefa55fd25`.
+- 288 configurations; zero training-eligible; zero validation passes; no OOS.
+- Best training-net (0.10 ATR, expiry 6, 50-point buffer, 3R, short-only, 07–19 UTC, EMA-side): train 331 trades, win 29.61%, PF 0.678, -101.08R, DD -111.72R, losing streak 13, positive months 5/18; validation 55 trades, win 23.64%, PF 0.599, -20.85R, DD -24.29R, losing streak 8, positive months 0/4.
+- Best validation-PF with >=20 trades (0.20 ATR, expiry 3, 50-point buffer, 2R, short-only, 07–19 UTC, EMA-side): train 348 trades, win 33.62%, PF 0.551, -146.41R, DD -148.14R, losing streak 15, positive months 3/18; validation 54 trades, win 40.74%, PF 0.788, -8.72R, DD -12.94R, losing streak 6, positive months 2/4.
+- Cost sensitivity at 6/12/20bp: best training-net train -35.90/-101.08/-187.98R, validation -11.95/-20.85/-32.71R; best validation-PF train -71.42/-146.41/-246.41R, validation +2.02/-8.72/-23.05R.
+- Regime diagnostics: both selected diagnostics were short-only bear-regime trades and negative in both train and validation. Decision remains reject, OOS not evaluated. The clean CI artifact figures supersede the earlier local provisional figures in the preceding ledger entry.
