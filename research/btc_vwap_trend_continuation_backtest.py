@@ -149,8 +149,8 @@ def prepare_features(raw: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     variance = (cum_p2v / cum_vol.replace(0, np.nan) - m15.vwap15.pow(2)).clip(lower=0)
     m15["vwap_sd15"] = np.sqrt(variance)
     m15["vwap_slope4"] = m15.groupby(group_keys, sort=False).vwap15.diff(4)
-    ctx15 = m15[["segment", "close", "vwap15", "vwap_slope4"]].rename(
-        columns={"close": "close15"}
+    ctx15 = m15[["segment", "close", "vwap15", "vwap_slope4", "utc_day"]].rename(
+        columns={"close": "close15", "utc_day": "vwap_day"}
     )
 
     # Completed 1h EMA50/EMA200 regime, reset at each data gap.
@@ -237,6 +237,9 @@ def build_signals(d: pd.DataFrame, band: float, confirmation: str,
     prev_h = np.roll(h, 1)
     prev_l = np.roll(l, 1)
     prev_vwap = np.roll(vwap, 1)
+    vwap_day = d.vwap_day.to_numpy()
+    prev_vwap_day = np.roll(vwap_day, 1)
+    same_vwap_day = vwap_day == prev_vwap_day
     prev_segment = np.roll(segment, 1)
     prev_c[0] = prev_h[0] = prev_l[0] = prev_vwap[0] = np.nan
     prev_segment[0] = -1
@@ -245,7 +248,7 @@ def build_signals(d: pd.DataFrame, band: float, confirmation: str,
         np.isfinite(atr) & (atr > 0) & np.isfinite(vwap)
         & np.isfinite(slope) & np.isfinite(close15)
         & np.isfinite(close1h) & np.isfinite(ema50) & np.isfinite(ema200)
-        & (segment == prev_segment)
+        & (segment == prev_segment) & same_vwap_day
     )
     touch = (l <= vwap + band * atr) & (h >= vwap - band * atr)
     long_trend = valid & (close1h > ema50) & (ema50 > ema200)
@@ -709,7 +712,7 @@ def self_test():
         "vwap_slope4": [1.0] * n, "close15": [102.0] * n,
         "close1h": [110.0] * n, "ema50_1h": [105.0] * n,
         "ema200_1h": [100.0] * n, "ema50_slope3_4h": [1.0] * n,
-        "segment": [1] * n,
+        "segment": [1] * n, "vwap_day": [pd.Timestamp("2026-01-01", tz="UTC")] * n,
     }, index=pd.date_range("2026-01-01", periods=n, freq="5min", tz="UTC"))
     sig = build_signals(test, 0.10, "reclaim_close", 1.0, False)
     assert any(x["signal_i"] == 1 and x["side"] == 1 for x in sig)
