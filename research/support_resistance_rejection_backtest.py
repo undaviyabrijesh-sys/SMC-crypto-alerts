@@ -627,7 +627,7 @@ def self_test():
     praw = pd.DataFrame({"open": po, "high": ph, "low": pl, "close": pc}, index=pidx)
     pd0 = add_segments(praw)
     piv = confirmed_4h_pivot_levels(pd0)
-    available_i = 4 * 16
+    available_i = 5 * 16
     assert pd.isna(piv.resistance.iloc[available_i - 1])
     assert piv.resistance.iloc[available_i] == 15.0
 
