@@ -1376,8 +1376,8 @@
       "markets_scanned": 11,
       "timeframe_alignment_counts": {
         "15m": {
-          "above_both": 6,
-          "mixed": 4,
+          "above_both": 7,
+          "mixed": 3,
           "below_both": 1
         },
         "1h": {
@@ -1959,14 +1959,15 @@
         "interpretation": "Latest 1h OI notional rose modestly in BTC, ETH, SOL and BNB while XRP fell slightly; quantity changes were mixed. Global account long shares remained 70.9%-78.7% in the five majors. Latest 5m taker flow was seller-dominant in BTC and ETH, buyer-dominant in SOL, BNB and XRP. Funding was negative in SOL, ADA and LINK, zero in BNB, positive in the other seven."
       },
       "key_observations": [
-        "The rebound has broadened: 6/11 latest completed 15m closes above both EMA20/EMA50; 4 mixed; XRP alone below both. On 1h HYPE is above both, ADA/LINK/SUI/ZEC are mixed, and six markets remain below both. All 11 remain below both 4h and daily EMAs.",
+        "The rebound has broadened: 7/11 latest completed 15m closes above both EMA20/EMA50; 3 mixed; XRP alone below both. On 1h HYPE is above both, ADA/LINK/SUI/ZEC are mixed, and six markets remain below both. All 11 remain below both 4h and daily EMAs.",
         "Latest 15m and 1h relative volume is subdued across all 11 markets (15m 0.23x-0.80x; 1h 0.40x-0.68x), while the prior completed 4h selloff candle had elevated relative volume in most markets (BTC 2.93x, ETH 2.22x, BNB 3.26x).",
         "Three completed 4h sell-side sweep/reclaims were detected: BTC low 67449, prior 20-bar low 68489.3, close 68555; ETH low 1893.39, prior low 1915.03, close 1933.40; ZEC low 880.10, prior low 921.39, close 939.03. Current marks remain above the swept prior lows.",
         "Nine daily sweep/reclaims remain present from the 12 November daily candle: ETH, SOL, XRP, DOGE, ADA, LINK, SUI, ZEC and HYPE. All daily EMA alignments remain bearish.",
         "HYPE completed an hourly close above both its 1h EMA20 71.809 and EMA50 71.993 (close 72.93); its 15m structure is also above both EMAs, but no pullback/retest has occurred and participation is weak.",
         "ADA and ZEC have reclaimed their 1h EMA20 but remain below 1h EMA50; no long confirmation. BTC/ETH/SOL/BNB remain below both 1h EMAs.",
         "No new setup has a completed-candle entry, structural invalidation and defensible target with planned reward-to-risk >=2. No trade forced.",
-        "ADL risk was LOW for all 11 requested symbols. No reliable force-order liquidation-cluster feed was available."
+        "ADL risk was LOW for all 11 requested symbols. No reliable force-order liquidation-cluster feed was available.",
+        "Alignment count cross-check: 15m 7 above both / 3 mixed / 1 below both; 1h 1 above both / 4 mixed / 6 below both; 4h and daily 11 below both."
       ],
       "prior_idea_comparison": {
         "BTCUSDT-S-20261113T0333Z-RETEST-WATCH": "still_watch_only_mark 69343.8 remains below 69671-70691; no completed 15m rejection in zone",
@@ -2089,7 +2090,7 @@
   ],
   "last_scan_summary": {
     "decision": "NO_TRADE",
-    "reason": "Short-term recovery broadened, but all 11 markets remain below both 4h and daily EMA20/EMA50. 1h trend is mixed (HYPE above both, ADA/LINK/SUI/ZEC mixed, six below both); 15m and 1h participation is subdued. No completed retest/rejection with a defensible >=2R setup.",
+    "reason": "Short-term recovery broadened (7/11 15m above both EMAs; HYPE 1h above both), but all 11 markets remain below both 4h and daily EMA20/EMA50. 1h trend is mixed (HYPE above both, ADA/LINK/SUI/ZEC mixed, six below both); 15m and 1h participation is subdued. No completed retest/rejection with a defensible >=2R setup.",
     "data_timestamp_utc": "2026-11-13T11:07:03.000Z",
     "known_active_alerted_setups": 0,
     "unknown_prior_active_alerted_setups": true,
