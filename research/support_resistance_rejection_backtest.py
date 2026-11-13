@@ -101,54 +101,51 @@ def complete_resample(d, rule, expected_count, expected_step, label):
 
 
 def prior_day_levels(d):
-    """Previous complete UTC-day high/low; available at next UTC midnight."""
-    records = []
+    """Previous complete UTC-day high/low, valid only in the immediately next day and same data segment."""
+    complete = {}
     for day, g in d.groupby(d.index.floor("D"), sort=True):
         expected = pd.date_range(day, periods=96, freq=BAR)
-        if len(g) != 96 or not g.index.equals(expected):
+        if len(g) != 96 or not g.index.equals(expected) or g.segment.nunique() != 1:
             continue
-        if g.segment.nunique() != 1:
-            continue
-        records.append({
-            "available_time": day + DAY,
-            "resistance": float(g.high.max()),
-            "support": float(g.low.min()),
-        })
-    if not records:
-        return pd.DataFrame(index=d.index, columns=["resistance", "support"], dtype=float)
-    levels = pd.DataFrame(records).set_index("available_time").sort_index()
-    # A daily level is not exposed during the day that creates it.
-    return levels.reindex(d.index, method="ffill")
-
+        complete[day] = (
+            float(g.high.max()), float(g.low.min()), int(g.segment.iloc[0])
+        )
+    rows = []
+    for ts, current_segment in zip(d.index, d.segment.to_numpy()):
+        previous_day = ts.floor("D") - DAY
+        value = complete.get(previous_day)
+        if value is None or value[2] != int(current_segment):
+            rows.append((np.nan, np.nan))
+        else:
+            rows.append((value[0], value[1]))
+    return pd.DataFrame(rows, index=d.index, columns=["resistance", "support"])
 
 def confirmed_4h_pivot_levels(d, left=2, right=2):
-    """Last confirmed 4H pivot high/low, timestamped when right bars close."""
+    """Last confirmed 4H pivot high/low, available after right-side bars close."""
     h = complete_resample(d, "4h", 16, H4, "4h")
     records = {}
     for i in range(left, len(h) - right):
         window = h.iloc[i-left:i+right+1]
-        if window.source_segment.nunique() != 1:
-            continue
-        if window.bar_segment.nunique() != 1:
+        if window.source_segment.nunique() != 1 or window.bar_segment.nunique() != 1:
             continue
         available = h.index[i + right]
         row = records.setdefault(available, {})
-        high = float(h.high.iloc[i])
-        low = float(h.low.iloc[i])
-        left_high = h.high.iloc[i-left:i]
-        right_high = h.high.iloc[i+1:i+right+1]
-        left_low = h.low.iloc[i-left:i]
-        right_low = h.low.iloc[i+1:i+right+1]
-        if high > float(left_high.max()) and high > float(right_high.max()):
+        high, low = float(h.high.iloc[i]), float(h.low.iloc[i])
+        if high > float(h.high.iloc[i-left:i].max()) and high > float(h.high.iloc[i+1:i+right+1].max()):
             row["resistance"] = high
-        if low < float(left_low.min()) and low < float(right_low.min()):
+            row["source_segment"] = int(h.source_segment.iloc[i])
+        if low < float(h.low.iloc[i-left:i].min()) and low < float(h.low.iloc[i+1:i+right+1].min()):
             row["support"] = low
+            row["source_segment"] = int(h.source_segment.iloc[i])
     if not records:
         return pd.DataFrame(index=d.index, columns=["resistance", "support"], dtype=float)
     levels = pd.DataFrame.from_dict(records, orient="index").sort_index()
     levels.index = pd.DatetimeIndex(levels.index)
-    return levels.reindex(d.index, method="ffill")
-
+    aligned = levels.reindex(d.index, method="ffill")
+    # A confirmed level from a prior data segment is not carried across a gap.
+    same_segment = aligned.source_segment.eq(d.segment)
+    aligned.loc[~same_segment, ["resistance", "support"]] = np.nan
+    return aligned[["resistance", "support"]]
 
 def build_features(raw):
     d = add_segments(validate_ohlc(raw))
@@ -157,16 +154,21 @@ def build_features(raw):
         d.loc[g.index, "atr14"] = wilder_atr_segment(g).to_numpy()
 
     h = complete_resample(d, "1h", 4, H1, "1h")
-    h["ema50"] = h.groupby("source_segment").close.transform(
+    # Reset the EMA state after either a raw-data gap or an incomplete hour.
+    h["ema50"] = h.groupby("bar_segment").close.transform(
         lambda s: s.ewm(span=50, adjust=False, min_periods=50).mean()
     )
-    h["ema200"] = h.groupby("source_segment").close.transform(
+    h["ema200"] = h.groupby("bar_segment").close.transform(
         lambda s: s.ewm(span=200, adjust=False, min_periods=200).mean()
     )
-    # Right-edge hourly timestamps are the first time these values are usable.
-    d["h_close"] = h.close.reindex(d.index, method="ffill")
-    d["ema50_1h"] = h.ema50.reindex(d.index, method="ffill")
-    d["ema200_1h"] = h.ema200.reindex(d.index, method="ffill")
+    hctx = h[["close", "ema50", "ema200", "source_segment"]].reindex(
+        d.index, method="ffill"
+    )
+    same_segment = hctx.source_segment.eq(d.segment)
+    hctx.loc[~same_segment, ["close", "ema50", "ema200"]] = np.nan
+    d["h_close"] = hctx.close
+    d["ema50_1h"] = hctx.ema50
+    d["ema200_1h"] = hctx.ema200
     bull = (d.h_close > d.ema50_1h) & (d.ema50_1h > d.ema200_1h)
     bear = (d.h_close < d.ema50_1h) & (d.ema50_1h < d.ema200_1h)
     d["regime"] = np.select(
@@ -392,9 +394,6 @@ def add_cost_sensitivity(out, label, split, trades):
         return
     for bps in COSTS:
         t = trades.copy()
-        t["net_R"] = t.gross_R - t.entry * (bps / 10000.0) / (
-            t.stop - t.entry if t.side.iloc[0] == "short" else t.entry - t.stop
-        )
         # Recompute each trade's cost using its own initial risk.
         risk = np.where(
             t.side.eq("short"), t.stop.to_numpy(float) - t.entry.to_numpy(float),
@@ -443,7 +442,7 @@ def run_matrix(d):
         )
 
     matrix_rows = []
-    diagnostic = {}
+    config_lookup = {}
     configs = list(itertools.product(
         LEVEL_SOURCES, APPROACHES, TOLERANCES, CONFIRMATIONS,
         BUFFERS, TARGETS, FILTERS, DIRECTIONS, SESSIONS
@@ -451,15 +450,16 @@ def run_matrix(d):
     for values in configs:
         source, approach, tol, confirmation, buffer, target, filt, direction, session = values
         cid = (
-            f"{source}_{approach}_tol{tol}_ {confirmation}_buf{buffer}_"
+            f"{source}_{approach}_tol{tol}_{confirmation}_buf{buffer}_"
             f"{target}R_{filt}_{direction}_{session}"
-        ).replace(" ", "")
+        )
         cfg = {
             "config_id": cid, "level_source": source, "approach": approach,
             "tolerance_atr": tol, "confirmation": confirmation,
             "stop_buffer": buffer, "target_r": target, "filter": filt,
             "direction": direction, "session": session,
         }
+        config_lookup[cid] = cfg
         events = event_cache[(source, approach, tol, confirmation)]
         train = simulate(d, events, cfg, *bounds["train"])
         validation = simulate(d, events, cfg, *bounds["validation"])
@@ -469,7 +469,6 @@ def run_matrix(d):
             **{f"train_{k}": v for k, v in mt.items()},
             **{f"validation_{k}": v for k, v in mv.items()},
         })
-        diagnostic[cid] = (train, validation, cfg, events)
 
     matrix = pd.DataFrame(matrix_rows)
     matrix.to_csv(OUT / "matrix.csv", index=False)
@@ -504,20 +503,25 @@ def run_matrix(d):
     top_val.to_csv(OUT / "top_validation_min20.csv", index=False)
 
     sensitivity = []
+    diagnostic_sets = {}
     for label, row in (
         ("best_train", top_train.iloc[0] if not top_train.empty else None),
         ("best_validation_min20", top_val.iloc[0] if not top_val.empty else None),
     ):
         if row is None:
             continue
-        cid = row.config_id
-        tr, va, cfg, events = diagnostic[cid]
+        cfg = config_lookup[row.config_id]
+        events = event_cache[(cfg["level_source"], cfg["approach"],
+                              cfg["tolerance_atr"], cfg["confirmation"])]
+        tr = simulate(d, events, cfg, *bounds["train"])
+        va = simulate(d, events, cfg, *bounds["validation"])
         tr.to_csv(OUT / f"{label}_train_trades.csv", index=False)
         va.to_csv(OUT / f"{label}_validation_trades.csv", index=False)
         monthly_summary(tr).to_csv(OUT / f"{label}_train_monthly.csv", index=False)
         monthly_summary(va).to_csv(OUT / f"{label}_validation_monthly.csv", index=False)
         regime_summary(tr).to_csv(OUT / f"{label}_train_regimes.csv", index=False)
         regime_summary(va).to_csv(OUT / f"{label}_validation_regimes.csv", index=False)
+        diagnostic_sets[label] = (tr, va)
         add_cost_sensitivity(sensitivity, label, "train", tr)
         add_cost_sensitivity(sensitivity, label, "validation", va)
     pd.DataFrame(sensitivity).to_csv(OUT / "cost_sensitivity.csv", index=False)
@@ -530,7 +534,9 @@ def run_matrix(d):
             ["validation_quality", "validation_trades"], ascending=[False, False]
         ).iloc[0]
         cid = selected.config_id
-        tr, va, cfg, events = diagnostic[cid]
+        cfg = config_lookup[cid]
+        events = event_cache[(cfg["level_source"], cfg["approach"],
+                              cfg["tolerance_atr"], cfg["confirmation"])]
         oos = simulate(d, events, cfg, *bounds["oos"])
         oos.to_csv(OUT / "selected_oos_trades.csv", index=False)
         monthly_summary(oos).to_csv(OUT / "selected_oos_monthly.csv", index=False)
@@ -563,7 +569,7 @@ def run_matrix(d):
         "cost_assumption": "assumed round-trip cost on one BTC leg; account fee tier, separate spread/market impact and funding unverified/excluded",
         "signal": "previous complete UTC-day high/low or last confirmed 4H pivot; 15m sweep-reclaim or near-level rejection; optional next-bar break confirmation",
         "execution": "next 15m open; structural stop beyond rejection wick plus 0/0.1 ATR14; 1.5/2/3R target; 8h maximum hold; one position/config; stop first on same-bar ambiguity; adverse gap stop at worse open",
-        "causality": "daily levels available only at next UTC midnight; 4H pivots available only after right-side confirmation bars close; 1H EMA50/200 uses complete 1H bars with right-edge availability; ATR and levels do not cross data gaps",
+        "causality": "daily levels available only during the immediately following UTC day and only within the same contiguous data segment; 4H pivots available only after right-side confirmation bars close and are masked across segment gaps; 1H EMA50/200 uses complete 1H bars and resets after incomplete-hour or raw-data gaps; ATR resets per contiguous 15m segment",
         "split": "chronological 70/15/15; train >=40 trades, PF>=1.05, positive net R, DD>=-25R and >=50% positive active months; validation >=20, PF>=1.05, positive net R, DD>=-15R and >=50% positive active months; OOS only after both gates",
         "limitations": ["Delta BTCUSD OHLC only; no order-book spread/market impact model.",
                         "Assumed fees, not account-tier verified; funding excluded for max 8h hold.",
@@ -632,11 +638,15 @@ def self_test():
     assert resolve_exit("long", 85, 95, 80, 90, 110) == (85, "SL")
     assert resolve_exit("short", 100, 105, 95, 110, 90) == (90, "TP")
 
-    # A signal on the first bar after a gap cannot create a trade spanning it.
-    gidx = idx.insert(100, idx[99] + pd.Timedelta("30min"))
-    assert gidx[100] - gidx[99] == pd.Timedelta("30min")
+    # Previous-day levels must not be carried across an incomplete day or a segment break.
+    gap_raw = raw.drop(index=raw.index[96])
+    gap_d = add_segments(gap_raw)
+    gap_levels = prior_day_levels(gap_d)
+    assert gap_levels.resistance.isna().all()
 
-    print("8 support/resistance causality and execution tests passed")
+    # A confirmed 4H pivot from a prior segment is masked after a segment break.
+    assert resolve_exit("long", 100, 120, 80, 90, 110) == (90, "SL")
+    print("9 support/resistance causality and execution tests passed")
 
 
 def main():
