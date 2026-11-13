@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: support-resistance-rejection-\${{ github.ref }}
+  group: support-resistance-rejection-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-support-resistance-rejection-\${{ github.run_id }}
+          name: btc-support-resistance-rejection-${{ github.run_id }}
           path: support_resistance_rejection_results/
           if-no-files-found: warn
           retention-days: 30
