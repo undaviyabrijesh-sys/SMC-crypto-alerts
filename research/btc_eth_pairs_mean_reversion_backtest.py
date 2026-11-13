@@ -209,7 +209,7 @@ def make_signals(f: pd.DataFrame, entry_z: float, corr_min: float,
                  direction: str) -> list[tuple[int, int]]:
     z = f.z.to_numpy(float)
     valid = f.feature_valid.to_numpy(bool)
-    corr = f.corr.to_numpy(float)
+    corr = f["corr"].to_numpy(float)
     segments = f.segment.to_numpy(int)
     events = []
     for i in range(1, len(f)):
@@ -508,7 +508,17 @@ def self_test():
     after = gap.index.get_loc(idx[255])
     assert pd.isna(fg.z.iloc[after])
     assert fg.segment.iloc[after] != fg.segment.iloc[after - 1]
-    print("7 pair causality, gap, spread-OHLC and execution self-tests passed")
+    # Signal generation must read the DataFrame's "corr" column, not
+    # pandas.DataFrame.corr (a method with the same attribute name).
+    sf = pd.DataFrame({
+        "z": [0.0, 1.7, 1.8, -1.7],
+        "feature_valid": [True, True, True, True],
+        "corr": [0.8, 0.8, 0.4, 0.8],
+        "segment": [0, 0, 0, 0],
+    })
+    assert make_signals(sf, 1.5, 0.6, "both") == [(1, -1), (3, 1)]
+    assert make_signals(sf, 1.5, 0.0, "both") == [(1, -1), (3, 1)]
+    print("8 pair causality, gap, spread-OHLC, signal-column and execution self-tests passed")
 
 
 def main():
