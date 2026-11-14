@@ -1279,3 +1279,10 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Costs: 6/12/20bp round-trip assumptions; 12bp primary. Funding excluded because the archive retains raw funding units and settlement semantics are not yet sufficiently verified. No verified spread/impact model.
 - Metrics: trades, win rate, PF, net R, average R, drawdown, losing streak, ambiguous bars, positive-month fraction, exposure, side/regime/month attribution, and moving-block bootstrap CI where sample size permits.
 - This study is distinct from the earlier OI contraction grid. Status at preregistration: code/workflow being added; no market result until the dedicated Actions run completes and artifact is audited.
+
+
+### BTC OI walk-forward pipeline corrections before market evaluation
+
+- Initial run [43630889532](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43630889532) failed the synthetic resampling assertion. The test was corrected to expect the one complete 15m bucket while confirming the incomplete bucket is dropped.
+- Second run [43630921450](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43630921450) passed all 8 causal/execution self-tests and downloaded the full BTC datasets (210,381 5m price rows, one gap; 17,531 OI 1h rows, zero gaps), but the strategy loader rejected a zero OI candle low. The archive audit had already documented zero-low sentinels with positive close values; the strategy uses only OI close. The loader was corrected to allow a zero low only for OI while still requiring positive open/high/close, nonnegative low, and valid OHLC geometry. A regression test now proves the sentinel is accepted only in the OI-specific mode.
+- No market performance result was produced by either failed run. A corrected run is triggered by the latest `RUN_OI_WF:` commit; results will be reported only after the dedicated run succeeds.
