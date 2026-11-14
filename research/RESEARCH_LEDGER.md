@@ -1329,3 +1329,11 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Implementation: `research/btc_1h_donchian_trend_event_study.py`, workflow `.github/workflows/btc-1h-donchian-trend.yml`; deterministic tests cover prior-only channel, reset at gaps, completed 4h alignment, complete-bar aggregation and next-open/period-boundary outcome indexing.
 - Status at preregistration: implementation committed on `ai-quant-rebuild`; dedicated GitHub Actions run pending. No market result is claimed until the workflow and artifact are audited.
 - Research only: no production changes, main-branch writes, orders or execution alerts.
+
+
+### BTC Donchian implementation audit correction — before market result
+
+- During pre-result code audit, found the cloned study still carried the EMA prototype's 4h/8h/24h horizon constant even though the Donchian preregistration specifies 1h/4h/8h.
+- Corrected `HORIZONS` to exactly 1h/4h/8h in commit 83dd1b72d760697e1ebff17e9e8cc0dad912ad1e. The first triggered run [43652138413](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43652138413) checked out the pre-correction commit; it is non-authoritative and will not be used for any reported market result.
+- The self-tests passed before data download on that first run, but they did not assert the exact horizon dictionary. Added a separate explicit horizon assertion in the next correction.
+- No market performance result from the first run is accepted. The corrected workflow run is authoritative only after all tests, download, study and artifact checks succeed.
