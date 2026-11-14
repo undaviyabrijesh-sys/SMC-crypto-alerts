@@ -8,7 +8,7 @@ OHLC with stop-first ambiguity handling. Funding is reported as unmodelled
 because the archive's raw funding units/settlement semantics are not verified.
 """
 from __future__ import annotations
-import argparse, hashlib, json
+import argparse, hashlib, json, tempfile
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -274,6 +274,16 @@ def self_test():
     h2=h.copy(); h2.iloc[180,h2.columns.get_loc("close")]*=1.5
     f2=build_hourly_features(h2,oi)
     assert np.isclose(f.q90_abs_price_1h.iloc[180],f2.q90_abs_price_1h.iloc[180],equal_nan=True)
+    with tempfile.TemporaryDirectory() as td:
+        oi_path=Path(td)/"oi.csv"
+        oi.rename_axis("timestamp").reset_index().to_csv(oi_path,index=False)
+        loaded=load_ohlc(oi_path,"synthetic OI",allow_zero_low=True)
+        assert loaded.low.iloc[150]==0 and loaded.close.iloc[150]>0
+        try:
+            load_ohlc(oi_path,"synthetic OI strict")
+            raise AssertionError("strict OHLC validator should reject zero low")
+        except StudyError:
+            pass
     p=make_periods(pd.Timestamp("2024-11-15",tz="UTC"),pd.Timestamp("2026-11-15",tz="UTC"))
     assert p["final_holdout"]["start"]==pd.Timestamp("2026-05-15",tz="UTC")
     assert len(p["validation_folds"])==6
@@ -296,6 +306,7 @@ def run(oi_path: Path, price_path: Path, out: Path):
     start=features.index.min(); end=features.index.max()
     periods=make_periods(start,end)
     trades,period_report=evaluate_all(events,bars5,atr15,periods)
+    events.to_csv(out/"events.csv",index=False)
     trades.to_csv(out/"trades.csv",index=False)
     monthly=[]
     if not trades.empty:
