@@ -2,10 +2,11 @@
 """Preregistered BTC session-range sweep/re-entry forward-return event study.
 
 Research-only. Delta BTCUSD traded-price 5m OHLCV. Asia range: 00:00-06:00 UTC.
-Signals: first 06:00-18:00 UTC bar that trades beyond one range edge and closes
-back inside. Entry is next 5m open. At most one event per UTC day; if a bar sweeps
-both edges it is excluded. No stop/target optimization: measure 15m/1h/4h/8h
-forward directional returns. Costs are sensitivity assumptions, not fee claims.
+A qualifying event is the first 06:00-18:00 UTC candle that sweeps one range
+edge and closes back inside. Entry is next 5m open. Both-edge sweeps are ignored.
+One event per UTC day. Forward returns are compared with a deterministic
+same-day, same-side random-time control outside the signal neighbourhood.
+No stop/target optimization or executable-PnL claim is made in this phase.
 """
 from __future__ import annotations
 import argparse, hashlib, json, time
@@ -17,10 +18,14 @@ import requests
 URL = "https://api.india.delta.exchange/v2/history/candles"
 SYMBOL = "BTCUSD"
 STEP = pd.Timedelta(minutes=5)
+ASIA_BARS = 72
 HORIZONS = {"15m": 3, "1h": 12, "4h": 48, "8h": 96}
 COSTS_BPS = (6.0, 12.0, 20.0)
+CONTROL_SEED = 20261114
+CONTROL_EXCLUSION_BARS = 6  # +/- 30m around signal; controls are not signal bars
 
-class StudyError(RuntimeError): pass
+class StudyError(RuntimeError):
+    pass
 
 def fetch_data(days: int = 730, delay: float = 0.12) -> pd.DataFrame:
     end = int(pd.Timestamp.now(tz="UTC").floor("5min").timestamp())
@@ -31,146 +36,254 @@ def fetch_data(days: int = 730, delay: float = 0.12) -> pd.DataFrame:
     cursor = start
     while cursor < end:
         stop = min(end - 1, cursor + span)
-        r = session.get(URL, params={"resolution":"5m","symbol":SYMBOL,
+        response = session.get(URL, params={"resolution":"5m","symbol":SYMBOL,
             "start":str(cursor),"end":str(stop)},
-            headers={"Accept":"application/json","User-Agent":"SaltyQuantSessionSweep/1.0"},
+            headers={"Accept":"application/json","User-Agent":"SaltyQuantSessionSweep/1.1"},
             timeout=40)
-        r.raise_for_status()
-        payload = r.json()
+        response.raise_for_status()
+        payload = response.json()
         if payload.get("success") is not True:
             raise StudyError(f"Delta API unsuccessful response: {payload}")
         part = payload.get("result") or []
-        if len(part) > 1800: raise StudyError("API returned more than 1800 candles")
+        if not isinstance(part, list) or len(part) > 1800:
+            raise StudyError("Delta returned malformed candle list or exceeded 1800-row cap")
         rows.extend(part)
         cursor = stop + 1
         time.sleep(delay)
-    if not rows: raise StudyError("No BTCUSD candles returned")
-    d = pd.DataFrame(rows)
-    if not {"time","open","high","low","close"}.issubset(d.columns):
+    if not rows:
+        raise StudyError("No BTCUSD candles returned")
+    data = pd.DataFrame(rows)
+    if not {"time","open","high","low","close"}.issubset(data.columns):
         raise StudyError("Missing OHLC columns")
-    d["timestamp"] = pd.to_datetime(pd.to_numeric(d.time,errors="raise"),unit="s",utc=True)
-    for c in ("open","high","low","close","volume"):
-        if c not in d: d[c] = 0.0
-        d[c] = pd.to_numeric(d[c],errors="coerce")
-    d = d.drop_duplicates("timestamp",keep="last").sort_values("timestamp").set_index("timestamp")
-    vals=d[["open","high","low","close","volume"]].to_numpy(float)
-    if not np.isfinite(vals).all(): raise StudyError("Non-finite OHLCV")
-    if (d[["open","high","low","close"]]<=0).any().any(): raise StudyError("Non-positive price")
-    bad=(d.high<d[["open","close","low"]].max(axis=1))|(d.low>d[["open","close","high"]].min(axis=1))
-    if bad.any(): raise StudyError(f"Invalid OHLC rows: {int(bad.sum())}")
-    d=d[d.index+STEP<=pd.Timestamp.now(tz="UTC").floor("5min")]
-    d["segment"]=(d.index.to_series().diff().ne(STEP)).cumsum().to_numpy()
-    return d
+    data["timestamp"] = pd.to_datetime(pd.to_numeric(data.time,errors="raise"),unit="s",utc=True)
+    for col in ("open","high","low","close","volume"):
+        if col not in data:
+            data[col] = 0.0
+        data[col] = pd.to_numeric(data[col],errors="coerce")
+    duplicate_count = int(data.timestamp.duplicated().sum())
+    data = data.drop_duplicates("timestamp",keep="last").sort_values("timestamp").set_index("timestamp")
+    values = data[["open","high","low","close","volume"]].to_numpy(float)
+    if not np.isfinite(values).all():
+        raise StudyError("Non-finite OHLCV")
+    if (data[["open","high","low","close"]] <= 0).any().any():
+        raise StudyError("Non-positive price")
+    invalid = ((data.high < data[["open","close","low"]].max(axis=1))
+               | (data.low > data[["open","close","high"]].min(axis=1)))
+    if invalid.any():
+        raise StudyError(f"Invalid OHLC rows: {int(invalid.sum())}")
+    data = data[data.index + STEP <= pd.Timestamp.now(tz="UTC").floor("5min")]
+    data["segment"] = data.index.to_series().diff().ne(STEP).cumsum().to_numpy()
+    data.attrs["duplicate_count"] = duplicate_count
+    if data.empty:
+        raise StudyError("No valid closed BTCUSD candles")
+    return data
 
-def detect_events(d: pd.DataFrame) -> pd.DataFrame:
-    x=d.copy()
-    x["day"]=x.index.floor("D")
-    x["minute"]=x.index.hour*60+x.index.minute
-    x["asia"]=x.minute.lt(360)
-    x["trade_window"]=x.minute.ge(360)&x.minute.lt(1080)
-    rows=[]
-    for day,g in x.groupby("day",sort=True):
-        asia=g[g.asia]
-        if len(asia)<60 or asia.index[-1]-asia.index[0] < pd.Timedelta(hours=4,minutes=55):
+def _is_sweep(row, range_high: float, range_low: float) -> tuple[bool,bool]:
+    high_sweep = float(row.high) > range_high and float(row.close) < range_high
+    low_sweep = float(row.low) < range_low and float(row.close) > range_low
+    return high_sweep, low_sweep
+
+def detect_events(data: pd.DataFrame) -> pd.DataFrame:
+    x = data.copy()
+    x["day"] = x.index.floor("D")
+    x["minute"] = x.index.hour * 60 + x.index.minute
+    rows = []
+    for day, group in x.groupby("day",sort=True):
+        asia = group[(group.minute >= 0) & (group.minute < 360)]
+        expected = pd.date_range(day,periods=ASIA_BARS,freq=STEP,tz="UTC")
+        # The full 6h range is mandatory: never calculate from a partial Asia session.
+        if len(asia) != ASIA_BARS or not asia.index.equals(expected):
             continue
-        # Require complete, contiguous Asia session and one data segment.
-        if asia.segment.nunique()!=1 or not asia.index.to_series().diff().dropna().eq(STEP).all():
+        if asia.segment.nunique() != 1:
             continue
-        rh=float(asia.high.max()); rl=float(asia.low.min())
-        win=g[g.trade_window]
-        if win.empty: continue
-        for ts,row in win.iterrows():
-            up=float(row.high)>rh and float(row.close)<rh
-            dn=float(row.low)<rl and float(row.close)>rl
-            if up and dn: continue
-            if up or dn:
-                entry_i=d.index.get_indexer([ts])[0]+1
-                if entry_i>=len(d): break
-                entry_ts=d.index[entry_i]
-                if entry_ts-ts!=STEP or d.segment.iloc[entry_i]!=row.segment: break
-                side=-1 if up else 1
-                rows.append({"signal_time":ts.isoformat(),"entry_time":entry_ts.isoformat(),
-                    "day":str(day.date()),"side":"short" if side<0 else "long",
-                    "side_sign":side,"range_high":rh,"range_low":rl,
-                    "entry":float(d.open.iloc[entry_i]),"sweep_edge":"high" if up else "low"})
-                break  # first qualifying event per day; prevents event clustering
+        range_high = float(asia.high.max())
+        range_low = float(asia.low.min())
+        window = group[(group.minute >= 360) & (group.minute < 1080)]
+        for signal_time, row in window.iterrows():
+            high_sweep, low_sweep = _is_sweep(row,range_high,range_low)
+            if high_sweep and low_sweep:
+                continue
+            if not (high_sweep or low_sweep):
+                continue
+            signal_i = data.index.get_indexer([signal_time])[0]
+            entry_i = signal_i + 1
+            if entry_i >= len(data):
+                break
+            entry_time = data.index[entry_i]
+            if entry_time - signal_time != STEP or data.segment.iloc[entry_i] != row.segment:
+                break
+            side = -1 if high_sweep else 1
+            rows.append({"signal_time":signal_time.isoformat(),
+                "entry_time":entry_time.isoformat(),"day":str(day.date()),
+                "side":"short" if side < 0 else "long","side_sign":side,
+                "range_high":range_high,"range_low":range_low,
+                "entry":float(data.open.iloc[entry_i]),
+                "sweep_edge":"high" if high_sweep else "low"})
+            break  # first qualifying event per UTC day; avoids event clustering
     return pd.DataFrame(rows)
 
-def evaluate(d: pd.DataFrame, events: pd.DataFrame) -> tuple[pd.DataFrame,dict]:
-    if events.empty: raise StudyError("No qualifying session sweep events")
-    index=d.index
-    out=[]
-    for e in events.to_dict("records"):
-        t=pd.Timestamp(e["entry_time"]); i=index.get_indexer([t])[0]
-        for label,bars in HORIZONS.items():
-            j=i+bars-1
-            if j>=len(d): continue
-            # Do not cross a data gap; horizon close is the close of the final bar.
-            if d.segment.iloc[i:j+1].nunique()!=1: continue
-            exit_px=float(d.close.iloc[j])
-            gross=(exit_px/float(e["entry"])-1.0)*int(e["side_sign"])*100.0
-            rec={**e,"horizon":label,"exit_time":index[j].isoformat(),
-                 "exit":exit_px,"gross_return_pct":gross}
-            for bps in COSTS_BPS:
-                rec[f"net_{int(bps)}bps_pct"]=gross-2*bps/100.0
-            out.append(rec)
-    trades=pd.DataFrame(out)
-    if trades.empty: raise StudyError("No complete forward-return observations")
-    summary={}
-    for horizon,g in trades.groupby("horizon",sort=False):
-        net=g["net_12bps_pct"]
-        summary[horizon]={"n":int(len(g)),"long_n":int((g.side=="long").sum()),
-            "short_n":int((g.side=="short").sum()),
-            "mean_gross_pct":round(float(g.gross_return_pct.mean()),5),
-            "median_gross_pct":round(float(g.gross_return_pct.median()),5),
-            "mean_net_6bps_pct":round(float(g.net_6bps_pct.mean()),5),
-            "mean_net_12bps_pct":round(float(net.mean()),5),
-            "mean_net_20bps_pct":round(float(g.net_20bps_pct.mean()),5),
-            "positive_net_fraction_12bps":round(float((net>0).mean()),4),
-            "positive_month_fraction":round(float((g.assign(month=pd.to_datetime(g.entry_time,utc=True).dt.to_period("M"))
-                .groupby("month").net_12bps_pct.mean()>0).mean()),4)}
-    return trades,summary
+def build_controls(data: pd.DataFrame, events: pd.DataFrame) -> pd.DataFrame:
+    """One deterministic same-day/same-side non-sweep random-time control per event."""
+    if events.empty:
+        return pd.DataFrame()
+    rng = np.random.default_rng(CONTROL_SEED)
+    rows = []
+    for event_id, event in enumerate(events.to_dict("records")):
+        day = pd.Timestamp(event["day"],tz="UTC")
+        start_i = data.index.searchsorted(day,side="left")
+        end_i = data.index.searchsorted(day + pd.Timedelta(days=1),side="left")
+        candidates = []
+        signal_i = data.index.get_indexer([pd.Timestamp(event["signal_time"])])[0]
+        for i in range(start_i,end_i):
+            ts = data.index[i]
+            minute = ts.hour * 60 + ts.minute
+            if not (360 <= minute < 1080):
+                continue
+            if abs(i - signal_i) <= CONTROL_EXCLUSION_BARS:
+                continue
+            if i + max(HORIZONS.values()) - 1 >= len(data):
+                continue
+            if data.segment.iloc[i:i+max(HORIZONS.values())].nunique() != 1:
+                continue
+            row = data.iloc[i]
+            high_sweep, low_sweep = _is_sweep(row,float(event["range_high"]),float(event["range_low"]))
+            if high_sweep or low_sweep:
+                continue
+            candidates.append(i)
+        if not candidates:
+            continue
+        chosen = int(rng.choice(candidates))
+        rows.append({"event_id":event_id,"control_time":data.index[chosen].isoformat(),
+            "day":event["day"],"side":event["side"],"side_sign":event["side_sign"],
+            "entry":float(data.open.iloc[chosen])})
+    return pd.DataFrame(rows)
 
-def walk_forward(events: pd.DataFrame) -> list[dict]:
-    if events.empty: return []
-    dates=pd.to_datetime(events.entry_time,utc=True)
-    first=dates.min().floor("D"); last=dates.max().floor("D")
-    # Frozen calendar folds: 6m warm-up then consecutive 2m evaluation windows.
-    cursor=first+pd.DateOffset(months=6); folds=[]
-    while cursor<=last:
-        end=cursor+pd.DateOffset(months=2)
-        g=events[(dates>=cursor)&(dates<end)]
-        folds.append({"validation_start":cursor.isoformat(),"validation_end":end.isoformat(),
-            "event_count":int(len(g)),
-            "long_count":int((g.side=="long").sum()),"short_count":int((g.side=="short").sum())})
-        cursor=end
+def evaluate(data: pd.DataFrame, rows: pd.DataFrame, time_col: str,
+             prefix: str) -> pd.DataFrame:
+    if rows.empty:
+        return pd.DataFrame()
+    index = data.index
+    output = []
+    for item in rows.to_dict("records"):
+        entry_time = pd.Timestamp(item[time_col])
+        i = index.get_indexer([entry_time])[0]
+        if i < 0:
+            continue
+        for horizon,bars in HORIZONS.items():
+            j = i + bars - 1  # close at exactly entry + horizon, using 5m bar closes
+            if j >= len(data) or data.segment.iloc[i:j+1].nunique() != 1:
+                continue
+            exit_price = float(data.close.iloc[j])
+            gross = (exit_price / float(item["entry"]) - 1.0) * int(item["side_sign"]) * 100.0
+            record = {**item,"horizon":horizon,"exit_time":index[j].isoformat(),
+                "exit":exit_price,"gross_return_pct":gross}
+            for bps in COSTS_BPS:
+                record[f"net_{int(bps)}bps_pct"] = gross - 2*bps/100.0
+            output.append(record)
+    return pd.DataFrame(output)
+
+def summarize_pair(event_returns: pd.DataFrame, control_returns: pd.DataFrame) -> dict:
+    summary = {}
+    for horizon in HORIZONS:
+        e = event_returns[event_returns.horizon == horizon]
+        c = control_returns[control_returns.horizon == horizon]
+        if e.empty or c.empty:
+            summary[horizon] = {"event_n":int(len(e)),"control_n":int(len(c)),
+                "status":"insufficient paired observations"}
+            continue
+        # Pair by event_id so each event is compared with its own same-day/same-side control.
+        paired = e.merge(c[["event_id","net_12bps_pct"]].rename(
+            columns={"net_12bps_pct":"control_net_12bps_pct"}),on="event_id",how="inner")
+        if paired.empty:
+            summary[horizon] = {"event_n":int(len(e)),"control_n":int(len(c)),
+                "status":"no paired observations"}
+            continue
+        delta = paired.net_12bps_pct - paired.control_net_12bps_pct
+        summary[horizon] = {"paired_n":int(len(paired)),
+            "event_mean_gross_pct":round(float(paired.gross_return_pct.mean()),5),
+            "event_mean_net_12bps_pct":round(float(paired.net_12bps_pct.mean()),5),
+            "control_mean_net_12bps_pct":round(float(paired.control_net_12bps_pct.mean()),5),
+            "paired_mean_lift_pct":round(float(delta.mean()),5),
+            "event_positive_fraction_net_12bps":round(float((paired.net_12bps_pct > 0).mean()),4),
+            "control_positive_fraction_net_12bps":round(float((paired.control_net_12bps_pct > 0).mean()),4),
+            "event_long_n":int((paired.side == "long").sum()),
+            "event_short_n":int((paired.side == "short").sum()),
+            "positive_event_month_fraction":round(float((paired.assign(
+                month=pd.to_datetime(paired.entry_time,utc=True).dt.to_period("M"))
+                .groupby("month").net_12bps_pct.mean() > 0).mean()),4)}
+    return summary
+
+def walk_forward(event_returns: pd.DataFrame, control_returns: pd.DataFrame) -> list[dict]:
+    if event_returns.empty:
+        return []
+    dates = pd.to_datetime(event_returns.entry_time,utc=True)
+    first = dates.min().floor("D")
+    last = dates.max().floor("D")
+    cursor = first + pd.DateOffset(months=6)
+    folds = []
+    while cursor <= last:
+        end = cursor + pd.DateOffset(months=2)
+        for horizon in HORIZONS:
+            e = event_returns[(event_returns.horizon == horizon)
+                & (pd.to_datetime(event_returns.entry_time,utc=True) >= cursor)
+                & (pd.to_datetime(event_returns.entry_time,utc=True) < end)]
+            c = control_returns[(control_returns.horizon == horizon)
+                & (pd.to_datetime(control_returns.control_time,utc=True) >= cursor)
+                & (pd.to_datetime(control_returns.control_time,utc=True) < end)]
+            paired = e.merge(c[["event_id","net_12bps_pct"]].rename(
+                columns={"net_12bps_pct":"control_net_12bps_pct"}),on="event_id",how="inner")
+            folds.append({"validation_start":cursor.isoformat(),"validation_end":end.isoformat(),
+                "horizon":horizon,"paired_n":int(len(paired)),
+                "event_mean_net_12bps_pct":round(float(paired.net_12bps_pct.mean()),5) if len(paired) else None,
+                "control_mean_net_12bps_pct":round(float(paired.control_net_12bps_pct.mean()),5) if len(paired) else None,
+                "mean_lift_pct":round(float((paired.net_12bps_pct-paired.control_net_12bps_pct).mean()),5) if len(paired) else None})
+        cursor = end
     return folds
 
 def main():
-    p=argparse.ArgumentParser()
-    p.add_argument("--days",type=int,default=730)
-    p.add_argument("--output-dir",default="research/results/session_sweep")
-    a=p.parse_args()
-    if a.days<240: raise SystemExit("--days must be at least 240 for the preregistered folds")
-    out=Path(a.output_dir); out.mkdir(parents=True,exist_ok=True)
-    d=fetch_data(a.days)
-    events=detect_events(d)
-    trades,summary=evaluate(d,events)
-    events.to_csv(out/"events.csv",index=False)
-    trades.to_csv(out/"forward_returns.csv",index=False)
-    digest=hashlib.sha256(pd.util.hash_pandas_object(d,index=True).values.tobytes()).hexdigest()
-    report={"status":"completed","symbol":SYMBOL,"timeframe":"5m","bars":len(d),
-      "first_bar_utc":d.index.min().isoformat(),"last_bar_utc":d.index.max().isoformat(),
-      "gap_count":int((d.index.to_series().diff()>STEP*1.5).sum()),
-      "data_hash_pandas_object_sha256":digest,"event_count":int(len(events)),
-      "definition":{"asia_utc":"00:00-06:00","trade_window_utc":"06:00-18:00",
-        "entry":"next 5m open","event_limit":"first qualifying event per UTC day",
-        "both_edges_same_bar":"excluded","horizons_bars":HORIZONS,
-        "cost_sensitivity_round_trip_bps":COSTS_BPS},
-      "summary":summary,"walk_forward_event_counts":walk_forward(events),
-      "limitations":["5m bars measure signal forward returns, not stop/target execution",
-        "costs are simple round-trip sensitivities, not verified Delta fee tier or slippage",
-        "events are descriptive and require matched-control/placebo analysis before edge claims"]}
-    (out/"report.json").write_text(json.dumps(report,indent=2)+"\n")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--days",type=int,default=730)
+    parser.add_argument("--output-dir",default="research/results/session_sweep")
+    args = parser.parse_args()
+    if args.days < 240:
+        raise SystemExit("--days must be at least 240 for the frozen 6m/2m evaluation blocks")
+    output = Path(args.output_dir)
+    output.mkdir(parents=True,exist_ok=True)
+    data = fetch_data(args.days)
+    events = detect_events(data)
+    if events.empty:
+        raise StudyError("No qualifying events found; no performance result can be reported")
+    controls = build_controls(data,events)
+    event_returns = evaluate(data,events,"entry_time","event")
+    control_returns = evaluate(data,controls,"control_time","control")
+    if control_returns.empty:
+        raise StudyError("No eligible same-day matched controls; cannot make an edge comparison")
+    events.to_csv(output/"events.csv",index=False)
+    controls.to_csv(output/"controls.csv",index=False)
+    event_returns.to_csv(output/"event_forward_returns.csv",index=False)
+    control_returns.to_csv(output/"control_forward_returns.csv",index=False)
+    digest = hashlib.sha256(pd.util.hash_pandas_object(data,index=True).values.tobytes()).hexdigest()
+    report = {"status":"completed","symbol":SYMBOL,"timeframe":"5m","bars":int(len(data)),
+        "first_bar_utc":data.index.min().isoformat(),"last_bar_utc":data.index.max().isoformat(),
+        "gap_count":int((data.index.to_series().diff() > STEP*1.5).sum()),
+        "duplicate_count":int(data.attrs.get("duplicate_count",0)),
+        "data_hash_pandas_object_sha256":digest,"event_count":int(len(events)),
+        "matched_control_count":int(len(controls)),
+        "definition":{"asia_utc":"00:00-06:00; all 72 five-minute candles required",
+            "trade_window_utc":"06:00-18:00","entry":"next 5m open after sweep/re-entry close",
+            "event_limit":"first qualifying event per UTC day","both_edges_same_bar":"ignored",
+            "control":"one deterministic same-day, same-side random-time non-sweep bar per event; exclude +/-30m around signal",
+            "horizons_bars":HORIZONS,"cost_sensitivity_round_trip_bps":COSTS_BPS,
+            "control_rng_seed":CONTROL_SEED},
+        "paired_summary":summarize_pair(event_returns,control_returns),
+        "walk_forward_2m_blocks_after_6m_initial_period":walk_forward(event_returns,control_returns),
+        "limitations":["This is a directional event study, not a stop/target trade backtest; no win-rate/PF/R/DD claim is appropriate.",
+            "5m bars cannot resolve intrabar execution ambiguity for future stop/target designs.",
+            "Round-trip cost values are sensitivity assumptions, not verified fees, spread, slippage or funding.",
+            "The same-day random-time control is a descriptive matched benchmark, not a randomized causal experiment.",
+            "No regime stratification or final separately sequestered holdout is included in this phase."]}
+    (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps(report,indent=2))
-if __name__=="__main__": main()
+
+if __name__ == "__main__":
+    main()
