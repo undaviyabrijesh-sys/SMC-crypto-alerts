@@ -276,7 +276,7 @@ def summarize(e: pd.DataFrame,c: pd.DataFrame) -> tuple[dict,list[dict]]:
                   "win_rate_pct":round(float((g.net_12bps_pct>0).mean()*100),2)})
     return summary,monthly_rows
 
-def run(data_csv: Path, out: Path) -> dict:
+def run(data_csv: Path, out: Path, symbol: str="BTCUSD") -> dict:
     raw,h1,meta=prepare(data_csv)
     events=build_events(h1)
     controls=build_controls(h1,events)
@@ -293,7 +293,7 @@ def run(data_csv: Path, out: Path) -> dict:
     co.to_csv(out/"control_forward_returns.csv",index=False)
     summary,monthly=summarize(ev,co)
     match_n=int(controls.event_id.nunique()) if not controls.empty else 0
-    report={"status":"completed","symbol":"BTCUSD","source":"Delta Exchange India traded-price 15m OHLCV",
+    report={"status":"completed","symbol":symbol,"source":"Delta Exchange India traded-price 15m OHLCV",
       "timeframe_signal":"1h","data":meta,"complete_1h_bars":len(h1),
       "raw_event_count":int(len(events)),"matched_control_count":match_n,
       "match_rate_pct":round(100*match_n/len(events),2) if len(events) else 0.0,
@@ -356,9 +356,10 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--data-csv",type=Path,default=Path("historical_data/BTC_15m.csv"))
     p.add_argument("--output-dir",type=Path,default=Path("research/results/btc_1h_ema20_pullback"))
+    p.add_argument("--symbol",default="BTCUSD")
     p.add_argument("--self-test",action="store_true")
     a=p.parse_args()
     if a.self_test: self_test(); return
-    r=run(a.data_csv,a.output_dir)
+    r=run(a.data_csv,a.output_dir,a.symbol)
     print(json.dumps(r,indent=2))
 if __name__=="__main__": main()
