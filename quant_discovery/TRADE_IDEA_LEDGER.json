@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-14T07:15:16.000Z",
+  "updated_at": "2026-11-14T11:53:39.000Z",
   "recovery": {
     "status": "initialized_after_empty_file",
     "previous_file_parse": "failed_empty_file",
@@ -631,7 +631,7 @@
       "symbol": "BTCUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
-      "status": "watch_only",
+      "status": "superseded_stale_retest_band",
       "trigger_confirmed": false,
       "entry_executed": false,
       "discord_alert_sent": false,
@@ -639,13 +639,211 @@
         67343.06059,
         67789.809833
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
       "last_mark_price": 67387.38502174,
       "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 67343.06059-67789.809833, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark is inside the EMA20-EMA50 band, but the latest completed 15m candle is bullish and there is no bearish rejection trigger."
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
     },
     {
       "idea_id": "ETHUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "ETHUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        1904.488798,
+        1915.276849
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 1902.71222481,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 1904.488798-1915.276849, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "SOLUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "SOLUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        75.908503,
+        77.045525
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 75.5,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 75.908503-77.045525, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "BNBUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "BNBUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        621.044966,
+        625.758565
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 619.45,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 621.044966-625.758565, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "XRPUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "XRPUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        0.996469,
+        1.00368
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.9914,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.996469-1.00368, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "DOGEUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "DOGEUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        0.063164,
+        0.063751
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.06288,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.063164-0.063751, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "ADAUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "ADAUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        0.164622,
+        0.166397
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.16350042,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.164622-0.166397, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "LINKUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "LINKUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        9.664287,
+        9.74433
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 9.59733093,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 9.664287-9.74433, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "SUIUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "SUIUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        0.779575,
+        0.786653
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.7747,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.779575-0.786653, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "ZECUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "ZECUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        916.210925,
+        925.677389
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 911.85,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 916.210925-925.677389, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "HYPEUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "symbol": "HYPEUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "superseded_stale_retest_band",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        69.587252,
+        70.532224
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 69.567,
+      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 69.587252-70.532224, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
+      "last_evaluation": "Replaced by refreshed EMA20/EMA50 bands calculated from the 11:44:59 UTC completed 15m candle; no entry opened."
+    },
+    {
+      "idea_id": "BTCUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
+      "symbol": "BTCUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "status": "watch_only",
+      "trigger_confirmed": false,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "entry_zone": [
+        67227.1095,
+        67463.6395
+      ],
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 67260,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "Mark is in the band, but the rejection candle high was subsequently exceeded; no trigger."
+    },
+    {
+      "idea_id": "ETHUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "ETHUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -654,16 +852,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        1904.488798,
-        1915.276849
+        1905.7531,
+        1909.2445
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 1902.71222481,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 1904.488798-1915.276849, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 1909.8702,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "No confirmed pullback/rejection."
     },
     {
-      "idea_id": "SOLUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "SOLUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "SOLUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -672,16 +870,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        75.908503,
-        77.045525
+        75.7032,
+        76.2774
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 75.5,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 75.908503-77.045525, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 76,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "Mark is inside the band; completed candle has not confirmed bearish rejection."
     },
     {
-      "idea_id": "BNBUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "BNBUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "BNBUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -690,16 +888,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        621.044966,
-        625.758565
+        618.3241,
+        621.2889
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 619.45,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 621.044966-625.758565, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 617.2578,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "A preliminary EMA20 rejection occurred but weak RVOL and falling OI prevent qualification."
     },
     {
-      "idea_id": "XRPUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "XRPUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "XRPUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -708,16 +906,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        0.996469,
-        1.00368
+        0.9900238,
+        0.995204
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 0.9914,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.996469-1.00368, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.993955,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "Mark is inside the band; completed candle has not confirmed bearish rejection."
     },
     {
-      "idea_id": "DOGEUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "DOGEUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "DOGEUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -726,16 +924,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        0.063164,
-        0.063751
+        0.0629166,
+        0.0632733
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 0.06288,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.063164-0.063751, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.06306,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "Mark is inside the band; completed candle has not confirmed bearish rejection."
     },
     {
-      "idea_id": "ADAUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "ADAUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "ADAUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -744,16 +942,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        0.164622,
-        0.166397
+        0.1634732,
+        0.1647497
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 0.16350042,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.164622-0.166397, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.1635,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "Mark is inside the band; completed candle has not confirmed bearish rejection."
     },
     {
-      "idea_id": "LINKUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "LINKUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "LINKUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -762,16 +960,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        9.664287,
-        9.74433
+        9.610758,
+        9.6657195
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 9.59733093,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 9.664287-9.74433, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 9.603,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "No confirmed pullback/rejection."
     },
     {
-      "idea_id": "SUIUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "SUIUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "SUIUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -780,16 +978,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        0.779575,
-        0.786653
+        0.7722938,
+        0.778574
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 0.7747,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 0.779575-0.786653, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 0.7722,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "No confirmed pullback/rejection."
     },
     {
-      "idea_id": "ZECUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "ZECUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "ZECUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -798,16 +996,16 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        916.210925,
-        925.677389
+        906.3859,
+        914.7004
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 911.85,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 916.210925-925.677389, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 903.0339,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "No confirmed pullback/rejection."
     },
     {
-      "idea_id": "HYPEUSDT-S-20261114T071516Z-15M-EMA-RETEST-WATCH",
+      "idea_id": "HYPEUSDT-S-20261114T115339Z-15M-EMA-RETEST-WATCH",
       "symbol": "HYPEUSDT",
       "side": "SHORT",
       "timeframe": "15m trigger / 1h, 4h and daily context",
@@ -816,13 +1014,43 @@
       "entry_executed": false,
       "discord_alert_sent": false,
       "entry_zone": [
-        69.587252,
-        70.532224
+        69.209634,
+        69.857556
       ],
-      "last_checked_utc": "2026-11-14T07:15:16.000Z",
-      "last_mark_price": 69.567,
-      "condition": "Higher-timeframe bearish structure persists. Wait for a pullback into the latest completed 15m EMA20-EMA50 band 69.587252-70.532224, followed by a completed 15m bearish rejection candle. Define structural stop above the rejection swing and target from fresh support only after rejection; require net planned R:R >=2 after fees/slippage. Do not chase.",
-      "last_evaluation": "Current mark remains below the EMA20-EMA50 band; no pullback/rejection or entry trigger has occurred."
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 68.874,
+      "condition": "Higher-timeframe bearish structure persists. Monitor the refreshed completed-15m EMA20/EMA50 band for a bearish rejection; define structural stop and target only after rejection and require net R:R >=2.",
+      "last_evaluation": "No confirmed pullback/rejection."
+    },
+    {
+      "idea_id": "BNBUSDT-S-20261114T114500Z-15M-EMA20-REJECTION-UNQUALIFIED",
+      "symbol": "BNBUSDT",
+      "side": "SHORT",
+      "timeframe": "15m",
+      "status": "trigger_confirmed_unqualified_weak_volume_and_oi",
+      "trigger_confirmed": true,
+      "entry_executed": false,
+      "discord_alert_sent": false,
+      "trigger_candle": {
+        "open_utc": "2026-11-14T11:30:00Z",
+        "close_utc": "2026-11-14T11:44:59.999Z",
+        "open": 618.01,
+        "high": 618.35,
+        "low": 616.52,
+        "close": 617.23,
+        "ema20": 618.3241,
+        "ema50": 621.2889
+      },
+      "provisional_rr_sensitivity": {
+        "entry_reference": 617.23,
+        "stop_reference": 619,
+        "target_reference": 612.8,
+        "gross_rr": 2.503
+      },
+      "last_checked_utc": "2026-11-14T11:53:39.000Z",
+      "last_mark_price": 617.2578,
+      "condition": "Completed candle tested EMA20 and closed below, but 15m/1h RVOL were 0.96x/0.53x and OI quantity/notional fell 0.096%/0.241% in the latest hour. 4h/daily are oversold. Provisional gross R:R is not sufficient to qualify.",
+      "note": "No entry, no paper position, no Discord alert; provisional levels are not approved trade levels."
     }
   ],
   "user_directed_unalerted_setups": [
@@ -871,32 +1099,32 @@
       },
       "assumed_paper_exit": 0.8715,
       "realized_r": -1,
-      "last_mark_price": 0.7747,
-      "last_market_snapshot_utc": "2026-11-14T07:15:16.000Z",
+      "last_mark_price": 0.7722,
+      "last_market_snapshot_utc": "2026-11-14T11:53:39.000Z",
       "last_terminal_verification": {
-        "timestamp_utc": "2026-11-14T07:15:16.000Z",
-        "mark_price": 0.7747,
+        "timestamp_utc": "2026-11-14T11:53:39.000Z",
+        "mark_price": 0.7722,
         "entry_zone_touched_on_this_check": false,
         "stop_was_already_hit": true,
         "target_was_already_touched_after_stop": true,
-        "hypothetical_mark_to_reference_r": 7.3448,
+        "hypothetical_mark_to_reference_r": 7.5603,
         "realized_r_remains": -1,
         "lifecycle_change": "none_terminal_position_not_reopened",
         "latest_completed_15m_candle": {
-          "open_utc": "2026-11-14T07:00:00Z",
-          "close_utc": "2026-11-14T07:14:59.999Z",
-          "high": 0.7781,
-          "low": 0.7737,
-          "close": 0.7744
+          "open_utc": "2026-11-14T11:30:00Z",
+          "close_utc": "2026-11-14T11:44:59.999Z",
+          "high": 0.773,
+          "low": 0.7676,
+          "close": 0.7719
         },
         "latest_completed_1h_candle": {
-          "open_utc": "2026-11-14T06:00:00Z",
-          "close_utc": "2026-11-14T06:59:59.999Z",
-          "high": 0.7851,
-          "low": 0.7748,
-          "close": 0.7765
+          "open_utc": "2026-11-14T10:00:00Z",
+          "close_utc": "2026-11-14T10:59:59.999Z",
+          "high": 0.7753,
+          "low": 0.7688,
+          "close": 0.7699
         },
-        "note": "Post-terminal verification only. Current mark remains below the original target 0.8300 and far below the original entry zone 0.8590-0.8610. Original stop was hit on 7 Nov before the later target touch on 8 Nov; terminal result remains -1R. Hypothetical mark-to-reference value is not realized and does not reopen the paper trade."
+        "note": "Post-terminal verification only. Original stop was hit 7 Nov before the later target touch on 8 Nov; terminal result remains -1R. Hypothetical mark-to-reference value is not realized."
       },
       "entry_fill_caveat": "The exact entry fill was not independently reconstructed; R is a paper-reference calculation assuming the specified 0.8599 entry.",
       "lifecycle_note": "First post-setup stop touch occurred on 7 November at 07:00 UTC. A later target touch on 8 November occurred after the stop and is not counted."
@@ -6761,11 +6989,32 @@
       "timestamp_utc": "2026-11-14T07:15:16.000Z",
       "type": "shadow_watchlist_updated",
       "evidence": "Superseded the 11 previous EMA retest bands and added 11 refreshed 15m EMA20-EMA50 short-retest watches based on the completed 07:00-07:14:59 UTC candles. BTC is inside its band but its latest candle is bullish; all other current marks remain below their bands. All remain shadow-only."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261114T115339Z-market-scan-completed",
+      "timestamp_utc": "2026-11-14T11:53:39.000Z",
+      "type": "market_scan_completed",
+      "decision": "NO_TRADE",
+      "evidence": "11 USDⓈ-M perpetuals scanned. 40/44 timeframe-market combinations below both EMAs; all 11 1h/4h/daily structures bearish. BNB preliminary EMA20 rejection had a hypothetical 2.50R gross map but weak participation and OI contraction; no qualified setup."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261114T115339Z-BNB-unqualified",
+      "timestamp_utc": "2026-11-14T11:53:39.000Z",
+      "type": "shadow_trigger_observed_unqualified",
+      "evidence": "Completed BNB 15m candle 11:30-11:44:59 UTC O618.01/H618.35/L616.52/C617.23 tested EMA20 618.324 and closed below. 15m/1h RVOL 0.96x/0.53x; OI quantity/notional fell 0.096%/0.241%. No entry or Discord alert."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261114T115339Z-SUI-check",
+      "timestamp_utc": "2026-11-14T11:53:39.000Z",
+      "type": "post_terminal_paper_trade_verification",
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "evidence": "SUI mark 0.7722; completed 15m low 0.7676/close 0.7719 and 1h low 0.7688/close 0.7699. Entry zone not revisited. Original stop preceded later target touch; terminal result remains -1R. Hypothetical mark-to-reference +7.5603R is not realized."
     }
   ],
   "last_scan_summary": {
-    "scan_id": "crypto-trade-idea-desk-20261114T071516Z",
-    "timestamp_utc": "2026-11-14T07:15:16.000Z",
+    "scan_id": "crypto-trade-idea-desk-20261114T115339Z",
+    "timestamp_utc": "2026-11-14T11:53:39.000Z",
     "decision": "NO_TRADE",
     "markets_scanned": 11,
     "qualified_new_setups": 0,
@@ -6773,7 +7022,7 @@
     "discord_alerts_due": 0,
     "known_active_alerted_setups": 0,
     "recovery_warning": true,
-    "note": "43/44 timeframe-market combinations are below EMA20/EMA50; BTC is mixed on 15m only. All 11 higher-timeframe structures remain bearish, but 15m relief candles are low-volume and no bearish rejection with net >=2R has formed. Wait for a fresh pullback/rejection; do not chase."
+    "note": "All 11 1h/4h/daily structures remain below EMA20/EMA50. ETH/SOL/XRP/DOGE show a 15m bounce but remain below EMA50. BNB printed a preliminary EMA20 rejection, but weak RVOL and falling OI prevent qualification. No entry or alert due."
   },
-  "monitoring_status": "Fetched and parsed the exact persistent ledger at the start of the scan. Known active_alerted_setups count is 0; recovery warning remains unknown_prior_active_alerted_setups=true. Separate worker state.json was not merged. User-directed SUI short rechecked at 2026-11-14T07:15:16.000Z: mark 0.7747, original entry zone not revisited, stop had already been hit before later target touch, terminal realized result remains -1R; hypothetical mark-to-reference +7.3448R is not realized. Fresh scan of 11 USDⓈ-M perpetuals: 43/44 timeframe-market combinations below EMA20/EMA50; no qualified entry or Discord alert due."
+  "monitoring_status": "Ledger fetched and parsed at scan start. Known active alerted setups: 0; unknown prior active setup recovery warning remains true. Separate worker state.json not merged. SUI terminal check at 2026-11-14T11:53:39.000Z: mark 0.7722, entry zone not revisited, stop had already been hit before later target touch, realized -1R unchanged. Fresh 11-market scan: no qualified entry or Discord alert due."
 }
