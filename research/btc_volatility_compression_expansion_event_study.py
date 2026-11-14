@@ -214,9 +214,12 @@ def summarize(events:pd.DataFrame,event_returns:pd.DataFrame,control_returns:pd.
   for group in ("all","long","short"):
    selected=events if group=="all" else events[events.side==group]
    selected_ids=ids & set(selected.event_id.astype(int))
-   result[period][group]=paired_summary(
-    event_returns[event_returns.event_id.isin(selected_ids)],
-    control_returns[control_returns.event_id.isin(selected_ids)],
+   event_period=event_returns[event_returns.event_id.isin(selected_ids)].copy()
+   control_period=control_returns[control_returns.event_id.isin(selected_ids)].copy()
+   # Exclude any forward outcome that crosses the chronological period boundary.
+   event_period=event_period[pd.to_datetime(event_period.exit_time,utc=True)<=hi]
+   control_period=control_period[pd.to_datetime(control_period.exit_time,utc=True)<=hi]
+   result[period][group]=paired_summary(event_period,control_period,
     CONTROL_SEED+len(period)+len(group))
  return result
 
