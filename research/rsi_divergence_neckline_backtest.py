@@ -417,6 +417,68 @@ def run():
         ["train_gate", "train_net_R"], ascending=[False, False]
     )
     md.to_csv(OUT / "matrix.csv", index=False)
+
+    # Descriptive leaderboards are retained even when no configuration passes
+    # the training gate. They are diagnostics only and never select OOS.
+    diagnostic_train = md[md.train_trades >= MIN_TRAIN].sort_values(
+        ["train_net_R", "train_profit_factor"], ascending=[False, False]
+    ).head(10).copy()
+    diagnostic_train["leaderboard_basis"] = "training_net_R"
+    diagnostic_validation = md[md.validation_trades >= MIN_VALIDATION].sort_values(
+        ["validation_net_R", "validation_profit_factor"], ascending=[False, False]
+    ).head(10).copy()
+    diagnostic_validation["leaderboard_basis"] = "validation_net_R_diagnostic_only"
+    diagnostic_frame = pd.concat([diagnostic_train, diagnostic_validation], ignore_index=True)
+    diagnostic_frame.to_csv(OUT / "diagnostic_leaderboard.csv", index=False)
+
+    diagnostic_configs = {}
+    for basis, frame in (
+        ("training_net_R", diagnostic_train),
+        ("validation_net_R_diagnostic_only", diagnostic_validation),
+    ):
+        for _, row in frame.iterrows():
+            left, right = map(int, str(row["pivot"]).split("/"))
+            cfg = {
+                "pivot": str(row["pivot"]), "rsi_length": int(row["rsi_length"]),
+                "break_window": int(row["break_window"]), "stop_buffer": float(row["stop_buffer"]),
+                "target_r": float(row["target_r"]), "htf_filter": str(row["htf_filter"]),
+                "direction": str(row["direction"]), "session": str(row["session"]),
+            }
+            key = (left, right, cfg["rsi_length"], cfg["break_window"], cfg["stop_buffer"],
+                   cfg["target_r"], cfg["htf_filter"], cfg["direction"], cfg["session"])
+            if key not in diagnostic_configs:
+                diagnostic_configs[key] = {"cfg": cfg, "events": cache[(left, right, cfg["rsi_length"], cfg["break_window"])],
+                                            "bases": set()}
+            diagnostic_configs[key]["bases"].add(basis)
+
+    diagnostic_costs, diagnostic_monthly, diagnostic_regimes = [], [], []
+    for key, item in diagnostic_configs.items():
+        cfg, events = item["cfg"], item["events"]
+        config_id = "|".join(str(cfg[k]) for k in cfg)
+        for sample, start, end in (("train", 0, split1), ("validation", split1, split2)):
+            for bps in COSTS:
+                trades = simulate(d, events, cfg, start, end, bps)
+                diagnostic_costs.append({
+                    "config_id": config_id, "leaderboard_basis": ";".join(sorted(item["bases"])),
+                    **cfg, "sample": sample, "cost_bps": bps, **metrics(trades, bps)
+                })
+                if bps == 12 and not trades.empty:
+                    x = trades.copy()
+                    x["month"] = x.entry_time.dt.strftime("%Y-%m")
+                    for month, group in x.groupby("month"):
+                        diagnostic_monthly.append({
+                            "config_id": config_id, "leaderboard_basis": ";".join(sorted(item["bases"])),
+                            **cfg, "sample": sample, "month": month, **metrics(group, 12)
+                        })
+                    for regime_name, group in x.groupby("regime"):
+                        diagnostic_regimes.append({
+                            "config_id": config_id, "leaderboard_basis": ";".join(sorted(item["bases"])),
+                            **cfg, "sample": sample, "regime": regime_name, **metrics(group, 12)
+                        })
+    pd.DataFrame(diagnostic_costs).to_csv(OUT / "diagnostic_cost_sensitivity.csv", index=False)
+    pd.DataFrame(diagnostic_monthly).to_csv(OUT / "diagnostic_monthly.csv", index=False)
+    pd.DataFrame(diagnostic_regimes).to_csv(OUT / "diagnostic_regimes.csv", index=False)
+
     shortlist = sorted(candidates, key=lambda x: x[0], reverse=True)[:MAX_SHORTLIST]
     selected = []
     costs = []
@@ -492,8 +554,12 @@ def run():
     (OUT / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
     print("METHODOLOGY")
     print(json.dumps(meta, indent=2))
-    print("\nTOP TRAIN (12bp)")
+    print("\nTOP TRAIN ELIGIBLE (12bp)")
     print(md[md.train_gate].head(15).to_string(index=False))
+    print("\nTOP TRAIN DIAGNOSTICS >=40 trades (not selection)")
+    print(diagnostic_train.to_string(index=False))
+    print("\nTOP VALIDATION DIAGNOSTICS >=20 trades (not selection)")
+    print(diagnostic_validation.to_string(index=False))
     print("\nTOP VALIDATION DIAGNOSTICS (12bp)")
     if shortlist:
         diag = []
