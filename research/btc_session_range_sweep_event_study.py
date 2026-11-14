@@ -251,6 +251,8 @@ def main():
     output.mkdir(parents=True,exist_ok=True)
     data = fetch_data(args.days)
     events = detect_events(data)
+    if not events.empty:
+        events.insert(0,"event_id",np.arange(len(events),dtype=int))
     if events.empty:
         raise StudyError("No qualifying events found; no performance result can be reported")
     controls = build_controls(data,events)
