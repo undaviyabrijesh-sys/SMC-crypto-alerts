@@ -15,7 +15,7 @@ import pandas as pd
 BAR15 = pd.Timedelta(minutes=15)
 H1 = pd.Timedelta(hours=1)
 H4 = pd.Timedelta(hours=4)
-HORIZONS = {"4h": 4, "8h": 8, "24h": 24}
+HORIZONS = {"1h": 1, "4h": 4, "8h": 8}
 COSTS_BPS = (6.0, 12.0, 20.0)
 COOLDOWN_H1 = 8
 CHANNEL_LENGTH_H1 = 20
