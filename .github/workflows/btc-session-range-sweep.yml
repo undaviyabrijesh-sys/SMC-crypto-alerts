@@ -35,12 +35,15 @@ jobs:
           from pathlib import Path
           r=json.loads(Path("research/results/session_sweep/report.json").read_text())
           print("# BTC session range sweep event study")
-          print(f"- Status: {r['status']}; bars: {r['bars']:,}; events: {r['event_count']}")
-          print(f"- Coverage: {r['first_bar_utc']} to {r['last_bar_utc']}; gaps: {r['gap_count']}")
-          for h,v in r['summary'].items():
-              print(f"- {h}: n={v['n']}, mean net (12bp RT)={v['mean_net_12bps_pct']}%, "
-                    f"positive={v['positive_net_fraction_12bps']}")
-          print("- Event study only; no trade-management or live-use claim.")
+          print(f"- Status: {r['status']}; bars: {r['bars']:,}; events: {r['event_count']}; matched controls: {r['matched_control_count']}")
+          print(f"- Coverage: {r['first_bar_utc']} to {r['last_bar_utc']}; gaps: {r['gap_count']}; duplicates removed: {r['duplicate_count']}")
+          for h,v in r['paired_summary'].items():
+              if 'paired_n' in v:
+                  print(f"- {h}: paired n={v['paired_n']}, event net (12bp RT)={v['event_mean_net_12bps_pct']}%, "
+                        f"control={v['control_mean_net_12bps_pct']}%, lift={v['paired_mean_lift_pct']}%")
+              else:
+                  print(f"- {h}: {v['status']} (events={v['event_n']}, controls={v['control_n']})")
+          print("- Directional event study only; no trade-management or live-use claim.")
           PY
           else
             echo "Study report missing; inspect failed step logs." >> "$GITHUB_STEP_SUMMARY"
@@ -51,4 +54,4 @@ jobs:
           name: btc-session-range-sweep-${{ github.run_id }}
           path: research/results/session_sweep/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 30
