@@ -329,6 +329,8 @@ def run(data_csv: Path, out: Path, symbol: str="BTCUSD") -> dict:
     return report
 
 def self_test():
+    assert HORIZONS == {"1h":1,"4h":4,"8h":8}
+    print("PASS frozen_1h_4h_8h_horizons")
     idx=pd.date_range("2026-01-01",periods=32,freq="15min",tz="UTC")
     x=pd.DataFrame({"open":np.arange(32)+100.,"high":np.arange(32)+101.,
       "low":np.arange(32)+99.,"close":np.arange(32)+100.5,"volume":1.},
@@ -378,7 +380,7 @@ def self_test():
       "net_12bps_pct":[0.2,-0.1]})
     assert trade_stats(control_test,"net_12bps_pct")["n"]==2
     print("PASS control_metrics_entry_time_contract")
-    print("PASS 6 deterministic tests")
+    print("PASS 7 deterministic tests")
 
 def main():
     p=argparse.ArgumentParser()
