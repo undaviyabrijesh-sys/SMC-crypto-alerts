@@ -175,8 +175,11 @@ def main():
         for group in ("aligned","countertrend","neutral"):
             selected=events.loc[(events.category==group)&(events.entry_time>=lo)&(events.entry_time<hi),"event_id"]
             ids=set(selected.astype(int))
-            e=event_returns[event_returns.event_id.isin(ids)]
-            c=control_returns[control_returns.event_id.isin(ids)]
+            e=event_returns[event_returns.event_id.isin(ids)].copy()
+            c=control_returns[control_returns.event_id.isin(ids)].copy()
+            # A period's forward outcome must be fully observed before its end.
+            e=e[pd.to_datetime(e.exit_time,utc=True)<=hi]
+            c=c[pd.to_datetime(c.exit_time,utc=True)<=hi]
             summaries[period][group]=paired_stats(e,c,period+group)
     overall={}
     for group in ("aligned","countertrend","neutral"):
