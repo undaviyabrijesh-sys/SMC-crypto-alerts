@@ -1097,3 +1097,14 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - The new artifact retains diagnostic 6/12/20bp cost sensitivity and monthly/regime tables. No OOS candidate exists; no validation result is used to select a new configuration.
 - Final decision: reject this mechanical RSI-divergence family. Do not tune the same validation segment. No production use, orders or alerts.
 
+
+
+## Research methodology reset (2026-11-14)
+
+- User challenged the repeated rejected models and asked us to improve the research process or monetize signals differently. We audited the repository code and ledger rather than assuming every underlying idea is unprofitable.
+- Audit found methodological limitations: short 70/15/15 validation/OOS windows (~3.6 months each on a two-year sample); weak evidence from 20-trade validation minimums; large parameter grids and winner's-curse risk; fixed RR/holding horizons that conflate signal quality with exit quality; stop-first OHLC handling without reporting ambiguity bounds; coarse assumed round-trip bps rather than maker/taker, spread, slippage and funding attribution; incomplete walk-forward fold, uncertainty, exposure and account-equity reporting; and risk-unit R metrics that are not account returns.
+- Important distinction: these are limitations, not proof that prior results are all wrong. Prior studies remain historical exploratory tests and are not retroactively reclassified.
+- Effective protocol: pause giant grids; preregister one economic hypothesis with a small interpretable variant set; compare against same-period flat, buy/hold and simple directional benchmarks; use rolling/expanding chronological walk-forward folds plus one final untouched holdout; separate entry signal forward-return diagnostics from exit/position-management tests; use 1m/finer execution data where available; otherwise report pessimistic stop-first and optimistic target-first bounds plus ambiguous-bar counts; model entry/exit costs separately and funding only at verified settlement timestamps; report fold results, confidence/bootstrap intervals, exposure, turnover, R and equity drawdown; never use validation-only leaderboard rows for selection.
+- Next hypotheses under this protocol: (1) fixed-session range sweep and re-entry targeting VWAP/opposite range, (2) HTF trend as directional bias with 15m pullback measured first as a forward-return event study, (3) volatility compression-to-expansion continuation. Start with BTC and the finest reliable execution data; do not assume 1m data exists until verified.
+- New protocol document: `research/RESEARCH_METHOD_RESET_2026-11-14.md`, commit `03a215a444fe1b94a6a0273481751107f560cc7b`.
+- Scope remains research-only on `ai-quant-rebuild`; no `main` or production changes, no orders, no execution alerts.
