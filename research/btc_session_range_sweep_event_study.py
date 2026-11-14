@@ -178,7 +178,7 @@ def evaluate(data: pd.DataFrame, rows: pd.DataFrame, time_col: str,
             record = {**item,"horizon":horizon,"exit_time":index[j].isoformat(),
                 "exit":exit_price,"gross_return_pct":gross}
             for bps in COSTS_BPS:
-                record[f"net_{int(bps)}bps_pct"] = gross - 2*bps/100.0
+                record[f"net_{int(bps)}bps_pct"] = gross - bps/100.0
             output.append(record)
     return pd.DataFrame(output)
 
