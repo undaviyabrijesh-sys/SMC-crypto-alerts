@@ -54,8 +54,11 @@ def load_ohlcv(path:Path)->pd.DataFrame:
 
 def add_features(data:pd.DataFrame)->pd.DataFrame:
  d=data.copy()
- for col in ("tr","rv16","rv_q20","prior_tr_median","prior_high16","prior_low16","compression","expansion","breakout_dir","signal"):
+ for col in ("tr","rv16","rv_q20","prior_tr_median","prior_high16","prior_low16"):
   d[col]=np.nan
+ for col in ("compression","expansion","signal"):
+  d[col]=False
+ d["breakout_dir"]=0
  for _,g in d.groupby("segment",sort=False):
   prev=g.close.shift(1)
   tr=pd.concat([g.high-g.low,(g.high-prev).abs(),(g.low-prev).abs()],axis=1).max(axis=1)
