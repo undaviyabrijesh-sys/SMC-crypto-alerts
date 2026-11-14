@@ -1108,3 +1108,13 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Next hypotheses under this protocol: (1) fixed-session range sweep and re-entry targeting VWAP/opposite range, (2) HTF trend as directional bias with 15m pullback measured first as a forward-return event study, (3) volatility compression-to-expansion continuation. Start with BTC and the finest reliable execution data; do not assume 1m data exists until verified.
 - New protocol document: `research/RESEARCH_METHOD_RESET_2026-11-14.md`, commit `03a215a444fe1b94a6a0273481751107f560cc7b`.
 - Scope remains research-only on `ai-quant-rebuild`; no `main` or production changes, no orders, no execution alerts.
+
+
+## 2026-11-14 — Preregistered BTC session-range sweep event study (implementation)
+
+- Hypothesis frozen before evaluation: define UTC 00:00–06:00 range; during 06:00–18:00 UTC, first 5m candle that sweeps one range edge and closes back inside creates a directional event; enter at next 5m open; at most one event per UTC day; exclude bars sweeping both edges.
+- First phase measures directional forward returns at 15m, 1h, 4h and 8h. It does not optimize stops/targets or claim executable PnL.
+- Cost sensitivity: 6/12/20 bps round trip, explicitly assumptions. Data source: public Delta BTCUSD traded-price 5m candles. Gaps and coverage are reported.
+- Calendar evaluation counts use fixed consecutive 2-month windows after a 6-month initial warm-up; no parameter selection is performed on these windows.
+- Limitations: forward-return event study is not yet a matched-control/placebo test; 5m OHLC cannot resolve intrabar execution; cost assumptions are not verified fees/slippage. No promotion decision is possible from this phase alone.
+- Status at commit: code/workflow added; backtest has NOT yet been run. Await GitHub Actions evidence.
