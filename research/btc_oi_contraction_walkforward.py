@@ -35,7 +35,7 @@ def sha256_file(path: Path) -> str:
         for block in iter(lambda:f.read(1<<20),b""): h.update(block)
     return h.hexdigest()
 
-def load_ohlc(path: Path, label: str) -> pd.DataFrame:
+def load_ohlc(path: Path, label: str, allow_zero_low: bool=False) -> pd.DataFrame:
     d=pd.read_csv(path)
     if "timestamp" not in d.columns:
         raise StudyError(f"{label}: timestamp column missing")
@@ -48,8 +48,11 @@ def load_ohlc(path: Path, label: str) -> pd.DataFrame:
         d[c]=pd.to_numeric(d[c],errors="raise")
     if not np.isfinite(d[required].to_numpy(float)).all():
         raise StudyError(f"{label}: non-finite OHLC")
-    if (d[required]<=0).any().any():
-        raise StudyError(f"{label}: non-positive OHLC")
+    positive_cols=["open","high","close"] if allow_zero_low else required
+    if (d[positive_cols]<=0).any().any():
+        raise StudyError(f"{label}: non-positive required OHLC")
+    if allow_zero_low and (d.low<0).any():
+        raise StudyError(f"{label}: negative low sentinel is invalid")
     bad=(d.high<d[["open","close","low"]].max(axis=1)) | (d.low>d[["open","close","high"]].min(axis=1))
     if bad.any():
         raise StudyError(f"{label}: invalid OHLC rows={int(bad.sum())}")
@@ -261,7 +264,9 @@ def self_test():
     hix=pd.date_range("2026-01-01",periods=220,freq="1h",tz="UTC")+BAR1H
     h=pd.DataFrame({"open":100.0,"high":101.0,"low":99.0,
         "close":100.0+np.arange(220)*0.1},index=hix)
-    oi=pd.DataFrame({"close":1000.0+np.arange(220)},index=hix-BAR1H)
+    oi=pd.DataFrame({"open":1000.0+np.arange(220),"high":1000.0+np.arange(220)+1,
+        "low":1000.0+np.arange(220),"close":1000.0+np.arange(220)},index=hix-BAR1H)
+    oi.loc[oi.index[150],"low"]=0.0  # known OI low sentinel; close remains usable
     f=build_hourly_features(h,oi)
     assert f.index.equals(hix)
     assert pd.isna(f.oi_pct.iloc[0])
@@ -276,7 +281,7 @@ def self_test():
 
 def run(oi_path: Path, price_path: Path, out: Path):
     out.mkdir(parents=True,exist_ok=True)
-    oi=load_ohlc(oi_path,"BTC OI 1h")
+    oi=load_ohlc(oi_path,"BTC OI 1h",allow_zero_low=True)
     raw=load_ohlc(price_path,"BTC traded 5m")
     if raw.index.to_series().diff().dropna().eq(pd.Timedelta(0)).any():
         raise StudyError("duplicate 5m timestamps")
@@ -318,6 +323,7 @@ def run(oi_path: Path, price_path: Path, out: Path):
             "oi_1h_last_open_utc":oi.index.max().isoformat(),
             "oi_1h_gaps":int((oi.index.to_series().diff().dropna()!=BAR1H).sum()),
             "oi_1h_nonpositive_close_rows":int((oi.close<=0).sum()),
+            "oi_1h_zero_low_rows":int((oi.low==0).sum()),
             "oi_abs_change_gt20pct":int((oi.close.where(oi.close>0).pct_change(fill_method=None).abs()>.20).sum()),
             "oi_1h_sha256":sha256_file(oi_path)},
         "definition":{"signal":"completed 1h OI close-to-close change <0 and prior-only 168h z-score <= -1.5; absolute BTC 1h close return >= prior-only 168h 90th percentile",
