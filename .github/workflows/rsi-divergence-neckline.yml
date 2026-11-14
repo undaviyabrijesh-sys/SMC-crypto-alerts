@@ -8,6 +8,10 @@ on:
       - ".github/workflows/rsi-divergence-neckline.yml"
   workflow_dispatch:
 
+concurrency:
+  group: btc-rsi-divergence-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
