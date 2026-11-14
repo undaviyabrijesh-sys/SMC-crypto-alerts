@@ -1118,3 +1118,32 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Calendar evaluation counts use fixed consecutive 2-month windows after a 6-month initial warm-up; no parameter selection is performed on these windows.
 - Limitations: forward-return event study is not yet a matched-control/placebo test; 5m OHLC cannot resolve intrabar execution; cost assumptions are not verified fees/slippage. No promotion decision is possible from this phase alone.
 - Status at commit: code/workflow added; backtest has NOT yet been run. Await GitHub Actions evidence.
+
+
+## 2026-11-14 — BTC Asia-session range sweep/re-entry event study — completed, standalone edge not established
+
+- Code: `research/btc_session_range_sweep_event_study.py`; successful authoritative run [43570900840](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570900840), code SHA `9402cf7ac694d3ed10af61c343f77608fdab76bc`; artifact [14103734421](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570900840/artifacts/14103734421). Deterministic CI [43570905011](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570905011) passed.
+- Data: public Delta BTCUSD traded-price 5m; 210,240 closed bars from 2024-11-14 07:20 UTC to 2026-11-14 07:15 UTC; zero detected gaps and duplicates. Data hash: `7767c7fbdb91d85d529add3176d6be80ca6c416fd859fb9e88ef3893a51468a3`.
+- Frozen rules: complete UTC 00:00–06:00 Asia range (all 72 5m candles required); during 06:00–18:00 UTC, first candle to sweep one edge and close back inside; entry next 5m open; one event/day; both-edge sweep bars ignored. 662 events (308 long/354 short), each with one deterministic same-day/same-side non-sweep random-time control, excluding +/-30m around the signal. Forward horizons: 15m, 1h, 4h, 8h.
+- Cost audit: an initial version mistakenly doubled the stated round-trip bps conversion. This was corrected before the authoritative run: 6/12/20bp round trip now subtracts 0.06/0.12/0.20 percentage points respectively. Do not use the net fields from the earlier run [43570662845](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570662845); the corrected run above is authoritative. The first attempt [43570638500](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570638500) failed because event IDs were not carried into the paired-control join; fixed in the successful version.
+- Corrected paired results (mean % return; 662 pairs at each horizon):
+
+| Horizon | Event gross | Event net @6bp RT | Event net @12bp RT | Event net @20bp RT | Control net @12bp RT | Event minus control |
+|---|---:|---:|---:|---:|---:|---:|
+| 15m | -0.006 | -0.066 | -0.126 | -0.206 | -0.136 | +0.010 |
+| 1h | -0.024 | -0.084 | -0.144 | -0.224 | -0.149 | +0.005 |
+| 4h | -0.067 | -0.127 | -0.187 | -0.267 | -0.230 | +0.043 |
+| 8h | -0.060 | -0.120 | -0.180 | -0.260 | -0.256 | +0.076 |
+
+- At 12bp RT, positive event-month fraction was 0% (15m), 4% (1h), 24% (4h), and 16% (8h). The 8h event-minus-control lift was positive in 8/9 consecutive 2-month evaluation blocks after the initial 6-month warm-up, but the event's absolute mean net return remained negative in 8/9 blocks. This is relative improvement over a crude control, not a profitable strategy.
+- This is a forward-return event study, not a stop/target backtest: win-rate, PF, R, stop/target ambiguity and drawdown are not applicable. Costs are simple sensitivity assumptions; no spread, slippage, verified fee tier or funding has been applied. The same-day random-time control is descriptive, not a randomized causal benchmark. No regime stratification or separately sequestered final holdout was run.
+- Decision: do not promote or trade this standalone fade. There may be weak relative information at 4h/8h, but the signal does not overcome even the 6bp round-trip sensitivity in absolute mean returns. Next bounded hypothesis: test whether a completed 4h trend-alignment condition improves the sweep event, using a time-of-day-matched control and chronological train/validation/final holdout; do not open a broad parameter grid.
+
+
+## 2026-11-14 — Two-year BTC/ETH derivatives archive — completed and quality-audited
+
+- Successful workflow [43570739333](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570739333), artifact [14104591074](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43570739333/artifacts/14104591074). All six expected datasets passed row-count and SHA-256 verification; 490,818 candles total; no validation errors.
+- BTC/ETH mark price 5m: 210,383 rows each, 100% observed coverage, zero gaps. BTC/ETH open interest 1h: 17,531 rows each, 100% observed coverage, zero timestamp gaps. BTC/ETH funding 1h: 17,495 rows each, 99.8174% observed coverage, eight 5-hour gaps per asset at matching timestamps. Missing funding intervals are not filled.
+- OI quality audit found two rows per asset with `low=0` while open/close remained positive: 2026-04-12 21:00 UTC and 2026-05-19 13:00 UTC. Preserve raw archive, but quarantine these rows from any OI feature calculation; do not treat zero low as valid observed OI.
+- Funding OHLC values are preserved raw (BTC close range -0.08008859 to 0.07886045; ETH -0.02503412 to 0.04851337). Units, settlement cadence and sign convention remain unverified. Do not apply funding costs to backtests until semantics are independently established.
+- Archive is an Actions artifact, not committed market data. It expires 2026-11-28; download/materialize before expiry if the next research run needs the raw files.
