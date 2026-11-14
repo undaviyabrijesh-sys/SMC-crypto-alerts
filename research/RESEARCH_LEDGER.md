@@ -1220,3 +1220,13 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Controls: one deterministic non-pullback control per event, same UTC day, side, completed 4h regime and 3h UTC time bucket, outside +/-1h; without replacement. Report match rate.
 - Chronological calendar periods remain development 2024-11-14 to 2025-11-14, validation 2025-11-14 to 2026-05-14, final holdout 2026-05-14 to 2026-11-14. Exclude any forward outcome that crosses its period end. No parameter search.
 - This hypothesis is not yet implemented or run. Do not claim results or promote it until the code, causal tests, dataset quality, matched controls and final holdout are verified.
+
+
+## 2026-11-14 — BTC 1h EMA20 pullback with completed 4h trend bias — implementation
+
+- Hypothesis/rules frozen before results: completed 4h close > EMA50 > EMA200 permits longs only; inverse permits shorts only. On completed 1h candle, long requires previous 1h close <= prior EMA20, current low within +/-0.10 ATR14 of EMA20, current close > EMA20 and > open. Short is the exact inverse using current high. Entry is next 1h open. Global cooldown is 8 hours.
+- Data: Delta BTCUSD traded-price 15m OHLCV, two-year archive; aggregate only complete contiguous 4-bar 1h and 16-bar 4h groups. EMA and ATR features reset at data gaps. A 4h regime becomes available only at its right-labelled close.
+- Signal event study horizons: 4h, 8h, 24h. Cost sensitivities: 6/12/20 bps round trip (assumptions, not verified fees/slippage). One deterministic non-signal control per event, matched same UTC day, side, completed 4h regime and 3h UTC bucket; no replacement; exclude controls within +/-1 hour of the event.
+- Calendar windows frozen: development 2024-11-14 to 2025-11-14; validation 2025-11-14 to 2026-05-14; final holdout 2026-05-14 to 2026-11-14. Any outcome ending after its period end is excluded. No parameter search.
+- Diagnostics: trade-like win rate/PF and event-sequence drawdown are reported on fixed-horizon returns, but this is not a stop-defined execution backtest; no R multiple or account-equity drawdown is claimed. 24h outcomes can overlap because the event cooldown is 8h. Block bootstrap is descriptive and matched controls do not establish causality.
+- Status at implementation: script/workflow committed; no market result exists until the dedicated GitHub Actions run completes and artifact/report are audited. Research only; no production changes or orders.
