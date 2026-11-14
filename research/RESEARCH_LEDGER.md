@@ -1315,3 +1315,17 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Costs: 6/12/20bp round-trip assumptions. This is a forward-return signal study, not executable PnL; funding/spread/impact remain excluded and will need explicit treatment before any long-horizon execution test.
 - No parameter search; if the breakout fails to beat matched controls in absolute net terms across folds and holdout, reject rather than tune the inspected holdout.
 - Status: preregistered only; no code or backtest result yet.
+
+
+## 2026-11-15 — BTC 1h Donchian breakout with completed 4h trend bias — preregistered
+
+- Distinct hypothesis from prior 15m Donchian fixed-target/ATR-trailing studies: test whether a 1h close breakout has directional information when aligned with a completed 4h EMA trend, before optimizing any exit.
+- Signal: 1h close above the prior 20 completed 1h highs permits long only when latest completed 4h close > EMA50 > EMA200; 1h close below prior 20 completed 1h lows permits short only when completed 4h close < EMA50 < EMA200. The channel uses shift(1) and rolling 20 bars, reset at every data gap. The 4h regime is right-labelled and aligned only at/after its close.
+- Entry: next 1h open. Global 8-hour cooldown; one event at most per cooldown. Forward-return horizons 1h, 4h, 8h. No stop/target grid in this phase.
+- Controls: one non-breakout bar per event, matched on UTC day, side, completed 4h regime and 3-hour UTC time bucket; exclude +/-1h around signal; no replacement. Controls are descriptive observational benchmarks, not causal counterfactuals.
+- Data: Delta BTCUSD traded-price 15m OHLCV, two years; aggregate only complete contiguous 1h/4h bars. Preserve gaps and CSV SHA-256. Evaluation windows frozen: development 2024-11-14 to 2025-11-14; validation 2025-11-14 to 2026-05-14 in consecutive 2-month blocks; final holdout 2026-05-14 to 2026-11-14. Outcomes crossing each period end are excluded.
+- Costs: 6/12/20 bps round-trip assumptions. Funding, actual fee tier, spread and market impact are not verified. This is an event study, not executable PnL; no trade R, stop/target PF or portfolio drawdown is claimed.
+- Diagnostics: event/control counts and match rate; mean/median net forward return, win fraction, PF and event-sequence DD as descriptive return diagnostics; paired mean lift with moving-block bootstrap CI where n>=10; monthly and side/regime breakdown. No tuning against final holdout.
+- Implementation: `research/btc_1h_donchian_trend_event_study.py`, workflow `.github/workflows/btc-1h-donchian-trend.yml`; deterministic tests cover prior-only channel, reset at gaps, completed 4h alignment, complete-bar aggregation and next-open/period-boundary outcome indexing.
+- Status at preregistration: implementation committed on `ai-quant-rebuild`; dedicated GitHub Actions run pending. No market result is claimed until the workflow and artifact are audited.
+- Research only: no production changes, main-branch writes, orders or execution alerts.
