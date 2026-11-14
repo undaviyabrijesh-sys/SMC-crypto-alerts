@@ -1147,3 +1147,13 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - OI quality audit found two rows per asset with `low=0` while open/close remained positive: 2026-04-12 21:00 UTC and 2026-05-19 13:00 UTC. Preserve raw archive, but quarantine these rows from any OI feature calculation; do not treat zero low as valid observed OI.
 - Funding OHLC values are preserved raw (BTC close range -0.08008859 to 0.07886045; ETH -0.02503412 to 0.04851337). Units, settlement cadence and sign convention remain unverified. Do not apply funding costs to backtests until semantics are independently established.
 - Archive is an Actions artifact, not committed market data. It expires 2026-11-28; download/materialize before expiry if the next research run needs the raw files.
+
+
+## 2026-11-14 — Preregistration: BTC session sweep with completed 4h trend alignment
+
+- Hypothesis: the base Asia-range sweep/re-entry fade may have relative information but negative unconditional returns. A single economically motivated filter is tested: only take the fade when it agrees with a completed 4h trend (long after a low sweep only if 4h close > EMA50 > EMA200; short after a high sweep only if 4h close < EMA50 < EMA200).
+- 4h candles are built only from 48 contiguous closed 5m traded-price bars, labelled at their close; the latest completed 4h regime is forward-filled to the entry timestamp. No incomplete 4h bar is used.
+- Controls: same UTC day, same side, same 4h regime, random non-sweep bar, excluding +/-30m around the signal; deterministic RNG seed 20261114. Controls are descriptive matched benchmarks, not causal controls.
+- Frozen chronological periods: development 2024-11-14 through 2025-11-14; validation 2025-11-14 through 2026-05-14; final period 2026-05-14 through 2026-11-14. No parameter tuning or selection within these periods. The final period is untouched by this filter experiment, though the unfiltered base event study has previously been inspected.
+- Report 1h/4h/8h forward returns, 6/12/20bp round-trip cost sensitivities, aligned vs misaligned attribution, counts and monthly/fold stability. This remains an event study, not a stop/target backtest.
+- Status: preregistered; not yet executed. Research-only; no production changes or orders.
