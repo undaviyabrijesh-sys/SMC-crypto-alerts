@@ -1,0 +1,58 @@
+name: BTC session sweep 4h trend filter
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/btc_session_sweep_4h_trend_filter.py
+      - .github/workflows/btc-session-sweep-4h-filter.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: btc-session-sweep-4h-filter-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  study:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_SESSION_TREND_FILTER:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Run preregistered BTC 4h trend-alignment study
+        run: python research/btc_session_sweep_4h_trend_filter.py --days 730 --output-dir research/results/session_sweep_4h_trend
+      - name: Publish summary
+        if: always()
+        run: |
+          if [ -f research/results/session_sweep_4h_trend/report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/results/session_sweep_4h_trend/report.json").read_text())
+          print("# BTC session sweep with 4h trend alignment")
+          print(f"- Status: {r['status']}; bars: {r['bars']:,}; raw events: {r['raw_event_count']}; classified events: {r['classified_event_count']}; aligned: {r['aligned_event_count']}")
+          print(f"- Coverage: {r['first_bar_utc']} to {r['last_bar_utc']}; gaps: {r['gap_count']}")
+          for period,p in r['periods'].items():
+              print(f"\n## {period}")
+              for h,v in p['aligned'].items():
+                  if 'paired_n' in v:
+                      print(f"- {h}: n={v['paired_n']}; event net 12bp={v['event_net_12bps_pct']}%; control={v['control_net_12bps_pct']}%; lift={v['lift_12bps_pct']}%")
+                  else:
+                      print(f"- {h}: {v['status']}")
+          print("- Event study only; no stop/target or live-use claim.")
+          PY
+          else
+            echo "Trend-filter report missing; inspect failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: btc-session-sweep-4h-trend-${{ github.run_id }}
+          path: research/results/session_sweep_4h_trend/
+          if-no-files-found: warn
+          retention-days: 30
