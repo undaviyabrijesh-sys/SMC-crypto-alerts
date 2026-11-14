@@ -344,7 +344,7 @@ def self_test():
     print("PASS incomplete_and_gap_bar_rejection")
     print("PASS completed_4h_no_lookahead")
     print("PASS next_open_entry_and_period_boundary")
-    print("PASS 4 deterministic tests")\n\n# First CI attempt found only an incorrect expected count in the synthetic gap test;\n# the expected count is corrected and the completed-4h alignment test is isolated.
+    print("PASS 4 deterministic tests")
 
 def main():
     p=argparse.ArgumentParser()
