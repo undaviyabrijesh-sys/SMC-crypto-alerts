@@ -83,6 +83,12 @@ def add_segmented_atr(h1: pd.DataFrame) -> pd.Series:
         out.loc[g.index]=tr.ewm(alpha=1/14,adjust=False,min_periods=14).mean()
     return out
 
+def align_completed_regime(h1_index: pd.DatetimeIndex, h4: pd.DataFrame) -> pd.Series:
+    regime=h4.regime.reindex(h1_index,method="ffill")
+    last=h4.index.to_series().reindex(h1_index,method="ffill")
+    age=pd.Series(h1_index,index=h1_index)-last
+    return regime.where(age<=H4,"unavailable").fillna("unavailable")
+
 def completed_4h_regime(h1: pd.DataFrame, h4: pd.DataFrame) -> pd.Series:
     h=h4.copy()
     h["ema50"]=add_segmented_ema(h.close,h.segment,50)
@@ -91,10 +97,7 @@ def completed_4h_regime(h1: pd.DataFrame, h4: pd.DataFrame) -> pd.Series:
     bear=(h.close<h.ema50)&(h.ema50<h.ema200)
     h["regime"]=np.select([bull,bear],["bull","bear"],default="neutral")
     # A completed 4h bar is usable at its right-labelled close, never earlier.
-    regime=h.regime.reindex(h1.index,method="ffill")
-    last=h.index.to_series().reindex(h1.index,method="ffill")
-    age=pd.Series(h1.index,index=h1.index)-last
-    return regime.where(age<=H4,"unavailable").fillna("unavailable")
+    return align_completed_regime(h1.index,h)
 
 def prepare(path: Path) -> tuple[pd.DataFrame,pd.DataFrame,dict]:
     raw=load_15m(path)
@@ -236,6 +239,8 @@ def block_ci(values: np.ndarray, seed: int) -> list[float]|None:
 
 def summarize(e: pd.DataFrame,c: pd.DataFrame) -> tuple[dict,list[dict]]:
     summary={}; monthly_rows=[]
+    if e.empty or c.empty:
+        return ({p:{h:{"status":"insufficient_events_or_controls","event_n":0,"control_n":0} for h in HORIZONS} for p in PERIODS}, monthly_rows)
     for period in PERIODS:
         summary[period]={}
         for horizon in HORIZONS:
@@ -315,13 +320,13 @@ def self_test():
     x2=x.drop(idx[5]).copy()
     x2["segment"]=(x2.index.to_series().diff().ne(BAR15)).cumsum().astype(int)
     h2=complete_resample(x2,"1h",4,H1)
-    assert len(h2)==6, f"expected six complete hours around one missing 15m bar, got {len(h2)}"
+    assert len(h2)==7, f"expected seven complete hours around one missing 15m bar, got {len(h2)}"
     # A 4h candle closing at 04:00 cannot influence the 03:00 1h close.
-    h1=pd.DataFrame(index=pd.date_range("2026-01-01 01:00",periods=5,freq="1h",tz="UTC"))
-    h4=pd.DataFrame({"close":[100.,200.],"segment":[0,0],
-      "ema50":[90.,150.],"ema200":[80.,100.],"regime":["bull","bull"]},
-      index=pd.DatetimeIndex(["2026-01-01 00:00Z","2026-01-01 04:00Z"]))
-    reg=completed_4h_regime(h1,h4)
+    h1idx=pd.date_range("2026-01-01 01:00",periods=5,freq="1h",tz="UTC")
+    h1=pd.DataFrame(index=h1idx)
+    h4=pd.DataFrame({"regime":["bull"]},
+      index=pd.DatetimeIndex(["2026-01-01 04:00Z"]))
+    reg=align_completed_regime(h1.index,h4)
     assert reg.iloc[0]=="unavailable" and reg.iloc[2]=="unavailable"
     assert reg.iloc[3]=="bull" and reg.iloc[4]=="bull"
     # Outcome must use next-bar open and must not cross the fixed period end.
