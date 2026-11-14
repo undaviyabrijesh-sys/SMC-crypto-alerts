@@ -33,6 +33,12 @@ PERIODS={
 }
 class StudyError(RuntimeError): pass
 
+def sha256(path:Path)->str:
+ h=hashlib.sha256()
+ with path.open("rb") as f:
+  for block in iter(lambda:f.read(1<<20),b""): h.update(block)
+ return h.hexdigest()
+
 def load_ohlcv(path:Path)->pd.DataFrame:
  d=pd.read_csv(path)
  if "timestamp" not in d: raise StudyError("missing timestamp")
