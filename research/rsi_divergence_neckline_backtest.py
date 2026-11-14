@@ -52,7 +52,7 @@ def wilder(values, length):
 
 def wilder_rsi(close, length):
     c = np.asarray(close, dtype=float)
-    delta = np.r_[np.nan, np.diff(c)]
+    delta = np.r_[0.0, np.diff(c)]
     gains = np.where(np.isfinite(delta), np.maximum(delta, 0.0), np.nan)
     losses = np.where(np.isfinite(delta), np.maximum(-delta, 0.0), np.nan)
     avg_gain = wilder(gains, length)
@@ -240,7 +240,8 @@ def metrics(trades, cost_bps):
     wins, losses = r[r > 0], r[r < 0]
     eq = np.cumsum(r)
     dd = eq - np.maximum.accumulate(np.r_[0.0, eq])[1:]
-    monthly = pd.Series(r, index=x.entry_time).groupby(x.entry_time.dt.strftime("%Y-%m")).sum()
+    monthly_frame = x.assign(month=x.entry_time.dt.strftime("%Y-%m"), net_r=r)
+    monthly = monthly_frame.groupby("month").net_r.sum()
     return {
         "trades": int(len(x)),
         "win_rate_pct": round(float((r > 0).mean() * 100), 2),
@@ -352,6 +353,7 @@ def self_test():
     assert np.isnan(prepared.atr14.iloc[600])
     assert np.isnan(prepared.rsi14.iloc[600])
     assert np.isnan(prepared.h_close.iloc[600])
+    assert np.isfinite(prepared.rsi14.iloc[20])
 
     cut = idx[450]
     changed = raw.copy()
