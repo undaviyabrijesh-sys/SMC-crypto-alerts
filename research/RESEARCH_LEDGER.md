@@ -1303,3 +1303,15 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Decision: reject this frozen OI-contraction/price-impulse continuation rule. It loses in initial training, the aggregate validation folds and final holdout, even at 6bp assumed costs. The single positive validation fold is statistically inconclusive and not enough to override the negative full-sample evidence.
 - Important data limitation: Delta's historical OI candle economic unit/sampling convention is not fully documented; a one-time ticker comparison establishes scale compatibility only, not historical sampling semantics. The signal uses relative percentage changes, but this does not remove sampling uncertainty. Funding, spread, market impact and verified fee tier remain excluded. This is a research rejection, not proof that all OI-based strategies are unprofitable.
 - Research only; no production logic, main branch, live orders or execution alerts changed.
+
+
+## Next preregistered BTC experiment — 1h Donchian breakout with completed 4h trend bias (not yet run)
+
+- Distinct from prior 15m Donchian fixed-target and ATR-chandelier matrices: test signal information first on a 1h close breakout, not an exit grid.
+- Signal: completed 1h close above the prior 20 completed 1h highs permits a long only when the latest completed 4h close > EMA50 > EMA200. Mirror for shorts below the prior 20 completed 1h lows with 4h close < EMA50 < EMA200. Both channel and 4h regime are strictly prior/completed at the signal timestamp.
+- Entry: next 1h open. One event per 8h global cooldown. Forward horizons 1h/4h/8h; no stop/target optimization in this phase.
+- Controls: one non-breakout bar per event matched by UTC day, side, completed 4h regime and 3h UTC time bucket, outside +/-1h, no replacement. Report match rate and paired block-bootstrap intervals.
+- Data: Delta BTCUSD traded 5m OHLCV, aggregate only complete contiguous 1h/4h bars; preserve gaps and hashes. Calendar windows: initial 6m train, expanding 2m validation folds, final 6m holdout; exclude outcomes crossing period boundaries.
+- Costs: 6/12/20bp round-trip assumptions. This is a forward-return signal study, not executable PnL; funding/spread/impact remain excluded and will need explicit treatment before any long-horizon execution test.
+- No parameter search; if the breakout fails to beat matched controls in absolute net terms across folds and holdout, reject rather than tune the inspected holdout.
+- Status: preregistered only; no code or backtest result yet.
