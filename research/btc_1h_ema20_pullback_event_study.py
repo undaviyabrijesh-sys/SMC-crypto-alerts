@@ -168,6 +168,7 @@ def build_controls(h1: pd.DataFrame, events: pd.DataFrame) -> pd.DataFrame:
         k=int(rng.choice(candidates)); used.add(k); entry_i=k+1
         rows.append({"event_id":int(e["event_id"]),"signal_i":k,"entry_i":entry_i,
           "control_signal_time":h1.index[k].isoformat(),"control_entry_time":h1.index[k].isoformat(),
+          "entry_time":h1.index[k].isoformat(),
           "day":e["day"],"utc_3h_bucket":int(e["utc_3h_bucket"]),
           "side":e["side"],"side_sign":int(e["side_sign"]),"htf_regime":e["htf_regime"],
           "entry":float(h1.open.iloc[entry_i])})
@@ -344,7 +345,12 @@ def self_test():
     print("PASS incomplete_and_gap_bar_rejection")
     print("PASS completed_4h_no_lookahead")
     print("PASS next_open_entry_and_period_boundary")
-    print("PASS 4 deterministic tests")
+    # Control rows share the same entry_time contract as event rows for trade diagnostics.
+    control_test=pd.DataFrame({"entry_time":["2026-01-01T01:00:00+00:00","2026-01-01T02:00:00+00:00"],
+      "net_12bps_pct":[0.2,-0.1]})
+    assert trade_stats(control_test,"net_12bps_pct")["n"]==2
+    print("PASS control_metrics_entry_time_contract")
+    print("PASS 5 deterministic tests")
 
 def main():
     p=argparse.ArgumentParser()
