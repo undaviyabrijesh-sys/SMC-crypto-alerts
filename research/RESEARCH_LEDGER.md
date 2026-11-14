@@ -1254,3 +1254,28 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Data: Delta ETHUSD traded-price 15m OHLCV, two years; aggregate only complete contiguous 1h/4h bars. Same split windows: development 2024-11-14 to 2025-11-14; validation 2025-11-14 to 2026-05-14; final holdout 2026-05-14 to 2026-11-14. Exclude outcomes crossing each period end.
 - Implementation: generalized the same event-study script with a `--symbol` option; dedicated workflow `.github/workflows/eth-1h-ema20-pullback.yml`. This is a cross-asset replication, not a parameter search.
 - Status at preregistration: code/workflow committed; ETH backtest has not yet completed. Await the dedicated Actions run and artifact audit.
+
+
+## 2026-11-15 — BTC 1h EMA20 pullback cross-asset replication — ETH completed, not validated
+
+- Authoritative workflow [43609714901](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43609714901) completed successfully; artifact [14119163602](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43609714901/artifacts/14119163602). ETH used the exact frozen BTC rule, no parameter tuning.
+- Data: Delta ETHUSD traded-price 15m, 70,127 rows from 2024-11-14 03:30 UTC to 2026-11-14 15:00 UTC; 17,531 complete 1h bars; zero gaps/irregular intervals. CSV SHA-256 `1ff1da86ebc3d9c416385794451036f8722c8a27b56b2b8210145432e7f93b4c`.
+- Rule: completed 4h EMA50/EMA200 directional regime; 1h EMA20 pullback within 0.10 ATR14 and reclaim/body confirmation; next 1h open; 8h cooldown; 4h/8h/24h forward horizons; same-day/side/regime/time-bucket matched controls; 6/12/20bp assumed round-trip costs.
+- Sample: 25 events (11 long, 14 short); 17 matched controls (68% match rate). Too few pairs for bootstrap confidence intervals (reported null below 10 pairs).
+- At 12bp, ETH event net mean / matched-control net mean / paired lift:
+  - Development: 4h +0.29589% / +0.57090% / -0.27502%; 8h -0.08086% / +0.53847% / -0.61933%; 24h -1.19252% / -1.19546% / +0.00293%.
+  - Validation: 4h -0.00320% / -0.58064% / +0.57744%; 8h +0.44224% / +0.85380% / -0.41156%; 24h +0.04397% / +0.13814% / -0.09417%.
+  - Final holdout: 4h +0.17976% / +0.62956% / -0.44980%; 8h +0.80235% / +0.87284% / -0.07049%; 24h +1.36273% / +1.35839% / +0.00434%.
+- Although the final holdout's raw event means are positive, the matched controls are stronger or nearly identical at every horizon. With only 7 paired observations in holdout, no bootstrap CI is estimable. ETH does not validate the BTC rule; the BTC and ETH replication are both underpowered/inconclusive and provide no stable incremental signal.
+- Event study only: no stop/target, R-multiple or executable portfolio PnL. 24h outcomes overlap because cooldown is 8h. Costs are flat assumptions; funding/spread/impact excluded.
+
+## 2026-11-15 — BTC OI contraction + price impulse walk-forward execution study — preregistered, pending run
+
+- New one-rule test to replace the old 72-configuration OI contraction matrix with a frozen, interpretable execution hypothesis and chronological walk-forward evaluation.
+- Signal: completed 1h OI close-to-close change <0 and z-score <= -1.5 versus prior-only 168h rolling mean/std (minimum 120 observations), combined with absolute BTC 1h close return >= prior-only 168h 90th percentile. Direction follows the sign of BTC's 1h return. OI candle close is aligned to its availability time (+1h).
+- Entry: next 5m open at the completed 1h signal close. Stop: 1.5x Wilder ATR14 of the last completed 15m candle. Target: 2R. Maximum hold and signal cooldown: 8h. One position at a time. Execution on 5m traded-price OHLC; same-bar stop/target ambiguity is counted and stop-first, adverse stop gaps use the worse open, targets fill at target.
+- Data: Delta BTCUSD traded-price 5m and BTC OI 1h, two-year request. Complete 15m/1h aggregation only; feature windows reset at gaps and non-positive OI close sentinels. Hashes, gap counts and outlier counts are recorded.
+- Evaluation: initial 6-calendar-month train; expanding train with consecutive 2-month validation folds; final untouched 6-calendar-month holdout. Each trade's full 8h maximum horizon must fit inside its evaluation period. No parameter grid or holdout tuning.
+- Costs: 6/12/20bp round-trip assumptions; 12bp primary. Funding excluded because the archive retains raw funding units and settlement semantics are not yet sufficiently verified. No verified spread/impact model.
+- Metrics: trades, win rate, PF, net R, average R, drawdown, losing streak, ambiguous bars, positive-month fraction, exposure, side/regime/month attribution, and moving-block bootstrap CI where sample size permits.
+- This study is distinct from the earlier OI contraction grid. Status at preregistration: code/workflow being added; no market result until the dedicated Actions run completes and artifact is audited.
