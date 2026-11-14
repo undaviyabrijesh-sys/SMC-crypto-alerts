@@ -1208,3 +1208,15 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 
 - Updated `research/audit_session_sweep_4h_filter.py` (commit `c651380206bc4662544127cbc5464fab71728926`) to exclude event/control forward outcomes whose exit timestamp falls after the evaluation-period end.
 - Recomputed the period summaries from archived artifact [14111022682](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43589097555/artifacts/14111022682) using the corrected boundary rule. No paired observations were removed; all reported aligned/countertrend/neutral sample counts and metrics above remained unchanged. The corrected audit also continues to show zero 4h-regime reconstruction mismatches and 661/661 same-day, side, regime and 3h-bucket control matches.
+
+
+## Next preregistered BTC 1h EMA20 pullback with 4h trend bias — not yet run
+
+- Purpose: test a higher-timeframe pullback signal as a forward-return event study, distinct from the existing 15m EMA20/50 fixed-stop/fixed-target matrix. Do not tune that inspected 15m matrix or reuse its validation leaderboard.
+- Data: two years of BTCUSD traded-price 15m candles; aggregate only complete, contiguous 4-bar 1h candles and complete 4-bar 4h candles. Preserve gaps and data hashes.
+- Trend bias: completed 4h close > EMA50 > EMA200 permits longs only; completed 4h close < EMA50 < EMA200 permits shorts only. The 4h regime is usable only at its close timestamp.
+- Entry signal on 1h: prior completed 1h close is on/below EMA20 for a long; current 1h low is within +/-0.1 ATR14 of EMA20, current close is above EMA20 and above open, and completed 4h regime is bullish. Mirror for shorts. Entry is the next 1h open. One event per 8h global cooldown.
+- Signal study only: measure 4h/8h/24h forward returns; no stop/target tuning until entry information survives matched controls. Cost sensitivity 6/12/20bp round trip.
+- Controls: one deterministic non-pullback control per event, same UTC day, side, completed 4h regime and 3h UTC time bucket, outside +/-1h; without replacement. Report match rate.
+- Chronological calendar periods remain development 2024-11-14 to 2025-11-14, validation 2025-11-14 to 2026-05-14, final holdout 2026-05-14 to 2026-11-14. Exclude any forward outcome that crosses its period end. No parameter search.
+- This hypothesis is not yet implemented or run. Do not claim results or promote it until the code, causal tests, dataset quality, matched controls and final holdout are verified.
