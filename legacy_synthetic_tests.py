@@ -1,4 +1,4 @@
-"""Offline end-to-end tests on synthetic candles. Run: python test_synthetic.py"""
+"""Archived tests for the retired rule-based SMC engine. Not part of visual desk test suite."""
 import json
 import os
 import tempfile

@@ -1,32 +1,112 @@
-name: advance-alerts
+name: salty-quant-paper-desk
+
 on:
   schedule:
-    - cron: "*/10 * * * *"   # GitHub may delay or skip runs; 5 min is the minimum
+    - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      lane:
+        description: "Paper analysis lane for this one manual run"
+        required: true
+        type: choice
+        options:
+          - visual
+          - quant
+        default: visual
+      confirm_visual_paper:
+        description: "Explicitly confirm a one-cycle VISUAL PAPER run (no exchange orders)"
+        required: true
+        type: boolean
+        default: false
 
 concurrency:
-  group: advance-alerts
+  group: salty-quant-paper-desk
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  run:
+  analyse:
+    # Scheduled runs remain explicitly opt-in. Manual dispatch is one paper-only cycle.
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_GITHUB_SCHEDULE == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
-      # state.json (active watches, history) is carried between runs via the Actions cache
-      - uses: actions/cache@v4
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore paper state
+        uses: actions/cache@v4
         with:
           path: state.json
-          key: alerts-state-${{ github.run_id }}
-          restore-keys: alerts-state-
-      - run: python main.py
+          key: salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Restore rolling OHLCV and research history
+        uses: actions/cache@v4
+        with:
+          path: |
+            market_data/
+            research/
+          key: salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Run offline tests
+        run: python test_quant_engine.py && python test_quant_backtest.py && python test_dns_engine.py && python test_visual_first.py
+      - name: Fetch closed OHLCV and run the selected paper-analysis lane
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python quant_worker.py
+          elif [ "${{ inputs.lane }}" = "visual" ]; then
+            if [ "${{ inputs.confirm_visual_paper }}" != "true" ]; then
+              echo "Visual paper lane not run: explicitly set confirm_visual_paper=true in manual dispatch."
+              exit 0
+            fi
+            ENABLE_VISUAL_PAPER=true python visual_worker.py
+          else
+            python quant_worker.py
+          fi
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
           DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DATA_DIR: market_data
+          STATE_PATH: state.json
+          QUANT_RESEARCH_PATH: research/quant_signals.jsonl
+          VISUAL_FIRST_RESEARCH_PATH: research/visual_first_decisions.jsonl
+          VISUAL_FIRST_CHART_DIR: visual_artifacts
+
+      - name: Upload visual-first decision log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-first-decisions-${{ github.run_id }}
+          path: research/visual_first_decisions.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload deterministic candidate and decision log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-research-${{ github.run_id }}
+          path: research/quant_signals.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload raw visual charts and watermark manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-charts-${{ github.run_id }}
+          path: visual_artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

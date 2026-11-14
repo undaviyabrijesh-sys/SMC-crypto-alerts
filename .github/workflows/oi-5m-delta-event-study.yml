@@ -1,0 +1,75 @@
+name: Delta 5m OI impulse event study (BTC/ETH)
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/oi_5m_delta_event_study.py"
+      - "research/RESEARCH_LEDGER.md"
+      - ".github/workflows/oi-5m-delta-event-study.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oi-5m-delta-event-study-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  event-study:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_OI_5M_EVENT_STUDY:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/oi_5m_delta_event_study.py
+          python research/oi_5m_delta_event_study.py --self-test
+      - name: Download two years of Delta BTC/ETH 5m OI and traded-price data; run event study
+        run: |
+          python research/oi_5m_delta_event_study.py \
+            --years 2 \
+            --data-dir results/oi-5m-event-study/data \
+            --output-dir results/oi-5m-event-study/report \
+            --request-delay 0.12
+      - name: Add report to job summary
+        if: always()
+        run: |
+          if [ -f results/oi-5m-event-study/report/summary.md ]; then
+            cat results/oi-5m-event-study/report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The 5m OI event study did not produce a summary." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish latest reproducible summary to research branch
+        if: success()
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          mkdir -p quant_discovery
+          cp results/oi-5m-event-study/report/summary.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md
+          cp results/oi-5m-event-study/report/metadata.json quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Delta 5m OI event study summary"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain raw data and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-oi-5m-event-study-\${{ github.run_id }}
+          path: results/oi-5m-event-study/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,78 @@
+name: BTC 5m liquidity sweep and MSS execution research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/btc_5m_sweep_mss_execution_backtest.py"
+      - ".github/workflows/btc-5m-sweep-mss-execution.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btc-5m-sweep-mss-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check pandas numpy requests
+      - name: Compile and run causality/execution tests
+        run: |
+          python -m py_compile research/btc_5m_sweep_mss_execution_backtest.py
+          python research/btc_5m_sweep_mss_execution_backtest.py --self-test
+      - name: Download two years of BTCUSD traded 5m candles and run preregistered matrix
+        run: python research/btc_5m_sweep_mss_execution_backtest.py --output-dir results/btc-5m-sweep-mss
+      - name: Add verified research summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          import pandas as pd
+          p=Path("results/btc-5m-sweep-mss")
+          print("# BTC 5m sweep + MSS execution research")
+          m=p/"metadata.json"
+          if not m.exists():
+              print("No metadata produced; inspect failed step logs.")
+          else:
+              x=json.loads(m.read_text())
+              for k in ("rows_5m","rows_15m_complete","rows_1h_complete","start_utc","end_utc",
+                        "gaps_5m","configurations","training_eligible","validation_passes","oos_evaluated"):
+                  print(f"- {k}: {x.get(k)}")
+              print(f"- selected config: {x.get('selected_config')}")
+              f=p/"matrix.csv"
+              if f.exists():
+                  d=pd.read_csv(f)
+                  cols=[c for c in ("entry_mode","train_trades","train_profit_factor","train_net_R",
+                                    "validation_trades","validation_profit_factor","validation_net_R",
+                                    "train_gate","validation_gate") if c in d.columns]
+                  print("\n## Gate-passing configurations")
+                  z=d[d.validation_gate] if "validation_gate" in d else d.iloc[0:0]
+                  print(z[cols].to_string(index=False) if len(z) else "None")
+              t=p/"selected_trades_12bp.csv"
+              if t.exists():
+                  d=pd.read_csv(t)
+                  if "sample" in d:
+                      print("\n## Selected 12bp trade counts")
+                      print(d.groupby("sample").size().to_string())
+          PY
+      - name: Retain data and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-5m-sweep-mss-${{ github.run_id }}
+          path: results/btc-5m-sweep-mss/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

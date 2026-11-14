@@ -1,0 +1,31 @@
+name: CRT Delta BTC v3 full matrix
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/crt_backtest_v3.py"
+      - ".github/workflows/crt-v3-full-matrix.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install pandas numpy requests
+      - name: Run full CRT matrix
+        run: python research/crt_backtest_v3.py
+      - name: Upload research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crt-v3-full-matrix
+          path: crt_results/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,74 @@
+name: BTC 1h EMA20 pullback with completed 4h trend bias
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/btc_1h_ema20_pullback_event_study.py
+      - .github/workflows/btc-1h-ema20-pullback.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: btc-1h-ema20-pullback-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  study:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_EMA_PULLBACK_1H:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Run causal self-tests
+        run: python research/btc_1h_ema20_pullback_event_study.py --self-test
+      - name: Download two years of BTC traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC 1h EMA20 pullback event study
+        run: >-
+          python research/btc_1h_ema20_pullback_event_study.py
+          --data-csv historical_data/BTC_15m.csv
+          --output-dir research/results/btc_1h_ema20_pullback
+      - name: Publish results
+        if: always()
+        run: |
+          if [ -f research/results/btc_1h_ema20_pullback/report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/results/btc_1h_ema20_pullback/report.json").read_text())
+          print("# BTC 1h EMA20 pullback with completed 4h trend bias")
+          print(f"- Status: {r['status']}; events: {r['raw_event_count']}; matched controls: {r['matched_control_count']} ({r['match_rate_pct']}%)")
+          print(f"- 15m rows: {r['data']['rows_15m']:,}; 1h bars: {r['complete_1h_bars']:,}; gaps: {r['data']['gap_count_15m']}")
+          for period, horizons in r['periods'].items():
+              print(f"\n## {period}")
+              for h,v in horizons.items():
+                  if 'paired_n' not in v:
+                      print(f"- {h}: {v['status']}")
+                  else:
+                      e=v['event_12bps']; c=v['control_12bps']
+                      print(f"- {h}: n={v['paired_n']}; event mean={e['mean_net_pct']}%, win={e['win_rate_pct']}%, PF={e['profit_factor']}, sequence DD={e['event_sequence_drawdown_pct']}%, losing streak={e['max_losing_streak']}; control mean={c['mean_net_pct']}%; lift={v['mean_lift_12bps_pct']}%, CI={v['paired_block_bootstrap_95ci_pct']}")
+          print("\n- Event study only; no R multiple or executable portfolio claim.")
+          PY
+          else
+            echo "Report missing; inspect failed study step." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: btc-1h-ema20-pullback-${{ github.run_id }}
+          path: research/results/btc_1h_ema20_pullback/
+          if-no-files-found: warn
+          retention-days: 30

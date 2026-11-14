@@ -1,0 +1,137 @@
+name: Derivatives history archive (two-year BTC/ETH)
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: derivatives-history-archive-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_DERIVATIVES_ARCHIVE:')
+    name: Download and verify two-year BTC/ETH funding, mark and OI history
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Download two years of BTC/ETH derivatives history
+        run: >-
+          python bootstrap_derivatives_history.py
+          --years 2
+          --symbols BTC ETH
+          --output-dir derivatives_history
+          --request-delay 0.25
+          --retries 6
+
+      - name: Verify all six BTC/ETH datasets and hashes
+        run: |
+          python - <<'PY'
+          import config
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("derivatives_history")
+          manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          datasets = manifest.get("datasets", {})
+          expected = {
+              f"{alias}_{config.SYMBOLS[alias]['delta_symbol']}_{series}_{timeframe}"
+              for alias in ("BTC", "ETH")
+              for series, timeframe in (("funding", "1h"), ("mark", "5m"), ("open_interest", "1h"))
+          }
+          errors = []
+          rows = []
+          if set(datasets) != expected:
+              errors.append(f"Dataset keys mismatch: missing={sorted(expected-set(datasets))}, extra={sorted(set(datasets)-expected)}")
+          for key, item in datasets.items():
+              path = root / item.get("csv_path", "")
+              if not path.is_file():
+                  errors.append(f"{key}: CSV missing")
+                  continue
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if digest != item.get("sha256"):
+                  errors.append(f"{key}: SHA-256 mismatch")
+              with path.open("r", newline="", encoding="utf-8") as handle:
+                  count = max(0, sum(1 for _ in csv.reader(handle)) - 1)
+              if count != item.get("row_count"):
+                  errors.append(f"{key}: row count mismatch")
+              if count <= 0:
+                  errors.append(f"{key}: dataset is empty; cannot validate historical cost inputs")
+              rows.append({
+                  "dataset": key, "rows": count,
+                  "first_candle_utc": item.get("first_candle_utc"),
+                  "last_candle_open_utc": item.get("last_candle_open_utc"),
+                  "requested_coverage_pct_estimate": item.get("requested_coverage_pct_estimate"),
+                  "observed_coverage_pct": item.get("observed_coverage_pct"),
+                  "gap_count": item.get("gap_count"),
+                  "largest_gap_seconds": item.get("largest_gap_seconds"),
+                  "sha256": digest,
+              })
+          report = {
+              "status": "passed" if not errors and len(datasets) == 6 else "failed",
+              "expected_dataset_count": 6,
+              "actual_dataset_count": len(datasets),
+              "total_candles": sum(row["rows"] for row in rows),
+              "datasets": rows, "errors": errors,
+              "note": "Funding is preserved in raw API units; no rate scaling, zero filling or cost assumption is inferred.",
+          }
+          (root / "archive_validation.json").write_text(
+              json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(report, indent=2))
+          if report["status"] != "passed":
+              raise SystemExit("Derivatives archive validation failed")
+          PY
+
+      - name: Add archive result to run summary
+        if: always()
+        run: |
+          if [ -f derivatives_history/archive_validation.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report=json.loads(Path("derivatives_history/archive_validation.json").read_text())
+          print("# Derivatives history archive")
+          print(f"- Status: **{report['status']}**")
+          print(f"- Datasets: {report['actual_dataset_count']}/{report['expected_dataset_count']}")
+          print(f"- Candles: {report['total_candles']:,}")
+          for row in report["datasets"]:
+              print(f"- {row['dataset']}: {row['rows']:,} rows, "
+                    f"{row['observed_coverage_pct']}% observed coverage, "
+                    f"{row['gap_count']} gaps")
+          for error in report["errors"]:
+              print(f"- ERROR: {error}")
+          PY
+          else
+            echo "No derivatives manifest was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Retain complete or partial derivatives archive for analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-derivatives-2y-btc-eth-${{ github.run_id }}
+          path: derivatives_history/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

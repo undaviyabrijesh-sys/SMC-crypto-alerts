@@ -1,0 +1,10 @@
+.env
+salty_data/
+market_data/
+research/
+state.json
+__pycache__/
+*.py[cod]
+.venv/
+historical_data/
+visual_artifacts/

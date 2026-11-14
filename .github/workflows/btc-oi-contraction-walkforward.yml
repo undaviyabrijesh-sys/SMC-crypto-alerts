@@ -1,0 +1,80 @@
+name: BTC OI contraction walk-forward execution study
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/btc_oi_contraction_walkforward.py
+      - .github/workflows/btc-oi-contraction-walkforward.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: btc-oi-walkforward-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  research:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_OI_WF:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run causal/execution self-tests
+        run: |
+          python -m py_compile research/btc_oi_contraction_walkforward.py
+          python research/btc_oi_contraction_walkforward.py --self-test
+      - name: Download two years of BTC traded 5m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2 --symbols BTC --timeframes 5m
+          --output-dir historical_data --request-delay 0.2 --retries 6
+      - name: Download two years of BTC OI 1h candles
+        run: >-
+          python bootstrap_derivatives_history.py
+          --years 2 --symbols BTC --series open_interest
+          --output-dir derivatives_history --request-delay 0.25 --retries 6
+      - name: Run frozen BTC OI contraction walk-forward backtest
+        run: >-
+          python research/btc_oi_contraction_walkforward.py
+          --oi-csv derivatives_history/BTC_open_interest_1h.csv
+          --price-5m-csv historical_data/BTC_5m.csv
+          --output-dir results/btc-oi-walkforward
+      - name: Publish verified summary
+        if: always()
+        run: |
+          if [ -f results/btc-oi-walkforward/report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          r=json.loads(Path("results/btc-oi-walkforward/report.json").read_text())
+          print("# BTC OI contraction walk-forward execution study")
+          print(f"- Events: {r['event_count']}; executed trades: {r['total_trades']}; ambiguous bars: {r['ambiguous_trade_count']}")
+          print(f"- BTC 5m rows: {r['data']['price_5m_rows']:,}; gaps: {r['data']['price_5m_gaps']}")
+          print(f"- OI 1h rows: {r['data']['oi_1h_rows']:,}; gaps: {r['data']['oi_1h_gaps']}; >20% OI changes: {r['data']['oi_abs_change_gt20pct']}")
+          for name,p in r['period_metrics'].items():
+              m=p['costs']['12']
+              print(f"- {name}: n={m['trades']}, win={m['win_rate_pct']}%, PF={m['profit_factor']}, "
+                    f"net={m['net_R']}R, DD={m['max_drawdown_R']}R, losing streak={m['max_losing_streak']}, "
+                    f"ambiguous={m['ambiguous_bars']}")
+          print("- Research-only; funding and verified spread/impact remain excluded.")
+          PY
+          else
+            echo "No report produced; inspect the failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: btc-oi-contraction-walkforward-${{ github.run_id }}
+          path: |
+            results/btc-oi-walkforward/
+            historical_data/BTC_5m.csv
+            derivatives_history/BTC_open_interest_1h.csv
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

@@ -1,0 +1,38 @@
+name: BTC failed-breakout reversal research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/failed_breakout_reversal_intraday_backtest.py"
+      - ".github/workflows/failed-breakout-reversal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile failed-breakout reversal research
+        run: python -m py_compile research/failed_breakout_reversal_intraday_backtest.py
+      - name: Run deterministic execution, gap-reset and volatility-causality tests
+        run: python research/failed_breakout_reversal_intraday_backtest.py --self-test
+      - name: Run preregistered 3,072-configuration volatility-regime matrix
+        run: python research/failed_breakout_reversal_intraday_backtest.py
+      - name: Upload failed-breakout research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-failed-breakout-reversal
+          path: failed_breakout_results/
+          if-no-files-found: warn
+          retention-days: 30

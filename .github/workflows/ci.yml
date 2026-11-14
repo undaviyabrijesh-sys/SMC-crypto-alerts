@@ -1,0 +1,235 @@
+name: deterministic-quant-ci
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deterministic-quant-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile Python modules
+        run: python -m compileall -q .
+      - name: Run Delta OI semantics reconciliation unit tests
+        run: python research/oi_semantics_reconciliation.py --self-test
+      - name: Run live Delta OI ticker and candle reconciliation
+        run: |
+          python research/oi_semantics_reconciliation.py --output-dir "$RUNNER_TEMP/oi-semantics" --symbols BTCUSD,ETHUSD
+          cat "$RUNNER_TEMP/oi-semantics/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload Delta OI semantics reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-oi-semantics-${{ github.run_id }}
+          path: ${{ runner.temp }}/oi-semantics/
+          retention-days: 30
+      - name: Run offline visual pipeline tests
+        run: python test_visual_pipeline.py
+      - name: Run independent visual-first contracts and mocked paper cycle
+        run: python test_visual_first.py
+      - name: Verify manual visual workflow contract
+        run: python test_visual_workflow_contract.py
+      - name: Run opt-in Bull/Bear/Chief Trader agent contract tests
+        run: python test_ai_trade_agents.py
+      - name: Run DNS map and local watcher tests
+        run: python test_dns_engine.py
+      - name: Run offline quant replay tests
+        run: python test_quant_backtest.py
+      - name: Run AI-free multi-strategy supervisor tests
+        run: python test_quant_engine.py
+      - name: Run daily P&L report tests
+        run: python test_daily_reports.py
+      - name: Run strategy-feedback tests
+        run: python test_setup_feedback.py
+      - name: Run OpenAI secret-format tests
+        run: python test_openai_secret.py
+      - name: Run derivatives-history parser tests
+        run: python test_derivatives_history.py
+      - name: Run derivatives archive tests
+        run: python test_bootstrap_derivatives_history.py
+      - name: Run Quant Discovery unit tests
+        run: python -m unittest discover -s quant_discovery -p 'test_*.py' -v
+      - name: Verify live public Delta OHLCV data
+        run: python smoke_delta_feed.py
+      - name: Probe public historical funding, mark and OI series
+        run: python smoke_derivatives_history.py --days 3 --output "$RUNNER_TEMP/derivatives_history_pilot.json"
+
+      - name: Exercise a small live historical archive pilot
+        run: python bootstrap_historical_data.py --years 0.01 --symbols BTC --timeframes 5m --output-dir "$RUNNER_TEMP/salty-historical-pilot" --request-delay 0
+
+  btc-eth-pairs-research:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_BTC_ETH_PAIR_RESEARCH:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic pair tests
+        run: |
+          python -m py_compile research/btc_eth_pairs_mean_reversion_backtest.py
+          python research/btc_eth_pairs_mean_reversion_backtest.py --self-test
+      - name: Download two years of BTC and ETH traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC ETH
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC ETH pair matrix
+        run: |
+          python research/btc_eth_pairs_mean_reversion_backtest.py \
+            --btc-csv historical_data/BTC_15m.csv \
+            --eth-csv historical_data/ETH_15m.csv \
+            --output-dir results/btc-eth-pairs
+      - name: Add verified pair research summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          import pandas as pd
+          p=Path("results/btc-eth-pairs")
+          print("# BTC/ETH rolling residual pair study")
+          m=p/"metadata.json"
+          if not m.exists():
+              print("No metadata produced; inspect the failed step logs.")
+          else:
+              x=json.loads(m.read_text())
+              for k in ("btc_rows","eth_rows","aligned_rows","start_utc","end_utc",
+                        "btc_gap_count","eth_gap_count","aligned_gap_count",
+                        "configurations","training_eligible","validation_passes","oos_evaluated"):
+                  print(f"- {k}: {x.get(k)}")
+              print(f"- selected config: {x.get('selected_config')}")
+              q=p/"matrix.csv"
+              if q.exists():
+                  d=pd.read_csv(q)
+                  cols=[c for c in ("beta_lookback","z_lookback","entry_z","stop_z","target_z",
+                                    "max_hold","direction","corr_min","train_trades",
+                                    "train_profit_factor","train_net_R","train_compounded_net_return_pct",
+                                    "validation_trades","validation_profit_factor","validation_net_R",
+                                    "validation_compounded_net_return_pct","train_gate","validation_gate") if c in d]
+                  print("\n## Training-eligible candidates")
+                  a=d[d.train_gate].sort_values(["train_profit_factor","train_net_R"],ascending=False)
+                  print(a[cols].head(10).to_string(index=False) if len(a) else "None")
+                  print("\n## Validation passes")
+                  b=d[d.validation_gate]
+                  print(b[cols].to_string(index=False) if len(b) else "None")
+              for name,title in (("diagnostic_monthly.csv","Monthly diagnostics"),
+                                 ("diagnostic_regimes.csv","Regime diagnostics"),
+                                 ("cost_sensitivity.csv","Cost sensitivity")):
+                  q=p/name
+                  if q.exists():
+                      print(f"\\n## {title}")
+                      d=pd.read_csv(q)
+                      print(d.head(80).to_string(index=False))
+          PY
+      - name: Retain raw inputs and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-eth-pairs-mean-reversion-${{ github.run_id }}
+          path: |
+            historical_data/BTC_15m.csv
+            historical_data/ETH_15m.csv
+            historical_data/manifest.json
+            historical_data/coverage.csv
+            results/btc-eth-pairs/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
+
+
+  btc-eth-momentum-research:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_BTC_ETH_MOMENTUM:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic momentum tests
+        run: |
+          python -m py_compile research/btc_eth_cross_sectional_momentum_backtest.py
+          python research/btc_eth_cross_sectional_momentum_backtest.py --self-test
+      - name: Download two years of BTC and ETH traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC ETH
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC ETH relative momentum study
+        run: |
+          python research/btc_eth_cross_sectional_momentum_backtest.py \
+            --btc-csv historical_data/BTC_15m.csv \
+            --eth-csv historical_data/ETH_15m.csv \
+            --output-dir results/btc-eth-momentum
+      - name: Publish momentum research summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p=Path("results/btc-eth-momentum/metadata.json")
+          print("# BTC/ETH cross-sectional momentum")
+          if not p.exists():
+              print("No result metadata produced; inspect failed step logs.")
+          else:
+              r=json.loads(p.read_text())
+              print(f"- Status: {r['status']}; decisions: {r['decision_count']}; active: {r['active_decision_count']}")
+              print(f"- Aligned rows: {r['data_quality']['aligned']['rows']}; "
+                    f"coverage: {r['data_quality']['aligned']['start_utc']} to {r['data_quality']['aligned']['end_utc']}")
+              for period,s in r['periods'].items():
+                  print(f"\n## {period}")
+                  for name in ("active_pair","active_strong_only","always_btc_short_eth","always_eth_short_btc"):
+                      m=s[name]
+                      print(f"- {name}: n={m['trades']}, win={m['win_rate_pct']}%, PF={m['profit_factor']}, "
+                            f"compound={m['compounded_net_return_pct']}%, DD={m['max_drawdown_pct']}%, "
+                            f"positive months={m['positive_month_fraction']}")
+              print("- R not applicable: no stop-defined risk unit. Funding/slippage excluded.")
+          PY
+      - name: Retain BTC/ETH inputs and momentum outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-eth-cross-sectional-momentum-${{ github.run_id }}
+          path: |
+            historical_data/BTC_15m.csv
+            historical_data/ETH_15m.csv
+            historical_data/manifest.json
+            historical_data/coverage.csv
+            results/btc-eth-momentum/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
