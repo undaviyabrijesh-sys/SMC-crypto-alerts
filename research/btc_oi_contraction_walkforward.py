@@ -254,7 +254,8 @@ def self_test():
     # A 5m gap prevents aggregation into a complete 15m candle.
     ix=pd.date_range("2026-01-01",periods=6,freq="5min",tz="UTC").delete(2)
     z=pd.DataFrame({"open":100.0,"high":101.0,"low":99.0,"close":100.0},index=ix)
-    assert len(complete_resample(z,"15min",3,BAR5))==0
+    resampled=complete_resample(z,"15min",3,BAR5)
+    assert len(resampled)==1 and resampled.index[0]==pd.Timestamp("2026-01-01 00:30:00",tz="UTC")
     # OI candle open timestamp becomes available at its close; current return is
     # excluded from the rolling baseline by shift(1).
     hix=pd.date_range("2026-01-01",periods=220,freq="1h",tz="UTC")+BAR1H
