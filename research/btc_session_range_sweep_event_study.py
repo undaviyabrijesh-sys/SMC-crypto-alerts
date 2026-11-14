@@ -103,7 +103,7 @@ def evaluate(d: pd.DataFrame, events: pd.DataFrame) -> tuple[pd.DataFrame,dict]:
     for e in events.to_dict("records"):
         t=pd.Timestamp(e["entry_time"]); i=index.get_indexer([t])[0]
         for label,bars in HORIZONS.items():
-            j=i+bars
+            j=i+bars-1
             if j>=len(d): continue
             # Do not cross a data gap; horizon close is the close of the final bar.
             if d.segment.iloc[i:j+1].nunique()!=1: continue
