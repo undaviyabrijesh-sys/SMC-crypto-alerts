@@ -1,5 +1,7 @@
 """Resumable archive builder for Delta funding, mark-price and open-interest history.
 
+Research archive trigger reviewed 2026-11-14; no production dependencies.
+
 The public endpoint stores these as historical candles using prefixed symbols:
 FUNDING:<contract>, MARK:<contract>, and OI:<contract>. Funding values can be
 negative; this collector preserves raw API values and does not infer their units.
