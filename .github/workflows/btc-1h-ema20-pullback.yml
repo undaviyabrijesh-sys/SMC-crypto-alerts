@@ -58,8 +58,8 @@ jobs:
                   if 'paired_n' not in v:
                       print(f"- {h}: {v['status']}")
                   else:
-                      e=v['event_12bps']; c=v['control_12bps']
-                      print(f"- {h}: n={v['paired_n']}; event mean={e['mean_net_pct']}%, win={e['win_rate_pct']}%, PF={e['profit_factor']}, sequence DD={e['event_sequence_drawdown_pct']}%, losing streak={e['max_losing_streak']}; control mean={c['mean_net_pct']}%; lift={v['mean_lift_12bps_pct']}%, CI={v['paired_block_bootstrap_95ci_pct']}")
+                      e=v['event_12bps']; c=v['control_12bps']; pe=v['paired_event_12bps']
+                      print(f"- {h}: all-event n={v['event_n_all']}; event mean={e['mean_net_pct']}%, win={e['win_rate_pct']}%, PF={e['profit_factor']}, sequence DD={e['event_sequence_drawdown_pct']}%, losing streak={e['max_losing_streak']}; paired n={v['paired_n']}; paired-event mean={pe['mean_net_pct'] if pe else None}%; control mean={c['mean_net_pct'] if c else None}%; lift={v['mean_lift_12bps_pct']}%, CI={v['paired_block_bootstrap_95ci_pct']}")
           print("\n- Event study only; no R multiple or executable portfolio claim.")
           PY
           else
