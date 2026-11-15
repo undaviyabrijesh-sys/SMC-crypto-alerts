@@ -1337,3 +1337,14 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Corrected `HORIZONS` to exactly 1h/4h/8h in commit 83dd1b72d760697e1ebff17e9e8cc0dad912ad1e. The first triggered run [43652138413](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43652138413) checked out the pre-correction commit; it is non-authoritative and will not be used for any reported market result.
 - The self-tests passed before data download on that first run, but they did not assert the exact horizon dictionary. Added a separate explicit horizon assertion in the next correction.
 - No market performance result from the first run is accepted. The corrected workflow run is authoritative only after all tests, download, study and artifact checks succeed.
+
+
+## 2026-11-15 — BTC 1h Donchian event-study accounting audit (corrective rerun pending)
+
+- Audited the completed workflow [43652199230](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43652199230) and artifact [14136343040](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43652199230/artifacts/14136343040).
+- Found a reporting-selection bug: `evaluate_period()` restricted the absolute event-return sample to events that obtained a matched control. The run had 341 raw signals but only 179 matched controls (52.49%); consequently, the published event counts/absolute event statistics described only the matched subset. The paired event-vs-control lift was correctly calculated on that matched subset, but it must not be presented as the absolute performance of all signals.
+- Corrected the study so every eligible event contributes to absolute signal statistics, regardless of match availability; matched-pair lift and its block-bootstrap interval continue to use only the matched subset. Monthly and side/regime event diagnostics now use the full event sample.
+- Updated the workflow summary to distinguish all-event statistics from paired-event/control statistics. Added a deterministic regression test proving unmatched signals remain in the absolute event sample.
+- Code commit: `1bc99ca9769b9cd14176b128fdbc9dfd9ee0fb90`; workflow-summary commit: `82946cdf0d35aa85637e5b58c1028d945c9d645d`. Both are on `ai-quant-rebuild`.
+- The previous absolute event statistics are superseded/incomplete until the corrected workflow reruns. The prior matched-pair lift remains a descriptive result for the 179 matched observations only. No final strategy decision should rely on the old absolute event metrics.
+- Corrected rerun status at ledger update: pending GitHub Actions evidence. No new strategy or production changes.
