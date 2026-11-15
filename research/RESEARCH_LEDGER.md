@@ -1420,3 +1420,28 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Interpretation: the historical rate series is flat within 8h blocks and its updates align with the current 8h UTC grid. This establishes rate-update cadence, not by itself the exact cashflow timestamp or whether a candle at the boundary represents the just-realized rate versus the next realization.
 - Funding PnL remains excluded. Pre-2025-09-08 12:00 UTC minute-level cashflow normalization is not verified, and the exact rate-to-settlement mapping remains unresolved. Do not apply a single current 8h snapshot model across the full two-year history.
 - Reproducible audit workflow [43671994620](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43671994620) was queued at the time of this entry; no completion is claimed.
+
+
+## 2026-11-15 — Funding-rate semantics audit completed; BTC 5m sweep/MSS execution rerun preregistered
+
+### Delta BTC/ETH funding audit — completed, no funding PnL model yet
+- Authoritative workflow: [43671994620](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43671994620), successful job; artifact [14145011170](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43671994620/artifacts/14145011170).
+- Downloaded and inspected artifact report plus both raw hourly funding CSVs. Each asset has 17,531 hourly observations from 2024-11-14 16:00 UTC to 2026-11-15 02:00 UTC, no missing or irregular hourly intervals in this run.
+- Mechanism transition timestamp: 2025-09-08 12:00 UTC (17:30 IST). Candidate post-transition settlement grid remains 00:00, 08:00, 16:00 UTC.
+- BTC: 2,191 complete 8-hour blocks, all flat; 1,056 observed rate changes, all on 00/08/16 UTC; no off-grid changes. Raw rate range -0.08008859 to +0.07886045; median absolute value 0.01.
+- ETH: 2,191 complete blocks, 2,190 flat; 977 rate changes. One off-grid change at 2024-11-29 09:00 UTC; all other changes on 00/08/16 UTC. Raw range -0.02503412 to +0.04851337; median absolute value 0.01.
+- Current product metadata retrieved for both BTCUSD and ETHUSD: perpetual futures, 28,800-second rate exchange interval, funding method mark_price. BTC contract value 0.001 BTC, USD settlement; ETH contract value 0.01 ETH, USD settlement. Product API fields do not independently prove the historical candle's rate-to-settlement alignment.
+- Official current public WebSocket docs expose `funding_rate` fields `fi` (interval seconds), `fr` (rate), and `nfr` (next funding realization); example `fr=0.01`, `fi=28800`. Reference: https://docs.delta.exchange/.
+- Interpretation: rate-update cadence and current 8h interval are supported. Exact historical rate units and whether a candle stamped at the boundary applies to the upcoming or just-realized settlement are not conclusively reconciled. Pre-transition per-minute cashflow normalization remains unresolved. **No funding cashflow has been applied to strategy PnL.**
+- Report explicitly marks `funding_cashflow_model_status=not_implemented_pending_rate_unit_and_pre_transition_cashflow_reconciliation`. Do not describe the funding model as implemented or use it to adjust historical results.
+
+### BTC 5m liquidity sweep + MSS execution study — preregistered smaller comparison
+- Updated `research/btc_5m_sweep_mss_execution_backtest.py` on `ai-quant-rebuild` (commit `5de39b4310636dc4d9ed24534d949c5ce56f5901`) to replace the previous 1,728-configuration matrix with a 48-configuration comparison. This addresses the methodology reset's warning about winner's curse/multiple testing.
+- Signal definition frozen: confirmed 1h external swing sweep/reclaim followed by 15m market-structure shift; 5m execution. Pivot confirmation is only available after the first 15m close strictly after confirmation. 4h trend features are only exposed after completed 4h candles.
+- Fixed structural pivot/MSS parameters: external pivot strength 3, local swing strength 3, MSS wait 8 15m bars. Variations: 3 entry modes (next 5m open, 5m FVG-midpoint retest, MSS-range midpoint retest with 5m directional close), 2 stop buffers (0/0.1 ATR at MSS), 2 targets (1.5R/2R), 2 HTF filters (none/completed 4h EMA50/EMA200 alignment), 2 sessions (all/07:00-19:00 UTC). Both directions included; no direction-specific selection.
+- Data source: public Delta BTCUSD traded-price 5m candles; 730-day request; complete 5m bars used to build 15m/1h/4h series. Costs remain 6/12/20 bps round-trip assumptions; funding explicitly excluded because the cashflow model is not yet verified.
+- Data validation was strengthened to report source row count, duplicates, invalid timestamps, non-finite/non-positive/invalid-shape OHLC rows, missing volume, zero-volume rows and 5m gaps instead of silently losing all quality evidence.
+- Existing conservative execution is retained: same-bar stop-first; adverse stop-gap fill; target gap filled at target; timeout at last completed close; one position at a time per configuration; max 4h hold; chronological 70/15/15 train/validation/OOS; OOS only for a candidate passing both gates.
+- Self-tests now assert the frozen configuration count is 48 in addition to pivot/FVG/gap-reset/ambiguous-bar/gap-fill checks.
+- Workflow [43689334580](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43689334580) was triggered by the script commit. At ledger update time it was still in progress before data download; no performance result is claimed yet.
+- Research-only; no main/production/live changes, no orders or execution alerts.
