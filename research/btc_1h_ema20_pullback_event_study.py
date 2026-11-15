@@ -188,9 +188,10 @@ def evaluate_period(h1: pd.DataFrame, events: pd.DataFrame, controls: pd.DataFra
                     period_name: str, start: pd.Timestamp, end: pd.Timestamp) -> tuple[pd.DataFrame,pd.DataFrame]:
     eout=[]; cout=[]
     if events.empty: return pd.DataFrame(),pd.DataFrame()
-    matched_ids=set(controls.event_id.astype(int)) if not controls.empty else set()
+    # Absolute signal performance includes every eligible event; control matching
+    # is a separate diagnostic and must not decide which events count.
     ev=events[(pd.to_datetime(events.signal_time,utc=True)>=start)&
-              (pd.to_datetime(events.signal_time,utc=True)<end)&events.event_id.isin(matched_ids)]
+              (pd.to_datetime(events.signal_time,utc=True)<end)]
     for e in ev.to_dict("records"):
         for label,bars in HORIZONS.items():
             r=outcome(h1,int(e["signal_i"]),int(e["entry_i"]),float(e["entry"]),
@@ -199,9 +200,9 @@ def evaluate_period(h1: pd.DataFrame, events: pd.DataFrame, controls: pd.DataFra
             row={**e,"period":period_name,"horizon":label,**r}
             for bps in COSTS_BPS: row[f"net_{int(bps)}bps_pct"]=r["gross_return_pct"]-bps/100.0
             eout.append(row)
-        c=controls[controls.event_id.astype(int)==int(e["event_id"])]
-        if c.empty: continue
-        cr=c.iloc[0].to_dict()
+        matched=controls[controls.event_id.astype(int)==int(e["event_id"])] if not controls.empty else pd.DataFrame()
+        if matched.empty: continue
+        cr=matched.iloc[0].to_dict()
         for label,bars in HORIZONS.items():
             r=outcome(h1,int(cr["signal_i"]),int(cr["entry_i"]),float(cr["entry"]),
                       int(cr["side_sign"]),bars,end)
@@ -240,30 +241,40 @@ def block_ci(values: np.ndarray, seed: int) -> list[float]|None:
 
 def summarize(e: pd.DataFrame,c: pd.DataFrame) -> tuple[dict,list[dict]]:
     summary={}; monthly_rows=[]
-    if e.empty or c.empty:
-        return ({p:{h:{"status":"insufficient_events_or_controls","event_n":0,"control_n":0} for h in HORIZONS} for p in PERIODS}, monthly_rows)
     for period in PERIODS:
         summary[period]={}
         for horizon in HORIZONS:
-            a=e[(e.period==period)&(e.horizon==horizon)].copy()
-            b=c[(c.period==period)&(c.horizon==horizon)].copy()
-            key=f"net_12bps_pct"
-            if a.empty or b.empty:
-                summary[period][horizon]={"status":"insufficient_matched_observations","event_n":len(a),"control_n":len(b)}
+            a=e[(e.period==period)&(e.horizon==horizon)].copy() if not e.empty else pd.DataFrame()
+            b=c[(c.period==period)&(c.horizon==horizon)].copy() if not c.empty else pd.DataFrame()
+            if a.empty:
+                summary[period][horizon]={"status":"no_eligible_event_outcomes",
+                    "event_n_all":0,"matched_control_n":int(len(b)),"paired_n":0}
                 continue
-            pair=a[["event_id",key]].merge(b[["event_id",key]],on="event_id",suffixes=("_event","_control"))
-            diff=pair[f"{key}_event"]-pair[f"{key}_control"]
-            paired_ids=set(pair.event_id.astype(int))
-            ap=a[a.event_id.astype(int).isin(paired_ids)]
-            bp=b[b.event_id.astype(int).isin(paired_ids)]
+            key="net_12bps_pct"
+            pair=(a[["event_id",key]].merge(b[["event_id",key]],on="event_id",suffixes=("_event","_control"))
+                  if not b.empty else pd.DataFrame())
+            if not pair.empty:
+                diff=pair[f"{key}_event"]-pair[f"{key}_control"]
+                paired_ids=set(pair.event_id.astype(int))
+                ap=a[a.event_id.astype(int).isin(paired_ids)]
+                bp=b[b.event_id.astype(int).isin(paired_ids)]
+                lift=round(float(diff.mean()),5)
+                ci=block_ci(diff.to_numpy(),CONTROL_SEED+len(summary[period])+len(horizon))
+                paired_event_stats=trade_stats(ap,key)
+                control_stats=trade_stats(bp,key)
+            else:
+                lift=None; ci=None; paired_event_stats=None; control_stats=None
             summary[period][horizon]={
-              "event_6bps":trade_stats(ap,"net_6bps_pct"),
-              "event_12bps":trade_stats(ap,"net_12bps_pct"),
-              "event_20bps":trade_stats(ap,"net_20bps_pct"),
-              "control_12bps":trade_stats(bp,"net_12bps_pct"),
+              "event_n_all":int(len(a)),
+              "matched_control_n":int(len(b)),
+              "event_6bps":trade_stats(a,"net_6bps_pct"),
+              "event_12bps":trade_stats(a,"net_12bps_pct"),
+              "event_20bps":trade_stats(a,"net_20bps_pct"),
+              "paired_event_12bps":paired_event_stats,
+              "control_12bps":control_stats,
               "paired_n":int(len(pair)),
-              "mean_lift_12bps_pct":round(float(diff.mean()),5),
-              "paired_block_bootstrap_95ci_pct":block_ci(diff.to_numpy(),CONTROL_SEED+len(summary[period])+len(horizon)),
+              "mean_lift_12bps_pct":lift,
+              "paired_block_bootstrap_95ci_pct":ci,
             }
             for (side,regime),g in a.groupby(["side","htf_regime"]):
                 monthly_rows.append({"period":period,"horizon":horizon,"side":side,"regime":regime,
@@ -350,7 +361,22 @@ def self_test():
       "net_12bps_pct":[0.2,-0.1]})
     assert trade_stats(control_test,"net_12bps_pct")["n"]==2
     print("PASS control_metrics_entry_time_contract")
-    print("PASS 5 deterministic tests")
+    # Unmatched signals still count in absolute event performance.
+    ev=pd.DataFrame([
+      {"event_id":1,"period":"development","horizon":"4h","side":"long","htf_regime":"bull",
+       "entry_time":"2024-12-01T01:00:00+00:00","net_6bps_pct":0.20,"net_12bps_pct":0.14,"net_20bps_pct":0.06},
+      {"event_id":2,"period":"development","horizon":"4h","side":"short","htf_regime":"bear",
+       "entry_time":"2024-12-02T01:00:00+00:00","net_6bps_pct":-0.20,"net_12bps_pct":-0.26,"net_20bps_pct":-0.34},
+    ])
+    co=pd.DataFrame([{"event_id":1,"period":"development","horizon":"4h",
+       "entry_time":"2024-12-01T01:00:00+00:00","net_12bps_pct":0.04}])
+    sm,_=summarize(ev,co)
+    assert sm["development"]["4h"]["event_n_all"]==2
+    assert sm["development"]["4h"]["event_12bps"]["n"]==2
+    assert sm["development"]["4h"]["paired_n"]==1
+    assert sm["development"]["4h"]["paired_event_12bps"]["n"]==1
+    print("PASS unmatched_events_remain_in_absolute_signal_statistics")
+    print("PASS 6 deterministic tests")
 
 def main():
     p=argparse.ArgumentParser()
