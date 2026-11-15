@@ -283,32 +283,53 @@ def build_entries(d,m15,events,mode):
             "atr_at_mss":float(atr[base-1]),"entry_mode":mode})
     return sorted(entries,key=lambda x:x["entry_i"])
 
+def ambiguous_stop_target(side,o,h,l,stop,target):
+    # Ambiguous only when the bar opens between stop and target and then
+    # spans both levels. If it opens through either level, the open resolves
+    # which level was reached first.
+    if side=="long":
+        return bool(o>stop and o<target and l<=stop and h>=target)
+    return bool(o<stop and o>target and h>=stop and l<=target)
+
 def fill_exit(side,o,h,l,stop,target):
     if side=="long":
         if o<=stop: return min(o,stop),"SL"
+        if o>=target: return target,"TP"
         if l<=stop: return stop,"SL"
         if h>=target: return target,"TP"
     else:
         if o>=stop: return max(o,stop),"SL"
+        if o<=target: return target,"TP"
         if h>=stop: return stop,"SL"
         if l<=target: return target,"TP"
     return None,None
 
 def metrics(t):
-    if t.empty: return {"trades":0,"win_rate_pct":0.0,"profit_factor":None,
+    empty={"trades":0,"win_rate_pct":0.0,"profit_factor":None,
         "net_R":0.0,"avg_R":0.0,"max_drawdown_R":0.0,"max_losing_streak":0,
-        "positive_month_fraction":0.0,"TP":0,"SL":0,"TIME":0}
+        "positive_month_fraction":0.0,"TP":0,"SL":0,"TIME":0,
+        "ambiguous_trades":0,"ambiguous_trade_fraction":0.0,
+        "optimistic_net_R":0.0,"optimistic_avg_R":0.0,
+        "optimistic_profit_factor":None,"ambiguity_upper_bound_delta_R":0.0}
+    if t.empty: return empty
     x=t.sort_values("entry_time"); r=x.net_R.to_numpy(float)
     wins=r[r>0]; losses=r[r<0]; eq=np.r_[0.,np.cumsum(r)]
     dd=eq-np.maximum.accumulate(eq); streak=mx=0
     for v in r: streak=streak+1 if v<0 else 0; mx=max(mx,streak)
     monthly=x.assign(month=x.entry_time.dt.strftime("%Y-%m")).groupby("month").net_R.sum()
+    optimistic=x.optimistic_net_R.to_numpy(float) if "optimistic_net_R" in x else r
+    ow=optimistic[optimistic>0]; ol=optimistic[optimistic<0]
+    ambiguous=int(x.ambiguous_stop_target_bar.sum()) if "ambiguous_stop_target_bar" in x else 0
     return {"trades":len(x),"win_rate_pct":float((r>0).mean()*100),
         "profit_factor":float(wins.sum()/abs(losses.sum())) if len(losses) and abs(losses.sum()) else None,
         "net_R":float(r.sum()),"avg_R":float(r.mean()),"max_drawdown_R":float(dd.min()),
         "max_losing_streak":int(mx),"positive_month_fraction":float((monthly>0).mean()) if len(monthly) else 0.,
         "TP":int((x.outcome=="TP").sum()),"SL":int((x.outcome=="SL").sum()),
-        "TIME":int((x.outcome=="TIME").sum())}
+        "TIME":int((x.outcome=="TIME").sum()),"ambiguous_trades":ambiguous,
+        "ambiguous_trade_fraction":float(ambiguous/len(x)),
+        "optimistic_net_R":float(optimistic.sum()),"optimistic_avg_R":float(optimistic.mean()),
+        "optimistic_profit_factor":float(ow.sum()/abs(ol.sum())) if len(ol) and abs(ol.sum()) else None,
+        "ambiguity_upper_bound_delta_R":float(optimistic.sum()-r.sum())}
 
 def simulate(d,entries,cfg,start_i,end_i,cost_bps):
     op=d.open.to_numpy(float); hi=d.high.to_numpy(float); lo=d.low.to_numpy(float)
@@ -338,11 +359,17 @@ def simulate(d,entries,cfg,start_i,end_i,cost_bps):
         if not np.isfinite(risk) or risk<=0 or risk/entry>.05: continue
         target=entry+cfg["target_r"]*risk if side=="long" else entry-cfg["target_r"]*risk
         outcome="TIME"; exit_i=end_trade-1; exitp=float(cl[exit_i])
+        ambiguous=False
         for k in range(ei,end_trade):
+            ambiguous=ambiguous_stop_target(side,float(op[k]),float(hi[k]),float(lo[k]),stop,target)
             px,why=fill_exit(side,float(op[k]),float(hi[k]),float(lo[k]),stop,target)
             if why:
                 exitp=float(px); outcome=why; exit_i=k; break
         gross=(exitp-entry)/risk if side=="long" else (entry-exitp)/risk
+        # Target-first is an optimistic bound for a 5m bar whose OHLC spans
+        # both stop and target after opening between them. It is not a fill claim.
+        optimistic_exitp=float(target) if ambiguous else exitp
+        optimistic_gross=(optimistic_exitp-entry)/risk if side=="long" else (entry-optimistic_exitp)/risk
         cost=(cost_bps/10000.)*entry/risk
         rows.append({"sample":cfg["sample"],"entry_mode":cfg["entry_mode"],
             "ext_strength":cfg["ext_strength"],"local_strength":cfg["local_strength"],
@@ -354,7 +381,10 @@ def simulate(d,entries,cfg,start_i,end_i,cost_bps):
             "confirmation_time":d.index[ev["confirm_i"]],"entry_time":et,
             "exit_time":d.index[exit_i],"entry":entry,"stop":stop,"target":target,
             "exit":exitp,"outcome":outcome,"gross_R":gross,"cost_bps":cost_bps,
-            "cost_R":cost,"net_R":gross-cost,"hold_bars":exit_i-ei+1})
+            "cost_R":cost,"net_R":gross-cost,"hold_bars":exit_i-ei+1,
+            "ambiguous_stop_target_bar":bool(ambiguous),"optimistic_exit":optimistic_exitp,
+            "optimistic_gross_R":optimistic_gross,"optimistic_net_R":optimistic_gross-cost,
+            "ambiguity_delta_R":optimistic_gross-gross})
         last_exit=exit_i
     return pd.DataFrame(rows)
 
@@ -488,7 +518,8 @@ def run(raw,out):
         "execution":"complete contiguous 5m OHLC; next 5m open; same-bar stop first; adverse stop gap at worse open; target fill at target; timeout at final close",
         "costs":"6/12/20bp flat round-trip sensitivity; funding excluded pending verified settlement data",
         "selection_gates":"train >=40 trades, PF>=1.05, net R>0, positive months>=50%, max DD>=-15R; validation >=20 trades, PF>=1.05, net R>0, positive months>=50%, max DD>=-10R; OOS only for one validation-selected candidate",
-        "causality_note":"1H pivots mapped with searchsorted(side='right') to first 15m close strictly after confirmation; 5m entries begin at/after completed 15m MSS close"}
+        "causality_note":"1H pivots mapped with searchsorted(side='right') to first 15m close strictly after confirmation; 5m entries begin at/after completed 15m MSS close",
+        "ambiguity_note":"headline metrics use conservative stop-first; optimistic metrics assume target-first only for bars opening between and spanning both levels; 5m OHLC cannot identify intrabar order"}
     (out/"metadata.json").write_text(json.dumps(meta,indent=2,default=str)+"\n")
     print(json.dumps(meta,indent=2,default=str))
     print("\nVALIDATION PASSES")
@@ -521,12 +552,18 @@ def self_test():
     gp=gd.groupby(gs).close.shift(1)
     gtr=pd.concat([gd.high-gd.low,(gd.high-gp).abs(),(gd.low-gp).abs()],axis=1).max(axis=1)
     assert gtr.iloc[4]==2.0
-    # Conservative same-bar ordering and adverse stop gaps.
+    # Conservative same-bar ordering, explicit ambiguity bounds and gaps.
     assert fill_exit("long",100,120,80,90,110)==(90,"SL")
     assert fill_exit("short",100,120,80,110,90)==(110,"SL")
+    assert ambiguous_stop_target("long",100,120,80,90,110)
+    assert ambiguous_stop_target("short",100,120,80,110,90)
+    assert not ambiguous_stop_target("long",85,120,80,90,110)
+    assert not ambiguous_stop_target("short",115,120,80,110,90)
     assert fill_exit("long",85,95,80,90,110)==(85,"SL")
     assert fill_exit("short",115,120,112,110,90)==(115,"SL")
-    assert fill_exit("long",115,120,112,90,110)==(110,"TP")
+    # A target crossed at the opening price is reached before any later wick.
+    assert fill_exit("long",115,120,80,90,110)==(110,"TP")
+    assert fill_exit("short",85,120,80,110,90)==(90,"TP")
     config_count=len(list(itertools.product(EXT_STRENGTHS,LOCAL_STRENGTHS,MSS_WAITS,
         ENTRY_MODES,STOP_BUFFERS,TARGETS,HTF_FILTERS,DIRECTIONS,SESSIONS)))
     assert config_count==48, f"expected frozen 48-config comparison, got {config_count}"
