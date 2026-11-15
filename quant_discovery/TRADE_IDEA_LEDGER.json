@@ -13542,7 +13542,7 @@
       },
       "key_observations": [
         "All 11 completed 4h candles (04:00-07:59:59Z) are bearish and close below EMA20/EMA50; all 11 completed 1h candles are bearish. The prior scan's 4h relief recovery has failed to continue.",
-        "All 11 completed 15m candles (07:45-07:59:59Z) are green, with RVOL 1.03x-1.52x, but 10/11 closes remain below both 15m EMAs; ADA is marginally above EMA20 but below EMA50. Current marks are below the latest 15m closes.",
+        "All 11 completed 15m candles (07:45-07:59:59.999Z) are green, with RVOL 1.03x-1.52x. Nine of eleven closes remain below both 15m EMAs; ADA is marginally above EMA20 but below EMA50, while ZEC is below EMA20 but above EMA50. Current marks are below the latest 15m closes.",
         "Nine of eleven latest 15m candles swept and reclaimed the immediately preceding 20-bar low (BTC, ETH, SOL, BNB, XRP, DOGE, LINK, SUI, HYPE). These are micro sell-side sweeps, not 1h/4h reversal confirmations; latest taker sell volume dominates 9/11 available samples.",
         "The latest 4h candle made a higher low versus the immediately preceding 20 completed 4h bars in all 11 markets, but remained bearish and below both 4h EMAs. This is a pause/higher-low attempt inside a strong downtrend, not a confirmed reversal.",
         "The 14 Nov daily candle swept below the immediately preceding 20-day low and closed below it in all 11 markets. Daily structure remains decisively bearish.",
@@ -14081,7 +14081,7 @@
     "discord_alerts_due": 0,
     "known_active_alerted_setups": 0,
     "recovery_warning": true,
-    "note": "The prior 4h relief recovery failed to continue: all 11 latest completed 1h and 4h candles bearish below EMA20/EMA50, and the 14 Nov daily candle swept/closed below prior 20-day lows in all 11. Latest 15m candles are green with 9/11 micro sell-side sweep/reclaims, but 10/11 remain below both 15m EMAs and taker selling dominates 9/11 latest samples. OI mixed; no completed rejection/retest supports net >=2R. SUI user-directed exception remains terminal at -1R."
+    "note": "The prior 4h relief recovery failed to continue: all 11 latest completed 1h and 4h candles are bearish below EMA20/EMA50, and the 14 Nov daily candle swept/closed below prior 20-day lows in all 11. Latest 15m candles are green with 9/11 micro sell-side sweep/reclaims; 9/11 closes remain below both 15m EMAs and ADA/ZEC are mixed. Taker selling dominates 9/11 latest samples. OI mixed; no completed rejection/retest supports net >=2R. SUI user-directed exception remains terminal at -1R."
   },
   "monitoring_status": "Ledger fetched and parsed at scan start; recovery warning preserved (unknown pre-initialization active alerted setups cannot be reconstructed). Known active alerted setups: 0; separate worker state.json not merged. Fresh 11-market Binance USDⓈ-M scan at 2026-11-15T08:00:47.329Z: 1h/4h structure bearish, daily 14 Nov swept and closed below prior 20-day lows in all 11; 15m green micro sweep/reclaims in 9/11 but no EMA/structure confirmation. OI mixed, account positioning long-heavy except ZEC, taker selling dominates 9/11 latest samples. No setup with completed entry, structural stop/target and net >=2R; no Discord alert due. SUI user-authorized triggered-unalerted exception checked at 2026-11-15T08:00:47.329Z: mark 0.7129, max high since previous check 0.7252, original entry zone not revisited; stop was hit 7 Nov before target touch 8 Nov; terminal realized result remains -1R. Hypothetical mark-to-reference +12.6724R is not realized."
 }
