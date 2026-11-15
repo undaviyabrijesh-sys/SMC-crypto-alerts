@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-15T19:31:35.810Z",
+  "updated_at": "2026-11-15T19:32:10.000Z",
   "recovery": {
     "status": "initialized_after_empty_file",
     "previous_file_parse": "failed_empty_file",
@@ -3006,6 +3006,70 @@
       "condition": "Latest completed 1h close remains below EMA20 and EMA50; 4h and daily closes remain below both EMAs. Latest completed 15m close is above both 15m EMAs, while 15m RVOL is 1.34x. Monitor pullback/retest of the current 1h EMA20-EMA50 band 66.7336-67.6458. Require a completed 15m bearish rejection followed by a completed 15m close below its rejection low and 15m EMA20. Define structural stop and target only after confirmation; require net planned R:R >=2. No chase.",
       "last_checked_utc": "2026-11-15T19:31:35.810Z",
       "last_mark_price": 67.0518
+    },
+    {
+      "idea_id": "BTCUSDT-S-20261115T193210Z-15M-EMA20-REJECTION-WATCH",
+      "symbol": "BTCUSDT",
+      "side": "SHORT",
+      "status": "awaiting_completed_trigger",
+      "trigger_confirmed": false,
+      "current_mark": 64955.9,
+      "rejection_candle": {
+        "open_time_utc": "2026-11-15T19:15:00Z",
+        "close_time_utc": "2026-11-15T19:29:59.999Z",
+        "open": 65024.8,
+        "high": 65028.4,
+        "low": 64871.7,
+        "close": 64947.6
+      },
+      "entry_trigger": {
+        "type": "15m candle close below rejection_candle_low",
+        "price": 64871.7
+      },
+      "entry_zone": [
+        64871.7,
+        64850
+      ],
+      "stop": 65028.4,
+      "targets": [
+        64240
+      ],
+      "planned_gross_rr": 4.03,
+      "estimated_net_rr_at_0_04pct_round_trip_fee": 3.32,
+      "confidence": 0.57,
+      "condition": "Latest 15m candle rejected the 1h EMA20 band: high 65028.4 crossed 1h EMA20 64975.81, close 64947.6 returned below 1h EMA20. Current mark 64955.9 remains above rejection low 64871.7. Only consider SHORT after a subsequent completed 15m candle closes below 64871.7; stop 65028.4, first structural target prior 20-bar 15m low 64240. Net R:R estimate assumes 0.04% round-trip fees and excludes variable slippage/funding; recalculate at trigger and reject if actual net R:R <2. No entry or alert yet."
+    },
+    {
+      "idea_id": "SUIUSDT-S-20261115T193210Z-15M-EMA20-REJECTION-WATCH",
+      "symbol": "SUIUSDT",
+      "side": "SHORT",
+      "status": "awaiting_completed_trigger",
+      "trigger_confirmed": false,
+      "current_mark": 0.7234,
+      "rejection_candle": {
+        "open_time_utc": "2026-11-15T19:15:00Z",
+        "close_time_utc": "2026-11-15T19:29:59.999Z",
+        "open": 0.7242,
+        "high": 0.7249,
+        "low": 0.7218,
+        "close": 0.723
+      },
+      "entry_trigger": {
+        "type": "15m candle close below rejection_candle_low",
+        "price": 0.7218
+      },
+      "entry_zone": [
+        0.7218,
+        0.721
+      ],
+      "stop": 0.7249,
+      "targets": [
+        0.7138
+      ],
+      "planned_gross_rr": 2.58,
+      "estimated_net_rr_at_0_04pct_round_trip_fee": 2.28,
+      "confidence": 0.52,
+      "condition": "Latest 15m candle tested and closed just below the 1h EMA20 0.723034; current mark 0.7234 remains above rejection low 0.7218. Only consider SHORT after a subsequent completed 15m candle closes below 0.7218; stop 0.7249, first structural target prior 20-bar 15m low 0.7138. Net R:R estimate assumes 0.04% round-trip fees and excludes variable slippage/funding; negative funding and long-heavy accounts increase squeeze risk. Recalculate at trigger and reject if actual net R:R <2. No entry or alert yet."
     }
   ],
   "user_directed_unalerted_setups": [
@@ -17347,6 +17411,13 @@
       "type": "discord_delivery_not_confirmed",
       "delivery_confirmed": false,
       "evidence": "No current entry or lifecycle alert was due. No direct Discord send action or GitHub Actions workflow-dispatch action is available in this runtime; no message was sent and no webhook secret was accessed."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261115T193135Z-conditional-rejection-watches",
+      "timestamp_utc": "2026-11-15T19:32:10.000Z",
+      "type": "conditional_shadow_rejection_watches_added",
+      "decision": "NO_TRADE_PENDING_TRIGGER",
+      "evidence": "Two completed 15m candles are conditional bearish rejection candidates at the 1h EMA20: BTC and SUI. BTC candle H65028.4/C64947.6 around 1h EMA20 64975.81; trigger only on a subsequent completed 15m close below 64871.7, stop 65028.4, target 64240, estimated net RR 3.32. SUI candle H0.7249/C0.7230 around 1h EMA20 0.723034; trigger only on a subsequent completed 15m close below 0.7218, stop 0.7249, target 0.7138, estimated net RR 2.28. Both are untriggered shadow watches; actual net RR must be recalculated at trigger and must remain >=2 after fees/slippage. No paper fills or Discord alerts."
     }
   ],
   "last_scan_summary": {
@@ -17362,7 +17433,8 @@
     "actual_paper_fills": 0,
     "unqualified_retests": 0,
     "recovery_warning": true,
-    "note": "15m recovery remains above both fast EMAs across all 11, but 1h is still bearish in 9/11 and all 4h/daily structures remain bearish. Latest 15m candles are mostly red on subdued volume; latest 1h RVOL is very low. OI notional mixed, global accounts long-heavy except ZEC. No completed bearish rejection plus rejection-low break meets net 2R. Previous 15:21 watch bands were touched in some markets but produced no valid completed trigger. SUI user-directed historical setup remains terminal -1R. Discord send unavailable; no alert claimed."
+    "note": "15m recovery remains above both fast EMAs across all 11, but 1h is still bearish in 9/11 and all 4h/daily structures remain bearish. Latest 15m candles are mostly red on subdued volume; latest 1h RVOL is very low. OI notional mixed, global accounts long-heavy except ZEC. No completed bearish rejection plus rejection-low break meets net 2R. Previous 15:21 watch bands were touched in some markets but produced no valid completed trigger. SUI user-directed historical setup remains terminal -1R. Discord send unavailable; no alert claimed. Two additional untriggered 15m rejection watches added: BTC and SUI; both require a subsequent completed 15m close below their rejection lows and revalidation of net >=2R. No alert or fill.",
+    "conditional_rejection_watches": 2
   },
-  "monitoring_status": "Ledger fetched and parsed at scan start. Fresh Binance USDⓈ-M snapshot at 2026-11-15T19:30:11Z for 11 markets; completed 15m/1h/4h/daily candles evaluated. No current entry or lifecycle trigger with net >=2R. Previous 15:21 UTC 1h retest watches checked against 17 completed 15m candles each; no qualifying rejection+break. Eleven refreshed shadow-only watches committed. SUI user-directed setup terminal -1R, latest mark 0.7234, original entry zone not revisited; stop was hit before target on 7-8 Nov. Known active_alerted_setups remains empty, with pre-initialization recovery warning preserved. No direct Discord send or workflow-dispatch action available; no message sent."
+  "monitoring_status": "Ledger fetched and parsed at scan start. Fresh Binance USDⓈ-M snapshot at 2026-11-15T19:30:11Z for 11 markets; completed 15m/1h/4h/daily candles evaluated. No current entry or lifecycle trigger with net >=2R. Previous 15:21 UTC 1h retest watches checked against 17 completed 15m candles each; no qualifying rejection+break. Eleven refreshed shadow-only watches committed. SUI user-directed setup terminal -1R, latest mark 0.7234, original entry zone not revisited; stop was hit before target on 7-8 Nov. Known active_alerted_setups remains empty, with pre-initialization recovery warning preserved. No direct Discord send or workflow-dispatch action available; no message sent. Two conditional shadow rejection watches added for BTC and SUI; both remain awaiting a subsequent completed 15m close below rejection low. No entry or alert."
 }
