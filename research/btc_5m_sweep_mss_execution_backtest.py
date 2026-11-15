@@ -25,14 +25,17 @@ MAX_HOLD=48                 # 4h maximum holding period
 LEVEL_MAX_AGE=288           # 72h in 15m bars
 RETEST_MAX=12               # 60m after MSS
 COSTS=(6,12,20)
-EXT_STRENGTHS=(2,3)
-LOCAL_STRENGTHS=(2,3)
-MSS_WAITS=(4,8)
+# Small preregistered execution comparison: freeze the pivot/MSS definition and
+# compare only entry timing, modest structural-stop buffer, target and HTF/session
+# filters. This replaces the original 1,728-row parameter grid to reduce selection bias.
+EXT_STRENGTHS=(3,)
+LOCAL_STRENGTHS=(3,)
+MSS_WAITS=(8,)
 ENTRY_MODES=("next_open","fvg_mid_retest","mss_mid_retest")
 STOP_BUFFERS=(0.0,0.1)
-TARGETS=(1.5,2.0,3.0)
+TARGETS=(1.5,2.0)
 HTF_FILTERS=("none","ema50_200_4h")
-DIRECTIONS=("both","long_only","short_only")
+DIRECTIONS=("both",)
 SESSIONS=("all","07-19")
 MIN_TRAIN=40
 MIN_VALIDATION=20
@@ -64,17 +67,38 @@ def fetch_5m():
         time.sleep(0.08)
     if not frames: raise RuntimeError("Delta returned no BTCUSD 5m candles")
     d=pd.concat(frames,ignore_index=True)
-    d["timestamp"]=pd.to_datetime(pd.to_numeric(d["time"]),unit="s",utc=True)
+    source_rows=len(d)
+    d["timestamp"]=pd.to_datetime(pd.to_numeric(d["time"],errors="coerce"),unit="s",utc=True)
+    invalid_timestamp_rows=int(d.timestamp.isna().sum())
+    d=d.dropna(subset=["timestamp"])
     duplicate_count=int(d.timestamp.duplicated().sum())
     d=d.drop_duplicates("timestamp",keep="last").sort_values("timestamp").set_index("timestamp")
-    for c in ("open","high","low","close","volume"):
-        if c in d: d[c]=pd.to_numeric(d[c],errors="coerce")
-    d=d.dropna(subset=["open","high","low","close"])
-    d=d[(d[["open","high","low","close"]]>0).all(axis=1)]
-    d=d[(d.high>=d[["open","close","low"]].max(axis=1)) &
-        (d.low<=d[["open","close","high"]].min(axis=1))]
+    if "volume" not in d:
+        d["volume"]=0.0
+        missing_volume_rows=len(d)
+    else:
+        d["volume"]=pd.to_numeric(d["volume"],errors="coerce")
+        missing_volume_rows=int(d.volume.isna().sum())
+        d["volume"]=d.volume.fillna(0.0)
+    for col in ("open","high","low","close"):
+        d[col]=pd.to_numeric(d[col],errors="coerce")
+    ohlc=d[["open","high","low","close"]].to_numpy(dtype=float)
+    finite=np.isfinite(ohlc).all(axis=1)
+    positive=(d[["open","high","low","close"]]>0).all(axis=1).to_numpy()
+    shape=((d.high>=d[["open","close","low"]].max(axis=1)) &
+           (d.low<=d[["open","close","high"]].min(axis=1))).to_numpy()
+    invalid_nonfinite=int((~finite).sum())
+    invalid_nonpositive=int((finite & ~positive).sum())
+    invalid_ohlc=int((finite & positive & ~shape).sum())
+    valid=finite & positive & shape
+    d=d.loc[valid]
     d=d[d.index+BAR<=pd.Timestamp.now(tz="UTC")]
-    d.attrs["duplicate_count"]=duplicate_count
+    d.attrs.update({"source_rows":source_rows,"duplicate_count":duplicate_count,
+        "invalid_timestamp_rows":invalid_timestamp_rows,
+        "invalid_nonfinite_ohlc_rows":invalid_nonfinite,
+        "invalid_nonpositive_ohlc_rows":invalid_nonpositive,
+        "invalid_ohlc_shape_rows":invalid_ohlc,
+        "missing_volume_rows":missing_volume_rows})
     if d.empty: raise RuntimeError("No valid closed BTCUSD 5m candles")
     return d
 
@@ -445,7 +469,13 @@ def run(raw,out):
         "rows_4h_complete":len(h4),"start_utc":d.index.min().isoformat(),
         "end_utc":d.index.max().isoformat(),"gaps_5m":gaps,
         "largest_gap_minutes":float(d.index.to_series().diff().dropna().max().total_seconds()/60),
+        "source_rows":int(raw.attrs.get("source_rows",len(raw))),
         "duplicate_rows_removed":int(raw.attrs.get("duplicate_count",0)),
+        "invalid_timestamp_rows":int(raw.attrs.get("invalid_timestamp_rows",0)),
+        "invalid_nonfinite_ohlc_rows":int(raw.attrs.get("invalid_nonfinite_ohlc_rows",0)),
+        "invalid_nonpositive_ohlc_rows":int(raw.attrs.get("invalid_nonpositive_ohlc_rows",0)),
+        "invalid_ohlc_shape_rows":int(raw.attrs.get("invalid_ohlc_shape_rows",0)),
+        "missing_volume_rows":int(raw.attrs.get("missing_volume_rows",0)),
         "zero_volume_rows":int((pd.to_numeric(raw.volume,errors="coerce")==0).sum()) if "volume" in raw else None,
         "dataset_sha256":hashlib.sha256(raw.to_csv().encode()).hexdigest(),
         "split":"chronological 70/15/15 by 5m row index",
@@ -497,7 +527,10 @@ def self_test():
     assert fill_exit("long",85,95,80,90,110)==(85,"SL")
     assert fill_exit("short",115,120,112,110,90)==(115,"SL")
     assert fill_exit("long",115,120,112,90,110)==(110,"TP")
-    print("8 causality/FVG/gap-reset/execution self-tests passed")
+    config_count=len(list(itertools.product(EXT_STRENGTHS,LOCAL_STRENGTHS,MSS_WAITS,
+        ENTRY_MODES,STOP_BUFFERS,TARGETS,HTF_FILTERS,DIRECTIONS,SESSIONS)))
+    assert config_count==48, f"expected frozen 48-config comparison, got {config_count}"
+    print("9 causality/FVG/gap-reset/execution/small-grid self-tests passed")
 
 def main():
     p=argparse.ArgumentParser()
