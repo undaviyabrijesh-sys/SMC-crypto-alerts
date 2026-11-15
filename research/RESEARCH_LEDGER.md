@@ -1445,3 +1445,14 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Self-tests now assert the frozen configuration count is 48 in addition to pivot/FVG/gap-reset/ambiguous-bar/gap-fill checks.
 - Workflow [43689334580](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43689334580) was triggered by the script commit. At ledger update time it was still in progress before data download; no performance result is claimed yet.
 - Research-only; no main/production/live changes, no orders or execution alerts.
+
+
+
+## 2026-11-15 — BTC SMC 1m execution replay audit — preregistered
+
+- Motivation: the completed 5m OHLC audit found zero bars spanning both stop and target across the 48-configuration train/validation matrix. This does not prove intrabar ordering. Official Delta API documentation lists 1m and 3m historical candle resolutions and a maximum of 2,000 candles per response; the 1m replay is therefore a feasible, more granular execution audit.
+- Frozen candidates only: (1) prior best training configuration: 5m next-open, 0 ATR stop buffer, 1.5R, no HTF filter, both directions, all hours; (2) prior best-validation diagnostic only: 5m next-open, 0.1 ATR stop buffer, 2R, no HTF filter, both directions, all hours. Candidate 2 is not eligible for promotion.
+- Signal timestamps, 5m entry prices, stops and targets remain fixed. Download 730 days of Delta BTCUSD traded-price 1m candles; compare aggregated 1m OHLC against native 5m OHLC; replay exits at 1m resolution; do not fill missing minutes. If a minute is missing before the first touch, mark that trade unresolved. For an ambiguous 1m candle, headline stop-first and report target-first upper bound.
+- Retain 4h max hold and 6/12/20bp round-trip cost assumptions. Funding, spread and impact remain excluded. Use the same 70/15/15 chronological row-index split for comparability; no OOS because the preceding 5m study had zero validation passes.
+- This is an execution-resolution audit, not a new strategy search or parameter selection. No production, main-branch, alert or order changes.
+- Full frozen specification: `research/SMC_1M_EXECUTION_REPLAY_PREREGISTRATION_2026-11-15.md`. Official API reference: https://docs.delta.exchange/. Status: preregistered; no 1m market result until the dedicated workflow completes and its artifact is inspected.
