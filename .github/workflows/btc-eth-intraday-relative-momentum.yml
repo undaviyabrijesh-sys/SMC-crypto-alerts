@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: btc-eth-intraday-relative-momentum-\${{ github.ref }}
+  group: btc-eth-intraday-relative-momentum-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -79,7 +79,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-eth-intraday-relative-momentum-\${{ github.run_id }}
+          name: btc-eth-intraday-relative-momentum-${{ github.run_id }}
           path: |
             historical_data/BTC_15m.csv
             historical_data/ETH_15m.csv
