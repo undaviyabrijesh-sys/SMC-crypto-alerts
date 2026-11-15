@@ -139,7 +139,9 @@ def fetch_1m() -> tuple[pd.DataFrame, dict]:
     return raw, quality
 
 
-def compare_1m_to_5m(one: pd.DataFrame, five: pd.DataFrame) -> dict:
+def compare_1m_to_5m(
+    one: pd.DataFrame, five: pd.DataFrame, mismatch_path: Path | None = None
+) -> dict:
     agg = one[["open", "high", "low", "close"]].resample(
         "5min", label="left", closed="left"
     ).agg({"open": "first", "high": "max", "low": "min", "close": "last"})
@@ -149,28 +151,42 @@ def compare_1m_to_5m(one: pd.DataFrame, five: pd.DataFrame) -> dict:
         agg, how="inner", lsuffix="_5m", rsuffix="_1m"
     )
     if joined.empty:
+        if mismatch_path is not None:
+            pd.DataFrame().to_csv(mismatch_path, index=False)
         return {
             "complete_1m_derived_5m_bars": len(agg),
             "matched_native_5m_bars": 0,
             "ohlc_exact_match_fraction": None,
             "mismatched_bars": None,
             "max_abs_price_difference": None,
+            "max_abs_difference_field": None,
+            "max_abs_difference_timestamp": None,
         }
-    diffs = []
+
+    diffs = {}
     exact = np.ones(len(joined), dtype=bool)
     for col in ("open", "high", "low", "close"):
         delta = (joined[f"{col}_5m"] - joined[f"{col}_1m"]).abs().to_numpy(float)
-        diffs.append(delta)
+        diffs[col] = delta
+        joined[f"abs_diff_{col}"] = delta
         exact &= delta <= 1e-8
-    all_diffs = np.concatenate(diffs)
+
+    mismatch = joined.loc[~exact].copy()
+    if mismatch_path is not None:
+        mismatch.to_csv(mismatch_path, index_label="timestamp")
+
+    max_field = max(diffs, key=lambda key: float(np.max(diffs[key])))
+    max_pos = int(np.argmax(diffs[max_field]))
     return {
         "complete_1m_derived_5m_bars": len(agg),
         "matched_native_5m_bars": len(joined),
         "ohlc_exact_match_fraction": float(exact.mean()),
         "mismatched_bars": int((~exact).sum()),
-        "max_abs_price_difference": float(np.nanmax(all_diffs)),
+        "max_abs_price_difference": float(diffs[max_field][max_pos]),
+        "max_abs_difference_field": max_field,
+        "max_abs_difference_timestamp": joined.index[max_pos].isoformat(),
+        "mismatch_rows_saved": len(mismatch),
     }
-
 
 def replay_trade(trade: dict, one: pd.DataFrame) -> dict:
     start = pd.Timestamp(trade["entry_time"])
@@ -333,7 +349,9 @@ def run(output_dir: Path) -> None:
     summary = pd.DataFrame(summarise_replays(trades))
     summary.to_csv(output_dir / "frozen_candidate_1m_replay_summary.csv", index=False)
 
-    alignment = compare_1m_to_5m(one, five)
+    alignment = compare_1m_to_5m(
+        one, five, output_dir / "one_minute_five_minute_mismatches.csv"
+    )
     (output_dir / "one_minute_five_minute_alignment.json").write_text(
         json.dumps(alignment, indent=2) + "\n"
     )
