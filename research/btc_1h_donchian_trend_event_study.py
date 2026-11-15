@@ -335,7 +335,8 @@ def run(data_csv: Path, out: Path, symbol: str="BTCUSD") -> dict:
       "limitations":["event study only; no stop/target, R-multiple or executable portfolio simulation",
         "event-sequence drawdown is not portfolio drawdown; 24h outcomes can overlap because event cooldown is 8h",
         "costs are simple round-trip assumptions; actual fee tier, spread, slippage, funding and impact are not verified",
-        "matched controls are observational and do not establish causality",\n        "all eligible event outcomes are included in absolute signal statistics even when no matched control exists; paired lift uses matched events only",
+        "matched controls are observational and do not establish causality",
+        "all eligible event outcomes are included in absolute signal statistics even when no matched control exists; paired lift uses matched events only",
         "final holdout is reported once and must not be tuned"]}
     (out/"report.json").write_text(json.dumps(report,indent=2)+"\n")
     return report
