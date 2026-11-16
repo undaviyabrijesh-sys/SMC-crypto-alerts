@@ -4521,7 +4521,7 @@
         "completed_4h_candles_since_previous_check": 0,
         "stop_was_already_hit": true,
         "target_was_already_touched_after_stop": true,
-        "hypothetical_mark_to_reference_r": -11.880011206896498,
+        "hypothetical_mark_to_reference_r": 11.880011206896498,
         "realized_r_remains": -1,
         "latest_completed_15m_candle": {
           "open_utc": "2026-11-16T11:30:00Z",
@@ -24248,7 +24248,7 @@
         "completed_4h_candles_since_previous_check": 0,
         "stop_was_already_hit": true,
         "target_was_already_touched_after_stop": true,
-        "hypothetical_mark_to_reference_r": -11.880011206896498,
+        "hypothetical_mark_to_reference_r": 11.880011206896498,
         "realized_r_remains": -1,
         "latest_completed_15m_candle": {
           "open_utc": "2026-11-16T11:30:00Z",
