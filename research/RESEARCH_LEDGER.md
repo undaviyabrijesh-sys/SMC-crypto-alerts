@@ -1569,3 +1569,53 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Cost diagnosis: median stop risk was 0.181% of entry notional in development and 0.162% in validation. At 12bp, median cost was about 0.66R/0.74R and mean cost 0.895R/1.030R per trade respectively. The 3R development variant was +1.91R gross but -183.39R net at 12bp. Even 6bp left all three development configurations negative; the 3R validation result was still -1.15R.
 - Gate: no target passed both development and validation; OOS correctly not evaluated. Decision: reject this frozen mechanical prior-day range break/retest definition. Do not tune the inspected validation period or promote post-hoc side/regime subsets. Full report: \`research/BTC_PREV_DAY_RANGE_BREAK_RETEST_RESULTS_2026-11-16.md\`.
 - No main-branch, production, approved-strategy, live-alert or exchange-order changes.
+
+
+## 2026-11-16 — BTC/ETH funding-sentiment event study and public-fee recalculation
+
+### Decision
+- **Reject negative-funding contrarian-long as tested.** BTC had zero negative-funding events in validation; ETH had 17 and negative net forward returns at the 10bp public-base taker/taker assumption. Development absolute means were also negative at 10bp. All primary matched-control day-cluster confidence intervals crossed zero.
+- **Reject the secondary below-neutral 0.01% diagnostic as tested.** Absolute returns were negative in development and validation at 10bp; event frequency changed sharply by asset/sample and validation matching was weak.
+- No OOS returns were computed. No stop/target grid was run. No production strategy was promoted.
+
+### Code and report
+- Event study: \`research/btc_eth_funding_sentiment_event_study.py\`
+- PDRT public-fee recalculation: \`research/recalculate_prev_day_range_break_retest_public_fees.py\`
+- Full report: \`research/BTC_ETH_FUNDING_SENTIMENT_AND_PUBLIC_FEE_AUDIT_2026-11-16.md\`
+- All files committed on \`ai-quant-rebuild\`; no main/live changes.
+
+### Data
+- BTC and ETH Delta traded-price 15m: 70,127 rows each, 2024-11-15 07:30 UTC to 2026-11-15 19:00 UTC, zero gaps. BTC SHA-256 \`d8f210d91553ea43d1ccb0b27bb4d750013e9485c4b007f80647982d1978849a\`; ETH \`f58ce4233c5d7242974e460d811198c03614e113c6097805884ac580ebd8b95a\`.
+- BTC and ETH raw funding 1h: 17,531 rows each, 2024-11-14 16:00 UTC to 2026-11-15 02:00 UTC, zero gaps. BTC SHA-256 \`853950ee9193d6e6c0b9ab242fe47c74313d41cbcd9a38cb6255c3d10ed58296\`; ETH \`51eb3ca015985dbfc68891c732f45abee6fa54d32b4085aebf915ec2580aeec8\`.
+- Only post-transition blocks were used, beginning 2025-09-09 00:00 UTC; 1,297 common 8h blocks. Chronological 70/15/15 split; development end 2026-07-08 08:00 UTC; validation end 2026-09-11 08:00 UTC. OOS untouched.
+
+### Frozen event rules
+- At each 00:00/08:00/16:00 UTC block, use the raw funding 1h candle only after one full hour has elapsed; entry at next 15m open at boundary +1h.
+- Primary: raw funding rate <0 -> contrarian long; controls rate >=0.
+- Secondary diagnostic: rate <0.01 -> long; controls rate >=0.01. Delta's current guide documents 0.01% per 8h as the interest-rate baseline; diagnostic only.
+- 1h and 4h forward returns; 4h exit is boundary +5h, before next 8h settlement at boundary +8h. No funding cashflow applied.
+- Latest completed 4h EMA50/EMA200 regime used only for matching. Match same asset, weekday, settlement slot and regime; nearest non-event within 35 days, without replacement; exclude controls within 8h of events.
+- Costs: 4/7/10/20bp round trip. Primary 10bp taker/taker; 4bp maker/maker optimistic; 7bp mixed; 20bp stress.
+
+### Results at 10bp
+- Negative funding BTC development: 65 events, 47 matched; 1h win 30.77%, PF 0.687, mean -5.44bp, event-sequence DD -704.28bp, max loss streak 10, positive months 1/5; 4h win 40.00%, PF 0.766, mean -6.33bp, DD -694.04bp, streak 7, positive months 1/5. BTC validation: zero events.
+- Negative funding ETH development: 94 events, 82 matched; 1h win 38.30%, PF 0.906, mean -2.31bp; 4h win 42.55%, PF 0.962, mean -1.47bp. Validation: 17 events/16 matched; 1h mean -11.00bp, PF 0.552; 4h mean -8.05bp, PF 0.678. All evaluated negative-funding matched-lift CIs crossed zero.
+- Below-neutral diagnostic BTC: development 320 events, 1h/4h mean -9.86/-6.59bp; validation 13 events, -15.46/-26.68bp.
+- Below-neutral diagnostic ETH: development 270 events, -5.08/-6.29bp; validation 176 events, -9.24/-4.25bp. ETH validation had only 19 matched pairs and too few distinct event dates for a day-cluster CI.
+- These are forward-return event statistics, not stop-defined portfolio PF or account drawdown. R is not applicable.
+
+### Public fee anchor and PDRT recalculation
+- Current public BTC product metadata: maker 0.02% and taker 0.05% per side. Delta ETH contract page lists the same headline rates. Delta says actual fees can vary by product and user volume/tier. Sources: [BTC product API](https://api.india.delta.exchange/v2/products/BTCUSD), [ETH contract fees](https://www.delta.exchange/futures-guide-ethereum), [fee calculation/tier caveat](https://www.delta.exchange/support/solutions?articleId=80001177869).
+- PDRT trade ledgers were recalculated with fee on entry notional plus exit notional, preserving original entries/stops/targets/outcomes.
+- 3R development: 207 trades; maker/maker 4bp -59.85R PF 0.695; maker/taker 7bp -106.17R PF 0.537; taker/taker 10bp -152.50R PF 0.418.
+- 3R validation: 43 trades; maker/maker 4bp +6.23R PF 1.175; maker/taker 7bp -4.84R PF 0.885; taker/taker 10bp -15.92R PF 0.672. All 1.5R/2R/3R development variants were negative even at 4bp. This confirms PDRT rejection under the public base taker fee.
+- Actual user fee tier, spread, market impact and fill quality remain unknown.
+
+### Reproducibility and limitations
+- Funding raw archive: [workflow 43671994620 / artifact 14145011170](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43671994620).
+- BTC/ETH 15m archive: [workflow 43752078487 / artifact 14176194941](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43752078487).
+- PDRT trade ledger: [workflow 43857702736 / artifact 14221154137](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/43857702736).
+- Funding rate is used only as a one-hour-lagged sentiment feature, not cashflow; exact historical rate-to-settlement candle mapping remains unresolved. The strategy exits before the next settlement. Flat costs omit spread/impact. Controls are observational. OOS not evaluated.
+
+### Next research step
+Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wider-structural-risk BTC hypothesis: previous-week range sweep/reclaim on 1h, 15m confirmation, and an 8h maximum hold. This is a new candidate only; it has not been tested.
