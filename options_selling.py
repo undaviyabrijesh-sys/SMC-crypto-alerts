@@ -324,8 +324,16 @@ def run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
             # All four traded legs must print on the exact same hour.
             if any(entry_time not in x["bars"].index for x in (ps, ph, cs, ch)):
                 continue
-            put_credit = float(ps["bars"].loc[entry_time]["low"]) - float(ph["bars"].loc[entry_time]["high"])
-            call_credit = float(cs["bars"].loc[entry_time]["low"]) - float(ch["bars"].loc[entry_time]["high"])
+            cost_rate = (cfg.spread_bps_per_side + cfg.slippage_bps_per_side) / 10_000.0
+            fee_rate = cfg.fee_bps_per_side / 10_000.0
+            entry_prices = [
+                float(ps["bars"].loc[entry_time]["low"]) * (1.0 - cost_rate),
+                float(ph["bars"].loc[entry_time]["high"]) * (1.0 + cost_rate),
+                float(cs["bars"].loc[entry_time]["low"]) * (1.0 - cost_rate),
+                float(ch["bars"].loc[entry_time]["high"]) * (1.0 + cost_rate),
+            ]
+            put_credit = entry_prices[0] - entry_prices[1]
+            call_credit = entry_prices[2] - entry_prices[3]
             credit = put_credit + call_credit
             width = abs(float(ps["strike"])-float(ph["strike"])) + abs(float(cs["strike"])-float(ch["strike"]))
             max_loss = width - credit
@@ -335,50 +343,84 @@ def run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
             qty = math.floor((risk_budget / max_loss) / 0.01) * 0.01
             if qty < 0.01:
                 continue
+            entry_fees = sum(entry_prices) * qty * fee_rate
+
             # Close when either wing breaches its stop or the max holding time is reached.
             common = ps["bars"].index.intersection(ph["bars"].index).intersection(cs["bars"].index).intersection(ch["bars"].index)
             future = common[common >= entry_time]
             target_debit, stop_debit = credit * 0.5, credit * 2.0
             prev = entry_time
             exit_raw = None
-            reason = None
+            exit_reason = None
             exit_time = None
+            exit_leg_prices = None
+            ambiguous = False
             for ts in future:
                 if ts == entry_time:
                     prev = ts
                     continue
-                pdebit_hi = _spread_debit(ps["bars"].loc[ts], ph["bars"].loc[ts], "high")
-                cdebit_hi = _spread_debit(cs["bars"].loc[ts], ch["bars"].loc[ts], "high")
-                combined_hi = pdebit_hi + cdebit_hi
                 if ts > entry_time and (ts - prev).total_seconds()/3600.0 > max(6.0, cfg.max_hold_hours*2.0):
-                    reason = "GAP_GUARD_EXIT"
-                    exit_raw = combined_hi
+                    prev_bars = [ps["bars"].loc[prev], ph["bars"].loc[prev],
+                                 cs["bars"].loc[prev], ch["bars"].loc[prev]]
+                    exit_leg_prices = [
+                        float(prev_bars[0]["high"]), float(prev_bars[1]["low"]),
+                        float(prev_bars[2]["high"]), float(prev_bars[3]["low"]),
+                    ]
+                    exit_raw = max(0.0, exit_leg_prices[0]-exit_leg_prices[1]) + max(0.0, exit_leg_prices[2]-exit_leg_prices[3])
                     exit_time = prev + pd.Timedelta(hours=1)
+                    exit_reason = "GAP_GUARD_EXIT"
                     break
-                if combined_hi >= stop_debit:
-                    reason, exit_raw, exit_time = "SL", combined_hi, ts + pd.Timedelta(hours=1)
+                bars_now = [ps["bars"].loc[ts], ph["bars"].loc[ts],
+                            cs["bars"].loc[ts], ch["bars"].loc[ts]]
+                p_hi = _spread_debit(bars_now[0], bars_now[1], "high")
+                c_hi = _spread_debit(bars_now[2], bars_now[3], "high")
+                combined_hi = p_hi + c_hi
+                p_lo = _spread_debit(bars_now[0], bars_now[1], "low")
+                c_lo = _spread_debit(bars_now[2], bars_now[3], "low")
+                target_hit = p_lo + c_lo <= target_debit
+                stop_hit = combined_hi >= stop_debit
+                if stop_hit and target_hit:
+                    ambiguous = True
+                    exit_reason = "SL_SAME_BAR_AMBIGUITY"
+                elif stop_hit:
+                    exit_reason = "SL"
+                elif target_hit:
+                    exit_reason = "TP_50pct_CREDIT"
+                elif ts + pd.Timedelta(hours=1) >= entry_time + pd.Timedelta(hours=cfg.max_hold_hours):
+                    exit_reason = "TIME_EXIT"
+                if exit_reason:
+                    exit_leg_prices = [
+                        float(bars_now[0]["high"]), float(bars_now[1]["low"]),
+                        float(bars_now[2]["high"]), float(bars_now[3]["low"]),
+                    ]
+                    exit_raw = combined_hi
+                    exit_time = ts + pd.Timedelta(hours=1)
                     break
-                if ts > entry_time:
-                    pdebit_lo = _spread_debit(ps["bars"].loc[ts], ph["bars"].loc[ts], "low")
-                    cdebit_lo = _spread_debit(cs["bars"].loc[ts], ch["bars"].loc[ts], "low")
-                    if pdebit_lo + cdebit_lo <= target_debit:
-                        reason, exit_raw, exit_time = "TP_50pct_CREDIT", combined_hi, ts + pd.Timedelta(hours=1)
-                        break
-                    if ts + pd.Timedelta(hours=1) >= entry_time + pd.Timedelta(hours=cfg.max_hold_hours):
-                        reason, exit_raw, exit_time = "TIME_EXIT", combined_hi, ts + pd.Timedelta(hours=1)
-                        break
                 prev = ts
             if exit_raw is None:
                 if len(future) == 0:
                     continue
                 last = future[-1]
-                exit_raw = (_spread_debit(ps["bars"].loc[last], ph["bars"].loc[last], "high") +
-                            _spread_debit(cs["bars"].loc[last], ch["bars"].loc[last], "high"))
-                exit_time, reason = last + pd.Timedelta(hours=1), "END_OF_DATA"
-            cost_rate = (cfg.spread_bps_per_side + cfg.slippage_bps_per_side) / 10000.0
-            fee_rate = cfg.fee_bps_per_side / 10000.0
-            exit_debit = exit_raw * (1+cost_rate+(cfg.gap_penalty_bps/10000.0 if reason=="GAP_GUARD_EXIT" else 0))
-            fees = (credit + exit_debit) * qty * 2*fee_rate
+                last_bars = [ps["bars"].loc[last], ph["bars"].loc[last],
+                             cs["bars"].loc[last], ch["bars"].loc[last]]
+                exit_leg_prices = [
+                    float(last_bars[0]["high"]), float(last_bars[1]["low"]),
+                    float(last_bars[2]["high"]), float(last_bars[3]["low"]),
+                ]
+                exit_raw = (_spread_debit(last_bars[0], last_bars[1], "high") +
+                            _spread_debit(last_bars[2], last_bars[3], "high"))
+                exit_time, exit_reason = last + pd.Timedelta(hours=1), "END_OF_DATA"
+
+            exit_fills = [
+                exit_leg_prices[0] * (1.0 + cost_rate),
+                max(0.0, exit_leg_prices[1] * (1.0 - cost_rate)),
+                exit_leg_prices[2] * (1.0 + cost_rate),
+                max(0.0, exit_leg_prices[3] * (1.0 - cost_rate)),
+            ]
+            exit_debit = max(0.0, exit_fills[0]-exit_fills[1]) + max(0.0, exit_fills[2]-exit_fills[3])
+            if exit_reason == "GAP_GUARD_EXIT":
+                exit_debit *= (1.0 + cfg.gap_penalty_bps/10_000.0)
+            fees = (sum(entry_prices) + sum(exit_fills)) * qty * fee_rate
             pnl = credit * qty - exit_debit*qty - fees
             max_risk_cash = max_loss*qty
             eq_after = equity+pnl
@@ -397,7 +439,7 @@ def run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
                 "gross_pnl_model":(credit-exit_raw)*qty,"net_pnl_model":pnl,"fees_model":fees,
                 "net_return_on_max_risk_pct":100*pnl/max(max_risk_cash,1e-12),
                 "net_r":pnl/max(max_risk_cash,1e-12),"equity_before":equity,"equity_after":eq_after,
-                "exit_reason":reason,"same_bar_ambiguous":False,
+                "exit_reason":exit_reason,"same_bar_ambiguous":ambiguous,
                 "data_quality_flag":"GAP_GUARD_EXIT" if reason=="GAP_GUARD_EXIT" else "TRADED_CANDLES_ONLY",
                 "split":split_for(signal_time),"signal_to_entry_delay_hours":(entry_time-(signal_time+pd.Timedelta(hours=1))).total_seconds()/3600,
             })
