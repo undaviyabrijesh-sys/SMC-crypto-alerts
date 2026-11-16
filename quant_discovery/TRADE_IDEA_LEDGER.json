@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-16T08:35:20.000Z",
+  "updated_at": "2026-11-16T11:47:46.000Z",
   "recovery": {
     "status": "initialized_after_empty_file",
     "previous_file_parse": "failed_empty_file",
@@ -3193,7 +3193,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_stale_targets_touched_before_retest",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3240,8 +3240,8 @@
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
       "entry_zone_revisited_after_trigger": false,
-      "current_mark": 64562.19583958,
-      "last_mark_price": 64562.19583958,
+      "current_mark": 64496.3,
+      "last_mark_price": 64496.3,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3250,14 +3250,24 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "13 completed 15m candles since the prior check. No post-trigger retest into 64840-64857.2. TP1 64260.3 and TP2 64240 were both touched in the 09:00-09:14:59Z candle (low 64161.3); stop 65048.2 was not touched. No entry or paper fill; delivery remains unconfirmed.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_before_retest",
+          "price": 64260.3
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp2_touched_before_retest",
+          "price": 64240
         }
       ]
     },
@@ -3267,7 +3277,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_stale_tp1_touched_before_retest",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3314,8 +3324,8 @@
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
       "entry_zone_revisited_after_trigger": false,
-      "current_mark": 590.65,
-      "last_mark_price": 590.65,
+      "current_mark": 591.0781,
+      "last_mark_price": 591.0781,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3324,14 +3334,19 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "13 completed 15m candles since the prior check. No post-trigger retest into 592.55-592.73. TP1 588.26 was touched in the 09:00-09:14:59Z candle (low 587.43); TP2 585.91 and stop 593.73 were not touched. No entry or paper fill.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_before_retest",
+          "price": 588.26
         }
       ]
     },
@@ -3341,7 +3356,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_shadow_retest_tp2_touched_no_confirmed_fill",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3387,9 +3402,9 @@
       "confidence": 0.51,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 0.95594694,
-      "last_mark_price": 0.95594694,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 0.9566,
+      "last_mark_price": 0.9566,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3398,14 +3413,30 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (high 0.9565 intersected 0.95645-0.95660). TP1 0.9488 and TP2 0.9446 were both touched in the 09:00-09:14:59Z candle (low 0.9441). Stop 0.9614 was not touched through the latest completed candle. This is a shadow path only: no Discord delivery, no confirmed fill and no realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T08:44:59.999Z",
+          "type": "entry_zone_retest_touch_shadow_only",
+          "high": 0.9565,
+          "low": 0.9523
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_shadow_only",
+          "price": 0.9488
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp2_touched_shadow_only",
+          "price": 0.9446
         }
       ]
     },
@@ -3415,7 +3446,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3461,9 +3492,9 @@
       "confidence": 0.53,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 0.05866545,
-      "last_mark_price": 0.05866545,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 0.05889,
+      "last_mark_price": 0.05889,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3472,14 +3503,30 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "First post-trigger retest occurred in the 08:45-08:59:59Z candle (high 0.05878 intersected 0.05875-0.05877). TP1 0.05830 was touched in the 09:00-09:14:59Z candle (low 0.05827). Stop 0.05905 was touched in the 11:00-11:14:59Z candle (high 0.05910); TP2 0.05772 was not touched. No partial exit was specified. Shadow-only; no confirmed fill and no realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T08:59:59.999Z",
+          "type": "entry_zone_retest_touch_shadow_only",
+          "high": 0.05878,
+          "low": 0.05842
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_shadow_only",
+          "price": 0.0583
+        },
+        {
+          "timestamp_utc": "2026-11-16T11:14:59.999Z",
+          "type": "stop_touched_shadow_only",
+          "price": 0.05905
         }
       ]
     },
@@ -3489,7 +3536,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_stale_tp1_before_retest",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3535,9 +3582,9 @@
       "confidence": 0.55,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 0.15238457,
-      "last_mark_price": 0.15238457,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 0.1528,
+      "last_mark_price": 0.1528,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3546,14 +3593,24 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "TP1 0.1514 was touched in the 09:00-09:14:59Z candle (low 0.1512), before the first post-trigger retest in the 11:00-11:14:59Z candle (high 0.1536 intersected the entry zone). Stop 0.1538 was not touched. The signal was stale before a usable retest; no fill or realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_before_retest",
+          "price": 0.1514
+        },
+        {
+          "timestamp_utc": "2026-11-16T11:14:59.999Z",
+          "type": "entry_zone_retest_after_tp1_shadow_only",
+          "high": 0.1536
         }
       ]
     },
@@ -3563,7 +3620,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3609,9 +3666,9 @@
       "confidence": 0.52,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 0.71963023,
-      "last_mark_price": 0.71963023,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 0.72209187,
+      "last_mark_price": 0.72209187,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3620,14 +3677,30 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (high 0.7215 intersected 0.7215-0.7217). TP1 0.7138 was touched in the 09:15-09:29:59Z candle (low 0.7136). Stop 0.7255 was touched in the 11:00-11:14:59Z candle (high 0.7277); TP2 0.7101 was not touched. Shadow-only; no confirmed fill or realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T08:44:59.999Z",
+          "type": "entry_zone_retest_touch_shadow_only",
+          "high": 0.7215,
+          "low": 0.7162
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "tp1_touched_shadow_only",
+          "price": 0.7138
+        },
+        {
+          "timestamp_utc": "2026-11-16T11:14:59.999Z",
+          "type": "stop_touched_shadow_only",
+          "price": 0.7255
         }
       ]
     },
@@ -3637,7 +3710,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_stale_tp1_before_retest",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:14:59.999Z",
       "rejection_candle": {
@@ -3683,9 +3756,9 @@
       "confidence": 0.54,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 890.06116122,
-      "last_mark_price": 890.06116122,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 890.1535,
+      "last_mark_price": 890.1535,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3694,14 +3767,24 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "TP1 880 was touched in the 09:00-09:14:59Z candle (low 880), before the first post-trigger retest in the 10:15-10:29:59Z candle (high 896.21 intersected 894.30-894.56). Stop 901.74 was not touched. Stale before usable retest; no fill or realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:14:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "tp1_touched_before_retest",
+          "price": 880
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:29:59.999Z",
+          "type": "entry_zone_retest_after_tp1_shadow_only",
+          "high": 896.21
         }
       ]
     },
@@ -3711,7 +3794,7 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h context",
       "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
-      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "status": "triggered_unalerted_shadow_retest_then_stop_no_confirmed_fill",
       "trigger_confirmed": true,
       "trigger_confirmed_utc": "2026-11-16T08:29:59.999Z",
       "rejection_candle": {
@@ -3757,9 +3840,9 @@
       "confidence": 0.55,
       "condition": "Signal trigger is confirmed on a completed 15m candle. Wait for a subsequent completed-candle retest into the specified entry zone before treating it as an entry. Stop is above the rejection high. Targets are structural lows. No post-trigger entry-zone retest has been confirmed. Do not chase current price.",
       "entry_zone_touched_in_trigger_candle_before_close": true,
-      "entry_zone_revisited_after_trigger": false,
-      "current_mark": 66.28101389,
-      "last_mark_price": 66.28101389,
+      "entry_zone_revisited_after_trigger": true,
+      "current_mark": 66.58165411,
+      "last_mark_price": 66.58165411,
       "entry_executed": false,
       "paper_fill_confirmed": false,
       "discord_alert_due": true,
@@ -3768,14 +3851,25 @@
       "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r_effect": 0,
       "created_at_utc": "2026-11-16T08:35:20.000Z",
-      "last_checked_utc": "2026-11-16T08:35:20.000Z",
-      "last_evaluation": "Completed 15m rejection-break confirmed. The entry zone was crossed within the trigger candle before its close, which is not counted as a post-trigger retest or fill. Subsequent completed 15m candle(s) did not revisit the zone; current mark is away from the zone. No paper fill. Discord alert was due but delivery could not be confirmed in this runtime.",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "last_evaluation": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (range 66.039-66.43 intersected 66.18-66.21). Stop 66.824 was first touched in the 09:30-09:44:59Z candle (high 67.02). TP1 65.153 and TP2 64.63 were not touched. Shadow-only; no confirmed fill or realized R.",
       "lifecycle_events": [
         {
           "timestamp_utc": "2026-11-16T08:29:59.999Z",
           "type": "trigger_confirmed",
           "entry_executed": false,
           "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T08:44:59.999Z",
+          "type": "entry_zone_retest_touch_shadow_only",
+          "high": 66.43,
+          "low": 66.039
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:44:59.999Z",
+          "type": "stop_touched_shadow_only",
+          "price": 66.824
         }
       ]
     },
@@ -3863,6 +3957,505 @@
       "last_checked_utc": "2026-11-16T08:35:20.000Z",
       "last_mark_price": 70.89,
       "last_evaluation": "A completed 15m close broke the rejection low, but even using the 24h low 70.34 as the target, the fee-adjusted plan remains below 2R. Unqualified; no alert or entry."
+    },
+    {
+      "idea_id": "BTCUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "symbol": "BTCUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h context",
+      "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T09:14:59.999Z",
+      "created_at_utc": "2026-11-16T09:14:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T08:45:00Z",
+        "close_utc": "2026-11-16T08:59:59.999Z",
+        "open": 64553.9,
+        "high": 64615.4,
+        "low": 64387.8,
+        "close": 64431
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T09:00:00Z",
+        "close_utc": "2026-11-16T09:14:59.999Z",
+        "open": 64430.9,
+        "high": 64511.4,
+        "low": 64161.3,
+        "close": 64166,
+        "condition": "completed 15m close below rejection-candle low and 15m EMA20"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and 15m EMA20",
+        "price": 64387.8
+      },
+      "entry_zone": [
+        64387.8,
+        64431
+      ],
+      "stop": 64615.4,
+      "targets": [
+        64073.7,
+        61956.3
+      ],
+      "planned_net_rr_to_final_target_range": [
+        10.7,
+        13.4
+      ],
+      "confidence": 0.5,
+      "condition": "Research-only retrospective shadow setup. No Discord delivery was confirmed. Post-trigger candle ordering is assessed conservatively; no actual fill or realized P&L.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": true,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": true,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "current_mark": 64496.3,
+      "last_mark_price": 64496.3,
+      "last_evaluation": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 64073.7; intrabar order is unknowable, so conservatively treat target as first and do not count a fill. Stop reference was touched later at 10:15-10:29:59Z. No fill or realized R.",
+      "lifecycle_events": [
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "trigger_confirmed",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "entry_zone_and_tp1_same_candle_conservative_no_fill",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "tp1_touched_before_or_same_candle_as_retest",
+          "entry_executed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:29:59.999Z",
+          "type": "stop_reference_touched_shadow_only",
+          "entry_executed": false
+        }
+      ]
+    },
+    {
+      "idea_id": "ETHUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "symbol": "ETHUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h context",
+      "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T09:14:59.999Z",
+      "created_at_utc": "2026-11-16T09:14:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T08:45:00Z",
+        "close_utc": "2026-11-16T08:59:59.999Z",
+        "open": 1808.31,
+        "high": 1811.31,
+        "low": 1802.82,
+        "close": 1805.02
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T09:00:00Z",
+        "close_utc": "2026-11-16T09:14:59.999Z",
+        "open": 1805.03,
+        "high": 1807,
+        "low": 1793.02,
+        "close": 1793.64,
+        "condition": "completed 15m close below rejection-candle low and 15m EMA20"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and 15m EMA20",
+        "price": 1802.82
+      },
+      "entry_zone": [
+        1802.82,
+        1805.02
+      ],
+      "stop": 1811.31,
+      "targets": [
+        1790.26,
+        1772
+      ],
+      "planned_net_rr_to_final_target_range": [
+        3.6,
+        5.2
+      ],
+      "confidence": 0.5,
+      "condition": "Research-only retrospective shadow setup. No Discord delivery was confirmed. Post-trigger candle ordering is assessed conservatively; no actual fill or realized P&L.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": true,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": true,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "current_mark": 1806.64,
+      "last_mark_price": 1806.64,
+      "last_evaluation": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 1790.26; order is unknowable, so conservatively no fill. Stop reference 1811.31 was touched later at 11:00-11:14:59Z. No fill or realized R.",
+      "lifecycle_events": [
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "trigger_confirmed",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "entry_zone_and_tp1_same_candle_conservative_no_fill",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "tp1_touched_before_or_same_candle_as_retest",
+          "entry_executed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:29:59.999Z",
+          "type": "stop_reference_touched_shadow_only",
+          "entry_executed": false
+        }
+      ]
+    },
+    {
+      "idea_id": "SOLUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "symbol": "SOLUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h context",
+      "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T09:14:59.999Z",
+      "created_at_utc": "2026-11-16T09:14:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T08:45:00Z",
+        "close_utc": "2026-11-16T08:59:59.999Z",
+        "open": 71.02,
+        "high": 71.12,
+        "low": 70.68,
+        "close": 70.82
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T09:00:00Z",
+        "close_utc": "2026-11-16T09:14:59.999Z",
+        "open": 70.82,
+        "high": 70.9,
+        "low": 70.46,
+        "close": 70.54,
+        "condition": "completed 15m close below rejection-candle low and 15m EMA20"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and 15m EMA20",
+        "price": 70.68
+      },
+      "entry_zone": [
+        70.68,
+        70.82
+      ],
+      "stop": 71.12,
+      "targets": [
+        70.38,
+        69.46
+      ],
+      "planned_net_rr_to_final_target_range": [
+        2.7,
+        4.5
+      ],
+      "confidence": 0.5,
+      "condition": "Research-only retrospective shadow setup. No Discord delivery was confirmed. Post-trigger candle ordering is assessed conservatively; no actual fill or realized P&L.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": true,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": true,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "current_mark": 71.49202898,
+      "last_mark_price": 71.49202898,
+      "last_evaluation": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 70.38; intrabar order is unknowable, so conservatively no fill. Stop reference 71.12 was touched later at 10:00-10:14:59Z. No fill or realized R.",
+      "lifecycle_events": [
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "trigger_confirmed",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "entry_zone_and_tp1_same_candle_conservative_no_fill",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "tp1_touched_before_or_same_candle_as_retest",
+          "entry_executed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:29:59.999Z",
+          "type": "stop_reference_touched_shadow_only",
+          "entry_executed": false
+        }
+      ]
+    },
+    {
+      "idea_id": "DOGEUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "symbol": "DOGEUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h context",
+      "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
+      "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T09:14:59.999Z",
+      "created_at_utc": "2026-11-16T09:14:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T08:45:00Z",
+        "close_utc": "2026-11-16T08:59:59.999Z",
+        "open": 0.05871,
+        "high": 0.05878,
+        "low": 0.05847,
+        "close": 0.05858
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T09:00:00Z",
+        "close_utc": "2026-11-16T09:14:59.999Z",
+        "open": 0.05858,
+        "high": 0.05867,
+        "low": 0.05827,
+        "close": 0.05828,
+        "condition": "completed 15m close below rejection-candle low and 15m EMA20"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and 15m EMA20",
+        "price": 0.05847
+      },
+      "entry_zone": [
+        0.05847,
+        0.05858
+      ],
+      "stop": 0.05878,
+      "targets": [
+        0.05813,
+        0.05711
+      ],
+      "planned_net_rr_to_final_target_range": [
+        4.3,
+        7.3
+      ],
+      "confidence": 0.5,
+      "condition": "Research-only retrospective shadow setup. No Discord delivery was confirmed. Post-trigger candle ordering is assessed conservatively; no actual fill or realized P&L.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": true,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": true,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "current_mark": 0.05889,
+      "last_mark_price": 0.05889,
+      "last_evaluation": "Trigger confirmed at 09:14:59.999Z. First clean post-trigger retest occurred in the 09:15-09:29:59Z candle (high 0.05859 intersected 0.05847-0.05858) before TP1. TP1 0.05813 was touched at 09:45-09:59:59Z. Stop 0.05878 was touched at 10:45-10:59:59Z; TP2 0.05711 was not touched. No Discord delivery or confirmed fill; no partial exit was specified and no realized R is assigned.",
+      "lifecycle_events": [
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "trigger_confirmed",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "entry_zone_retest_touch_shadow_only",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:59:59.999Z",
+          "type": "tp1_touched_shadow_only",
+          "entry_executed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:59:59.999Z",
+          "type": "stop_reference_touched_shadow_only",
+          "entry_executed": false
+        }
+      ]
+    },
+    {
+      "idea_id": "ZECUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "symbol": "ZECUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h context",
+      "idea_type": "1H_EMA_REJECTION_15M_BREAK_RETEST",
+      "status": "triggered_unqualified_net_rr_below_2_stale_target_same_candle_as_retest",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T09:14:59.999Z",
+      "created_at_utc": "2026-11-16T09:14:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T08:45:00Z",
+        "close_utc": "2026-11-16T08:59:59.999Z",
+        "open": 890.73,
+        "high": 894.07,
+        "low": 885.64,
+        "close": 888.24
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T09:00:00Z",
+        "close_utc": "2026-11-16T09:14:59.999Z",
+        "open": 888.24,
+        "high": 889.41,
+        "low": 880,
+        "close": 880.03,
+        "condition": "completed 15m close below rejection-candle low and 15m EMA20"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and 15m EMA20",
+        "price": 885.64
+      },
+      "entry_zone": [
+        885.64,
+        888.24
+      ],
+      "stop": 894.07,
+      "targets": [
+        878.06,
+        877.09
+      ],
+      "planned_net_rr_to_final_target_range": [
+        1,
+        1.9
+      ],
+      "confidence": 0.42,
+      "condition": "Research-only retrospective shadow setup. No Discord delivery was confirmed. Post-trigger candle ordering is assessed conservatively; no actual fill or realized P&L.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": true,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": false,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "current_mark": 890.15348334,
+      "last_mark_price": 890.15348334,
+      "last_evaluation": "Trigger confirmed at 09:14:59.999Z, but fee-adjusted reward-to-risk to the nearest defensible structural target is below 2. The first post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 878.06; conservative target-first accounting means no fill. Stop reference was touched later at 10:15-10:29:59Z. Unqualified, no alert and no realized R.",
+      "lifecycle_events": [
+        {
+          "timestamp_utc": "2026-11-16T09:14:59.999Z",
+          "type": "trigger_confirmed",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "entry_zone_and_tp1_same_candle_conservative_no_fill",
+          "entry_executed": false,
+          "delivery_confirmed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T09:29:59.999Z",
+          "type": "tp1_touched_before_or_same_candle_as_retest",
+          "entry_executed": false
+        },
+        {
+          "timestamp_utc": "2026-11-16T10:29:59.999Z",
+          "type": "stop_reference_touched_shadow_only",
+          "entry_executed": false
+        }
+      ]
+    },
+    {
+      "idea_id": "HYPEUSDT-S-20261116T114500Z-15M-EMA20-REJECTION-02",
+      "symbol": "HYPEUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h, 4h and daily context",
+      "idea_type": "15M_REJECTION_BREAK_1H_EMA50_RETEST",
+      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "trigger_confirmed": true,
+      "trigger_confirmed_utc": "2026-11-16T11:44:59.999Z",
+      "created_at_utc": "2026-11-16T11:44:59.999Z",
+      "last_checked_utc": "2026-11-16T11:47:46.000Z",
+      "rejection_candle": {
+        "open_utc": "2026-11-16T11:15:00Z",
+        "close_utc": "2026-11-16T11:29:59.999Z",
+        "open": 67.479,
+        "high": 67.619,
+        "low": 67.145,
+        "close": 67.145
+      },
+      "trigger_candle": {
+        "interval": "15m",
+        "open_utc": "2026-11-16T11:30:00Z",
+        "close_utc": "2026-11-16T11:44:59.999Z",
+        "open": 67.146,
+        "high": 67.299,
+        "low": 66.571,
+        "close": 66.605,
+        "condition": "completed 15m close below rejection-candle low 67.145 and 15m EMA20 66.8162/EMA50 66.7889"
+      },
+      "entry_trigger": {
+        "type": "completed 15m close below rejection-candle low and both 15m EMAs",
+        "price": 67.145
+      },
+      "entry_zone": [
+        67.12,
+        67.145
+      ],
+      "stop": 67.619,
+      "targets": [
+        65.872,
+        64.63
+      ],
+      "planned_gross_rr_to_tp1_range": [
+        2.5,
+        2.69
+      ],
+      "estimated_net_rr_to_tp1_range_at_0_04pct_round_trip_fee": [
+        2.32,
+        2.49
+      ],
+      "planned_gross_rr_to_tp2_range": [
+        5,
+        5.3
+      ],
+      "estimated_net_rr_to_tp2_range_at_0_04pct_round_trip_fee": [
+        4.7,
+        5
+      ],
+      "fee_assumption": "0.04% round trip; excludes variable slippage and funding; reject if actual net R:R <2.",
+      "confidence": 0.52,
+      "condition": "Wait for a subsequent completed 15m candle to retest 67.12-67.145 before treating this as an entry. The trigger candle itself crossed the zone before its close and is not a post-trigger retest. Stop above rejection high 67.619; TP1 is the 15m 20-bar low 65.872; TP2 is the 1h 20-bar low 64.63. Latest mark is below the entry zone; do not chase. Latest completed 1h close is 67.51 above its EMA20/EMA50, while the current 1h candle is incomplete and mark is below both; this reduces confidence. 4h/daily remain bearish.",
+      "entry_zone_touched_in_trigger_candle_before_close": true,
+      "entry_zone_revisited_after_trigger": false,
+      "current_mark": 66.58165411,
+      "last_mark_price": 66.58165411,
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_due": true,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r_effect": 0,
+      "last_evaluation": "New completed 15m rejection-break confirmed at 11:44:59.999Z. No subsequent completed 15m candle exists yet, so no post-trigger retest or fill. Entry zone was crossed inside the trigger candle before close. Discord alert due but delivery not confirmed."
     }
   ],
   "user_directed_unalerted_setups": [
@@ -3911,40 +4504,40 @@
       },
       "assumed_paper_exit": 0.8715,
       "realized_r": -1,
-      "last_mark_price": 0.71963023,
-      "last_market_snapshot_utc": "2026-11-16T08:35:20.000Z",
+      "last_mark_price": 0.72209187,
+      "last_market_snapshot_utc": "2026-11-16T11:47:46.000Z",
       "last_terminal_verification": {
-        "timestamp_utc": "2026-11-16T08:35:20.000Z",
-        "mark_price": 0.71963023,
+        "timestamp_utc": "2026-11-16T11:47:46.000Z",
+        "mark_price": 0.72209187,
         "entry_zone_touched_on_this_check": false,
-        "max_high_since_previous_check_15m": 0.7339,
-        "min_low_since_previous_check_15m": 0.7153,
-        "max_high_since_previous_check_1h": 0.7339,
-        "min_low_since_previous_check_1h": 0.7153,
-        "max_high_since_previous_check_4h": 0.7321,
-        "min_low_since_previous_check_4h": 0.7153,
-        "completed_15m_candles_since_previous_check": 21,
-        "completed_1h_candles_since_previous_check": 5,
-        "completed_4h_candles_since_previous_check": 1,
+        "max_high_since_previous_check_15m": 0.7277,
+        "min_low_since_previous_check_15m": 0.7136,
+        "max_high_since_previous_check_1h": 0.7277,
+        "min_low_since_previous_check_1h": 0.7136,
+        "max_high_since_previous_check_4h": null,
+        "min_low_since_previous_check_4h": null,
+        "completed_15m_candles_since_previous_check": 13,
+        "completed_1h_candles_since_previous_check": 3,
+        "completed_4h_candles_since_previous_check": 0,
         "stop_was_already_hit": true,
         "target_was_already_touched_after_stop": true,
-        "hypothetical_mark_to_reference_r": 12.0922,
+        "hypothetical_mark_to_reference_r": -11.880011206896498,
         "realized_r_remains": -1,
         "latest_completed_15m_candle": {
-          "open_utc": "2026-11-16T08:15:00Z",
-          "close_utc": "2026-11-16T08:29:59.999Z",
-          "open": 0.7183,
-          "high": 0.7188,
-          "low": 0.716,
-          "close": 0.7168
+          "open_utc": "2026-11-16T11:30:00Z",
+          "close_utc": "2026-11-16T11:44:59.999Z",
+          "open": 0.7211,
+          "high": 0.7222,
+          "low": 0.7198,
+          "close": 0.7211
         },
         "latest_completed_1h_candle": {
-          "open_utc": "2026-11-16T07:00:00Z",
-          "close_utc": "2026-11-16T07:59:59.999Z",
-          "open": 0.7216,
-          "high": 0.7269,
-          "low": 0.717,
-          "close": 0.7238
+          "open_utc": "2026-11-16T10:00:00Z",
+          "close_utc": "2026-11-16T10:59:59.999Z",
+          "open": 0.7166,
+          "high": 0.7247,
+          "low": 0.7166,
+          "close": 0.723
         },
         "latest_completed_4h_candle": {
           "open_utc": "2026-11-16T04:00:00Z",
@@ -3954,7 +4547,7 @@
           "low": 0.7153,
           "close": 0.7238
         },
-        "note": "Terminal result remains -1R. Original stop was hit on 7 Nov before the target touch on 8 Nov. Current mark 0.71963023 is far below original entry zone 0.8590-0.8610; no revisit. Mark-to-reference is hypothetical only and does not alter realized R. This remains triggered_unalerted_delivery_blocked, not Discord-alerted."
+        "note": "Original stop had already been hit on 7 Nov before the target touch on 8 Nov. This check confirms no revisit of the original 0.8590-0.8610 entry zone. Terminal outcome remains -1R; mark-to-reference is hypothetical only. Status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
       },
       "entry_fill_caveat": "The exact entry fill was not independently reconstructed; R is a paper-reference calculation assuming the specified 0.8599 entry.",
       "lifecycle_note": "First post-setup stop touch occurred on 7 November at 07:00 UTC. A later target touch on 8 November occurred after the stop and is not counted."
@@ -21307,6 +21900,751 @@
         "blocker": "The repository workflow .github/workflows/alerts.yml has schedule and workflow_dispatch, but the scheduled job is gated by vars.ENABLE_GITHUB_SCHEDULE == 'true'. The current runtime exposes no direct Discord-send action and no GitHub workflow-dispatch action. Recent repository workflow runs inspected were push/pull_request CI runs, not the paper-desk alert workflow. No Discord delivery receipt exists; no webhook secret was accessed."
       },
       "note": "NO TRADE / NO FILLS. Eight completed 15m rejection-break signals meet the >=2R net fee-adjusted planning gate at their specified retest zones, but no post-trigger retest has been confirmed and current price is away from those zones. Entry alerts were due at trigger but could not be delivered; keep all eight in shadow/watch-only and do not add them to active_alerted_setups. ETH trigger is stale because TP1 was touched before retest. SOL trigger is unqualified because net R:R to the nearest defensible target is below 2. User-directed SUI historical setup remains terminal at -1R; current mark 0.71963023 and original entry zone not revisited. Recovery warning for pre-initialization unknown positions remains."
+    },
+    {
+      "scan_id": "crypto-trade-idea-desk-20261116T114746Z",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "runtime_cutoff_utc": "2026-11-16T11:47:46.000Z",
+      "market_snapshot_utc": "2026-11-16T11:47:46.000Z",
+      "data_quality": "Fresh Binance USDⓈ-M mark/ticker snapshot 11:47:46Z; latest completed 15m through 11:44:59.999Z; 1h through 10:59:59.999Z; 4h through 07:59:59.999Z; daily through 15-Nov 23:59:59.999Z. OI and global account ratios 11:00Z; taker flow 11:30Z; order-book best bid/ask 11:47:46Z; ADL risk LOW. Incomplete 11:00-11:59 hourly candle and 16-Nov daily candle excluded from close confirmation.",
+      "candle_cutoffs_utc": {
+        "m15": "2026-11-16T11:44:59.999Z",
+        "h1": "2026-11-16T10:59:59.999Z",
+        "h4": "2026-11-16T07:59:59.999Z",
+        "d1": "2026-11-15T23:59:59.999Z",
+        "oi_and_account_ratio": "2026-11-16T11:00:00Z",
+        "taker_flow": "2026-11-16T11:30:00Z",
+        "mark_ticker_orderbook": "2026-11-16T11:47:46.000Z"
+      },
+      "decision": "NO_TRADE_ONE_FRESH_HYPE_TRIGGER_WAITING_RETEST",
+      "markets_scanned": 11,
+      "qualified_new_setups": 1,
+      "triggered_shadow_setups": 1,
+      "entry_zone_retests_confirmed_after_trigger": 0,
+      "actual_paper_fills": 0,
+      "alerts_due": 1,
+      "discord_delivery_confirmed": 0,
+      "known_active_alerted_setups": 0,
+      "recovery_warning": true,
+      "market_snapshot": [
+        {
+          "symbol": "BTCUSDT",
+          "mark_price": 64496.3,
+          "change_24h_pct": -1.487,
+          "quote_volume_24h": 9380048590.59,
+          "funding_rate_decimal_per_interval": 0.00001654,
+          "oi_quantity_change_1h_pct": -0.1764,
+          "oi_notional_change_1h_pct": 0.2106,
+          "global_long_account_share": 0.7369,
+          "global_long_short_ratio": 2.8008,
+          "taker_buy_sell_ratio_latest_15m": 0.4846,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 64564.2,
+            "ema20": 64551.8362,
+            "ema50": 64682.7381,
+            "rsi14": 45.36,
+            "rvol20": 0.627,
+            "rolling_20bar_low": 64073.7,
+            "rolling_20bar_high": 65048.2
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 64542.4,
+            "ema20": 64784.1277,
+            "ema50": 65550.084,
+            "rsi14": 42.91,
+            "rvol20": 0.629,
+            "rolling_20bar_low": 64073.7,
+            "rolling_20bar_high": 65513.8
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 64954.6,
+            "ema20": 66725.0587,
+            "ema50": 70062.2128,
+            "rsi14": 32.6
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 65309.8,
+            "ema20": 73986.2959,
+            "ema50": 78688.2258,
+            "rsi14": 23.14
+          }
+        },
+        {
+          "symbol": "ETHUSDT",
+          "mark_price": 1806.64,
+          "change_24h_pct": -1.405,
+          "quote_volume_24h": 6646367324.47,
+          "funding_rate_decimal_per_interval": -0.00001973,
+          "oi_quantity_change_1h_pct": -0.1104,
+          "oi_notional_change_1h_pct": 0.5213,
+          "global_long_account_share": 0.7172,
+          "global_long_short_ratio": 2.5361,
+          "taker_buy_sell_ratio_latest_15m": 0.4538,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 1807.84,
+            "ema20": 1807.2122,
+            "ema50": 1811.8197,
+            "rsi14": 46.88,
+            "rvol20": 0.554,
+            "rolling_20bar_low": 1790.26,
+            "rolling_20bar_high": 1823.49
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 1807.92,
+            "ema20": 1814.6284,
+            "ema50": 1835.6729,
+            "rsi14": 43.46,
+            "rvol20": 0.812,
+            "rolling_20bar_low": 1790.26,
+            "rolling_20bar_high": 1842.4
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 1820.42,
+            "ema20": 1872.1231,
+            "ema50": 1983.4252,
+            "rsi14": 36.13
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 1834.28,
+            "ema20": 2126.772,
+            "ema50": 2349.5635,
+            "rsi14": 26.56
+          }
+        },
+        {
+          "symbol": "SOLUSDT",
+          "mark_price": 71.49202898,
+          "change_24h_pct": -1.475,
+          "quote_volume_24h": 1401508620.65,
+          "funding_rate_decimal_per_interval": -0.00001759,
+          "oi_quantity_change_1h_pct": -0.0905,
+          "oi_notional_change_1h_pct": 1.0597,
+          "global_long_account_share": 0.7814,
+          "global_long_short_ratio": 3.5746,
+          "taker_buy_sell_ratio_latest_15m": 0.5475,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_both",
+            "h1": "above_ema20_below_ema50",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 71.53,
+            "ema20": 71.25599,
+            "ema50": 71.39794,
+            "rsi14": 62.04,
+            "rvol20": 0.952,
+            "rolling_20bar_low": 70.38,
+            "rolling_20bar_high": 71.91
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 71.62,
+            "ema20": 71.53296,
+            "ema50": 72.72391,
+            "rsi14": 47.87,
+            "rvol20": 0.811,
+            "rolling_20bar_low": 70.38,
+            "rolling_20bar_high": 72.91
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 71.35,
+            "ema20": 74.53812,
+            "ema50": 79.82306,
+            "rsi14": 31.57
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 72.71,
+            "ema20": 87.25436,
+            "ema50": 99.89858,
+            "rsi14": 19.67
+          }
+        },
+        {
+          "symbol": "BNBUSDT",
+          "mark_price": 591.0781,
+          "change_24h_pct": -1.207,
+          "quote_volume_24h": 244779556.4,
+          "funding_rate_decimal_per_interval": 0,
+          "oi_quantity_change_1h_pct": -0.0101,
+          "oi_notional_change_1h_pct": 0.4026,
+          "global_long_account_share": 0.7036,
+          "global_long_short_ratio": 2.3738,
+          "taker_buy_sell_ratio_latest_15m": 0.5065,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 591.03,
+            "ema20": 590.8658,
+            "ema50": 591.6745,
+            "rsi14": 51.4,
+            "rvol20": 0.4,
+            "rolling_20bar_low": 587,
+            "rolling_20bar_high": 594.94
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 591.62,
+            "ema20": 592.4204,
+            "ema50": 599.2733,
+            "rsi14": 43.96,
+            "rvol20": 0.716,
+            "rolling_20bar_low": 585.91,
+            "rolling_20bar_high": 598.68
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 593.11,
+            "ema20": 610.618,
+            "ema50": 641.5608,
+            "rsi14": 30.35
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 596.93,
+            "ema20": 675.8171,
+            "ema50": 718.1746,
+            "rsi14": 23.03
+          }
+        },
+        {
+          "symbol": "XRPUSDT",
+          "mark_price": 0.9566,
+          "change_24h_pct": -1.035,
+          "quote_volume_24h": 592260427.27,
+          "funding_rate_decimal_per_interval": -0.00009206,
+          "oi_quantity_change_1h_pct": -1.2097,
+          "oi_notional_change_1h_pct": -0.1099,
+          "global_long_account_share": 0.7299,
+          "global_long_short_ratio": 2.7023,
+          "taker_buy_sell_ratio_latest_15m": 0.4619,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_both",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 0.9563,
+            "ema20": 0.9526987,
+            "ema50": 0.9554583,
+            "rsi14": 52.25,
+            "rvol20": 0.757,
+            "rolling_20bar_low": 0.9418,
+            "rolling_20bar_high": 0.9614
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 0.9537,
+            "ema20": 0.956924,
+            "ema50": 0.9656467,
+            "rsi14": 46.16,
+            "rvol20": 1.034,
+            "rolling_20bar_low": 0.9418,
+            "rolling_20bar_high": 0.9774
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 0.9594,
+            "ema20": 0.982236,
+            "ema50": 1.041856,
+            "rsi14": 39.53
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 0.9734,
+            "ema20": 1.1329482,
+            "ema50": 1.2785379,
+            "rsi14": 22.69
+          }
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "mark_price": 0.05889,
+          "change_24h_pct": -0.624,
+          "quote_volume_24h": 322523164.67,
+          "funding_rate_decimal_per_interval": -0.00001594,
+          "oi_quantity_change_1h_pct": -0.592,
+          "oi_notional_change_1h_pct": 0.2273,
+          "global_long_account_share": 0.7051,
+          "global_long_short_ratio": 2.391,
+          "taker_buy_sell_ratio_latest_15m": 0.4689,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_both",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 0.05885,
+            "ema20": 0.0586582,
+            "ema50": 0.0587562,
+            "rsi14": 56.02,
+            "rvol20": 0.72,
+            "rolling_20bar_low": 0.05813,
+            "rolling_20bar_high": 0.05912
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 0.05871,
+            "ema20": 0.0588388,
+            "ema50": 0.0597215,
+            "rsi14": 47.93,
+            "rvol20": 0.568,
+            "rolling_20bar_low": 0.0581,
+            "rolling_20bar_high": 0.0601
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 0.05897,
+            "ema20": 0.0611587,
+            "ema50": 0.0649751,
+            "rsi14": 31.55
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 0.05985,
+            "ema20": 0.0699837,
+            "ema50": 0.0791966,
+            "rsi14": 24.81
+          }
+        },
+        {
+          "symbol": "ADAUSDT",
+          "mark_price": 0.1528,
+          "change_24h_pct": -1.61,
+          "quote_volume_24h": 114632045.46,
+          "funding_rate_decimal_per_interval": -0.00006901,
+          "oi_quantity_change_1h_pct": 0.2694,
+          "oi_notional_change_1h_pct": 1.1434,
+          "global_long_account_share": 0.6876,
+          "global_long_short_ratio": 2.201,
+          "taker_buy_sell_ratio_latest_15m": 0.3963,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 0.1526,
+            "ema20": 0.152382,
+            "ema50": 0.152831,
+            "rsi14": 51.61,
+            "rvol20": 1.133,
+            "rolling_20bar_low": 0.1509,
+            "rolling_20bar_high": 0.154
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 0.1525,
+            "ema20": 0.1530428,
+            "ema50": 0.1553323,
+            "rsi14": 43.45,
+            "rvol20": 0.808,
+            "rolling_20bar_low": 0.1509,
+            "rolling_20bar_high": 0.1557
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 0.1535,
+            "ema20": 0.1589847,
+            "ema50": 0.1679718,
+            "rsi14": 29.51
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 0.1553,
+            "ema20": 0.1814168,
+            "ema50": 0.2095483,
+            "rsi14": 27.26
+          }
+        },
+        {
+          "symbol": "LINKUSDT",
+          "mark_price": 9.164,
+          "change_24h_pct": -1.069,
+          "quote_volume_24h": 85244587.51,
+          "funding_rate_decimal_per_interval": 0.00000569,
+          "oi_quantity_change_1h_pct": 0.3128,
+          "oi_notional_change_1h_pct": 1.3405,
+          "global_long_account_share": 0.634,
+          "global_long_short_ratio": 1.7322,
+          "taker_buy_sell_ratio_latest_15m": 0.4803,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_both",
+            "h1": "above_ema20_below_ema50",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 9.159,
+            "ema20": 9.13365,
+            "ema50": 9.15467,
+            "rsi14": 56.55,
+            "rvol20": 0.762,
+            "rolling_20bar_low": 9.035,
+            "rolling_20bar_high": 9.202
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 9.169,
+            "ema20": 9.16662,
+            "ema50": 9.2657,
+            "rsi14": 44.84,
+            "rvol20": 1.076,
+            "rolling_20bar_low": 9.035,
+            "rolling_20bar_high": 9.341
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 9.161,
+            "ema20": 9.43756,
+            "ema50": 9.93215,
+            "rsi14": 31.19
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 9.289,
+            "ema20": 10.57922,
+            "ema50": 11.81981,
+            "rsi14": 27.28
+          }
+        },
+        {
+          "symbol": "SUIUSDT",
+          "mark_price": 0.72209187,
+          "change_24h_pct": -1.177,
+          "quote_volume_24h": 108988620.15,
+          "funding_rate_decimal_per_interval": -0.00005174,
+          "oi_quantity_change_1h_pct": 0.1661,
+          "oi_notional_change_1h_pct": 1.0914,
+          "global_long_account_share": 0.6649,
+          "global_long_short_ratio": 1.9842,
+          "taker_buy_sell_ratio_latest_15m": 0.4315,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 0.7211,
+            "ema20": 0.7209112,
+            "ema50": 0.722555,
+            "rsi14": 55.06,
+            "rvol20": 0.562,
+            "rolling_20bar_low": 0.7136,
+            "rolling_20bar_high": 0.7277
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 0.723,
+            "ema20": 0.7237801,
+            "ema50": 0.7336029,
+            "rsi14": 45.54,
+            "rvol20": 0.794,
+            "rolling_20bar_low": 0.7136,
+            "rolling_20bar_high": 0.7398
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 0.7238,
+            "ema20": 0.7503377,
+            "ema50": 0.7910766,
+            "rsi14": 29.98
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 0.7371,
+            "ema20": 0.8460433,
+            "ema50": 0.9529621,
+            "rsi14": 31.96
+          }
+        },
+        {
+          "symbol": "ZECUSDT",
+          "mark_price": 890.1535,
+          "change_24h_pct": -3.533,
+          "quote_volume_24h": 1101038118.4,
+          "funding_rate_decimal_per_interval": 0.00007062,
+          "oi_quantity_change_1h_pct": -0.0246,
+          "oi_notional_change_1h_pct": 0.6429,
+          "global_long_account_share": 0.4867,
+          "global_long_short_ratio": 0.9482,
+          "taker_buy_sell_ratio_latest_15m": 0.4745,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "above_ema20_below_ema50",
+            "h1": "below_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 890.95,
+            "ema20": 890.0802,
+            "ema50": 892.2574,
+            "rsi14": 48.52,
+            "rvol20": 0.624,
+            "rolling_20bar_low": 878.06,
+            "rolling_20bar_high": 901.74
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 892.6,
+            "ema20": 894.2736,
+            "ema50": 900.1801,
+            "rsi14": 43.07,
+            "rvol20": 0.601,
+            "rolling_20bar_low": 871.52,
+            "rolling_20bar_high": 918.53
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 899.35,
+            "ema20": 921.7691,
+            "ema50": 1005.1985,
+            "rsi14": 43.35
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 915.39,
+            "ema20": 1105.4532,
+            "ema50": 1227.2935,
+            "rsi14": 30.73
+          }
+        },
+        {
+          "symbol": "HYPEUSDT",
+          "mark_price": 66.58165411,
+          "change_24h_pct": -2.103,
+          "quote_volume_24h": 468523277.74,
+          "funding_rate_decimal_per_interval": -0.00000925,
+          "oi_quantity_change_1h_pct": 0.0069,
+          "oi_notional_change_1h_pct": 1.209,
+          "global_long_account_share": 0.5978,
+          "global_long_short_ratio": 1.4863,
+          "taker_buy_sell_ratio_latest_15m": 0.5052,
+          "adl_risk": "LOW",
+          "ema_alignment": {
+            "m15": "below_both",
+            "h1": "above_both",
+            "h4": "below_both",
+            "daily": "below_both"
+          },
+          "m15": {
+            "time_utc": "2026-11-16T11:44:59.999Z",
+            "close": 66.605,
+            "ema20": 66.8162,
+            "ema50": 66.7889,
+            "rsi14": 55.48,
+            "rvol20": 6.038,
+            "rolling_20bar_low": 65.872,
+            "rolling_20bar_high": 67.822
+          },
+          "h1": {
+            "time_utc": "2026-11-16T10:59:59.999Z",
+            "close": 67.51,
+            "ema20": 66.8274,
+            "ema50": 67.3366,
+            "rsi14": 47.44,
+            "rvol20": 1.092,
+            "rolling_20bar_low": 65.712,
+            "rolling_20bar_high": 68.674
+          },
+          "h4": {
+            "time_utc": "2026-11-16T07:59:59.999Z",
+            "close": 66.743,
+            "ema20": 68.3305,
+            "ema50": 71.8244,
+            "rsi14": 38.34
+          },
+          "daily": {
+            "time_utc": "2026-11-15T23:59:59.999Z",
+            "close": 68.108,
+            "ema20": 75.8759,
+            "ema50": 81.4412,
+            "rsi14": 22.26
+          }
+        }
+      ],
+      "structural_assessment": "The relief bounce has stalled. All 11 completed 4h and daily closes remain below EMA20 and EMA50. Latest completed 1h closes are below EMA50 in all 11; only SOL, LINK and HYPE closed above hourly EMA20, while current marks have fallen below hourly EMA20 in 10/11 (DOGE marginally above). Latest completed 15m closes are above EMA20 in 10/11 and above EMA50 in four; HYPE alone is below both. 15m RVOL is below 1 in most markets; HYPE has a 6.04x red candle but taker buy/sell ratio is slightly positive at 1.021, so absorption is possible. No broad reversal confirmation. A fresh HYPE bearish rejection-break confirmed at 11:44:59.999Z; it awaits a post-trigger retest into 67.12-67.145. The trigger candle itself crossed that zone before close and is not a retest. No new entry/fill.",
+      "derivatives_assessment": "OI contract quantity rose in BNB, ADA, LINK, SUI and HYPE and declined in BTC, ETH, SOL, XRP, DOGE and ZEC. OI notional rose in 10/11, XRP marginally declined; rising notional partly reflects price and is not proof of fresh leverage. Funding is negative in BTC? No: BTC slightly positive; ETH, SOL, XRP, DOGE, ADA, SUI and HYPE negative; BNB zero; LINK and ZEC positive. Global accounts remain long-heavy in 10/11; ZEC is slightly short-heavy, SOL most long-heavy. Latest 15m taker buy/sell ratio >1 only in SOL, BNB and HYPE (3/11); sell flow dominates eight. ADL risk LOW all 11. No reliable force-order liquidation feed or liquidation heatmap; no clusters inferred.",
+      "shadow_trigger_audit": [
+        {
+          "setup_id": "BTCUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_stale_targets_touched_before_retest",
+          "entry_zone_revisited_after_trigger": false,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "13 completed 15m candles since the prior check. No post-trigger retest into 64840-64857.2. TP1 64260.3 and TP2 64240 were both touched in the 09:00-09:14:59Z candle (low 64161.3); stop 65048.2 was not touched. No entry or paper fill; delivery remains unconfirmed."
+        },
+        {
+          "setup_id": "BNBUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_stale_tp1_touched_before_retest",
+          "entry_zone_revisited_after_trigger": false,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "13 completed 15m candles since the prior check. No post-trigger retest into 592.55-592.73. TP1 588.26 was touched in the 09:00-09:14:59Z candle (low 587.43); TP2 585.91 and stop 593.73 were not touched. No entry or paper fill."
+        },
+        {
+          "setup_id": "XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_shadow_retest_tp2_touched_no_confirmed_fill",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (high 0.9565 intersected 0.95645-0.95660). TP1 0.9488 and TP2 0.9446 were both touched in the 09:00-09:14:59Z candle (low 0.9441). Stop 0.9614 was not touched through the latest completed candle. This is a shadow path only: no Discord delivery, no confirmed fill and no realized R."
+        },
+        {
+          "setup_id": "DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "First post-trigger retest occurred in the 08:45-08:59:59Z candle (high 0.05878 intersected 0.05875-0.05877). TP1 0.05830 was touched in the 09:00-09:14:59Z candle (low 0.05827). Stop 0.05905 was touched in the 11:00-11:14:59Z candle (high 0.05910); TP2 0.05772 was not touched. No partial exit was specified. Shadow-only; no confirmed fill and no realized R."
+        },
+        {
+          "setup_id": "ADAUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_stale_tp1_before_retest",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "TP1 0.1514 was touched in the 09:00-09:14:59Z candle (low 0.1512), before the first post-trigger retest in the 11:00-11:14:59Z candle (high 0.1536 intersected the entry zone). Stop 0.1538 was not touched. The signal was stale before a usable retest; no fill or realized R."
+        },
+        {
+          "setup_id": "SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (high 0.7215 intersected 0.7215-0.7217). TP1 0.7138 was touched in the 09:15-09:29:59Z candle (low 0.7136). Stop 0.7255 was touched in the 11:00-11:14:59Z candle (high 0.7277); TP2 0.7101 was not touched. Shadow-only; no confirmed fill or realized R."
+        },
+        {
+          "setup_id": "ZECUSDT-S-20261116T081500Z-15M-EMA50-REJECTION-01",
+          "status": "triggered_unalerted_stale_tp1_before_retest",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "TP1 880 was touched in the 09:00-09:14:59Z candle (low 880), before the first post-trigger retest in the 10:15-10:29:59Z candle (high 896.21 intersected 894.30-894.56). Stop 901.74 was not touched. Stale before usable retest; no fill or realized R."
+        },
+        {
+          "setup_id": "HYPEUSDT-S-20261116T083000Z-15M-EMA20-REJECTION-01",
+          "status": "triggered_unalerted_shadow_retest_then_stop_no_confirmed_fill",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "First post-trigger retest occurred in the 08:30-08:44:59Z candle (range 66.039-66.43 intersected 66.18-66.21). Stop 66.824 was first touched in the 09:30-09:44:59Z candle (high 67.02). TP1 65.153 and TP2 64.63 were not touched. Shadow-only; no confirmed fill or realized R."
+        },
+        {
+          "setup_id": "BTCUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 64073.7; intrabar order is unknowable, so conservatively treat target as first and do not count a fill. Stop reference was touched later at 10:15-10:29:59Z. No fill or realized R."
+        },
+        {
+          "setup_id": "ETHUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 1790.26; order is unknowable, so conservatively no fill. Stop reference 1811.31 was touched later at 11:00-11:14:59Z. No fill or realized R."
+        },
+        {
+          "setup_id": "SOLUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 70.38; intrabar order is unknowable, so conservatively no fill. Stop reference 71.12 was touched later at 10:00-10:14:59Z. No fill or realized R."
+        },
+        {
+          "setup_id": "DOGEUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Trigger confirmed at 09:14:59.999Z. First clean post-trigger retest occurred in the 09:15-09:29:59Z candle (high 0.05859 intersected 0.05847-0.05858) before TP1. TP1 0.05813 was touched at 09:45-09:59:59Z. Stop 0.05878 was touched at 10:45-10:59:59Z; TP2 0.05711 was not touched. No Discord delivery or confirmed fill; no partial exit was specified and no realized R is assigned."
+        },
+        {
+          "setup_id": "ZECUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_unqualified_net_rr_below_2_stale_target_same_candle_as_retest",
+          "entry_zone_revisited_after_trigger": true,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Trigger confirmed at 09:14:59.999Z, but fee-adjusted reward-to-risk to the nearest defensible structural target is below 2. The first post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 878.06; conservative target-first accounting means no fill. Stop reference was touched later at 10:15-10:29:59Z. Unqualified, no alert and no realized R."
+        },
+        {
+          "setup_id": "HYPEUSDT-S-20261116T114500Z-15M-EMA20-REJECTION-02",
+          "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+          "entry_zone_revisited_after_trigger": false,
+          "entry_executed": false,
+          "delivery_confirmed": false,
+          "note": "Fresh 15m trigger; no completed post-trigger retest yet."
+        }
+      ],
+      "shadow_watch_updates": {
+        "previous_triggered_setups_audited": 8,
+        "previous_trigger_retests_or_target_events_recorded": 8,
+        "new_retrospective_15m_triggers": 5,
+        "new_retrospective_qualified_net_rr": 4,
+        "new_retrospective_unqualified_net_rr": 1,
+        "new_current_qualified_trigger_waiting_retest": 1,
+        "post_trigger_retests_with_clean_entry_sequence": 1,
+        "conservative_same_candle_target_retest_no_entry": 4,
+        "actual_paper_fills": 0
+      },
+      "discord_delivery": {
+        "delivery_confirmed": false,
+        "alerts_due": 1,
+        "alerts_sent": 0,
+        "blocker": "No direct Discord-send action or GitHub Actions workflow-dispatch action is exposed in this runtime. One fresh HYPE trigger is due but unalerted. Earlier retrospective triggers are already stale or stop-resolved and are not being sent late. No webhook secret accessed."
+      },
+      "note": "NO TRADE / NO FILLS. Eight prior triggered shadows were lifecycle-checked: XRP retested then TP2 touched; DOGE and SUI retested, TP1 touched, then stop reference touched; HYPE retested then stop; BTC and BNB did not retest before target(s); ADA and ZEC reached TP1 before later retests. Five additional 09:15Z rejection-break patterns were found retrospectively; four qualified on the deeper structural target but target and first retest shared one candle, so conservative target-first means no entry; DOGE had a clean retest then TP1 and later stop. ZEC failed net 2R. One fresh HYPE 15m rejection-break at 11:44:59.999Z remains a conditional shadow setup waiting for retest; no post-trigger candle has closed. No fills, no Discord delivery, no active-alerted additions. User-directed SUI historical exception remains terminal -1R; no original entry-zone revisit. Pre-initialization recovery warning preserved."
     }
   ],
   "event_log": [
@@ -22588,21 +23926,421 @@
       "actual_paper_fills": 0,
       "active_alerted_setups": 0,
       "recovery_warning": true
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-BTCUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_before_retest",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_before_retest",
+      "setup_id": "BTCUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_before_retest",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 64260.3
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-BTCUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp2_touched_before_retest",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp2_touched_before_retest",
+      "setup_id": "BTCUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp2_touched_before_retest",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 64240
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-BNBUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_before_retest",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_before_retest",
+      "setup_id": "BNBUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_before_retest",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 588.26
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-entry_zone_retest_touch_shadow_only",
+      "timestamp_utc": "2026-11-16T08:44:59.999Z",
+      "type": "entry_zone_retest_touch_shadow_only",
+      "setup_id": "XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_touch_shadow_only",
+        "timestamp_utc": "2026-11-16T08:44:59.999Z",
+        "high": 0.9565,
+        "low": 0.9523
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_shadow_only",
+      "setup_id": "XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 0.9488
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp2_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp2_touched_shadow_only",
+      "setup_id": "XRPUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp2_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 0.9446
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-entry_zone_retest_touch_shadow_only",
+      "timestamp_utc": "2026-11-16T08:59:59.999Z",
+      "type": "entry_zone_retest_touch_shadow_only",
+      "setup_id": "DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_touch_shadow_only",
+        "timestamp_utc": "2026-11-16T08:59:59.999Z",
+        "high": 0.05878,
+        "low": 0.05842
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_shadow_only",
+      "setup_id": "DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 0.0583
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-stop_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T11:14:59.999Z",
+      "type": "stop_touched_shadow_only",
+      "setup_id": "DOGEUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "stop_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T11:14:59.999Z",
+        "price": 0.05905
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ADAUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_before_retest",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_before_retest",
+      "setup_id": "ADAUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_before_retest",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 0.1514
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ADAUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-entry_zone_retest_after_tp1_shadow_only",
+      "timestamp_utc": "2026-11-16T11:14:59.999Z",
+      "type": "entry_zone_retest_after_tp1_shadow_only",
+      "setup_id": "ADAUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_after_tp1_shadow_only",
+        "timestamp_utc": "2026-11-16T11:14:59.999Z",
+        "high": 0.1536
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-entry_zone_retest_touch_shadow_only",
+      "timestamp_utc": "2026-11-16T08:44:59.999Z",
+      "type": "entry_zone_retest_touch_shadow_only",
+      "setup_id": "SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_touch_shadow_only",
+        "timestamp_utc": "2026-11-16T08:44:59.999Z",
+        "high": 0.7215,
+        "low": 0.7162
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-tp1_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T09:29:59.999Z",
+      "type": "tp1_touched_shadow_only",
+      "setup_id": "SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T09:29:59.999Z",
+        "price": 0.7138
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01-stop_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T11:14:59.999Z",
+      "type": "stop_touched_shadow_only",
+      "setup_id": "SUIUSDT-S-20261116T081500Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "stop_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T11:14:59.999Z",
+        "price": 0.7255
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ZECUSDT-S-20261116T081500Z-15M-EMA50-REJECTION-01-tp1_touched_before_retest",
+      "timestamp_utc": "2026-11-16T09:14:59.999Z",
+      "type": "tp1_touched_before_retest",
+      "setup_id": "ZECUSDT-S-20261116T081500Z-15M-EMA50-REJECTION-01",
+      "evidence": {
+        "type": "tp1_touched_before_retest",
+        "timestamp_utc": "2026-11-16T09:14:59.999Z",
+        "price": 880
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ZECUSDT-S-20261116T081500Z-15M-EMA50-REJECTION-01-entry_zone_retest_after_tp1_shadow_only",
+      "timestamp_utc": "2026-11-16T10:29:59.999Z",
+      "type": "entry_zone_retest_after_tp1_shadow_only",
+      "setup_id": "ZECUSDT-S-20261116T081500Z-15M-EMA50-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_after_tp1_shadow_only",
+        "timestamp_utc": "2026-11-16T10:29:59.999Z",
+        "high": 896.21
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-HYPEUSDT-S-20261116T083000Z-15M-EMA20-REJECTION-01-entry_zone_retest_touch_shadow_only",
+      "timestamp_utc": "2026-11-16T08:44:59.999Z",
+      "type": "entry_zone_retest_touch_shadow_only",
+      "setup_id": "HYPEUSDT-S-20261116T083000Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "entry_zone_retest_touch_shadow_only",
+        "timestamp_utc": "2026-11-16T08:44:59.999Z",
+        "high": 66.43,
+        "low": 66.039
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-HYPEUSDT-S-20261116T083000Z-15M-EMA20-REJECTION-01-stop_touched_shadow_only",
+      "timestamp_utc": "2026-11-16T09:44:59.999Z",
+      "type": "stop_touched_shadow_only",
+      "setup_id": "HYPEUSDT-S-20261116T083000Z-15M-EMA20-REJECTION-01",
+      "evidence": {
+        "type": "stop_touched_shadow_only",
+        "timestamp_utc": "2026-11-16T09:44:59.999Z",
+        "price": 66.824
+      },
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-BTCUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02-audit",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "retrospective_shadow_trigger_and_lifecycle_audit",
+      "setup_id": "BTCUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "evidence": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 64073.7; intrabar order is unknowable, so conservatively treat target as first and do not count a fill. Stop reference was touched later at 10:15-10:29:59Z. No fill or realized R.",
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ETHUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02-audit",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "retrospective_shadow_trigger_and_lifecycle_audit",
+      "setup_id": "ETHUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "evidence": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 1790.26; order is unknowable, so conservatively no fill. Stop reference 1811.31 was touched later at 11:00-11:14:59Z. No fill or realized R.",
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-SOLUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02-audit",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "retrospective_shadow_trigger_and_lifecycle_audit",
+      "setup_id": "SOLUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_stale_target_same_candle_as_first_retest_conservative_no_entry",
+      "evidence": "Trigger confirmed at 09:14:59.999Z. First post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 70.38; intrabar order is unknowable, so conservatively no fill. Stop reference 71.12 was touched later at 10:00-10:14:59Z. No fill or realized R.",
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-DOGEUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02-audit",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "retrospective_shadow_trigger_and_lifecycle_audit",
+      "setup_id": "DOGEUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_unalerted_shadow_retest_tp1_then_stop_no_confirmed_fill",
+      "evidence": "Trigger confirmed at 09:14:59.999Z. First clean post-trigger retest occurred in the 09:15-09:29:59Z candle (high 0.05859 intersected 0.05847-0.05858) before TP1. TP1 0.05813 was touched at 09:45-09:59:59Z. Stop 0.05878 was touched at 10:45-10:59:59Z; TP2 0.05711 was not touched. No Discord delivery or confirmed fill; no partial exit was specified and no realized R is assigned.",
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-ZECUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02-audit",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "retrospective_shadow_trigger_and_lifecycle_audit",
+      "setup_id": "ZECUSDT-S-20261116T091500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_unqualified_net_rr_below_2_stale_target_same_candle_as_retest",
+      "evidence": "Trigger confirmed at 09:14:59.999Z, but fee-adjusted reward-to-risk to the nearest defensible structural target is below 2. The first post-trigger candle 09:15-09:29:59Z touched both the entry zone and TP1 878.06; conservative target-first accounting means no fill. Stop reference was touched later at 10:15-10:29:59Z. Unqualified, no alert and no realized R.",
+      "entry_executed": false,
+      "delivery_confirmed": false
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-HYPEUSDT-S-20261116T114500Z-15M-EMA20-REJECTION-02-trigger",
+      "timestamp_utc": "2026-11-16T11:44:59.999Z",
+      "type": "trigger_confirmed",
+      "setup_id": "HYPEUSDT-S-20261116T114500Z-15M-EMA20-REJECTION-02",
+      "status": "triggered_unalerted_delivery_blocked_waiting_retest",
+      "entry_executed": false,
+      "delivery_confirmed": false,
+      "evidence": "Completed 15m close 66.605 below rejection low 67.145 and both 15m EMAs; entry zone 67.12-67.145 was crossed within trigger candle before close, not a post-trigger retest."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-sui-terminal-check",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "user_directed_terminal_verification",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "status": "stopped",
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r": -1,
+      "evidence": {
+        "timestamp_utc": "2026-11-16T11:47:46.000Z",
+        "mark_price": 0.72209187,
+        "entry_zone_touched_on_this_check": false,
+        "max_high_since_previous_check_15m": 0.7277,
+        "min_low_since_previous_check_15m": 0.7136,
+        "max_high_since_previous_check_1h": 0.7277,
+        "min_low_since_previous_check_1h": 0.7136,
+        "max_high_since_previous_check_4h": null,
+        "min_low_since_previous_check_4h": null,
+        "completed_15m_candles_since_previous_check": 13,
+        "completed_1h_candles_since_previous_check": 3,
+        "completed_4h_candles_since_previous_check": 0,
+        "stop_was_already_hit": true,
+        "target_was_already_touched_after_stop": true,
+        "hypothetical_mark_to_reference_r": -11.880011206896498,
+        "realized_r_remains": -1,
+        "latest_completed_15m_candle": {
+          "open_utc": "2026-11-16T11:30:00Z",
+          "close_utc": "2026-11-16T11:44:59.999Z",
+          "open": 0.7211,
+          "high": 0.7222,
+          "low": 0.7198,
+          "close": 0.7211
+        },
+        "latest_completed_1h_candle": {
+          "open_utc": "2026-11-16T10:00:00Z",
+          "close_utc": "2026-11-16T10:59:59.999Z",
+          "open": 0.7166,
+          "high": 0.7247,
+          "low": 0.7166,
+          "close": 0.723
+        },
+        "latest_completed_4h_candle": {
+          "open_utc": "2026-11-16T04:00:00Z",
+          "close_utc": "2026-11-16T07:59:59.999Z",
+          "open": 0.7299,
+          "high": 0.7321,
+          "low": 0.7153,
+          "close": 0.7238
+        },
+        "note": "Original stop had already been hit on 7 Nov before the target touch on 8 Nov. This check confirms no revisit of the original 0.8590-0.8610 entry zone. Terminal outcome remains -1R; mark-to-reference is hypothetical only. Status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
+      }
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-discord-blocked",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "discord_delivery_not_confirmed",
+      "delivery_confirmed": false,
+      "alerts_due": 1,
+      "alerts_sent": 0,
+      "evidence": "One fresh HYPE 15m trigger at 11:44:59.999Z is still awaiting a post-trigger retest. The runtime exposes no direct Discord-send action and no GitHub Actions workflow-dispatch action; no receipt exists. The five 09:15Z retrospective triggers are already stale/stop-resolved and are not being sent late. No webhook secret accessed."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261116T114746Z-scan-complete",
+      "timestamp_utc": "2026-11-16T11:47:46.000Z",
+      "type": "scan_completed",
+      "status": "NO_TRADE_ONE_HYPE_TRIGGER_WAITING_RETEST",
+      "markets_scanned": 11,
+      "new_qualified_triggered_shadow_setups": 1,
+      "retrospective_triggers_since_prior_scan": 5,
+      "previous_triggered_setups_audited": 8,
+      "actual_paper_fills": 0,
+      "active_alerted_setups": 0,
+      "recovery_warning": true
     }
   ],
   "last_scan_summary": {
-    "scan_id": "crypto-trade-idea-desk-20261116T083520Z",
-    "timestamp_utc": "2026-11-16T08:35:20.000Z",
-    "decision": "NO_TRADE_PENDING_RETEST",
+    "scan_id": "crypto-trade-idea-desk-20261116T114746Z",
+    "timestamp_utc": "2026-11-16T11:47:46.000Z",
+    "decision": "NO_TRADE_ONE_FRESH_HYPE_TRIGGER_WAITING_RETEST",
     "markets_scanned": 11,
-    "qualified_triggered_shadow_setups": 8,
+    "qualified_new_setups": 1,
+    "triggered_shadow_setups": 1,
+    "retrospective_triggered_setups_since_prior_scan": 5,
+    "prior_triggered_setups_audited": 8,
     "entry_zone_retests_confirmed_after_trigger": 0,
     "actual_paper_fills": 0,
-    "alerts_due": 8,
+    "alerts_due": 1,
     "discord_delivery_confirmed": false,
     "active_alerted_setups": 0,
+    "shadow_watch_only_count": 167,
     "recovery_warning": true,
-    "summary": "All 11 completed 15m candles are below both EMAs and all 4h/daily structures remain bearish. Eight completed 15m rejection-break signals meet the 2R net planning gate but await a post-trigger retest; no fills. Discord delivery blocked. ETH TP1 was touched before retest; SOL fails the net 2R gate."
+    "fresh_candidate": {
+      "setup_id": "HYPEUSDT-S-20261116T114500Z-15M-EMA20-REJECTION-02",
+      "symbol": "HYPEUSDT",
+      "side": "SHORT",
+      "trigger_confirmed_utc": "2026-11-16T11:44:59.999Z",
+      "entry_zone": [
+        67.12,
+        67.145
+      ],
+      "stop": 67.619,
+      "targets": [
+        65.872,
+        64.63
+      ],
+      "net_rr_to_tp1": [
+        2.32,
+        2.49
+      ],
+      "net_rr_to_tp2": [
+        4.7,
+        5
+      ],
+      "status": "triggered_unalerted_delivery_blocked_waiting_retest"
+    },
+    "summary": "The 4h/daily bearish structure persists while 15m recovered in 10/11. Eight prior shadows were lifecycle-audited; five more 09:15Z rejection-break patterns were found retrospectively and resolved without confirmed fills. One new HYPE 15m bearish rejection-break confirmed at 11:44:59.999Z; entry zone 67.12-67.145 awaits a post-trigger retest. No paper fills. Discord delivery blocked; active alerted set remains unchanged."
   },
-  "monitoring_status": "Ledger fetched and parsed at scan start, then updated on ai-quant-rebuild. Binance USDⓈ-M mark/ticker snapshot 2026-11-16T08:35:20.000Z; order books 08:35:00Z. Latest completed 15m through 08:29:59.999Z, 1h/4h through 07:59:59.999Z, daily through 15-Nov 23:59:59.999Z; OI/global ratios 08:00Z; taker flow 08:15Z. All 11 latest 15m closes below both EMAs; 5/11 completed 1h closes above EMA20 but all below EMA50; all 4h/daily below both. Eight 15m rejection-break signals met >=2R net at conditional retest zones but none retested after trigger; no fills. ETH TP1 touched before retest and is stale; SOL failed net 2R. Eight alerts due but none delivered; workflow schedule is gated by ENABLE_GITHUB_SCHEDULE and runtime lacks workflow dispatch/direct Discord send. Active alerted set remains unchanged; do not promote undelivered signals. User-directed SUI exception remains triggered_unalerted_delivery_blocked, terminal stopped at -1R; current mark 0.71963023, entry zone not revisited. Recovery warning for unknown pre-initialization positions remains."
+  "monitoring_status": "Ledger fetched and parsed at scan start, then updated on ai-quant-rebuild. Binance USDⓈ-M mark/ticker 2026-11-16T11:47:46Z; latest completed 15m through 11:44:59.999Z, 1h through 10:59:59.999Z, 4h through 07:59:59.999Z, daily through 15-Nov 23:59:59.999Z; OI/account ratio 11:00Z; taker flow 11:30Z. All 4h/daily structures below both EMAs; 15m above EMA20 in 10/11. Eight prior triggered shadows lifecycle-checked; five retrospective 09:15Z signals audited; one fresh HYPE trigger waiting for retest. No confirmed fills or active alerted positions. Discord send/workflow dispatch unavailable; no delivery claimed. User-directed SUI exception remains terminal -1R, current mark 0.72209187, original entry zone not revisited. Recovery warning for unknown pre-initialization positions preserved."
 }
