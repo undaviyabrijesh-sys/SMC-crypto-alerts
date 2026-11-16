@@ -309,11 +309,16 @@ def _persist_klines(asset: str, symbol: str, raw_rows: list[list[Any]]) -> int:
     rows = []
     for row in raw_rows:
         try:
+            volume = _to_float(row[5], 0.0) or 0.0
+            trade_count = int(_to_float(row[8], 0.0) or 0)
+            # Do not persist synthetic/no-trade placeholder candles as executable history.
+            if volume <= 0 or trade_count <= 0:
+                continue
             rows.append({
                 "open_time_utc": _iso_from_ms(row[0]), "open_time_ms": int(row[0]),
                 "open": row[1], "high": row[2], "low": row[3], "close": row[4], "volume": row[5],
                 "close_time_utc": _iso_from_ms(row[6]), "close_time_ms": int(row[6]),
-                "quote_volume": row[7], "trade_count": int(row[8]),
+                "quote_volume": row[7], "trade_count": trade_count,
                 "taker_buy_base_volume": row[9], "taker_buy_quote_volume": row[10],
             })
         except (TypeError, ValueError, IndexError):
