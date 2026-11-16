@@ -105,6 +105,7 @@ def _simulate_vertical(asset, strategy_id, signal_time, direction, spot,
     exit_time = None
     exit_reason = None
     exit_debit_raw = None
+    same_bar_ambiguous = False
     exit_short_mark = None
     exit_hedge_mark = None
     max_gap_hours = max(6.0, float(cfg.max_hold_hours) * 2.0)
