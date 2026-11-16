@@ -1649,3 +1649,12 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Target diagnostics at 10bp: 1.5R development -26.900R/PF 0.111; validation -0.697R/PF 0.786. 3R development -24.897R/PF 0.229; validation -2.371R/PF 0.396. 2R net R at 4/7/10/20bp: development -16.946/-20.923/-24.900/-38.156; validation +1.321/+0.812/+0.303/-1.395. Development long 11 trades -10.605R and short 18 trades -14.294R; validation only 2 trades per side. Side/regime diagnostics are too small for filter selection.
 - Gate: 2R required >=30 development trades and >=12 validation trades, positive net R, PF >=1.05, max DD no worse than -20R development/-10R validation, and >=50% positive active months in both. Development failed all but the losing-streak constraint (29 trades, -24.900R, PF 0.178, DD -24.900R, 1/13 positive months); validation had only 4 trades and 1/3 positive active months. **Decision: reject / insufficient sample; do not inspect OOS, tune validation, or promote post-hoc side/regime subsets.**
 - No main, production, approved-strategy, live-alert or exchange-order changes.
+
+
+## Next preregistered BTC family — prior-UTC-day candle-volume profile proxy rejection to POC (2026-11-17)
+
+- Frozen specification: `research/BTC_PRIOR_DAY_VOLUME_PROFILE_PROXY_REJECTION_PREREGISTRATION_2026-11-17.md`. No market test has run yet.
+- Prior-art audit: no existing `value area`, `volume profile`, `point of control`, `market profile` or `POC` implementation was found in the research directory. Existing VWAP, prior-day range, support/resistance and squeeze studies are related but not equivalent.
+- The hypothesis uses a 48-bin prior-UTC-day candle-volume profile proxy, with each 5m candle's volume distributed uniformly across bins intersected by its low/high. POC/VAH/VAL are frozen for the following day; long VAL and short VAH rejections target prior-day POC. This is explicitly not true trade-by-price volume profile; the limitation is central to interpretation.
+- Rules, complete-day requirement (288 consecutive 5m bars), 70/15/15 split, next-open entry, ATR stop, POC primary target, 1.5R/2R/3R diagnostics, 4h/funding-safe exit, 4/7/10/20bp cost sensitivities, acceptance gates and deterministic tests are frozen in the preregistration.
+- Do not evaluate OOS unless the POC-target primary passes development and validation sample-count, expectancy, PF, drawdown and positive-month gates. If data quality or sample count is inadequate, record underpowered and stop; do not tune after validation.
