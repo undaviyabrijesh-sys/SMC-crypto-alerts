@@ -147,7 +147,7 @@ def ci(p,h):
     if len(days)<2: return (None,None)
     rng=np.random.default_rng(SEED); vals=np.empty(BOOT)
     for i in range(BOOT): vals[i]=np.mean(np.concatenate([by[x] for x in rng.choice(days,len(days),replace=True)]))
-    return tuple(map(float,np.quantile(vals,[.025,.975]))
+    return tuple(map(float,np.quantile(vals,[.025,.975])))
 
 def metrics(x,dates,cost):
     v=x.to_numpy(float)-cost if len(x) else np.array([])
