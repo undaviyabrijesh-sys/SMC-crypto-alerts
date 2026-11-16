@@ -17,7 +17,7 @@ if WORKER_MODE not in {"quant", "dns", "visual"}:
 
 
 def _run_cycle():
-    """Run the explicitly selected paper lane; visual decisions are model-led."""
+    """Run the selected paper lane, then collect public BTC/ETH options research data."""
     if WORKER_MODE == "visual":
         import visual_worker
         visual_worker.run()
@@ -26,6 +26,14 @@ def _run_cycle():
         dns_worker.run()
     else:
         quant_worker.run()
+
+    # Options ingestion is independent: a Binance/API failure must never block the paper lane.
+    if os.environ.get("OPTIONS_COLLECTOR_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            import options_collector
+            options_collector.run_cycle()
+        except Exception as exc:
+            print(f"[options-collector-error] {type(exc).__name__}: {exc}", flush=True)
 
 
 INTERVAL_SECONDS = max(60, int(os.environ.get("WORKER_INTERVAL_SECONDS", "300")))
