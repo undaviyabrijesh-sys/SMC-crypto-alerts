@@ -24,8 +24,8 @@ def normalize(raw):
     else: d['volume']=pd.to_numeric(d.volume,errors='coerce'); missing=int(d.volume.isna().sum()); d['volume']=d.volume.fillna(0.)
     for c in ('open','high','low','close'): d[c]=pd.to_numeric(d[c],errors='coerce')
     a=d[['open','high','low','close']].to_numpy(float); finite=np.isfinite(a).all(1)
-    positive=(d[['open','high','low','close']]>0).all(1).to_numpy()
-    shape=((d.high>=d[['open','close','low']].max(1))&(d.low<=d[['open','close','high']].min(1))).to_numpy()
+    positive=(d[['open','high','low','close']]>0).all(axis=1).to_numpy()
+    shape=((d.high>=d[['open','close','low']].max(axis=1))&(d.low<=d[['open','close','high']].min(axis=1))).to_numpy()
     badnf=int((~finite).sum()); badpos=int((finite&~positive).sum()); badshape=int((finite&positive&~shape).sum())
     d=d.loc[finite&positive&shape,['open','high','low','close','volume']]
     d=d[d.index+BAR<=pd.Timestamp.now(tz='UTC')]
@@ -68,7 +68,7 @@ def tod_quantile(idx,vol,bucket):
 
 def features(raw):
     d=segments(raw); prev=d.groupby('seg').close.shift(1)
-    d['tr']=pd.concat([d.high-d.low,(d.high-prev).abs(),(d.low-prev).abs()],axis=1).max(1)
+    d['tr']=pd.concat([d.high-d.low,(d.high-prev).abs(),(d.low-prev).abs()],axis=1).max(axis=1)
     d['tr_med20']=d.groupby('seg').tr.transform(lambda s:s.shift(1).rolling(20,min_periods=20).median())
     d['ret12']=d.groupby('seg').close.transform(lambda s:s.shift(1)/s.shift(13)-1)
     h1=resample(d,'1h',12); r1=h1.groupby('seg').close.pct_change().abs()
@@ -82,10 +82,10 @@ def features(raw):
     bull=(h4.close>h4.e50)&(h4.e50>h4.e200); bear=(h4.close<h4.e50)&(h4.e50<h4.e200)
     h4['regime']=np.select([bull,bear],['bull','bear'],default='neutral')
     d['regime']=h4.regime.reindex(d.index,method='ffill').fillna('neutral')
-    rng=(d.high-d.low).replace(0,np.nan); uw=d.high-d[['open','close']].max(1); lw=d[['open','close']].min(1)-d.low
-    loc=(d.close-d.low)/rng; d['uw']=uw/rng; d['lw']=lw/rng; d['loc']=loc
-    up=(d.ret12>d.ret1h_p90)&(d.volume>=d.vol_p95)&(d.tr>=1.5*d.tr_med20)&(d.uw>=.4)&(d.loc<=.4)
-    dn=(d.ret12< -d.ret1h_p90)&(d.volume>=d.vol_p95)&(d.tr>=1.5*d.tr_med20)&(d.lw>=.4)&(d.loc>=.6)
+    rng=(d.high-d.low).replace(0,np.nan); uw=d.high-d[['open','close']].max(axis=1); lw=d[['open','close']].min(axis=1)-d.low
+    loc=(d.close-d.low)/rng; d['uw']=uw/rng; d['lw']=lw/rng; d['close_loc']=loc
+    up=(d.ret12>d.ret1h_p90)&(d.volume>=d.vol_p95)&(d.tr>=1.5*d.tr_med20)&(d.uw>=.4)&(d.close_loc<=.4)
+    dn=(d.ret12< -d.ret1h_p90)&(d.volume>=d.vol_p95)&(d.tr>=1.5*d.tr_med20)&(d.lw>=.4)&(d.close_loc>=.6)
     d['exhaust']=np.select([up,dn],['up','down'],default=''); return d
 
 def events(d):
@@ -147,7 +147,7 @@ def ci(p,h):
     if len(days)<2: return (None,None)
     rng=np.random.default_rng(SEED); vals=np.empty(BOOT)
     for i in range(BOOT): vals[i]=np.mean(np.concatenate([by[x] for x in rng.choice(days,len(days),replace=True)]))
-    return tuple(map(float,np.quantile(vals,[.025,.975])))
+    return tuple(map(float,np.quantile(vals,[.025,.975]))
 
 def metrics(x,dates,cost):
     v=x.to_numpy(float)-cost if len(x) else np.array([])
@@ -222,6 +222,7 @@ def self_test():
     vi=pd.date_range('2026-01-01',periods=50,freq='1D',tz='UTC'); v=pd.Series(np.arange(50.),index=vi); b=np.zeros(50,int); q1=tod_quantile(vi,v,b); v2=v.copy(); v2.iloc[25:]*=1000; q2=tod_quantile(vi,v2,b); assert q1.iloc[24]==q2.iloc[24]
     e0=pd.DataFrame([{'i':100,'time':pd.Timestamp('2026-01-01T09:00Z'),'side':'short','regime':'bull','date':'2026-01-01','bucket':3,'1h':2.,'4h':3.}]); c0=pd.DataFrame([{'i':98,'time':pd.Timestamp('2026-01-01T08:50Z'),'side':'short','regime':'bull','date':'2026-01-01','bucket':3,'1h':1.,'4h':2.}]); m=match(e0,c0); assert len(m)==1 and m.iloc[0].control_i==98
     p=pd.DataFrame({'date':['2026-01-01','2026-01-02'],'1h_lift':[1.,2.]}); assert ci(p,'1h')==ci(p,'1h')
+    ix2=pd.date_range('2026-01-01T00:00Z',periods=5000,freq='5min'); z=np.linspace(100,120,len(ix2)); raw=pd.DataFrame({'open':z,'high':z+.2,'low':z-.2,'close':z+.05,'volume':10.},index=ix2); ff=features(raw); assert 'close_loc' in ff and len(ff)==5000
     print('EMT synthetic tests passed')
 
 if __name__=='__main__':
