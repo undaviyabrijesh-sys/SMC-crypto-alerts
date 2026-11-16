@@ -18,6 +18,8 @@ from typing import Any
 import requests
 
 BASE_URL = os.environ.get("BINANCE_OPTIONS_API_BASE", "https://eapi.binance.com").rstrip("/")
+SPOT_BASE_URL = os.environ.get("BINANCE_SPOT_API_BASE", "https://api.binance.com").rstrip("/")
+UNDERLYING_BACKFILL_DAYS = max(30, int(os.environ.get("OPTIONS_UNDERLYING_BACKFILL_DAYS", "180")))
 DATA_DIR = Path(os.environ.get("OPTIONS_DATA_DIR", str(Path(os.environ.get("DATA_DIR", "market_data")) / "binance_options")))
 STATE_PATH = DATA_DIR / "collector_state.json"
 TIMEOUT = float(os.environ.get("OPTIONS_HTTP_TIMEOUT", "20"))
@@ -277,6 +279,7 @@ def _select_backfill_contracts(by_asset: dict[str, list[dict[str, Any]]], indice
 
 
 def _fetch_hourly_klines(symbol: str, days: int, now: datetime) -> list[list[Any]]:
+    """Fetch every available hourly option candle; Binance can page below the requested limit."""
     start_ms = int((now - timedelta(days=days)).timestamp() * 1000)
     end_ms = int(now.timestamp() * 1000)
     cursor = start_ms
@@ -291,33 +294,151 @@ def _fetch_hourly_klines(symbol: str, days: int, now: datetime) -> list[list[Any
             break
         raw_rows.extend(batch)
         try:
-            newest_open = int(batch[-1][0])
+            newest_open = max(int(row[0]) for row in batch if isinstance(row, list) and row)
         except (TypeError, ValueError, IndexError):
             break
         if newest_open <= last_open:
             break
         last_open = newest_open
-        if len(batch) < 1500:
+        if newest_open >= end_ms - 3_600_000:
             break
+        # Do not assume a short response means history is exhausted: this endpoint
+        # has returned 1,000-row pages even when 1,500 was requested.
         cursor = newest_open + 1
-    # Ignore zero-trade placeholder bars; they are not evidence of an executable option price.
-    return [row for row in raw_rows if isinstance(row, list) and len(row) >= 12 and
+    deduped = {int(row[0]): row for row in raw_rows if isinstance(row, list) and len(row) >= 12}
+    ordered = [deduped[key] for key in sorted(deduped)]
+    # No-trade placeholders are not executable option prices.
+    return [row for row in ordered if
             (_to_float(row[5], 0.0) or 0.0) > 0 and int(_to_float(row[8], 0.0) or 0) > 0]
 
 
-def _persist_klines(asset: str, symbol: str, raw_rows: list[list[Any]]) -> int:
+def _spot_get_klines(params: dict[str, Any]) -> list[list[Any]]:
+    """Fetch public Binance spot klines without API credentials."""
+    last_error: Exception | None = None
+    for attempt in range(RETRIES):
+        try:
+            response = SESSION.get(
+                f"{SPOT_BASE_URL}/api/v3/klines", params=params, timeout=TIMEOUT
+            )
+            if response.status_code == 429 or response.status_code >= 500:
+                retry_after = _to_float(response.headers.get("Retry-After"), 0.0) or 0.0
+                time.sleep(max(retry_after, min(2 ** attempt, 8)))
+                response.raise_for_status()
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, list):
+                raise RuntimeError(f"Unexpected Binance spot kline payload: {payload}")
+            if PAUSE_SECONDS:
+                time.sleep(PAUSE_SECONDS)
+            return payload
+        except Exception as exc:
+            last_error = exc
+            if attempt + 1 < RETRIES:
+                time.sleep(min(2 ** attempt, 8))
+    raise RuntimeError(f"Binance spot kline request failed: {last_error}") from last_error
+
+
+def _fetch_spot_hourly_klines(symbol: str, start_ms: int, end_ms: int) -> list[list[Any]]:
+    """Paginate Binance spot 1h history; no synthetic bars are inserted."""
+    cursor = int(start_ms)
+    raw: list[list[Any]] = []
+    last_open = -1
+    while cursor <= end_ms:
+        batch = _spot_get_klines({
+            "symbol": symbol, "interval": "1h", "startTime": cursor,
+            "endTime": int(end_ms), "limit": 1000,
+        })
+        if not batch:
+            break
+        raw.extend(batch)
+        try:
+            newest_open = max(int(row[0]) for row in batch if isinstance(row, list) and row)
+        except (TypeError, ValueError, IndexError):
+            break
+        if newest_open <= last_open:
+            break
+        last_open = newest_open
+        if newest_open >= end_ms - 3_600_000:
+            break
+        cursor = newest_open + 1
+    deduped = {int(row[0]): row for row in raw if isinstance(row, list) and len(row) >= 12}
+    return [deduped[key] for key in sorted(deduped)]
+
+
+def _persist_underlying_klines(asset: str, raw_rows: list[list[Any]], now: datetime) -> int:
+    """Append deduplicated closed spot candles used to generate option-underlying signals."""
+    path = DATA_DIR / "underlying" / f"{asset}_1h.csv"
     rows = []
+    now_ms = int(now.timestamp() * 1000)
     for row in raw_rows:
         try:
-            volume = _to_float(row[5], 0.0) or 0.0
-            trade_count = int(_to_float(row[8], 0.0) or 0)
-            # Do not persist synthetic/no-trade placeholder candles as executable history.
-            if volume <= 0 or trade_count <= 0:
+            open_ms, close_ms = int(row[0]), int(row[6])
+            if close_ms > now_ms:
                 continue
             rows.append({
-                "open_time_utc": _iso_from_ms(row[0]), "open_time_ms": int(row[0]),
+                "open_time_utc": _iso_from_ms(open_ms), "open_time_ms": open_ms,
+                "open": row[1], "high": row[2], "low": row[3], "close": row[4],
+                "volume": row[5], "close_time_utc": _iso_from_ms(close_ms),
+                "close_time_ms": close_ms, "quote_volume": row[7],
+                "trade_count": int(row[8]), "taker_buy_base_volume": row[9],
+                "taker_buy_quote_volume": row[10],
+            })
+        except (TypeError, ValueError, IndexError):
+            continue
+    if not rows:
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existing: set[int] = set()
+    if path.exists():
+        with path.open("r", newline="", encoding="utf-8") as handle:
+            for item in csv.DictReader(handle):
+                try:
+                    existing.add(int(item["open_time_ms"]))
+                except (KeyError, TypeError, ValueError):
+                    continue
+    new_rows = [row for row in rows if row["open_time_ms"] not in existing]
+    return _append_csv(path, new_rows, [
+        "open_time_utc", "open_time_ms", "open", "high", "low", "close",
+        "volume", "close_time_utc", "close_time_ms", "quote_volume",
+        "trade_count", "taker_buy_base_volume", "taker_buy_quote_volume",
+    ])
+
+
+def _refresh_underlying_history(now: datetime, state: dict[str, Any]) -> dict[str, Any]:
+    """Backfill 180 days of BTC/ETH spot 1h bars, then refresh the latest closed hours."""
+    hour_bucket = now.replace(minute=0, second=0, microsecond=0).isoformat()
+    if state.get("last_underlying_refresh_hour") == hour_bucket:
+        return {"status": "already_refreshed", "hour": hour_bucket}
+    totals: dict[str, int] = {}
+    end_ms = int(now.timestamp() * 1000)
+    for asset in ("BTC", "ETH"):
+        path = DATA_DIR / "underlying" / f"{asset}_1h.csv"
+        start_ms = int((now - timedelta(days=UNDERLYING_BACKFILL_DAYS if not path.exists() else 2)).timestamp() * 1000)
+        raw = _fetch_spot_hourly_klines(f"{asset}USDT", start_ms, end_ms)
+        totals[asset] = _persist_underlying_klines(asset, raw, now)
+    state["last_underlying_refresh_hour"] = hour_bucket
+    state["last_underlying_refresh_at"] = now.isoformat()
+    state["last_underlying_rows_added"] = totals
+    _save_state(state)
+    return {"status": "refreshed", "rows_added": totals, "hour": hour_bucket}
+
+def _persist_klines(
+    asset: str, symbol: str, raw_rows: list[list[Any]], now: datetime | None = None
+) -> int:
+    rows = []
+    now_ms = int((now or _utc_now()).timestamp() * 1000)
+    for row in raw_rows:
+        try:
+            open_ms, close_ms = int(row[0]), int(row[6])
+            volume = _to_float(row[5], 0.0) or 0.0
+            trade_count = int(_to_float(row[8], 0.0) or 0)
+            # Keep completed traded candles only. Never archive a still-forming hour.
+            if close_ms > now_ms or volume <= 0 or trade_count <= 0:
+                continue
+            rows.append({
+                "open_time_utc": _iso_from_ms(open_ms), "open_time_ms": open_ms,
                 "open": row[1], "high": row[2], "low": row[3], "close": row[4], "volume": row[5],
-                "close_time_utc": _iso_from_ms(row[6]), "close_time_ms": int(row[6]),
+                "close_time_utc": _iso_from_ms(close_ms), "close_time_ms": close_ms,
                 "quote_volume": row[7], "trade_count": trade_count,
                 "taker_buy_base_volume": row[9], "taker_buy_quote_volume": row[10],
             })
@@ -380,7 +501,7 @@ def _run_history_backfill_batch(now: datetime, state: dict[str, Any], exchange_i
         try:
             raw_rows = _fetch_hourly_klines(symbol, BACKFILL_DAYS, now)
             asset = by_symbol.get(symbol, {}).get("asset") or symbol.split("-", 1)[0]
-            saved = _persist_klines(asset, symbol, raw_rows)
+            saved = _persist_klines(asset, symbol, raw_rows, now)
             bars += saved
             processed += 1
             print(f"[options-history] {symbol}: saved {saved} non-zero 1h bars", flush=True)
@@ -419,7 +540,7 @@ def _refresh_recent_history(now: datetime, state: dict[str, Any]) -> dict[str, A
                 "endTime": int(now.timestamp() * 1000), "limit": 10,
             })
             asset = symbol.split("-", 1)[0]
-            saved += _persist_klines(asset, symbol, recent if isinstance(recent, list) else [])
+            saved += _persist_klines(asset, symbol, recent if isinstance(recent, list) else [], now)
         except Exception as exc:
             errors.append(f"{symbol}: {exc}")
     state["last_hourly_history_refresh"] = hour_bucket
@@ -443,7 +564,10 @@ def run_cycle(now: datetime | None = None) -> dict[str, Any]:
     if not isinstance(exchange_info, dict):
         raise RuntimeError("Unexpected Binance /exchangeInfo response")
 
-    result: dict[str, Any] = {"snapshot": None, "history_backfill": None, "history_refresh": None}
+    result: dict[str, Any] = {
+        "snapshot": None, "history_backfill": None, "history_refresh": None,
+        "underlying_history": None,
+    }
     try:
         result["snapshot"] = _collect_live_snapshot(now, state, exchange_info)
     except Exception as exc:
@@ -457,6 +581,11 @@ def run_cycle(now: datetime | None = None) -> dict[str, Any]:
     except Exception as exc:
         result["history_backfill"] = {"status": "error", "error": str(exc)}
         print(f"[options-history-error] {exc}", flush=True)
+    try:
+        result["underlying_history"] = _refresh_underlying_history(now, state)
+    except Exception as exc:
+        result["underlying_history"] = {"status": "error", "error": str(exc)}
+        print(f"[options-underlying-error] {exc}", flush=True)
     print(f"[options-collector] {json.dumps(result, default=str)}", flush=True)
     return result
 

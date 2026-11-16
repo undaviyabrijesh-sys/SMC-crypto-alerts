@@ -84,11 +84,56 @@ For a rare confirmed DNS candidate, `ai_trade_agents.py` can run three separate 
 The persistent worker also runs a read-only Binance Options collector. It does not change the paper-trading engine and never submits orders.
 
 - Every five minutes (configurable), it records the current BTC/ETH option chain: underlying index, contract mark price, bid/ask/mark IV, delta, gamma, theta, vega, and per-contract open interest in contracts and USDT.
-- On first run it queues up to 12 near-the-money contracts per underlying, limited to expiries within 90 days, and backfills up to 180 days of hourly option candles in small batches. Only candles with actual trade volume and trades are retained; no-trade placeholder bars are excluded. Backfilled contracts are refreshed hourly.
-- Default output path: `/data/market_data/binance_options` in Docker (or `$DATA_DIR/binance_options` elsewhere). Full-chain snapshots are daily CSVs under `snapshots/`; hourly contract history is under `historical_klines_1h/<BTC|ETH>/`. `collector_state.json` tracks progress and collection timestamps.
+- On first run it queues up to 12 near-the-money contracts per underlying, limited to expiries within 90 days, and backfills up to 180 days of hourly option candles in small batches. Only completed candles with actual trade volume and trades are retained; no-trade placeholder bars and forming candles are excluded. Backfilled contracts are refreshed hourly.
+- It also backfills 180 days of BTCUSDT and ETHUSDT Binance Spot 1h candles for the underlying signal series, then refreshes closed bars hourly.
+- Default output path: `/data/market_data/binance_options` in Docker (or `$DATA_DIR/binance_options` elsewhere). Full-chain snapshots are daily CSVs under `snapshots/`; hourly contract history is under `historical_klines_1h/<BTC|ETH>/`; underlying candles are under `underlying/`. `collector_state.json` tracks progress and collection timestamps.
 - A persistent mounted `/data` volume is required to retain the dataset across container restarts.
 
 **Historical coverage limitation:** Binance's current Options API exposes historical contract candles, but its mark/IV/Greeks and open-interest endpoints return current snapshots, not historical time series. The collector therefore begins building a complete BTC/ETH IV/Greeks/OI history from its first successful live snapshot; it cannot recreate those metrics for earlier dates from the current API. Option trading can be sparse, so the 180-day candle backfill may contain far fewer than 180 days' worth of non-zero hourly bars. Expired contracts may also be unavailable from the current klines endpoint.
+
+## Options Strategy Research Lab
+
+The first backtest release evaluates five independent hourly strategies against Binance BTC/ETH option candles:
+
+| ID | Strategy | Option position |
+|---|---|---|
+| OPT-01 | EMA8/EMA21 momentum plus 3-hour return confirmation | Buy ATM-nearest call on bullish signal or put on bearish signal |
+| OPT-02 | 20-hour liquidity sweep followed by next-hour MSS confirmation | Buy call or put in the reversal direction |
+| OPT-03 | EMA20 pullback/reclaim aligned with EMA20/EMA50 trend | Buy call or put in the trend direction |
+| OPT-04 | New 12-hour vs 48-hour realized-range compression | Buy matched ATM call + put (long straddle) |
+| OPT-05 | Same compression trigger | Buy matched 2% OTM call + put (long strangle) |
+
+The selling research lane adds three **defined-risk** structures; it never opens naked short options:
+
+| ID | Strategy | Option position |
+|---|---|---|
+| OPT-06 | Bull Put Credit Spread | Sell OTM put; buy a lower-strike put with the same expiry |
+| OPT-07 | Bear Call Credit Spread | Sell OTM call; buy a higher-strike call with the same expiry |
+| OPT-08 | Iron Condor | Combine a defined-risk put credit spread and call credit spread |
+
+Credit spreads use a 50% credit-capture target, a stop at 2x the entry credit, a four-hour max hold, and position sizing based on spread width minus credit. All legs must have synchronized traded candles at entry. Spread OHLC fills are deliberately conservative proxies; they are not historical bid/ask quotes.
+
+The engine uses only closed hourly underlying bars and actual traded option candles. A setup is known only after the underlying candle closes; entry is at the next eligible option candle open and is rejected when the option print is too late. No-trade bars are not forward-filled. Single-leg exits use premium stop/target levels, stop-first resolution when both levels occur in one candle, and a fixed holding limit. Straddles/strangles exit at a synchronized traded call/put candle after the holding horizon.
+
+Run the backtest after the collector's initial history queue has completed:
+
+```bash
+python -m unittest -v test_options_research.py
+python options_research.py --asset both --data-dir market_data/binance_options --out-dir research/options
+```
+
+For a Docker deployment with the persistent volume mounted:
+
+```bash
+python options_research.py --asset both --data-dir /data/market_data/binance_options --out-dir /data/research/options
+```
+
+Outputs include per-strategy CSV trades (including a separate selling-trades CSV) and JSON reports with train/validation/test splits (chronological 60/20/20 with a one-bar boundary purge), win rate, expectancy in model R, profit factor, drawdown, losing streaks, holding time, monthly summaries and per-contract trade-bar coverage. The initial defaults are 30% premium stop, 50% premium target and 4-hour maximum hold, with explicit fee, spread-proxy and slippage assumptions. They are research defaults, not optimized settings.
+
+
+A first limited API-sample replay is recorded in [reports/options_backtest_2026-11-16.md](reports/options_backtest_2026-11-16.md). It used one long-dated 2026-12-25 expiry and very sparse traded option candles, produced too few synchronized seller trades, and did not validate an edge. Treat it as a data-quality probe, not a production backtest.
+
+**Do not read the model PnL as a broker statement.** Historical bid/ask and book depth are unavailable in this feed; the spread is only a configured proxy. The engine does not model exchange contract multiplier/settlement, exercise, margin, liquidation or actual fill queue priority. Sparse option candles trigger conservative gap-guard exits and are flagged. This initial release is 1h only; it does not claim 5m/15m validation. Historical IV/Greeks/OI are not reconstructed: those snapshots begin accumulating prospectively. Every result stays research-only and does not promote a production strategy.
 
 ## Run locally
 
