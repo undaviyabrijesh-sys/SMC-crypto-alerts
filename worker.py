@@ -16,6 +16,84 @@ if WORKER_MODE not in {"quant", "dns", "visual"}:
     raise ValueError("WORKER_MODE must be 'quant', 'dns', or 'visual'")
 
 
+def _maybe_run_options_backtest():
+    """Run the read-only BTC/ETH options research report once per UTC day after backfill."""
+    enabled = os.environ.get("OPTIONS_BACKTEST_ENABLED", "true").strip().lower()
+    if enabled not in {"1", "true", "yes", "on"}:
+        return
+
+    data_root = Path(os.environ.get(
+        "OPTIONS_DATA_DIR",
+        str(Path(os.environ.get("DATA_DIR", "market_data")) / "binance_options"),
+    ))
+    collector_state_path = data_root / "collector_state.json"
+    if not collector_state_path.exists():
+        return
+    try:
+        collector_state = json.loads(collector_state_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        print(f"[options-backtest] cannot read collector state: {exc}", flush=True)
+        return
+    if not collector_state.get("history_backfill_completed_at"):
+        return
+
+    default_output = Path(os.environ.get("DATA_DIR", "market_data")).parent / "research" / "options"
+    output_dir = Path(os.environ.get("OPTIONS_RESEARCH_OUTPUT_DIR", str(default_output)))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    run_state_path = Path(os.environ.get(
+        "OPTIONS_BACKTEST_STATE_PATH", str(output_dir / "auto_run_state.json")
+    ))
+    try:
+        run_state = json.loads(run_state_path.read_text(encoding="utf-8")) if run_state_path.exists() else {}
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        print(f"[options-backtest] cannot read research run state: {exc}", flush=True)
+        return
+
+    now = pd.Timestamp.now(tz="UTC")
+    today = now.strftime("%Y-%m-%d")
+    if run_state.get("last_successful_run_date_utc") == today:
+        return
+    retry_hours = max(1.0, float(os.environ.get("OPTIONS_BACKTEST_RETRY_HOURS", "6")))
+    last_attempt = run_state.get("last_attempt_at")
+    if last_attempt:
+        try:
+            age_hours = (now - pd.Timestamp(last_attempt)).total_seconds() / 3600.0
+            if age_hours < retry_hours:
+                return
+        except Exception:
+            pass
+
+    run_state["last_attempt_at"] = now.isoformat()
+    run_state_path.write_text(json.dumps(run_state, indent=2), encoding="utf-8")
+    try:
+        from options_research import ResearchConfig, run_asset_research
+        report_refs = {}
+        errors = {}
+        for asset in ("BTC", "ETH"):
+            try:
+                report = run_asset_research(asset, data_root, output_dir, ResearchConfig())
+                report_refs[asset] = {
+                    "report": str(output_dir / f"{asset.lower()}_options_report.json"),
+                    "trades": str(output_dir / f"{asset.lower()}_options_trades.csv"),
+                    "strategies_with_trades": {
+                        name: item["all"]["trades"] for name, item in report["strategies"].items()
+                    },
+                }
+            except Exception as exc:
+                errors[asset] = f"{type(exc).__name__}: {exc}"
+        run_state["last_result_at"] = now.isoformat()
+        run_state["last_errors"] = errors
+        run_state["last_reports"] = report_refs
+        if report_refs:
+            run_state["last_successful_run_date_utc"] = today
+        run_state_path.write_text(json.dumps(run_state, indent=2), encoding="utf-8")
+        print(f"[options-backtest] reports={json.dumps(report_refs)} errors={json.dumps(errors)}", flush=True)
+    except Exception as exc:
+        run_state["last_error"] = f"{type(exc).__name__}: {exc}"
+        run_state_path.write_text(json.dumps(run_state, indent=2), encoding="utf-8")
+        print(f"[options-backtest-error] {type(exc).__name__}: {exc}", flush=True)
+
+
 def _run_cycle():
     """Run the selected paper lane, then collect public BTC/ETH options research data."""
     if WORKER_MODE == "visual":
@@ -34,6 +112,11 @@ def _run_cycle():
             options_collector.run_cycle()
         except Exception as exc:
             print(f"[options-collector-error] {type(exc).__name__}: {exc}", flush=True)
+
+    try:
+        _maybe_run_options_backtest()
+    except Exception as exc:
+        print(f"[options-backtest-error] {type(exc).__name__}: {exc}", flush=True)
 
 
 INTERVAL_SECONDS = max(60, int(os.environ.get("WORKER_INTERVAL_SECONDS", "300")))
