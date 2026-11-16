@@ -560,7 +560,10 @@ def run_cycle(now: datetime | None = None) -> dict[str, Any]:
     if not isinstance(exchange_info, dict):
         raise RuntimeError("Unexpected Binance /exchangeInfo response")
 
-    result: dict[str, Any] = {"snapshot": None, "history_backfill": None, "history_refresh": None}
+    result: dict[str, Any] = {
+        "snapshot": None, "history_backfill": None, "history_refresh": None,
+        "underlying_history": None,
+    }
     try:
         result["snapshot"] = _collect_live_snapshot(now, state, exchange_info)
     except Exception as exc:
@@ -574,6 +577,11 @@ def run_cycle(now: datetime | None = None) -> dict[str, Any]:
     except Exception as exc:
         result["history_backfill"] = {"status": "error", "error": str(exc)}
         print(f"[options-history-error] {exc}", flush=True)
+    try:
+        result["underlying_history"] = _refresh_underlying_history(now, state)
+    except Exception as exc:
+        result["underlying_history"] = {"status": "error", "error": str(exc)}
+        print(f"[options-underlying-error] {exc}", flush=True)
     print(f"[options-collector] {json.dumps(result, default=str)}", flush=True)
     return result
 
