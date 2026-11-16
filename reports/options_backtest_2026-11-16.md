@@ -39,7 +39,7 @@ All P&L below is model USDT, not a broker statement.
 | ETH | OPT-02 Sweep → MSS | 3 | 0.00% | -17.48 | -0.0584 | 3 |
 | ETH | OPT-03 EMA Pullback | 4 | 0.00% | -23.30 | -0.0584 | 4 |
 
-The apparent BTC OPT-03 test-segment gain was only 4 trades (1 winner) and does not offset the negative full-sample result. The straddle/strangle candidates do not have enough synchronized traded call/put observations in this sample to infer an edge.
+The apparent BTC OPT-03 test-segment gain was only 4 trades (1 winner) and does not offset the negative full-sample result. The long straddle had no eligible synchronized entry; the long strangle had only one eligible BTC entry and none for ETH. That is far too little evidence to infer an edge.
 
 ## Defined-risk option-selling results
 
