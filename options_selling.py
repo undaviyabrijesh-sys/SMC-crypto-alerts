@@ -23,7 +23,7 @@ def _common_entry(short: dict[str, Any], long: dict[str, Any],
 
 
 def _select_vertical(option_data, option_type, side, spot, signal_time, cfg,
-                     short_otm_pct=0.03, wing_pct=0.05):
+                     short_otm_pct=0.03, wing_pct=0.04):
     """Select same-expiry, defined-risk vertical using only synchronized traded bars."""
     earliest = signal_time + pd.Timedelta(hours=1)
     latest = earliest + pd.Timedelta(hours=cfg.max_entry_delay_hours)
@@ -105,54 +105,59 @@ def _simulate_vertical(asset, strategy_id, signal_time, direction, spot,
     exit_time = None
     exit_reason = None
     exit_debit_raw = None
-    gap_hours = 0.0
-    same_bar_ambiguous = False
+    exit_short_mark = None
+    exit_hedge_mark = None
     max_gap_hours = max(6.0, float(cfg.max_hold_hours) * 2.0)
     max_exit_time = entry_time + pd.Timedelta(hours=cfg.max_hold_hours)
 
     common = short["bars"].index.intersection(hedge["bars"].index)
-    future = common[common > entry_time]
-    # Opening candle can itself have an adverse/favourable spread excursion after entry.
     future = common[common >= entry_time]
     for ts in future:
         sb, hb = short["bars"].loc[ts], hedge["bars"].loc[ts]
         if ts > entry_time:
             gap_hours = max(0.0, (ts - previous_time).total_seconds() / 3600.0 - 1.0)
             if gap_hours > max_gap_hours:
-                prior_s, prior_h = short["bars"].loc[previous_time], hedge["bars"].loc[previous_time]
+                prior_s = short["bars"].loc[previous_time]
+                prior_h = hedge["bars"].loc[previous_time]
                 exit_debit_raw = _spread_debit(prior_s, prior_h, "high")
+                exit_short_mark = float(prior_s["high"])
+                exit_hedge_mark = float(prior_h["low"])
                 exit_time = previous_time + pd.Timedelta(hours=1)
                 exit_reason = "GAP_GUARD_EXIT"
                 break
 
-        # Entry is modeled at this candle's observed low/high proxies; do not reuse
-        # the same bar's full range as if its price path were known after the fill.
+        # Entry candle range is not replayed after entry; there is no reliable intrabar path.
         if ts == entry_time:
             previous_time = ts
             continue
+
         worst_debit = _spread_debit(sb, hb, "high")
         best_debit = _spread_debit(sb, hb, "low")
         stop_hit = worst_debit >= stop_debit
         target_hit = best_debit <= target_debit
         if stop_hit and target_hit:
-            # Intrabar sequence is unknowable; resolve against the short-spread seller.
             exit_debit_raw = worst_debit
+            exit_short_mark, exit_hedge_mark = float(sb["high"]), float(hb["low"])
             exit_time = ts + pd.Timedelta(hours=1)
             exit_reason = "SL_SAME_BAR_AMBIGUITY"
             same_bar_ambiguous = True
             break
         if stop_hit:
             exit_debit_raw = worst_debit
+            exit_short_mark, exit_hedge_mark = float(sb["high"]), float(hb["low"])
             exit_time = ts + pd.Timedelta(hours=1)
             exit_reason = "SL"
             break
-        if target_hit and ts > entry_time:
+        if target_hit:
+            # Keep the fill conservative: use the adverse spread extremes even at a target trigger.
             exit_debit_raw = worst_debit
+            exit_short_mark, exit_hedge_mark = float(sb["high"]), float(hb["low"])
             exit_time = ts + pd.Timedelta(hours=1)
             exit_reason = "TP_50pct_CREDIT"
             break
-        if ts > entry_time and ts + pd.Timedelta(hours=1) >= max_exit_time:
-            exit_debit_raw = _spread_debit(sb, hb, "high")
+        if ts + pd.Timedelta(hours=1) >= max_exit_time:
+            exit_debit_raw = worst_debit
+            exit_short_mark, exit_hedge_mark = float(sb["high"]), float(hb["low"])
             exit_time = ts + pd.Timedelta(hours=1)
             exit_reason = "TIME_EXIT"
             break
@@ -164,15 +169,16 @@ def _simulate_vertical(asset, strategy_id, signal_time, direction, spot,
         last_time = future[-1]
         last_s, last_h = short["bars"].loc[last_time], hedge["bars"].loc[last_time]
         exit_debit_raw = _spread_debit(last_s, last_h, "high")
+        exit_short_mark, exit_hedge_mark = float(last_s["high"]), float(last_h["low"])
         exit_time = last_time + pd.Timedelta(hours=1)
         exit_reason = "END_OF_DATA"
 
-    exit_cost = cost_rate + (cfg.gap_penalty_bps / 10_000.0 if exit_reason == "GAP_GUARD_EXIT" else 0.0)
-    exit_debit = exit_debit_raw * (1.0 + exit_cost)
-    exit_fees = (float(short["bars"].loc[previous_time]["high"]) +
-                 float(hedge["bars"].loc[previous_time]["low"])) * qty * fee_rate
-    # If a position was closed at a later bar, charge fees on the actual modeled closing spread debit.
-    exit_fees = exit_debit * qty * 2.0 * fee_rate
+    exit_short_fill = exit_short_mark * (1.0 + cost_rate)
+    exit_hedge_fill = max(0.0, exit_hedge_mark * (1.0 - cost_rate))
+    exit_debit = max(0.0, exit_short_fill - exit_hedge_fill)
+    if exit_reason == "GAP_GUARD_EXIT":
+        exit_debit *= (1.0 + cfg.gap_penalty_bps / 10_000.0)
+    exit_fees = (exit_short_fill + exit_hedge_fill) * qty * fee_rate
     pnl = entry_credit_cash - exit_debit * qty - exit_fees
     max_risk_cash = max_loss_per_contract * qty
     net_r = pnl / max(max_risk_cash, 1e-12)
