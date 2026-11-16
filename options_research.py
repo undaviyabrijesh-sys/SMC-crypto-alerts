@@ -708,6 +708,12 @@ def run_asset_research(asset: str, data_dir: Path, out_dir: Path, cfg: ResearchC
                 trade["split"] = "purged_boundary_bar"
         strategy_trades[strategy_id] = trades
 
+    from options_selling import run_credit_spread_research
+    selling_result = run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
+    selling_trades_path = out_dir / f"{asset.lower()}_options_selling_trades.csv"
+    selling_trades = selling_result["trades"]
+    selling_trades.to_csv(selling_trades_path, index=False)
+
     all_trades = [trade for rows in strategy_trades.values() for trade in rows]
     out_dir.mkdir(parents=True, exist_ok=True)
     all_frame = pd.DataFrame(all_trades)
@@ -753,6 +759,9 @@ def run_asset_research(asset: str, data_dir: Path, out_dir: Path, cfg: ResearchC
             ],
         },
         "strategies": results,
+        "selling_strategies": selling_result["strategies"],
+        "selling_execution_model": selling_result["execution_model"],
+        "selling_trades_csv": str(selling_trades_path),
         "promotion_status": "RESEARCH_ONLY_NOT_APPROVED",
         "trades_csv": str(trades_path),
     }
