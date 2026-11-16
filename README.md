@@ -79,6 +79,17 @@ For a rare confirmed DNS candidate, `ai_trade_agents.py` can run three separate 
 - The six native resolutions are fetched directly. Missing intervals are not filled.
 - The worker checks the freshness of all six intervals before generating candidates.
 
+## Binance BTC/ETH options research data
+
+The persistent worker also runs a read-only Binance Options collector. It does not change the paper-trading engine and never submits orders.
+
+- Every five minutes (configurable), it records the current BTC/ETH option chain: underlying index, contract mark price, bid/ask/mark IV, delta, gamma, theta, vega, and per-contract open interest in contracts and USDT.
+- On first run it queues up to 12 near-the-money contracts per underlying, limited to expiries within 90 days, and backfills up to 180 days of hourly option candles in small batches. Only candles with actual trade volume and trades are retained; no-trade placeholder bars are excluded. Backfilled contracts are refreshed hourly.
+- Default output path: `/data/market_data/binance_options` in Docker (or `$DATA_DIR/binance_options` elsewhere). Full-chain snapshots are daily CSVs under `snapshots/`; hourly contract history is under `historical_klines_1h/<BTC|ETH>/`. `collector_state.json` tracks progress and collection timestamps.
+- A persistent mounted `/data` volume is required to retain the dataset across container restarts.
+
+**Historical coverage limitation:** Binance's current Options API exposes historical contract candles, but its mark/IV/Greeks and open-interest endpoints return current snapshots, not historical time series. The collector therefore begins building a complete BTC/ETH IV/Greeks/OI history from its first successful live snapshot; it cannot recreate those metrics for earlier dates from the current API. Option trading can be sparse, so the 180-day candle backfill may contain far fewer than 180 days' worth of non-zero hourly bars. Expired contracts may also be unavailable from the current klines endpoint.
+
 ## Run locally
 
 1. Copy `.env.example` to `.env`.
