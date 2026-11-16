@@ -440,7 +440,7 @@ def run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
                 "net_return_on_max_risk_pct":100*pnl/max(max_risk_cash,1e-12),
                 "net_r":pnl/max(max_risk_cash,1e-12),"equity_before":equity,"equity_after":eq_after,
                 "exit_reason":exit_reason,"same_bar_ambiguous":ambiguous,
-                "data_quality_flag":"GAP_GUARD_EXIT" if reason=="GAP_GUARD_EXIT" else "TRADED_CANDLES_ONLY",
+                "data_quality_flag":"GAP_GUARD_EXIT" if exit_reason=="GAP_GUARD_EXIT" else "TRADED_CANDLES_ONLY",
                 "split":split_for(signal_time),"signal_to_entry_delay_hours":(entry_time-(signal_time+pd.Timedelta(hours=1))).total_seconds()/3600,
             })
             equity=eq_after
