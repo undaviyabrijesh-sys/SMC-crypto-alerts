@@ -125,6 +125,11 @@ def _simulate_vertical(asset, strategy_id, signal_time, direction, spot,
                 exit_reason = "GAP_GUARD_EXIT"
                 break
 
+        # Entry is modeled at this candle's observed low/high proxies; do not reuse
+        # the same bar's full range as if its price path were known after the fill.
+        if ts == entry_time:
+            previous_time = ts
+            continue
         worst_debit = _spread_debit(sb, hb, "high")
         best_debit = _spread_debit(sb, hb, "low")
         stop_hit = worst_debit >= stop_debit
@@ -332,6 +337,9 @@ def run_credit_spread_research(asset, underlying, option_data, signal_sets, cfg)
             reason = None
             exit_time = None
             for ts in future:
+                if ts == entry_time:
+                    prev = ts
+                    continue
                 pdebit_hi = _spread_debit(ps["bars"].loc[ts], ph["bars"].loc[ts], "high")
                 cdebit_hi = _spread_debit(cs["bars"].loc[ts], ch["bars"].loc[ts], "high")
                 combined_hi = pdebit_hi + cdebit_hi
