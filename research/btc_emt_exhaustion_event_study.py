@@ -163,7 +163,11 @@ def evaluate(d,ev_all,co_all,span,sample):
     sample_event_i=ev_all.loc[(ev_all.i>=s)&(ev_all.i<e),'i'].to_numpy(int) if len(ev_all) else np.array([],dtype=int)
     if len(sample_event_i) and len(co):
         ctimes=pd.DatetimeIndex(co.time); keep=np.ones(len(co),bool)
-        for ei in sample_event_i: keep &= np.abs((ctimes-d.index[int(ei)]).total_seconds()/60)>30
+        for ei in sample_event_i:
+            t=d.index[int(ei)]
+            left=ctimes.searchsorted(t-pd.Timedelta(minutes=30),side='left')
+            right=ctimes.searchsorted(t+pd.Timedelta(minutes=30),side='right')
+            keep[left:right]=False
         co=co.loc[keep].reset_index(drop=True)
     p=match(ev,co); rows=[]
     for h in H:
