@@ -107,11 +107,7 @@ def controls(d,e):
     ret=d.ret12.to_numpy(float); side=np.where(ret>0,'short',np.where(ret<0,'long',''))
     c=pd.DataFrame({'i':np.arange(len(d)),'time':d.index,'side':side,'entry':d.open.to_numpy(float),'regime':d.regime.to_numpy(str),'date':d.index.date.astype(str),'bucket':(d.index.hour//3).astype(int)})
     c=c[c.side!=''].copy()
-    if len(e):
-        t=pd.DatetimeIndex(c.time); mask=np.ones(len(c),bool)
-        for et in e.time:
-            mask &= np.abs((t-et).total_seconds()/60)>30
-        c=c.loc[mask]; c=c[~c.i.isin(e.i)]
+    if len(e): c=c[~c.i.isin(e.i)]
     return c.reset_index(drop=True)
 
 def bounds(n):
@@ -163,7 +159,13 @@ def metrics(x,dates,cost):
     return {'events':len(v),'win_rate_pct':float((v>0).mean()*100),'pf':pf,'mean_net_bps':float(v.mean()),'median_net_bps':float(np.median(v)),'event_sequence_max_dd_bps':float(dd.min()),'max_losing_streak':mx,'positive_month_fraction':float((m>0).mean()),'positive_months':int((m>0).sum()),'active_months':len(m)}
 
 def evaluate(d,ev_all,co_all,span,sample):
-    s,e=span; ev=add_returns(d,ev_all,s,e); co=add_returns(d,co_all,s,e); p=match(ev,co); rows=[]
+    s,e=span; ev=add_returns(d,ev_all,s,e); co=add_returns(d,co_all,s,e)
+    sample_event_i=ev_all.loc[(ev_all.i>=s)&(ev_all.i<e),'i'].to_numpy(int) if len(ev_all) else np.array([],dtype=int)
+    if len(sample_event_i) and len(co):
+        ctimes=pd.DatetimeIndex(co.time); keep=np.ones(len(co),bool)
+        for ei in sample_event_i: keep &= np.abs((ctimes-d.index[int(ei)]).total_seconds()/60)>30
+        co=co.loc[keep].reset_index(drop=True)
+    p=match(ev,co); rows=[]
     for h in H:
         lower,upper=ci(p,h) if len(p) else (None,None)
         for cost in COSTS:
