@@ -497,11 +497,11 @@ def self_test():
 
     # A synthetic upper-band inward reclaim creates a short signal on next bar open.
     toy = pd.DataFrame({
-        "open":[100,100,100,100,100], "high":[101,110,106,103,102],
-        "low":[99,99,98,98,99], "close":[100,108,104,101,101],
+        "open":[100,100,105,100,100], "high":[101,110,106,103,102],
+        "low":[99,99,98,98,99], "close":[100,108,101,101,101],
         "volume":[10,10,10,10,10], "seg":[1,1,1,1,1],
         "dev_atr":[0,1.8,1.2,0.8,0.7], "prev_dev_atr":[0,0,1.8,1.2,0.8],
-        "close_loc":[0.5,0.9,0.45,0.4,0.5], "regime":["neutral"]*5
+        "close_loc":[0.5,0.9,0.375,0.4,0.5], "regime":["neutral"]*5
     }, index=pd.date_range("2026-01-01T00:00:00Z", periods=5, freq="5min"))
     ev = build_events(toy, 1.5)
     assert len(ev) == 1 and ev.iloc[0].side == "short" and ev.iloc[0].entry_i == 3
