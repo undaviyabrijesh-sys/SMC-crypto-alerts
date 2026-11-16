@@ -778,6 +778,7 @@ def main() -> int:
     parser.add_argument("--asset", choices=["BTC", "ETH", "both"], default="both")
     parser.add_argument("--min-dte", type=int, default=7)
     parser.add_argument("--max-dte", type=int, default=90)
+    parser.add_argument("--entry-delay-hours", type=float, default=1.0)
     parser.add_argument("--stop-pct", type=float, default=0.30)
     parser.add_argument("--target-pct", type=float, default=0.50)
     parser.add_argument("--max-hold-hours", type=int, default=4)
@@ -786,6 +787,7 @@ def main() -> int:
     parser.add_argument("--slippage-bps", type=float, default=10.0)
     args = parser.parse_args()
     cfg = ResearchConfig(min_dte_days=args.min_dte, max_dte_days=args.max_dte,
+                         max_entry_delay_hours=args.entry_delay_hours,
                          stop_loss_pct=args.stop_pct, take_profit_pct=args.target_pct,
                          max_hold_hours=args.max_hold_hours, fee_bps_per_side=args.fee_bps,
                          spread_bps_per_side=args.spread_bps, slippage_bps_per_side=args.slippage_bps)
