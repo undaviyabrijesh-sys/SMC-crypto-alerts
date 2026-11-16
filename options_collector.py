@@ -422,19 +422,23 @@ def _refresh_underlying_history(now: datetime, state: dict[str, Any]) -> dict[st
     _save_state(state)
     return {"status": "refreshed", "rows_added": totals, "hour": hour_bucket}
 
-def _persist_klines(asset: str, symbol: str, raw_rows: list[list[Any]]) -> int:
+def _persist_klines(
+    asset: str, symbol: str, raw_rows: list[list[Any]], now: datetime | None = None
+) -> int:
     rows = []
+    now_ms = int((now or _utc_now()).timestamp() * 1000)
     for row in raw_rows:
         try:
+            open_ms, close_ms = int(row[0]), int(row[6])
             volume = _to_float(row[5], 0.0) or 0.0
             trade_count = int(_to_float(row[8], 0.0) or 0)
-            # Do not persist synthetic/no-trade placeholder candles as executable history.
-            if volume <= 0 or trade_count <= 0:
+            # Keep completed traded candles only. Never archive a still-forming hour.
+            if close_ms > now_ms or volume <= 0 or trade_count <= 0:
                 continue
             rows.append({
-                "open_time_utc": _iso_from_ms(row[0]), "open_time_ms": int(row[0]),
+                "open_time_utc": _iso_from_ms(open_ms), "open_time_ms": open_ms,
                 "open": row[1], "high": row[2], "low": row[3], "close": row[4], "volume": row[5],
-                "close_time_utc": _iso_from_ms(row[6]), "close_time_ms": int(row[6]),
+                "close_time_utc": _iso_from_ms(close_ms), "close_time_ms": close_ms,
                 "quote_volume": row[7], "trade_count": trade_count,
                 "taker_buy_base_volume": row[9], "taker_buy_quote_volume": row[10],
             })
@@ -497,7 +501,7 @@ def _run_history_backfill_batch(now: datetime, state: dict[str, Any], exchange_i
         try:
             raw_rows = _fetch_hourly_klines(symbol, BACKFILL_DAYS, now)
             asset = by_symbol.get(symbol, {}).get("asset") or symbol.split("-", 1)[0]
-            saved = _persist_klines(asset, symbol, raw_rows)
+            saved = _persist_klines(asset, symbol, raw_rows, now)
             bars += saved
             processed += 1
             print(f"[options-history] {symbol}: saved {saved} non-zero 1h bars", flush=True)
@@ -536,7 +540,7 @@ def _refresh_recent_history(now: datetime, state: dict[str, Any]) -> dict[str, A
                 "endTime": int(now.timestamp() * 1000), "limit": 10,
             })
             asset = symbol.split("-", 1)[0]
-            saved += _persist_klines(asset, symbol, recent if isinstance(recent, list) else [])
+            saved += _persist_klines(asset, symbol, recent if isinstance(recent, list) else [], now)
         except Exception as exc:
             errors.append(f"{symbol}: {exc}")
     state["last_hourly_history_refresh"] = hour_bucket
