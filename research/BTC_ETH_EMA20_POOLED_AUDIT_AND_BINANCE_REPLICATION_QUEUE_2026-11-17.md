@@ -39,7 +39,7 @@ A frozen Binance USDⓈ-M ETHUSDT 15m replication has been registered before dat
 - Workflow: `.github/workflows/eth-binance-ema20-cross-exchange.yml`
 - Data window: 2025-03-08 00:00 UTC to 2026-07-15 00:00 UTC (end-exclusive); six-month warm-up; evaluation 2025-09-08 12:00 UTC to 2026-07-15 00:00 UTC. The final four months beginning 2026-07-15 are not downloaded.
 - Rules, controls, 1h/4h horizons, settlement cutoff, 4/7/10/20 bps sensitivities and decision gates are frozen in the preregistration.
-- Workflow commit: `0afba7edaeea89db5c123fd9c00a46138e1c1213`; script commit: `a65e23ad6980e981c2329ad83042e2ab82a554bf`; preregistration commit: `254e27e079055975cd10f23f4d361ee99f539344`.
+- Workflow commit: `0afba7edaeea89db5c123fd9c00a46138e1c1213`; initial script commit: `a65e23ad6980e981c2329ad83042e2ab82a554bf`; corrected script commit: `cc357d8276439b70034a1837ca283e4dba69cb57`; preregistration commit: `254e27e079055975cd10f23f4d361ee99f539344`. A code audit caught and fixed a NumPy finite-check truth-value bug and clarified duplicate-versus-malformed-row metadata before treating any market run as verified.
 - At the time of this audit, the available GitHub connector returned no run metadata or commit status for the workflow commit. Therefore **the Binance download/backtest is pending/unverified and no Binance result is claimed**. If Actions is disabled or the run cannot be observed, the missing evidence is a completed workflow run plus its uploaded artifact.
 
 ## Decision and next step
