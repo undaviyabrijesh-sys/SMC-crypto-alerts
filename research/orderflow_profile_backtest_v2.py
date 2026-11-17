@@ -257,7 +257,14 @@ def wilder_atr_prior(f: pd.DataFrame, period: int = 14) -> pd.Series:
     for start, end in zip(starts, ends):
         g = f.iloc[int(start):int(end)]
         prev = g.close.shift(1)
-        tr = pd.concat([g.high - g.low, (g.high - prev).abs(), (g.low - prev).abs()], axis=1).max(axis=1).to_numpy(float)
+        # Avoid pandas row-wise max semantics for the first bar of each contiguous
+        # segment: its prior close is unavailable, so TR must fall back to high-low.
+        hl = (g.high - g.low).to_numpy(float)
+        hc = (g.high - prev).abs().to_numpy(float)
+        lc = (g.low - prev).abs().to_numpy(float)
+        hc = np.nan_to_num(hc, nan=-np.inf)
+        lc = np.nan_to_num(lc, nan=-np.inf)
+        tr = np.maximum(hl, np.maximum(hc, lc))
         if len(tr) < period or not np.isfinite(tr[:period]).all():
             continue
         local = np.full(len(tr), np.nan, dtype=float)
