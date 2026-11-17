@@ -551,7 +551,7 @@ def write_outputs(metrics: pd.DataFrame, trades: pd.DataFrame, metas: dict, outd
         f"Generated UTC: {pd.Timestamp.now(tz='UTC').isoformat()}", "",
         "## Scope and data integrity", "",
         "Data: Binance USD-M perpetual 5-minute klines for BTCUSDT and ETHUSDT. Two years requested; current incomplete candle excluded.",
-        "Chronological split: 70% development / 15% validation / 15% untouched out-of-sample by UTC calendar day.",
+        "Chronological split: 70% development / 15% validation / 15% historical OOS partition by UTC calendar day. The same OOS partition was already inspected in V1; V2 OOS is descriptive only, not a fresh holdout.",
         "Primary comparison: fixed 2R target, assumed 10 bps round-trip cost. Full 1.5R/2R/3R and 4/7/10/20 bps sensitivity is in metrics.csv.",
         "A trade is counted only when its full lifecycle ends inside its assigned split. One open position and at most one trade per side per UTC day per model.", "",
         "## Strategy definitions", "",
