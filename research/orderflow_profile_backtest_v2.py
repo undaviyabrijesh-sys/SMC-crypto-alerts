@@ -603,9 +603,11 @@ def self_test() -> None:
     cross_candidate = {"entry_i":3,"reject_i":2,"signal_i":2,"stop":98.,"side":"long","atr_at_rejection":2.,"day":"2025-02-02","setup":"split_test"}
     assert simulate_trade(split_frame, cross_candidate, 2.0, 0.0, 3, 8) is None
     # A trade whose target is reached only after split end is excluded, not time-exited at the boundary.
+    exit_ix = pd.date_range("2025-02-02 02:00", periods=8, freq="5min", tz="UTC")
+    exit_frame = pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.,"regime_1h":"neutral"}, index=exit_ix)
     cross_candidate = {"entry_i":0,"reject_i":0,"signal_i":0,"stop":98.,"side":"long","atr_at_rejection":2.,"day":"2025-02-02","setup":"split_exit_test"}
-    split_frame.loc[split_ix[3],"high"] = 105.
-    assert simulate_trade(split_frame, cross_candidate, 2.0, 0.0, 0, 3) is None
+    exit_frame.loc[exit_ix[3],"high"] = 105.
+    assert simulate_trade(exit_frame, cross_candidate, 2.0, 0.0, 0, 3) is None
     idx3 = pd.date_range("2024-01-01", periods=120 * 288, freq="5min", tz="UTC")
     splits = make_splits(idx3)
     assert splits["development"][1] == splits["validation"][0] and splits["validation"][1] == splits["out_of_sample"][0]
