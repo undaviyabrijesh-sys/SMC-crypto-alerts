@@ -1,6 +1,6 @@
 # Salty Quant Research Ledger
 
-Last updated: 2026-11-17 (UTC)
+Last updated: 2026-11-18 (UTC)
 
 This ledger records reproducible experiments only. "Completed" means the workflow actually finished and outputs were inspected. No experiment here changes live signals or production rules.
 
@@ -1749,3 +1749,23 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Important limits: the 48-bin VP allocates 5m candle volume across touched price bins (not trade-by-price); TPO counts 5m candle-range intersections (not standard 30m letter TPO); delta is taker-buy minus taker-sell base volume aggregated per 5m candle (not delta-at-price); absorption is a bar-level proxy. Fees are assumed sensitivities; spread, slippage, market impact and funding cashflows are not modeled. Positions are closed before 8h funding boundaries. Do not describe this as a tick-level footprint backtest.
 - Code/report: `research/orderflow_profile_backtest_v2.py`; `quant_discovery/ORDERFLOW_ZONE_BACKTEST_V2_LATEST.md`; metrics/monthly/regime CSVs in `quant_discovery/`. All changes remain on `ai-quant-rebuild`; no production/main/live-alert/exchange-order changes.
 - Next: close this candle-proxy family and do not retune it. Before another footprint experiment, locate or acquire genuine trade-level price, quantity and aggressor-side data (or an exchange-native volume-at-price feed). The current research branch tree contains no checked-in tick/aggTrade data; this V2 run used 5m klines only. If trade-level data is still unavailable, move to a distinct price-only hypothesis rather than label another candle proxy as footprint research.
+
+
+## BTCUSD — Donchian breakout (completed exploratory; rejected)
+
+- Code: research/btc_donchian_breakout_research.py. Frozen rules: research/BTC_DONCHIAN_BREAKOUT_PREREGISTRATION_2026-11-18.md. Results: quant_discovery/BTC_DONCHIAN_BREAKOUT_RESULTS_2026-11-18.md.
+- Dataset: archived Delta BTCUSD perpetual 5m OHLCV; 210,239 rows, 2024-11-16 11:30 UTC to 2026-11-16 11:20 UTC. Source SHA-256: 5b612e1c496f16277b459f58ddff33b69d8f7912b70d8f733f0a17be844eb4fb. Aggregated 70,079 complete UTC-aligned 15m bars; 0 source 5m gaps, 0 invalid OHLC rows, 0 invalid volume rows, 0 derived 15m gaps; one incomplete final 15m bucket dropped.
+- Chronological row-aligned partitions: development 2024-11-16 11:30 to 2026-04-11 11:15 UTC; validation 2026-04-11 11:15 to 2026-07-29 23:15 UTC; final 15% begins 2026-07-29 23:15 UTC and was not evaluated.
+- Frozen matrix: 20/55 prior-bar Donchian close breakout; next 15m open; 10-bar opposite extreme or 1.5x Wilder ATR14 stop; 2R/3R target; optional completed-1h EMA50 direction filter; one position per configuration; 7-day max hold; stop-first ambiguous candles; adverse stop gap fill at open; target gap capped at target; 4/7/10/20bp round-trip cost sensitivity. Net R subtracts cost divided by initial stop-risk bps.
+- Primary 10bp result: all 16 configurations were tested in development and validation; no configuration passed the frozen gate (>=100 development and >=30 validation trades, PF >1.10 and net R >0 in both, >=55% positive active months in both). The final 15% OOS was not evaluated.
+- Near-candidate: DC55 / prior10 / 2R / no EMA filter had 368 development trades, win 36.14%, PF 0.950, net -12.89R, max DD -30.09R, losing streak 15, positive months 7/18; validation had 78 trades, win 39.74%, PF 1.093, net +4.87R, max DD -14.33R, streak 7, positive months 3/4. It fails development and misses the validation PF gate. At 7bp development was -1.88R; at 20bp both partitions were negative. Do not select post-hoc long/short or regime subsets; their contributions changed across partitions.
+- Execution/audit: five deterministic checks passed; eight independent ledger checks passed. A clean extraction/replay of the complete local package reproduced all 128 summary rows exactly (max numeric difference 0.0). Full tested local implementation, source CSV, trade ledger, monthly/regime outputs and metadata are in the attached research package. A compact implementation copy is committed on this branch but has not been separately executed by GitHub Actions.
+- Limitations: historical Delta BTCUSD funding cashflows are absent; funding is not modeled. Spread, slippage and market impact are not separately modeled; flat cost sensitivities only. Results are pre-funding and research-only.
+- Decision: **reject this Donchian breakout definition as tested**. Do not promote or use in live signals.
+
+## Next queued family — BTC RSI(2) mean reversion
+
+- Frozen preregistration: research/BTC_RSI2_MEAN_REVERSION_PREREGISTRATION_2026-11-18.md.
+- Hypothesis: completed 15m Wilder RSI(2) extremes (long <=5/10; short >=95/90), optional completed-1h EMA200 direction filter, next-15m-open entry, 1.5x/2x ATR14 stop, 1.5R/2R target, 24h max hold, 4/7/10/20bp costs, one position at a time.
+- Use the same 70/15/15 chronological split and frozen promotion gate; do not inspect final OOS unless development and validation both pass. Funding remains a required limitation for any positive candidate.
+- Status: preregistered only; no RSI(2) backtest result claimed.
