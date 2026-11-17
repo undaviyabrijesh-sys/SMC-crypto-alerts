@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: btc-eth-orderflow-zone-backtest-${ github.ref }
+  group: btc-eth-orderflow-zone-backtest-${ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
       - name: Publish reproducible summary and metrics to research branch
         if: success()
         env:
-          GH_TOKEN: ${ github.token }
+          GH_TOKEN: ${ github.token }}
         run: |
           mkdir -p quant_discovery
           cp results/orderflow-profile/report/summary.md quant_discovery/ORDERFLOW_ZONE_BACKTEST_LATEST.md
@@ -62,7 +62,7 @@ jobs:
           cp results/orderflow-profile/report/monthly_pnl.csv quant_discovery/ORDERFLOW_ZONE_BACKTEST_MONTHLY_LATEST.csv
           cp results/orderflow-profile/report/regime_attribution.csv quant_discovery/ORDERFLOW_ZONE_BACKTEST_REGIME_LATEST.csv
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add quant_discovery/ORDERFLOW_ZONE_BACKTEST_LATEST.md quant_discovery/ORDERFLOW_ZONE_BACKTEST_LATEST.json quant_discovery/ORDERFLOW_ZONE_BACKTEST_METRICS_LATEST.csv quant_discovery/ORDERFLOW_ZONE_BACKTEST_MONTHLY_LATEST.csv quant_discovery/ORDERFLOW_ZONE_BACKTEST_REGIME_LATEST.csv
           if ! git diff --cached --quiet; then
             git commit -m "Publish BTC ETH order-flow zone backtest results"
@@ -72,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-eth-orderflow-zone-backtest-${ github.run_id }
+          name: btc-eth-orderflow-zone-backtest-${ github.run_id }}
           path: results/orderflow-profile/
           if-no-files-found: warn
           retention-days: 30
