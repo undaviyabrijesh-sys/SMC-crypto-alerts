@@ -1,0 +1,44 @@
+name: Binance ETHUSDT EMA20 Cross-Exchange Replication
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/binance_ethusdt_ema20_cross_exchange_replication.py"
+      - ".github/workflows/eth-binance-ema20-cross-exchange.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binance-eth-ema20-cross-exchange-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  replicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Run deterministic tests
+        run: python research/binance_ethusdt_ema20_cross_exchange_replication.py --self-test
+      - name: Download frozen sample and run replication
+        run: python research/binance_ethusdt_ema20_cross_exchange_replication.py --out binance_eth_ema_results
+      - name: Upload reproducible outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-ethusdt-ema20-cross-exchange-2026-11-17
+          path: binance_eth_ema_results/
+          if-no-files-found: error
+          retention-days: 30
