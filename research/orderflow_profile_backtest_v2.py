@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+# V2 audit: canonical Wilder ATR, explicit risk-rule alignment, and strict split isolation.
+
 import argparse
 import hashlib
 import io
