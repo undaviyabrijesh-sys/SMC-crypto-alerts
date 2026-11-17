@@ -605,7 +605,8 @@ def self_test() -> None:
     atr_ix = pd.date_range("2025-02-01", periods=20, freq="5min", tz="UTC")
     atr_frame = pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.}, index=atr_ix)
     atr_prior = wilder_atr_prior(atr_frame, 14)
-    assert abs(float(atr_prior.iloc[14]) - 2.0) < 1e-12
+    print("ATR_WILDER_SELF_TEST_DEBUG", atr_prior.iloc[11:17].tolist())
+    assert abs(float(atr_prior.iloc[14]) - 2.0) < 1e-12, atr_prior.iloc[11:17].tolist()
     # A signal/rejection created before the split cannot be carried into the next split.
     split_ix = pd.date_range("2025-02-02 23:45", periods=8, freq="5min", tz="UTC")
     split_frame = pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.,"regime_1h":"neutral"}, index=split_ix)
