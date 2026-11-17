@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-16T23:47:36.002Z",
+  "updated_at": "2026-11-17T03:11:30.466Z",
   "recovery": {
     "status": "initialized_after_empty_file",
     "previous_file_parse": "failed_empty_file",
@@ -4571,11 +4571,11 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h-4h context",
       "idea_type": "15M_SUPPORT_BREAK_RETEST_WATCH",
-      "status": "breakdown_confirmed_retest_pending_watch_only",
-      "trigger_confirmed": false,
+      "status": "trigger_confirmed_unalerted_delivery_blocked_stale_unqualified_nearest_support_rr",
+      "trigger_confirmed": true,
       "breakdown_confirmed": true,
       "created_at_utc": "2026-11-16T23:47:36.002Z",
-      "last_checked_utc": "2026-11-16T23:47:36.002Z",
+      "last_checked_utc": "2026-11-17T03:11:30.466Z",
       "entry_zone": [
         9.097,
         9.15
@@ -4589,33 +4589,92 @@
       "realized_r_effect": 0,
       "condition": "The latest completed 15m candle closed at 9.090 below the preceding 20-bar 15m low 9.097. Current mark 9.109 is back inside a provisional 9.097-9.150 retest area, but the current 15m candle is incomplete. Require a completed 15m bearish rejection of this band and a subsequent completed 15m close below the rejection low. 1h, 4h and daily structure remain below both EMAs. Five-hour OI quantity/notional declined and latest taker flow is near neutral, so conviction is limited. Define stop above the actual rejection swing and target from fresh structure only after confirmation; require net planned R:R >=2. No entry or alert.",
       "evidence": {
-        "market_snapshot_utc": "2026-11-16T23:47:36.002Z",
-        "mark": 9.109,
-        "latest_completed_15m": {
-          "open_utc": "2026-11-16T23:30:00Z",
-          "close_utc": "2026-11-16T23:44:59.999Z",
-          "open": 9.117,
-          "high": 9.119,
-          "low": 9.069,
-          "close": 9.09
+        "market_snapshot_utc": "2026-11-17T03:11:30.466Z",
+        "mark": 9.15080408,
+        "trigger_confirmed_at_utc": "2026-11-17T02:29:59.999Z",
+        "rejection_candle": {
+          "open_utc": "2026-11-17T02:00:00Z",
+          "close_utc": "2026-11-17T02:14:59.999Z",
+          "open": 9.116,
+          "high": 9.148,
+          "low": 9.104,
+          "close": 9.104
         },
-        "previous_20bar_low": 9.097,
-        "previous_20bar_high": 9.247,
-        "ema20_15m": 9.15033,
-        "ema50_15m": 9.14487,
-        "latest_completed_1h_close": 9.145,
-        "ema20_1h": 9.16114,
-        "ema50_1h": 9.19938,
-        "latest_completed_4h_close": 9.198,
-        "ema20_4h": 9.36463,
-        "ema50_4h": 9.80152,
-        "latest_completed_daily_close": 9.289,
-        "ema20_daily": 10.57669,
-        "ema50_daily": 11.39297,
-        "oi_change_5h_qty_pct": -0.6827,
-        "oi_change_5h_notional_pct": -0.6718,
-        "taker_buy_sell_ratio": 0.9792
-      }
+        "trigger_candle": {
+          "open_utc": "2026-11-17T02:15:00Z",
+          "close_utc": "2026-11-17T02:29:59.999Z",
+          "open": 9.104,
+          "high": 9.138,
+          "low": 9.088,
+          "close": 9.091
+        },
+        "subsequent_completed_candles": [
+          {
+            "open_utc": "2026-11-17T02:30:00Z",
+            "close_utc": "2026-11-17T02:44:59.999Z",
+            "open": 9.09,
+            "high": 9.123,
+            "low": 9.081,
+            "close": 9.098
+          },
+          {
+            "open_utc": "2026-11-17T02:45:00Z",
+            "close_utc": "2026-11-17T02:59:59.999Z",
+            "open": 9.099,
+            "high": 9.119,
+            "low": 9.093,
+            "close": 9.11
+          }
+        ],
+        "current_incomplete_15m_candle": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 9.11,
+          "high": 9.157,
+          "low": 9.098,
+          "last": 9.144
+        },
+        "latest_completed_15m": {
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 9.099,
+          "high": 9.119,
+          "low": 9.093,
+          "close": 9.11
+        },
+        "ema20_15m": 9.1189191294,
+        "ema50_15m": 9.1346978959,
+        "latest_completed_1h_close": 9.11,
+        "ema20_1h": 9.1453512001,
+        "ema50_1h": 9.2059210596,
+        "latest_completed_4h_close": 9.136,
+        "ema20_4h": 9.3433005807,
+        "ema50_4h": 9.8090148972,
+        "latest_completed_daily_close": 9.136,
+        "ema20_daily": 10.4395363795,
+        "ema50_daily": 11.242040083,
+        "previous_20bar_15m_low": 9.059,
+        "previous_20bar_15m_high": 9.212,
+        "nearest_1h_support": 9.004,
+        "deeper_4h_support": 8.566,
+        "provisional_invalidation_reference": 9.158,
+        "gross_rr_to_nearest_support": 1.2985074627,
+        "gross_rr_to_deeper_4h_support": 7.8358208955,
+        "oi_change_1h_qty_pct": 0.0659932389,
+        "oi_change_1h_notional_pct": -0.0342704453,
+        "funding_rate_decimal": 0.0000439,
+        "long_account_share": 0.6344,
+        "taker_buy_sell_ratio_latest_completed_15m": 1.248,
+        "top20_visible_bid_ask_notional_ratio": 2.67397
+      },
+      "trigger_confirmed_at_utc": "2026-11-17T02:29:59.999Z",
+      "last_mark_price": 9.15080408,
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "provisional_invalidation_reference": 9.158,
+      "nearest_support_reference": 9.004,
+      "deeper_4h_support_reference": 8.566,
+      "gross_rr_to_nearest_support": 1.29850746268656,
+      "gross_rr_to_deeper_4h_support": 7.835820895522347,
+      "last_evaluation": "The 02:00-02:14 UTC 15m candle rejected the retest band (O 9.116/H 9.148/L 9.104/C 9.104); the next completed 15m candle closed at 9.091 below the rejection low, confirming the breakdown trigger at 02:29:59.999Z. The nearest meaningful 1h support reference 9.004 gives only about 1.30R using a provisional invalidation above the rejection swing at 9.158; the deeper 4h low 8.566 would exceed 2R but is distant with intervening support. The trigger was detected after its close and Discord delivery could not be confirmed. Current mark 9.150804 is back near the retest zone and only 0.0072 below the provisional invalidation; the current 03:00-03:14 candle is incomplete and has traded to 9.157. No paper fill, no formal stop/targets, no late chase."
     },
     {
       "idea_id": "SUIUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH",
@@ -4623,11 +4682,11 @@
       "side": "SHORT",
       "timeframe": "15m trigger / 1h-4h context",
       "idea_type": "15M_SUPPORT_BREAK_RETEST_WATCH",
-      "status": "breakdown_confirmed_retest_pending_watch_only",
-      "trigger_confirmed": false,
+      "status": "trigger_confirmed_unqualified_rr_below_2_then_reclaimed_invalidated",
+      "trigger_confirmed": true,
       "breakdown_confirmed": true,
       "created_at_utc": "2026-11-16T23:47:36.002Z",
-      "last_checked_utc": "2026-11-16T23:47:36.002Z",
+      "last_checked_utc": "2026-11-17T03:11:30.466Z",
       "entry_zone": [
         0.7168,
         0.7208
@@ -4641,35 +4700,142 @@
       "realized_r_effect": 0,
       "condition": "The latest completed 15m candle closed at 0.7153 below the preceding 20-bar 15m low 0.7168. Current mark 0.7171 is within a provisional 0.7168-0.7208 retest area, but the current 15m candle is incomplete. Require a completed 15m bearish rejection and a subsequent completed 15m close below the rejection low. 1h, 4h and daily remain below both EMAs. Negative funding and long-heavy accounts provide context, but a squeeze remains possible. The nearer 24h low 0.7075 is an intervening support; only qualify if a fresh stop/target plan offers net R:R >=2. No entry or alert. This is a new watch, separate from the user's terminal 7-Nov SUI short.",
       "evidence": {
-        "market_snapshot_utc": "2026-11-16T23:47:36.002Z",
-        "mark": 0.7171,
-        "latest_completed_15m": {
-          "open_utc": "2026-11-16T23:30:00Z",
-          "close_utc": "2026-11-16T23:44:59.999Z",
-          "open": 0.7191,
-          "high": 0.7192,
-          "low": 0.7142,
-          "close": 0.7153
+        "market_snapshot_utc": "2026-11-17T03:11:30.466Z",
+        "mark": 0.72189905,
+        "rejection_candle": {
+          "open_utc": "2026-11-17T00:00:00Z",
+          "close_utc": "2026-11-17T00:14:59.999Z",
+          "open": 0.7195,
+          "high": 0.7201,
+          "low": 0.7169,
+          "close": 0.7178
         },
-        "previous_20bar_low": 0.7168,
-        "previous_20bar_high": 0.7266,
-        "ema20_15m": 0.72081,
-        "ema50_15m": 0.72014,
-        "latest_completed_1h_close": 0.7198,
-        "ema20_1h": 0.72161,
-        "ema50_1h": 0.72652,
-        "latest_completed_4h_close": 0.724,
-        "ema20_4h": 0.74257,
-        "ema50_4h": 0.78054,
-        "latest_completed_daily_close": 0.7371,
-        "ema20_daily": 0.84585,
-        "ema50_daily": 0.90181,
-        "oi_change_5h_qty_pct": 0.0914,
-        "oi_change_5h_notional_pct": 0.2306,
-        "taker_buy_sell_ratio": 0.9211,
-        "funding_rate": -0.0000752,
-        "long_account_share": 0.6823,
-        "previous_24h_low": 0.7075
+        "no_trigger_intermediate_candle": {
+          "open_utc": "2026-11-17T00:15:00Z",
+          "close_utc": "2026-11-17T00:29:59.999Z",
+          "open": 0.7178,
+          "high": 0.7187,
+          "low": 0.7157,
+          "close": 0.7178
+        },
+        "trigger_candle": {
+          "open_utc": "2026-11-17T00:30:00Z",
+          "close_utc": "2026-11-17T00:44:59.999Z",
+          "open": 0.7177,
+          "high": 0.7177,
+          "low": 0.7141,
+          "close": 0.7144
+        },
+        "current_incomplete_15m_candle": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 0.7182,
+          "high": 0.7228,
+          "low": 0.7173,
+          "last": 0.7211
+        },
+        "latest_completed_15m": {
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7173,
+          "high": 0.7189,
+          "low": 0.7161,
+          "close": 0.7181
+        },
+        "latest_completed_1h": {
+          "open_utc": "2026-11-17T02:00:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7171,
+          "high": 0.7202,
+          "low": 0.7155,
+          "close": 0.7181
+        },
+        "latest_completed_4h": {
+          "open_utc": "2026-11-16T20:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.724,
+          "high": 0.7266,
+          "low": 0.7142,
+          "close": 0.7196
+        },
+        "provisional_invalidation_reference": 0.7211,
+        "nearest_24h_support": 0.7075,
+        "deeper_4h_support": 0.6737,
+        "gross_rr_to_nearest_support": 1.0298507463,
+        "ema20_15m": 0.7177421305,
+        "ema50_15m": 0.7190290009,
+        "ema20_1h": 0.7201671311,
+        "ema50_1h": 0.7268592742,
+        "oi_change_1h_qty_pct": -0.1099224508,
+        "oi_change_1h_notional_pct": -0.0174169835,
+        "funding_rate_decimal": -0.00007239,
+        "long_account_share": 0.6831
+      },
+      "trigger_confirmed_at_utc": "2026-11-17T00:44:59.999Z",
+      "last_mark_price": 0.72189905,
+      "provisional_invalidation_reference": 0.7211,
+      "gross_rr_to_nearest_support": 1.0298507462686703,
+      "last_evaluation": "The 00:00-00:14 UTC 15m candle rejected the retest band (O 0.7195/H 0.7201/L 0.7169/C 0.7178); the 00:30-00:44 candle then closed at 0.7144 below the rejection low, confirming a trigger. The nearest 24h support 0.7075 offered only about 1.03R against a provisional invalidation above the rejection swing at 0.7211, so the setup failed the >=2R gate. A deeper 4h low at 0.6737 is too distant with intervening support. Later price reclaimed the retest band; the current 03:00 incomplete candle has high 0.7228 and mark 0.721899. No entry, no fill, no alert; watch invalidated."
+    },
+    {
+      "idea_id": "BTCUSDT-S-20261117T030000Z-15M-EMA-PULLBACK-WATCH",
+      "symbol": "BTCUSDT",
+      "side": "SHORT",
+      "timeframe": "15m trigger / 1h-4h-daily context",
+      "idea_type": "BEARISH_EMA_PULLBACK_WATCH",
+      "status": "pullback_watch_only_no_rejection",
+      "trigger_confirmed": false,
+      "entry_zone": [
+        64730.08,
+        64791.22
+      ],
+      "stop": null,
+      "targets": [],
+      "entry_executed": false,
+      "paper_fill_confirmed": false,
+      "discord_alert_sent": false,
+      "delivery_confirmed": false,
+      "created_at_utc": "2026-11-17T03:11:30.466Z",
+      "last_checked_utc": "2026-11-17T03:11:30.466Z",
+      "last_mark_price": 64647.43661594,
+      "condition": "All completed 15m, 1h, 4h and daily closes are below their respective EMA20/EMA50 bands. Current mark 64647.44 remains below the 15m EMA20-EMA50 pullback band 64730.08-64791.22. Wait for a completed 15m retest into the band, a bearish rejection candle, and a subsequent completed 15m close below that rejection low. Use fresh rejection swing for invalidation and fresh structural support for target; only qualify if net planned R:R >=2. Current 15m RVOL is 0.52 and the latest completed candle's taker buy/sell ratio is about 1.27, so buyer absorption/recovery is a material risk. No entry, stop or target assigned yet.",
+      "evidence": {
+        "market_snapshot_utc": "2026-11-17T03:11:30.466Z",
+        "mark": 64647.43661594,
+        "latest_completed_15m": {
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 64491.1,
+          "high": 64537.7,
+          "low": 64411.5,
+          "close": 64476
+        },
+        "current_incomplete_15m": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 64476,
+          "high": 64660.2,
+          "low": 64451,
+          "last": 64630
+        },
+        "ema20_15m": 64730.0819185,
+        "ema50_15m": 64791.219637,
+        "latest_completed_1h_close": 64476,
+        "ema20_1h": 64803.4739637,
+        "ema50_1h": 65171.6742287,
+        "latest_completed_4h_close": 64856,
+        "ema20_4h": 66060.4368007,
+        "ema50_4h": 69278.3765796,
+        "latest_completed_daily_close": 64856,
+        "ema20_daily": 73104.0571553,
+        "ema50_daily": 76669.3379053,
+        "support_15m": 64351,
+        "support_1h": 63871,
+        "support_4h": 61956.3,
+        "oi_change_1h_qty_pct": 0.3303517802,
+        "oi_change_1h_notional_pct": -0.0554740332,
+        "funding_rate_decimal": 0.000043,
+        "long_account_share": 0.7337,
+        "taker_buy_sell_ratio_latest_completed_15m": 1.273,
+        "top20_visible_bid_ask_notional_ratio": 0.37468
       }
     }
   ],
@@ -4719,45 +4885,60 @@
       },
       "assumed_paper_exit": 0.8715,
       "realized_r": -1,
-      "last_mark_price": 0.7171,
-      "last_market_snapshot_utc": "2026-11-16T23:47:36.002Z",
+      "last_mark_price": 0.72189905,
+      "last_market_snapshot_utc": "2026-11-17T03:11:30.466Z",
       "last_terminal_verification": {
-        "timestamp_utc": "2026-11-16T23:47:36.002Z",
-        "mark_price": 0.7171,
+        "timestamp_utc": "2026-11-17T03:11:30.466Z",
+        "mark_price": 0.72189905,
         "entry_zone_touched_since_previous_check": false,
-        "max_high_since_previous_check_15m": 0.7266,
-        "min_low_since_previous_check_15m": 0.7142,
-        "completed_15m_candles_since_previous_check": 17,
+        "max_high_since_previous_check_15m": 0.7228,
+        "min_low_since_previous_check_15m": 0.7124,
+        "completed_15m_candles_since_previous_check": 13,
         "completed_1h_candles_since_previous_check": 3,
         "latest_completed_15m_candle": {
-          "open_utc": "2026-11-16T23:30:00Z",
-          "close_utc": "2026-11-16T23:44:59.999Z",
-          "open": 0.7191,
-          "high": 0.7192,
-          "low": 0.7142,
-          "close": 0.7153
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7173,
+          "high": 0.7189,
+          "low": 0.7161,
+          "close": 0.7181
+        },
+        "current_incomplete_15m_candle": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 0.7182,
+          "high": 0.7228,
+          "low": 0.7173,
+          "last": 0.7211
         },
         "latest_completed_1h_candle": {
-          "open_utc": "2026-11-16T22:00:00Z",
-          "close_utc": "2026-11-16T22:59:59.999Z",
-          "open": 0.723,
-          "high": 0.7266,
-          "low": 0.7197,
-          "close": 0.7198
+          "open_utc": "2026-11-17T02:00:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7171,
+          "high": 0.7202,
+          "low": 0.7155,
+          "close": 0.7181
         },
         "latest_completed_4h_candle": {
-          "open_utc": "2026-11-16T16:00:00Z",
-          "close_utc": "2026-11-16T19:59:59.999Z",
-          "open": 0.7168,
-          "high": 0.7267,
-          "low": 0.7118,
-          "close": 0.724
+          "open_utc": "2026-11-16T20:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.724,
+          "high": 0.7266,
+          "low": 0.7142,
+          "close": 0.7196
+        },
+        "latest_completed_daily_candle": {
+          "open_utc": "2026-11-16T00:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.7371,
+          "high": 0.7377,
+          "low": 0.7075,
+          "close": 0.7196
         },
         "stop_was_already_hit": true,
         "target_was_already_touched_after_stop": true,
-        "hypothetical_mark_to_reference_r": 12.310344827586151,
+        "hypothetical_mark_to_reference_r": 11.8966336206896,
         "realized_r_remains": -1,
-        "note": "The original entry zone 0.8590-0.8610 was not revisited; maximum high since the prior check was 0.7266. The original stop was hit on 7 November before the later target touch on 8 November. Terminal outcome remains -1R. Current mark-to-reference is hypothetical only. Status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
+        "note": "The original 0.8590-0.8610 entry zone was not revisited since the previous check; maximum high was 0.7228 and minimum low 0.7124. The original stop was hit on 7-Nov before the later target touch on 8-Nov. Terminal result remains -1R. Current mark-to-reference is hypothetical only. Delivery status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
       },
       "entry_fill_caveat": "The exact entry fill was not independently reconstructed; R is a paper-reference calculation assuming the specified 0.8599 entry.",
       "lifecycle_note": "First post-setup stop touch occurred on 7 November at 07:00 UTC. A later target touch on 8 November occurred after the stop and is not counted."
@@ -24488,6 +24669,642 @@
         "note": "No qualified completed retest/rejection entry trigger, so no alert was due. No direct Discord-send or GitHub workflow-dispatch action is exposed in this runtime; no webhook secret accessed."
       },
       "recovery_note": "The original ledger had been fetched and was empty before the 2026-11-12 initialization. This initialized ledger is now readable, but any active alerted setups that existed before initialization remain unknown. An empty active_alerted_setups array is not proof that no older position exists."
+    },
+    {
+      "scan_id": "crypto-trade-idea-desk-20261117T031130Z",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "runtime_cutoff_utc": "2026-11-17T03:11:30.466Z",
+      "market_snapshot_utc": "2026-11-17T03:11:30.466Z",
+      "data_quality": "Fresh Binance USDⓈ-M mark/funding and 24h ticker snapshot around 2026-11-17T03:11:01Z; top-20 order books 03:11:30Z. Latest completed 15m candles through 02:59:59.999Z, 1h through 02:59:59.999Z, 4h through 2026-11-16 23:59:59.999Z, daily through 2026-11-16 23:59:59.999Z. OI statistics and global account ratios through 03:00Z. Current 03:00-03:14 15m and 00:00-03:59 4h candles are incomplete and excluded from close confirmation.",
+      "candle_cutoffs_utc": {
+        "m15": "2026-11-17T02:59:59.999Z",
+        "h1": "2026-11-17T02:59:59.999Z",
+        "h4": "2026-11-16T23:59:59.999Z",
+        "d1": "2026-11-16T23:59:59.999Z",
+        "oi_and_account_ratio": "2026-11-17T03:00:00Z",
+        "mark_ticker": "2026-11-17T03:11:01Z",
+        "orderbook": "2026-11-17T03:11:30Z",
+        "taker_flow": "2026-11-17T02:45:00Z to 03:00:00Z"
+      },
+      "decision": "NO_TRADE_LINK_TRIGGERED_UNALERTED_STALE_SUI_TRIGGER_UNQUALIFIED_BTC_PULLBACK_WATCH",
+      "markets_scanned": 11,
+      "qualified_new_setups": 0,
+      "triggered_shadow_setups": 1,
+      "unqualified_triggered_shadow_setups": 1,
+      "new_watch_only_candidates": 1,
+      "prior_watches_audited": 3,
+      "actual_paper_fills": 0,
+      "alerts_due": 1,
+      "alerts_sent": 0,
+      "discord_delivery_confirmed": false,
+      "known_active_alerted_setups": 0,
+      "recovery_warning": true,
+      "market_snapshot": [
+        {
+          "symbol": "BTCUSDT",
+          "mark": 64647.43661594,
+          "change24h_pct": -0.577,
+          "quote_volume_24h": 11784041195.72,
+          "funding": 0.000043,
+          "oi_qty_change_1h_pct": 0.33035,
+          "oi_notional_change_1h_pct": -0.05547,
+          "long_account_share": 0.7337,
+          "long_short_ratio": 2.7552,
+          "taker_buy_sell_ratio": 1.273,
+          "m15": {
+            "close": 64476,
+            "ema20": 64730.0819,
+            "ema50": 64791.2196,
+            "rsi14": 29.68,
+            "rvol20": 0.5224,
+            "low20": 64351,
+            "high20": 65500.2
+          },
+          "h1": {
+            "close": 64476,
+            "ema20": 64803.474,
+            "ema50": 65171.674,
+            "rsi14": 54.66,
+            "rvol20": 0.6645,
+            "low20": 63871,
+            "high20": 65679.2
+          },
+          "h4": {
+            "close": 64856,
+            "ema20": 66060.437,
+            "ema50": 69278.377,
+            "rsi14": 44.1,
+            "rvol20": 0.5455,
+            "low20": 61956.3,
+            "high20": 70188
+          },
+          "daily": {
+            "close": 64856,
+            "ema20": 73104.057,
+            "ema50": 76669.338,
+            "rsi14": 24.21
+          }
+        },
+        {
+          "symbol": "ETHUSDT",
+          "mark": 1818.97810078,
+          "change24h_pct": -0.057,
+          "quote_volume_24h": 7311830312.27,
+          "funding": -0.00004329,
+          "oi_qty_change_1h_pct": 0.24597,
+          "oi_notional_change_1h_pct": -0.09858,
+          "long_account_share": 0.7224,
+          "long_short_ratio": 2.6023,
+          "taker_buy_sell_ratio": 1.46,
+          "m15": {
+            "close": 1813.71,
+            "ema20": 1818.0864,
+            "ema50": 1818.5589,
+            "rsi14": 41,
+            "rvol20": 1.1118,
+            "low20": 1809.39,
+            "high20": 1837.8
+          },
+          "h1": {
+            "close": 1813.71,
+            "ema20": 1818.6045,
+            "ema50": 1827.4349,
+            "rsi14": 55.64,
+            "rvol20": 0.5818,
+            "low20": 1786.05,
+            "high20": 1866.21
+          },
+          "h4": {
+            "close": 1819.64,
+            "ema20": 1854.054,
+            "ema50": 1959.277,
+            "rsi14": 46.39,
+            "rvol20": 0.345,
+            "low20": 1710.01,
+            "high20": 1988.57
+          },
+          "daily": {
+            "close": 1819.64,
+            "ema20": 2096.858,
+            "ema50": 2260.655,
+            "rsi14": 26.75
+          }
+        },
+        {
+          "symbol": "SOLUSDT",
+          "mark": 72.24086744,
+          "change24h_pct": 0.375,
+          "quote_volume_24h": 1500901845.37,
+          "funding": -0.00015868,
+          "oi_qty_change_1h_pct": -0.06628,
+          "oi_notional_change_1h_pct": -0.17733,
+          "long_account_share": 0.78,
+          "long_short_ratio": 3.5455,
+          "taker_buy_sell_ratio": 0.933,
+          "m15": {
+            "close": 71.71,
+            "ema20": 71.5997,
+            "ema50": 71.4833,
+            "rsi14": 54.68,
+            "rvol20": 0.7191,
+            "low20": 70.93,
+            "high20": 72.22
+          },
+          "h1": {
+            "close": 71.71,
+            "ema20": 71.4961,
+            "ema50": 72.0709,
+            "rsi14": 60.97,
+            "rvol20": 0.5215,
+            "low20": 69.87,
+            "high20": 72.9
+          },
+          "h4": {
+            "close": 71.52,
+            "ema20": 73.4681,
+            "ema50": 78.5733,
+            "rsi14": 41.55,
+            "rvol20": 0.5121,
+            "low20": 67.35,
+            "high20": 82.38
+          },
+          "daily": {
+            "close": 71.52,
+            "ema20": 85.723,
+            "ema50": 94.5724,
+            "rsi14": 20.45
+          }
+        },
+        {
+          "symbol": "BNBUSDT",
+          "mark": 592.11,
+          "change24h_pct": -0.229,
+          "quote_volume_24h": 237082294.8,
+          "funding": 0,
+          "oi_qty_change_1h_pct": 0.05455,
+          "oi_notional_change_1h_pct": -0.32153,
+          "long_account_share": 0.7067,
+          "long_short_ratio": 2.4095,
+          "taker_buy_sell_ratio": 0.898,
+          "m15": {
+            "close": 590.84,
+            "ema20": 591.6888,
+            "ema50": 591.5275,
+            "rsi14": 45.06,
+            "rvol20": 0.7052,
+            "low20": 589.47,
+            "high20": 595.84
+          },
+          "h1": {
+            "close": 590.84,
+            "ema20": 591.7221,
+            "ema50": 595.3805,
+            "rsi14": 55.79,
+            "rvol20": 0.6276,
+            "low20": 584.02,
+            "high20": 598.33
+          },
+          "h4": {
+            "close": 591.47,
+            "ema20": 603.986,
+            "ema50": 634.3654,
+            "rsi14": 44.97,
+            "rvol20": 0.323,
+            "low20": 566.01,
+            "high20": 650.21
+          },
+          "daily": {
+            "close": 591.47,
+            "ema20": 667.6561,
+            "ema50": 699.0137,
+            "rsi14": 23.91
+          }
+        },
+        {
+          "symbol": "XRPUSDT",
+          "mark": 0.9596,
+          "change24h_pct": -0.353,
+          "quote_volume_24h": 637684640.37,
+          "funding": -0.0000973,
+          "oi_qty_change_1h_pct": -0.22342,
+          "oi_notional_change_1h_pct": -0.47048,
+          "long_account_share": 0.7357,
+          "long_short_ratio": 2.7836,
+          "taker_buy_sell_ratio": 1.193,
+          "m15": {
+            "close": 0.9552,
+            "ema20": 0.9554186,
+            "ema50": 0.9556982,
+            "rsi14": 51.46,
+            "rvol20": 0.8274,
+            "low20": 0.9495,
+            "high20": 0.9643
+          },
+          "h1": {
+            "close": 0.9552,
+            "ema20": 0.9564171,
+            "ema50": 0.9609238,
+            "rsi14": 55.25,
+            "rvol20": 0.5758,
+            "low20": 0.9415,
+            "high20": 0.9767
+          },
+          "h4": {
+            "close": 0.9548,
+            "ema20": 0.9734392,
+            "ema50": 1.0284003,
+            "rsi14": 45.89,
+            "rvol20": 0.5262,
+            "low20": 0.8922,
+            "high20": 1.0433
+          },
+          "daily": {
+            "close": 0.9548,
+            "ema20": 1.115603,
+            "ema50": 1.227423,
+            "rsi14": 21.91
+          }
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "mark": 0.05904553,
+          "change24h_pct": -0.304,
+          "quote_volume_24h": 277928139.23,
+          "funding": -0.00000286,
+          "oi_qty_change_1h_pct": -0.22264,
+          "oi_notional_change_1h_pct": -0.52393,
+          "long_account_share": 0.7057,
+          "long_short_ratio": 2.3979,
+          "taker_buy_sell_ratio": 0.889,
+          "m15": {
+            "close": 0.05873,
+            "ema20": 0.05890385,
+            "ema50": 0.05898678,
+            "rsi14": 45.76,
+            "rvol20": 1.0199,
+            "low20": 0.05855,
+            "high20": 0.05967
+          },
+          "h1": {
+            "close": 0.05873,
+            "ema20": 0.05899444,
+            "ema50": 0.05938549,
+            "rsi14": 54.05,
+            "rvol20": 0.4983,
+            "low20": 0.05794,
+            "high20": 0.05996
+          },
+          "h4": {
+            "close": 0.05891,
+            "ema20": 0.0604452,
+            "ema50": 0.06408625,
+            "rsi14": 41.28,
+            "rvol20": 0.3739,
+            "low20": 0.05538,
+            "high20": 0.06661
+          },
+          "daily": {
+            "close": 0.05891,
+            "ema20": 0.06890187,
+            "ema50": 0.07566979,
+            "rsi14": 25.1
+          }
+        },
+        {
+          "symbol": "ADAUSDT",
+          "mark": 0.1536,
+          "change24h_pct": -0.065,
+          "quote_volume_24h": 121876866.87,
+          "funding": -0.00003835,
+          "oi_qty_change_1h_pct": 0.26662,
+          "oi_notional_change_1h_pct": 0.26866,
+          "long_account_share": 0.6852,
+          "long_short_ratio": 2.1766,
+          "taker_buy_sell_ratio": 0.973,
+          "m15": {
+            "close": 0.1527,
+            "ema20": 0.1526683,
+            "ema50": 0.1527505,
+            "rsi14": 50,
+            "rvol20": 0.7734,
+            "low20": 0.1516,
+            "high20": 0.1543
+          },
+          "h1": {
+            "close": 0.1527,
+            "ema20": 0.1528792,
+            "ema50": 0.1540732,
+            "rsi14": 58.26,
+            "rvol20": 0.8249,
+            "low20": 0.1501,
+            "high20": 0.1558
+          },
+          "h4": {
+            "close": 0.153,
+            "ema20": 0.1569746,
+            "ema50": 0.1657515,
+            "rsi14": 42.7,
+            "rvol20": 0.4649,
+            "low20": 0.1424,
+            "high20": 0.1747
+          },
+          "daily": {
+            "close": 0.153,
+            "ema20": 0.1786738,
+            "ema50": 0.1978909,
+            "rsi14": 28.04
+          }
+        },
+        {
+          "symbol": "LINKUSDT",
+          "mark": 9.15080408,
+          "change24h_pct": -0.565,
+          "quote_volume_24h": 87090417.72,
+          "funding": 0.0000439,
+          "oi_qty_change_1h_pct": 0.06599,
+          "oi_notional_change_1h_pct": -0.03427,
+          "long_account_share": 0.6344,
+          "long_short_ratio": 1.7352,
+          "taker_buy_sell_ratio": 1.248,
+          "m15": {
+            "close": 9.11,
+            "ema20": 9.1189191,
+            "ema50": 9.1346979,
+            "rsi14": 48.66,
+            "rvol20": 0.6256,
+            "low20": 9.059,
+            "high20": 9.212
+          },
+          "h1": {
+            "close": 9.11,
+            "ema20": 9.1453512,
+            "ema50": 9.2059211,
+            "rsi14": 52.1,
+            "rvol20": 0.5728,
+            "low20": 9.004,
+            "high20": 9.358
+          },
+          "h4": {
+            "close": 9.136,
+            "ema20": 9.3433006,
+            "ema50": 9.8090149,
+            "rsi14": 44.9,
+            "rvol20": 0.5562,
+            "low20": 8.566,
+            "high20": 10.243
+          },
+          "daily": {
+            "close": 9.136,
+            "ema20": 10.4395364,
+            "ema50": 11.2420401,
+            "rsi14": 28.02
+          }
+        },
+        {
+          "symbol": "SUIUSDT",
+          "mark": 0.72189905,
+          "change24h_pct": -0.96,
+          "quote_volume_24h": 106189120.3,
+          "funding": -0.00007239,
+          "oi_qty_change_1h_pct": -0.10992,
+          "oi_notional_change_1h_pct": -0.01742,
+          "long_account_share": 0.6831,
+          "long_short_ratio": 2.1556,
+          "taker_buy_sell_ratio": 1.924,
+          "m15": {
+            "close": 0.7181,
+            "ema20": 0.7177421,
+            "ema50": 0.719029,
+            "rsi14": 47.95,
+            "rvol20": 0.735,
+            "low20": 0.7124,
+            "high20": 0.7266
+          },
+          "h1": {
+            "close": 0.7181,
+            "ema20": 0.7201671,
+            "ema50": 0.7268593,
+            "rsi14": 54.98,
+            "rvol20": 0.6064,
+            "low20": 0.7075,
+            "high20": 0.7363
+          },
+          "h4": {
+            "close": 0.7196,
+            "ema20": 0.7404147,
+            "ema50": 0.7804625,
+            "rsi14": 42.11,
+            "rvol20": 0.411,
+            "low20": 0.6737,
+            "high20": 0.8286
+          },
+          "daily": {
+            "close": 0.7196,
+            "ema20": 0.833826,
+            "ema50": 0.8945844,
+            "rsi14": 32.69
+          }
+        },
+        {
+          "symbol": "ZECUSDT",
+          "mark": 911.58,
+          "change24h_pct": 1.816,
+          "quote_volume_24h": 1395637013,
+          "funding": -0.0000263,
+          "oi_qty_change_1h_pct": -0.00164,
+          "oi_notional_change_1h_pct": -0.24481,
+          "long_account_share": 0.4661,
+          "long_short_ratio": 0.873,
+          "m15": {
+            "close": 905.42,
+            "ema20": 903.5952,
+            "ema50": 897.793,
+            "rsi14": 48.55,
+            "rvol20": 0.6176,
+            "low20": 896.16,
+            "high20": 916
+          },
+          "h1": {
+            "close": 905.42,
+            "ema20": 896.543,
+            "ema50": 897.0245,
+            "rsi14": 71.02,
+            "rvol20": 0.3827,
+            "low20": 846.1,
+            "high20": 916
+          },
+          "h4": {
+            "close": 904.12,
+            "ema20": 912.3312,
+            "ema50": 990.2835,
+            "rsi14": 54.16,
+            "rvol20": 0.5023,
+            "low20": 800.67,
+            "high20": 991.97
+          },
+          "daily": {
+            "close": 904.12,
+            "ema20": 1084.6302,
+            "ema50": 1148.4233,
+            "rsi14": 34.38
+          }
+        },
+        {
+          "symbol": "HYPEUSDT",
+          "mark": 69.14973056,
+          "change24h_pct": 4.018,
+          "quote_volume_24h": 783934622.4,
+          "funding": 0.00005,
+          "oi_qty_change_1h_pct": 0.05901,
+          "oi_notional_change_1h_pct": -0.76978,
+          "long_account_share": 0.6034,
+          "long_short_ratio": 1.5214,
+          "taker_buy_sell_ratio": 1.607,
+          "m15": {
+            "close": 68.797,
+            "ema20": 69.0598664,
+            "ema50": 68.4655153,
+            "rsi14": 27.52,
+            "rvol20": 0.2296,
+            "low20": 68.505,
+            "high20": 71.04
+          },
+          "h1": {
+            "close": 69.764,
+            "ema20": 68.123592,
+            "ema50": 67.69509,
+            "rsi14": 72.01,
+            "rvol20": 0.3842,
+            "low20": 64.826,
+            "high20": 71.04
+          },
+          "h4": {
+            "close": 69.764,
+            "ema20": 68.215778,
+            "ema50": 71.036269,
+            "rsi14": 56.26,
+            "rvol20": 1.2257,
+            "low20": 60.008,
+            "high20": 75.324
+          },
+          "daily": {
+            "close": 69.764,
+            "ema20": 75.25594,
+            "ema50": 78.81937,
+            "rsi14": 28.6
+          }
+        }
+      ],
+      "orderbook_snapshot": [
+        {
+          "symbol": "BTCUSDT",
+          "timestamp_utc": "2026-11-17T03:11:30.466Z",
+          "bid_notional": 221742.76,
+          "ask_notional": 591824.14,
+          "bid_ask_ratio": 0.3747
+        },
+        {
+          "symbol": "ETHUSDT",
+          "timestamp_utc": "2026-11-17T03:11:30.048Z",
+          "bid_notional": 90276.45,
+          "ask_notional": 712263.77,
+          "bid_ask_ratio": 0.1267
+        },
+        {
+          "symbol": "LINKUSDT",
+          "timestamp_utc": "2026-11-17T03:11:30.080Z",
+          "bid_notional": 959459.8,
+          "ask_notional": 358815.13,
+          "bid_ask_ratio": 2.674
+        },
+        {
+          "symbol": "SUIUSDT",
+          "timestamp_utc": "2026-11-17T03:11:30.162Z",
+          "bid_notional": 1255520.46,
+          "ask_notional": 1109454.24,
+          "bid_ask_ratio": 1.1317
+        },
+        {
+          "symbol": "HYPEUSDT",
+          "timestamp_utc": "2026-11-17T03:11:30.173Z",
+          "bid_notional": 78532.35,
+          "ask_notional": 29485.04,
+          "bid_ask_ratio": 2.6635
+        }
+      ],
+      "structural_assessment": "All eleven daily closes remain below EMA20 and EMA50. Ten of eleven completed 4h structures are below both; HYPE is above 4h EMA20 but below EMA50. Completed 1h structures are bearish in BTC, ETH, BNB, XRP, DOGE, ADA, LINK and SUI; mixed in SOL; bullish in ZEC and HYPE. Completed 15m structures: six bearish, three mixed and two bullish. All latest completed 15m RVOL values are below 1 except ETH (1.11) and DOGE (1.02); the broader recovery has faded. No latest completed 15m candle swept the preceding 20-bar high or low. BTC remains below the fresh 15m EMA20-EMA50 band; wait for a completed retest/rejection. LINK and SUI prior support-break watches did experience completed retest/rejection and subsequent trigger closes, but neither is a current qualified entry: LINK's nearest support plan is below 2R and current mark is near provisional invalidation; SUI failed the nearest-support 2R gate and later reclaimed the zone. ZEC/HYPE intraday strength remains counter to bearish daily structure.",
+      "derivatives_assessment": "1h OI quantity rose in BTC (+0.33%), ETH (+0.25%), BNB (+0.05%), ADA (+0.27%), LINK (+0.07%) and HYPE (+0.06%); fell in SOL, XRP, DOGE, SUI and ZEC. OI notional fell in 10/11, with only ADA slightly higher; this points to mixed positioning/deleveraging rather than broad fresh short build. Funding ranges from -0.01587% (SOL) to +0.00500% (HYPE). Global accounts remain long-heavy in 10/11; SOL highest at 78.00%, ZEC is short-heavy at 53.39%. Latest completed 15m taker flow is buy-dominant in BTC, ETH, XRP, LINK, SUI, ZEC and HYPE; sell-dominant in SOL, BNB, DOGE and ADA. Top-20 visible book is ask-heavy in BTC/ETH and bid-heavy in LINK/SUI/HYPE; transient snapshots only. No reliable force-order liquidation stream or liquidation heatmap was available; no liquidation clusters inferred.",
+      "prior_setup_audit": {
+        "btc": "Previous 64820 watch is superseded. A fresh BTC pullback watch uses current 15m EMA20-EMA50 band 64730.08-64791.22; no retest/rejection yet.",
+        "link": "Prior 15m support-break watch did produce a rejection at 02:00-02:14 and trigger close at 02:15-02:29. Trigger unalerted due delivery blocker; nearest support yields ~1.30R and current mark is near provisional invalidation. No fill; no late alert/chase.",
+        "sui": "Prior 15m support-break watch triggered at 00:30-00:44 but nearest 24h support only yields ~1.03R; later price reclaimed retest zone. No fill; watch invalidated/unqualified.",
+        "zec": "Previous sweep-failure short remains invalidated after prior hourly reclaim above its sweep level and prior high.",
+        "hype": "Prior 16-Nov HYPE short remains stale/no fill; TP1 occurred before retest and later entry/stop touches were ambiguous."
+      },
+      "user_directed_sui_check": {
+        "timestamp_utc": "2026-11-17T03:11:30.466Z",
+        "mark_price": 0.72189905,
+        "entry_zone_touched_since_previous_check": false,
+        "max_high_since_previous_check_15m": 0.7228,
+        "min_low_since_previous_check_15m": 0.7124,
+        "completed_15m_candles_since_previous_check": 13,
+        "completed_1h_candles_since_previous_check": 3,
+        "latest_completed_15m_candle": {
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7173,
+          "high": 0.7189,
+          "low": 0.7161,
+          "close": 0.7181
+        },
+        "current_incomplete_15m_candle": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 0.7182,
+          "high": 0.7228,
+          "low": 0.7173,
+          "last": 0.7211
+        },
+        "latest_completed_1h_candle": {
+          "open_utc": "2026-11-17T02:00:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7171,
+          "high": 0.7202,
+          "low": 0.7155,
+          "close": 0.7181
+        },
+        "latest_completed_4h_candle": {
+          "open_utc": "2026-11-16T20:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.724,
+          "high": 0.7266,
+          "low": 0.7142,
+          "close": 0.7196
+        },
+        "latest_completed_daily_candle": {
+          "open_utc": "2026-11-16T00:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.7371,
+          "high": 0.7377,
+          "low": 0.7075,
+          "close": 0.7196
+        },
+        "stop_was_already_hit": true,
+        "target_was_already_touched_after_stop": true,
+        "hypothetical_mark_to_reference_r": 11.8966336206896,
+        "realized_r_remains": -1,
+        "note": "The original 0.8590-0.8610 entry zone was not revisited since the previous check; maximum high was 0.7228 and minimum low 0.7124. The original stop was hit on 7-Nov before the later target touch on 8-Nov. Terminal result remains -1R. Current mark-to-reference is hypothetical only. Delivery status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
+      },
+      "fresh_candidate": null,
+      "watch_only_candidates": [
+        "BTCUSDT-S-20261117T030000Z-15M-EMA-PULLBACK-WATCH"
+      ],
+      "discord_delivery": {
+        "delivery_confirmed": false,
+        "alerts_due": 1,
+        "alerts_sent": 0,
+        "blocker": "No direct Discord-send action or GitHub Actions workflow-dispatch action is exposed in this runtime. LINK trigger was detected after its completed candle; no successful delivery receipt. No webhook secret accessed."
+      },
+      "recovery_note": "The original ledger had been fetched and was empty before the 2026-11-12 initialization. This initialized ledger is now readable, but any active alerted setups that existed before initialization remain unknown. An empty active_alerted_setups array is not proof that no older position exists."
     }
   ],
   "event_log": [
@@ -26554,44 +27371,176 @@
         "LINKUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH",
         "SUIUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH"
       ]
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-link-trigger-audit",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "shadow_trigger_confirmed_unalerted_delivery_blocked",
+      "setup_id": "LINKUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH",
+      "status": "trigger_confirmed_unalerted_delivery_blocked_stale_unqualified_nearest_support_rr",
+      "trigger_confirmed": true,
+      "trigger_confirmed_at_utc": "2026-11-17T02:29:59.999Z",
+      "entry_executed": false,
+      "delivery_confirmed": false,
+      "alerts_due": 1,
+      "alerts_sent": 0,
+      "evidence": "Completed 15m rejection 02:00-02:14 UTC O9.116/H9.148/L9.104/C9.104; next completed candle 02:15-02:29 closed 9.091 below rejection low 9.104. Nearest 1h support 9.004 yields only ~1.30R against provisional 9.158 invalidation; deeper 4h low 8.566 is distant with intervening support. Trigger was discovered after the close; no direct Discord-send/workflow-dispatch action is available. Current mark 9.150804 is close to provisional invalidation, so no late chase. No paper fill and no active_alerted_setups insertion."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-sui-watch-trigger-audit",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "shadow_trigger_unqualified_rr_and_reclaimed",
+      "setup_id": "SUIUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH",
+      "status": "trigger_confirmed_unqualified_rr_below_2_then_reclaimed_invalidated",
+      "trigger_confirmed": true,
+      "trigger_confirmed_at_utc": "2026-11-17T00:44:59.999Z",
+      "entry_executed": false,
+      "delivery_confirmed": false,
+      "evidence": "Completed 15m rejection 00:00-00:14 UTC O0.7195/H0.7201/L0.7169/C0.7178; 00:30-00:44 candle closed 0.7144 below rejection low 0.7169. Nearest 24h support 0.7075 yields only ~1.03R against provisional invalidation 0.7211, failing the >=2R gate. Price later reclaimed the retest zone; current incomplete 03:00 candle high 0.7228. No entry, no paper fill, no alert."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-btc-new-watch",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "new_watch_only_ema_pullback",
+      "setup_id": "BTCUSDT-S-20261117T030000Z-15M-EMA-PULLBACK-WATCH",
+      "status": "pullback_watch_only_no_rejection",
+      "entry_executed": false,
+      "delivery_confirmed": false,
+      "evidence": "Current BTC mark 64647.44 remains below fresh 15m EMA20-EMA50 band 64730.08-64791.22. Latest completed 15m close 64476 at 02:59:59.999Z is below both averages; current 03:00 candle is incomplete and has only reached 64660.20. Wait for completed retest, rejection, then subsequent close below rejection low; define levels only after rejection and require net R:R >=2."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-sui-terminal-check",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "user_directed_terminal_verification",
+      "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
+      "status": "stopped",
+      "delivery_status": "triggered_unalerted_delivery_blocked",
+      "realized_r": -1,
+      "evidence": {
+        "timestamp_utc": "2026-11-17T03:11:30.466Z",
+        "mark_price": 0.72189905,
+        "entry_zone_touched_since_previous_check": false,
+        "max_high_since_previous_check_15m": 0.7228,
+        "min_low_since_previous_check_15m": 0.7124,
+        "completed_15m_candles_since_previous_check": 13,
+        "completed_1h_candles_since_previous_check": 3,
+        "latest_completed_15m_candle": {
+          "open_utc": "2026-11-17T02:45:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7173,
+          "high": 0.7189,
+          "low": 0.7161,
+          "close": 0.7181
+        },
+        "current_incomplete_15m_candle": {
+          "open_utc": "2026-11-17T03:00:00Z",
+          "open": 0.7182,
+          "high": 0.7228,
+          "low": 0.7173,
+          "last": 0.7211
+        },
+        "latest_completed_1h_candle": {
+          "open_utc": "2026-11-17T02:00:00Z",
+          "close_utc": "2026-11-17T02:59:59.999Z",
+          "open": 0.7171,
+          "high": 0.7202,
+          "low": 0.7155,
+          "close": 0.7181
+        },
+        "latest_completed_4h_candle": {
+          "open_utc": "2026-11-16T20:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.724,
+          "high": 0.7266,
+          "low": 0.7142,
+          "close": 0.7196
+        },
+        "latest_completed_daily_candle": {
+          "open_utc": "2026-11-16T00:00:00Z",
+          "close_utc": "2026-11-16T23:59:59.999Z",
+          "open": 0.7371,
+          "high": 0.7377,
+          "low": 0.7075,
+          "close": 0.7196
+        },
+        "stop_was_already_hit": true,
+        "target_was_already_touched_after_stop": true,
+        "hypothetical_mark_to_reference_r": 11.8966336206896,
+        "realized_r_remains": -1,
+        "note": "The original 0.8590-0.8610 entry zone was not revisited since the previous check; maximum high was 0.7228 and minimum low 0.7124. The original stop was hit on 7-Nov before the later target touch on 8-Nov. Terminal result remains -1R. Current mark-to-reference is hypothetical only. Delivery status remains triggered_unalerted_delivery_blocked, not Discord-alerted."
+      }
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-discord-status",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "discord_delivery_not_confirmed",
+      "delivery_confirmed": false,
+      "alerts_due": 1,
+      "alerts_sent": 0,
+      "evidence": "LINK 15m trigger was confirmed at 02:29:59.999Z, but the scan discovered it after the trigger candle. This runtime has no direct Discord-send action or GitHub Actions workflow-dispatch action; no successful delivery receipt is available. The setup is unalerted, unfilled and not added to active_alerted_setups. No webhook secret accessed."
+    },
+    {
+      "event_id": "crypto-trade-idea-desk-20261117T031130Z-scan-complete",
+      "timestamp_utc": "2026-11-17T03:11:30.466Z",
+      "type": "scan_completed",
+      "status": "NO_TRADE_LINK_TRIGGERED_UNALERTED_STALE_SUI_TRIGGER_UNQUALIFIED_BTC_PULLBACK_WATCH",
+      "markets_scanned": 11,
+      "qualified_new_setups": 0,
+      "triggered_shadow_setups": 1,
+      "unqualified_triggered_shadow_setups": 1,
+      "new_watch_only_candidates": 1,
+      "prior_watches_audited": 3,
+      "actual_paper_fills": 0,
+      "alerts_due": 1,
+      "alerts_sent": 0,
+      "discord_delivery_confirmed": false,
+      "active_alerted_setups": 0,
+      "recovery_warning": true,
+      "market_snapshot_utc": "2026-11-17T03:11:30.466Z"
     }
   ],
   "last_scan_summary": {
-    "scan_id": "crypto-trade-idea-desk-20261116T234736Z",
-    "timestamp_utc": "2026-11-16T23:47:36.002Z",
-    "decision": "NO_TRADE",
+    "scan_id": "crypto-trade-idea-desk-20261117T031130Z",
+    "timestamp_utc": "2026-11-17T03:11:30.466Z",
+    "decision": "NO_TRADE_LINK_TRIGGERED_UNALERTED_STALE_SUI_TRIGGER_UNQUALIFIED_BTC_PULLBACK_WATCH",
     "markets_scanned": 11,
     "qualified_new_setups": 0,
-    "triggered_shadow_setups": 0,
-    "new_watch_only_candidates": 2,
+    "triggered_shadow_setups": 1,
+    "unqualified_triggered_shadow_setups": 1,
+    "new_watch_only_candidates": 1,
     "prior_watches_audited": 3,
     "actual_paper_fills": 0,
-    "alerts_due": 0,
+    "alerts_due": 1,
+    "alerts_sent": 0,
     "discord_delivery_confirmed": false,
     "active_alerted_setups": 0,
-    "shadow_watch_only_count": 170,
+    "shadow_watch_only_count": 171,
     "recovery_warning": true,
-    "market_snapshot_utc": "2026-11-16T23:47:36.002Z",
+    "market_snapshot_utc": "2026-11-17T03:11:30.466Z",
     "candle_cutoffs_utc": {
-      "m15": "2026-11-16T23:44:59.999Z",
-      "h1": "2026-11-16T22:59:59.999Z",
-      "h4": "2026-11-16T19:59:59.999Z",
-      "d1": "2026-11-15T23:59:59.999Z"
+      "m15": "2026-11-17T02:59:59.999Z",
+      "h1": "2026-11-17T02:59:59.999Z",
+      "h4": "2026-11-16T23:59:59.999Z",
+      "d1": "2026-11-16T23:59:59.999Z",
+      "oi_and_account_ratio": "2026-11-17T03:00:00Z",
+      "mark_ticker": "2026-11-17T03:11:01Z",
+      "orderbook": "2026-11-17T03:11:30Z",
+      "taker_flow": "2026-11-17T02:45:00Z to 03:00:00Z"
     },
-    "key_change": "15m participation expanded: all eleven markets RVOL >1.0. Short-term structure is mixed, with BTC/ETH hourly closes above both hourly EMAs; all daily structures remain below both EMAs and ten of eleven 4h structures below both. HYPE is strongest intraday but remains below daily EMAs and 4h EMA50. LINK and SUI completed 15m closes below prior 20-bar lows; current marks are in provisional retest bands but the next 15m candles are incomplete, so no rejection/entry trigger. BTC old 64820 watch remains untriggered and stale; ZEC old sweep-failure watch invalidated by hourly reclaim.",
     "user_directed_sui_status": {
       "setup_id": "SUIUSDT-S-20261107T0423Z-BRK-01",
       "status": "stopped",
+      "delivery_status": "triggered_unalerted_delivery_blocked",
       "realized_r": -1,
-      "mark_price": 0.7171,
-      "hypothetical_mark_to_reference_r": 12.310344827586151,
+      "mark_price": 0.72189905,
+      "hypothetical_mark_to_reference_r": 11.8966336206896,
       "entry_zone_revisited_since_previous_check": false
     },
     "fresh_candidate": null,
     "watch_only_candidates": [
-      "LINKUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH",
-      "SUIUSDT-S-20261116T233000Z-15M-SUPPORT-BREAK-RETEST-WATCH"
-    ]
+      "BTCUSDT-S-20261117T030000Z-15M-EMA-PULLBACK-WATCH"
+    ],
+    "key_change": "LINK completed a 15m rejection and subsequent trigger close at 02:29:59.999Z, but its nearest support plan is below 2R and current mark is close to provisional invalidation; Discord delivery was not confirmed and no fill is recorded. SUI's prior watch also triggered but failed the nearest-support 2R gate and was later reclaimed. BTC is now fully bearish across 15m/1h/4h/daily; a fresh 15m EMA20-EMA50 pullback watch 64730.08-64791.22 is untriggered. All daily structures remain bearish; 10/11 4h structures below both EMAs. User-directed historical SUI short remains terminal -1R; current mark 0.721899, no entry-zone revisit, hypothetical mark-to-reference +11.8966R only."
   },
-  "monitoring_status": "Ledger fetched and parsed before scan; updated on ai-quant-rebuild. Binance USDⓈ-M snapshot 2026-11-16T23:47:36.002Z. Latest completed candles: 15m 23:44:59.999Z, 1h 22:59:59.999Z, 4h 19:59:59.999Z, daily 15-Nov 23:59:59.999Z. Active alerted set is empty in current ledger, but recovery warning for pre-initialization unknown positions remains. LINK/SUI have 15m support-breaks with retests pending, no entry triggers. BTC old watch untriggered/stale; ZEC watch invalidated by hourly reclaim. SUI user-directed historical short terminal -1R; mark 0.7171, no revisit since last check, hypothetical mark-to-reference +12.3103R only. No Discord alert due; delivery not claimed. Separate worker state.json not merged."
+  "monitoring_status": "Ledger fetched and parsed before scan; updated on ai-quant-rebuild. Binance USDⓈ-M snapshot 2026-11-17T03:11:30.466Z. Completed candles: 15m through 02:59:59.999Z, 1h through 02:59:59.999Z, 4h and daily through 2026-11-16 23:59:59.999Z; OI/global account data through 03:00Z. LINK prior watch triggered on a completed rejection-break at 02:29:59.999Z but nearest support RR <2 and current price is near provisional invalidation; trigger remains unalerted because no direct Discord-send or workflow-dispatch action is exposed, and no paper fill is recorded. SUI prior watch triggered but failed nearest-support RR and was later reclaimed; no fill. BTC fresh EMA pullback watch 64730.08-64791.22 remains untriggered. User-directed SUI historical short remains stopped -1R; mark 0.721899, entry zone not revisited, hypothetical mark-to-reference +11.8966R only. active_alerted_setups remains 0; recovery warning for pre-initialization unknown positions remains. Separate worker state.json not merged."
 }
