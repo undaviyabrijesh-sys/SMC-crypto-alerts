@@ -1,0 +1,144 @@
+{
+  "BTC": {
+    "symbol": "BTC",
+    "data": {
+      "symbol": "BTCUSDT",
+      "source": "Binance public-data USD-M futures archives",
+      "rows": 210009,
+      "start_utc": "2024-11-17T19:15:00+00:00",
+      "end_utc": "2026-11-16T23:55:00+00:00",
+      "invalid_timestamps": 0,
+      "duplicates_removed": 0,
+      "invalid_ohlc_rows": 0,
+      "invalid_volume_or_taker_rows": 0,
+      "zero_volume_bars": 5,
+      "gap_count": 0,
+      "largest_gap_minutes": 5.0,
+      "sha256": "50cd17b941d786418ccf1bf4512215714ebdc47374b6b0ad2cfadf10b8ae454f",
+      "archive_files_downloaded": 40,
+      "missing_archive_files": 0,
+      "missing_archive_examples": [],
+      "cache_file": "BTCUSDT_5m.csv.gz"
+    },
+    "features": {
+      "complete_prior_utc_days": 729,
+      "profile_bins": 48,
+      "bars_without_prior_profile": 345
+    },
+    "candidate_counts": {
+      "VP_ONLY": 5266,
+      "TPO_DELTA": 589,
+      "VP_TPO_DELTA_MSS": 80
+    },
+    "splits": {
+      "development": {
+        "start_i": 0,
+        "end_i_exclusive": 146649,
+        "start_utc": "2024-11-17T00:00:00+00:00",
+        "end_utc_exclusive": "2026-04-11T00:00:00+00:00"
+      },
+      "validation": {
+        "start_i": 146649,
+        "end_i_exclusive": 178329,
+        "start_utc": "2026-04-11T00:00:00+00:00",
+        "end_utc_exclusive": "2026-07-30T00:00:00+00:00"
+      },
+      "out_of_sample": {
+        "start_i": 178329,
+        "end_i_exclusive": 210009,
+        "start_utc": "2026-07-30T00:00:00+00:00",
+        "end_utc_exclusive": "2026-11-17T00:00:00+00:00"
+      }
+    },
+    "primary_metrics": "2R target, 10 bps assumed round-trip cost",
+    "targets_r": [
+      1.5,
+      2.0,
+      3.0
+    ],
+    "cost_sensitivity_bps": [
+      4,
+      7,
+      10,
+      20
+    ],
+    "data_limitations": [
+      "Volume Profile is a 48-bin candle-volume allocation proxy, not exchange-native trade-by-price volume.",
+      "TPO counts 5-minute candles whose high-low ranges intersect each price bin; this is 5m time-at-price, not standard 30m letter TPO.",
+      "Delta is exact taker-buy minus taker-sell base volume aggregated per 5m Binance futures candle, but not delta-at-price or footprint-level absorption.",
+      "Absorption uses opposing bar-level delta with rejection/close-location; it is a proxy, not proof of resting liquidity.",
+      "Fees are sensitivities only; spread, slippage, market impact and funding cashflows are not modeled. Positions close before 8h funding boundaries."
+    ]
+  },
+  "ETH": {
+    "symbol": "ETH",
+    "data": {
+      "symbol": "ETHUSDT",
+      "source": "Binance public-data USD-M futures archives",
+      "rows": 210009,
+      "start_utc": "2024-11-17T19:15:00+00:00",
+      "end_utc": "2026-11-16T23:55:00+00:00",
+      "invalid_timestamps": 0,
+      "duplicates_removed": 0,
+      "invalid_ohlc_rows": 0,
+      "invalid_volume_or_taker_rows": 0,
+      "zero_volume_bars": 5,
+      "gap_count": 0,
+      "largest_gap_minutes": 5.0,
+      "sha256": "2bb2dd3b806d8a33462514e99258a76447863acf30763b2a14cbc2ce380788b6",
+      "archive_files_downloaded": 40,
+      "missing_archive_files": 0,
+      "missing_archive_examples": [],
+      "cache_file": "ETHUSDT_5m.csv.gz"
+    },
+    "features": {
+      "complete_prior_utc_days": 729,
+      "profile_bins": 48,
+      "bars_without_prior_profile": 345
+    },
+    "candidate_counts": {
+      "VP_ONLY": 5327,
+      "TPO_DELTA": 559,
+      "VP_TPO_DELTA_MSS": 79
+    },
+    "splits": {
+      "development": {
+        "start_i": 0,
+        "end_i_exclusive": 146649,
+        "start_utc": "2024-11-17T00:00:00+00:00",
+        "end_utc_exclusive": "2026-04-11T00:00:00+00:00"
+      },
+      "validation": {
+        "start_i": 146649,
+        "end_i_exclusive": 178329,
+        "start_utc": "2026-04-11T00:00:00+00:00",
+        "end_utc_exclusive": "2026-07-30T00:00:00+00:00"
+      },
+      "out_of_sample": {
+        "start_i": 178329,
+        "end_i_exclusive": 210009,
+        "start_utc": "2026-07-30T00:00:00+00:00",
+        "end_utc_exclusive": "2026-11-17T00:00:00+00:00"
+      }
+    },
+    "primary_metrics": "2R target, 10 bps assumed round-trip cost",
+    "targets_r": [
+      1.5,
+      2.0,
+      3.0
+    ],
+    "cost_sensitivity_bps": [
+      4,
+      7,
+      10,
+      20
+    ],
+    "data_limitations": [
+      "Volume Profile is a 48-bin candle-volume allocation proxy, not exchange-native trade-by-price volume.",
+      "TPO counts 5-minute candles whose high-low ranges intersect each price bin; this is 5m time-at-price, not standard 30m letter TPO.",
+      "Delta is exact taker-buy minus taker-sell base volume aggregated per 5m Binance futures candle, but not delta-at-price or footprint-level absorption.",
+      "Absorption uses opposing bar-level delta with rejection/close-location; it is a proxy, not proof of resting liquidity.",
+      "Fees are sensitivities only; spread, slippage, market impact and funding cashflows are not modeled. Positions close before 8h funding boundaries."
+    ]
+  }
+}
