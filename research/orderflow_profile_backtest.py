@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
+import zipfile
 import json
 import math
 import time
@@ -38,7 +40,7 @@ def sha256_frame(df: pd.DataFrame) -> str:
 
 
 def download_symbol(symbol: str, years: int, data_dir: Path, delay: float = 0.15) -> tuple[pd.DataFrame, dict]:
-    """Download Binance USD-M 5m klines; taker-buy base volume gives bar-level delta."""
+    """Load official Binance USD-M monthly/daily archives (avoids geo-blocked REST API)."""
     data_dir.mkdir(parents=True, exist_ok=True)
     cache = data_dir / f"{symbol}_5m.csv.gz"
     now = pd.Timestamp.now(tz="UTC")
@@ -47,60 +49,110 @@ def download_symbol(symbol: str, years: int, data_dir: Path, delay: float = 0.15
         cached = pd.read_csv(cache, compression="gzip", parse_dates=["timestamp"])
         cached["timestamp"] = pd.to_datetime(cached.timestamp, utc=True)
         cached = cached.set_index("timestamp").sort_index()
-        if not cached.empty and cached.index.min() <= expected_start + pd.Timedelta(days=2) and cached.index.max() >= now.floor("5min") - pd.Timedelta(minutes=15):
-            return validate_data(cached, symbol, "cache")
+        if not cached.empty and cached.index.min() <= expected_start + pd.Timedelta(days=2) and cached.index.max() >= now.floor("5min") - pd.Timedelta(days=2):
+            clean, meta = validate_data(cached, symbol, "Binance public-data archive cache")
+            meta["cache_file"] = cache.name
+            return clean, meta
 
-    end_ms = int(now.floor("5min").timestamp() * 1000)
-    cursor = int(expected_start.timestamp() * 1000)
-    frames: list[pd.DataFrame] = []
     session = requests.Session()
-    session.headers.update({"User-Agent": "SaltyQuant-OrderFlowResearch/1.0", "Accept": "application/json"})
-    pages = 0
-    while cursor < end_ms:
-        params = {"symbol": symbol, "interval": "5m", "startTime": cursor, "endTime": end_ms - 1, "limit": 1500}
-        rows = None
-        last_error = None
-        for attempt in range(8):
+    session.headers.update({"User-Agent": "SaltyQuant-OrderFlowResearch/1.0", "Accept": "application/zip,application/octet-stream,*/*"})
+    frames: list[pd.DataFrame] = []
+    archive_files, missing_files = [], []
+
+    def read_archive(url: str) -> pd.DataFrame | None:
+        for attempt in range(6):
             try:
-                response = session.get(API, params=params, timeout=40)
+                response = session.get(url, timeout=60)
+                if response.status_code == 404:
+                    return None
                 if response.status_code in (418, 429, 500, 502, 503, 504):
-                    time.sleep(min(30.0, float(response.headers.get("Retry-After", 1 + attempt * 2))))
+                    time.sleep(min(20.0, 1 + attempt * 2))
                     continue
                 response.raise_for_status()
-                rows = response.json()
-                if not isinstance(rows, list):
-                    raise RuntimeError(f"Unexpected Binance response: {str(rows)[:500]}")
-                last_error = None
-                break
-            except Exception as exc:
-                last_error = exc
+                with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+                    names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
+                    if not names:
+                        raise RuntimeError(f"No CSV member inside {url}")
+                    with zf.open(names[0]) as fh:
+                        chunk = pd.read_csv(fh, header=None)
+                    if chunk.empty:
+                        return pd.DataFrame()
+                    try:
+                        int(str(chunk.iloc[0, 0]).strip())
+                    except (TypeError, ValueError):
+                        with zf.open(names[0]) as fh:
+                            chunk = pd.read_csv(fh, header=0)
+                    if chunk.shape[1] < 11:
+                        raise RuntimeError(f"Unexpected kline column count {chunk.shape[1]} in {url}")
+                    cols = ["open_time", "open", "high", "low", "close", "volume", "close_time", "quote_volume", "trade_count", "taker_buy_base", "taker_buy_quote", "ignore"]
+                    chunk = chunk.iloc[:, :len(cols)]
+                    if chunk.shape[1] == 11:
+                        cols = cols[:11]
+                    chunk.columns = cols[:chunk.shape[1]]
+                    return chunk[["open_time", "open", "high", "low", "close", "volume", "taker_buy_base", "trade_count"]]
+            except Exception:
+                if attempt == 5:
+                    raise
                 time.sleep(min(20.0, 1 + attempt * 2))
-        if last_error is not None:
-            raise RuntimeError(f"Binance download failed for {symbol} at {pd.to_datetime(cursor, unit='ms', utc=True)}: {last_error}")
-        if not rows:
-            break
-        page = pd.DataFrame(rows, columns=["open_time", "open", "high", "low", "close", "volume", "close_time", "quote_volume", "trade_count", "taker_buy_base", "taker_buy_quote", "ignore"])
-        frames.append(page[["open_time", "open", "high", "low", "close", "volume", "taker_buy_base", "trade_count"]])
-        pages += 1
-        new_cursor = int(rows[-1][0]) + BAR_MS
-        if new_cursor <= cursor:
-            raise RuntimeError(f"Pagination did not advance for {symbol}")
-        cursor = new_cursor
-        time.sleep(delay)
+        raise RuntimeError(f"Could not download archive: {url}")
+
+    first_month, current_month = expected_start.to_period("M"), now.to_period("M")
+    for period in pd.period_range(first_month, current_month, freq="M"):
+        if period == current_month:
+            # Daily archives are published after the UTC day closes; today's file is not yet available.
+            last_day = now.floor("D") - pd.Timedelta(days=1)
+            day = period.start_time.tz_localize("UTC")
+            while day <= last_day:
+                date_str = day.strftime("%Y-%m-%d")
+                url = f"https://data.binance.vision/data/futures/um/daily/klines/{symbol}/5m/{symbol}-5m-{date_str}.zip"
+                frame = read_archive(url)
+                if frame is None:
+                    missing_files.append(url)
+                elif not frame.empty:
+                    frames.append(frame)
+                    archive_files.append(url)
+                day += pd.Timedelta(days=1)
+                time.sleep(delay)
+        else:
+            month_str = str(period)
+            url = f"https://data.binance.vision/data/futures/um/monthly/klines/{symbol}/5m/{symbol}-5m-{month_str}.zip"
+            frame = read_archive(url)
+            if frame is None:
+                missing_files.append(url)
+                first = period.start_time.tz_localize("UTC")
+                end = (period + 1).start_time.tz_localize("UTC")
+                day = first
+                while day < end:
+                    date_str = day.strftime("%Y-%m-%d")
+                    daily_url = f"https://data.binance.vision/data/futures/um/daily/klines/{symbol}/5m/{symbol}-5m-{date_str}.zip"
+                    day_frame = read_archive(daily_url)
+                    if day_frame is not None and not day_frame.empty:
+                        frames.append(day_frame)
+                        archive_files.append(daily_url)
+                    else:
+                        missing_files.append(daily_url)
+                    day += pd.Timedelta(days=1)
+                    time.sleep(delay)
+            elif not frame.empty:
+                frames.append(frame)
+                archive_files.append(url)
+            time.sleep(delay)
+
     if not frames:
-        raise RuntimeError(f"Binance returned no 5m candles for {symbol}")
+        raise RuntimeError(f"No Binance public-data archive candles found for {symbol}")
     raw = pd.concat(frames, ignore_index=True)
     raw["timestamp"] = pd.to_datetime(pd.to_numeric(raw.pop("open_time"), errors="coerce"), unit="ms", utc=True)
-    raw = raw.set_index("timestamp")
+    raw = raw.set_index("timestamp").sort_index()
     for col in ("open", "high", "low", "close", "volume", "taker_buy_base", "trade_count"):
-        raw[col] = pd.to_numeric(raw[col], errors="coerce")
+        if col in raw:
+            raw[col] = pd.to_numeric(raw[col], errors="coerce")
     raw = raw[["open", "high", "low", "close", "volume", "taker_buy_base", "trade_count"]]
-    raw = raw[raw.index + BAR <= now]
-    clean, meta = validate_data(raw, symbol, "Binance USD-M Futures API")
+    raw = raw[(raw.index >= expected_start) & (raw.index + BAR <= now)]
+    clean, meta = validate_data(raw, symbol, "Binance public-data USD-M futures archives")
     clean.reset_index().to_csv(cache, index=False, compression="gzip", float_format="%.12g")
-    meta.update({"download_pages": pages, "cache_file": cache.name})
+    meta.update({"archive_files_downloaded": len(archive_files), "missing_archive_files": len(missing_files),
+                 "missing_archive_examples": missing_files[:8], "cache_file": cache.name})
     return clean, meta
-
 
 def validate_data(raw: pd.DataFrame, symbol: str, source: str) -> tuple[pd.DataFrame, dict]:
     d = raw.copy()
@@ -314,6 +366,8 @@ def simulate_trade(f: pd.DataFrame, c: dict, target_r: float, cost_bps: float, s
         return None
     exit_price = exit_i = reason = None
     for j in range(ei, last + 1):
+        if j > ei and f.index[j] - f.index[j - 1] != BAR:
+            return None  # unresolved path across a missing 5m candle is excluded
         o, hi, lo, cl = map(float, (f.open.iloc[j], f.high.iloc[j], f.low.iloc[j], f.close.iloc[j]))
         if side == "long":
             if o <= stop: exit_price, reason = o, "SL_GAP"
