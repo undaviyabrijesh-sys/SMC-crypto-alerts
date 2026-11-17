@@ -70,3 +70,10 @@ Before market results, pass deterministic tests for complete 288-bar UTC days, p
 - The profile is an approximation and may be materially different from tick-level volume-at-price.
 - Funding is excluded by closing before settlement; spread/slippage/market impact are not separately modeled.
 - The experiment is not approved for live signals, production rules or orders.
+
+
+## Post-run prior-art correction (2026-11-17)
+
+The initial prior-art audit above was incomplete. The repository already contains `research/orderflow_profile_backtest.py`, which implements the same broad 48-bin prior-UTC-day candle-volume proxy, 70% value area, VAH/VAL rejection, 0.05 ATR penetration, next-5m-open entry, rejection-extreme stop +0.10 ATR and 4h cap. Its `VP_ONLY` model tests fixed 1.5R/2R/3R exits. The new Delta study therefore tests a **POC-target exit variation**, not an independent strategy family.
+
+The existing Binance USD-M VP_ONLY results are in `quant_discovery/ORDERFLOW_ZONE_BACKTEST_LATEST.md`. They are strongly negative for BTC and ETH at the 2R/10bp primary comparison. This prior art was missed in the first audit and is now explicitly incorporated into the research ledger. The frozen POC-target rules were not changed after the run.
