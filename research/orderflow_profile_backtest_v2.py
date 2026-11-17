@@ -252,7 +252,8 @@ def wilder_atr_prior(f: pd.DataFrame, period: int = 14) -> pd.Series:
     values = np.full(len(f), np.nan, dtype=float)
     if len(f) == 0:
         return pd.Series(values, index=f.index)
-    starts = np.r_[0, np.flatnonzero(np.diff(f.index.asi8) != BAR.value) + 1]
+    # Compare Timedelta values directly; DatetimeIndex.asi8 may use non-ns units on pandas 3.x.
+    starts = np.r_[0, np.flatnonzero((f.index[1:] - f.index[:-1]) != BAR) + 1]
     ends = np.r_[starts[1:], len(f)]
     for start, end in zip(starts, ends):
         g = f.iloc[int(start):int(end)]
@@ -605,8 +606,7 @@ def self_test() -> None:
     atr_ix = pd.date_range("2025-02-01", periods=20, freq="5min", tz="UTC")
     atr_frame = pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.}, index=atr_ix)
     atr_prior = wilder_atr_prior(atr_frame, 14)
-    print("ATR_WILDER_SELF_TEST_DEBUG", atr_prior.iloc[11:17].tolist())
-    assert abs(float(atr_prior.iloc[14]) - 2.0) < 1e-12, atr_prior.iloc[11:17].tolist()
+    assert abs(float(atr_prior.iloc[14]) - 2.0) < 1e-12
     # A signal/rejection created before the split cannot be carried into the next split.
     split_ix = pd.date_range("2025-02-02 23:45", periods=8, freq="5min", tz="UTC")
     split_frame = pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.,"regime_1h":"neutral"}, index=split_ix)
