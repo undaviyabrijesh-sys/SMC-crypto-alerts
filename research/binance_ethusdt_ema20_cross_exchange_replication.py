@@ -49,10 +49,11 @@ def download(out: Path) -> pd.DataFrame:
     d=pd.DataFrame(rows,columns=["open_time","open","high","low","close","volume","close_time","quote_volume","trades","taker_buy_base","taker_buy_quote","ignore"])
     d["timestamp"]=pd.to_datetime(d.open_time.astype("int64"),unit="ms",utc=True)
     d=d[["timestamp","open","high","low","close","volume"]].copy().set_index("timestamp")
+    duplicates_removed=int(d.index.duplicated(keep="last").sum())
     for c in ["open","high","low","close","volume"]: d[c]=pd.to_numeric(d[c],errors="coerce")
     d=d[~d.index.duplicated(keep="last")].sort_index()
     d.to_csv(cache)
-    (out/"download_metadata.json").write_text(json.dumps({"venue":"Binance USDⓈ-M","symbol":SYMBOL,"interval":INTERVAL,"start":str(d.index.min()),"end_open":str(d.index.max()),"rows":len(d),"requests":calls},indent=2))
+    (out/"download_metadata.json").write_text(json.dumps({"venue":"Binance USDⓈ-M","symbol":SYMBOL,"interval":INTERVAL,"start":str(d.index.min()),"end_open":str(d.index.max()),"rows":len(d),"requests":calls,"duplicates_removed":duplicates_removed},indent=2))
     return d
 
 def rma(x: pd.Series,n:int)->pd.Series:
@@ -119,7 +120,7 @@ def next_settlement(ts):
 
 def classify(r):
     vals=[r.atr14,r.ema20,r.prev_ema20,r.prev_close,r.ema50,r.ema200,r.ctx_close]
-    if not np.isfinite(vals): return None
+    if not np.isfinite(vals).all(): return None
     if r.regime=="bull" and r.prev_close<=r.prev_ema20 and abs(r.low-r.ema20)<=.10*r.atr14 and r.close>r.ema20 and r.close>r.open: return "long"
     if r.regime=="bear" and r.prev_close>=r.prev_ema20 and abs(r.high-r.ema20)<=.10*r.atr14 and r.close<r.ema20 and r.close<r.open: return "short"
     return None
@@ -249,7 +250,8 @@ def main():
         for b in COSTS:
             costs.append({"horizon":h,"cost_bps":b,"events":len(p),"event_mean_net_bps":float((p.gross_bps-b).mean()),"control_mean_net_bps":float((p.control_gross_bps-b).mean()),"paired_lift_bps":float(lift.mean())})
     pd.DataFrame(monthly).to_csv(out/"monthly_results.csv",index=False); pd.DataFrame(wf).to_csv(out/"walk_forward_folds.csv",index=False); pd.DataFrame(sides).to_csv(out/"side_regime_breakdown.csv",index=False); pd.DataFrame(costs).to_csv(out/"cost_sensitivity.csv",index=False)
-    meta={"venue":"Binance USDⓈ-M","symbol":SYMBOL,"interval":INTERVAL,"rows":len(d),"start":str(d.index.min()),"end_open":str(d.index.max()),"duplicates_removed":int(len(raw)-len(d)),"missing_15m_intervals":gaps,"malformed_rows_removed":int(len(raw)-len(d)),"zero_volume_rows":int((d.volume==0).sum()),"complete_4h_bars":len(d4),"source_sha256":digest,"evaluation_start":str(EVAL_START),"evaluation_end_exclusive":str(EVAL_END),"oos":"not downloaded or evaluated","self_tests":tests,"events":len(events),"matched_controls":len(controls),"summary":summary}
+    dlmeta=json.loads((out/"download_metadata.json").read_text()) if (out/"download_metadata.json").exists() else {}
+    meta={"venue":"Binance USDⓈ-M","symbol":SYMBOL,"interval":INTERVAL,"rows":len(d),"start":str(d.index.min()),"end_open":str(d.index.max()),"duplicates_removed":int(dlmeta.get("duplicates_removed",0)),"missing_15m_intervals":gaps,"malformed_rows_removed":int(len(raw)-len(d)),"download_requests":dlmeta.get("requests"),"zero_volume_rows":int((d.volume==0).sum()),"complete_4h_bars":len(d4),"source_sha256":digest,"evaluation_start":str(EVAL_START),"evaluation_end_exclusive":str(EVAL_END),"oos":"not downloaded or evaluated","self_tests":tests,"events":len(events),"matched_controls":len(controls),"summary":summary}
     (out/"summary.json").write_text(json.dumps(meta,indent=2,default=str))
     report=["# Binance ETHUSDT 15m EMA20 cross-exchange replication","",f"- Source rows: {len(d):,}; missing 15m intervals: {gaps}; complete 4h bars: {len(d4):,}.",f"- Range: {d.index.min()} to {d.index.max()} (bar open).",f"- Events: {len(events)}; matched controls: {len(controls)}; OOS not downloaded or evaluated.","","## Results at 10 bps round-trip cost",""]
     for h,z in summary.items():
