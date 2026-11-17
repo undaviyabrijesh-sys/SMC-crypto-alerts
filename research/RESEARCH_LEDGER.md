@@ -1721,3 +1721,9 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Branch hygiene: compare showed main one commit ahead of ai-quant-rebuild; extra main commit `2d415d81249ff5e1751bed6ce37698a8297e3f6b` adds the order-flow preregistration. This is pre-existing; copied the spec to ai-quant-rebuild. No write/revert or other mutation to main was made.
 - Decision: no order-flow model promoted. Wait for corrected V2 workflow and verify data hashes/quality before interpreting results. If V2 remains negative, close candle-proxy family until actual trade-level price/quantity/aggressor-side data is available. No production rules, approved strategies, live alerts or exchange orders changed.
 - Audit report: `research/ORDERFLOW_ZONE_BACKTEST_V1_CODE_AUDIT_2026-11-17.md`.
+
+
+### Order-flow V2 holdout exposure correction — 2026-11-17
+- V1's report already exposed the final 15% OOS metrics. Therefore the same date partition in V2 is not a fresh untouched holdout, despite the V2 implementation correction. V2 OOS is descriptive only; no parameter selection or promotion may use it. Future confirmatory evidence requires a prospectively frozen, uninspected date window or genuinely new data.
+- V2 summary wording was amended to disclose this limitation. Amendment: `research/ORDERFLOW_ZONE_BACKTEST_V2_OOS_EXPOSURE_AMENDMENT_2026-11-17.md`.
+- The V2 script was amended after the triggering commit to label the final partition as previously exposed. The workflow run's checked-out revision is not yet known; verify the published summary text before accepting the run. No V2 results are claimed.
