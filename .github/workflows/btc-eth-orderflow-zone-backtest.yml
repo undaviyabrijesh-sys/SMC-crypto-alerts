@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: btc-eth-orderflow-zone-backtest-${ github.ref }}
+  group: btc-eth-orderflow-zone-backtest
   cancel-in-progress: true
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
       - name: Publish reproducible summary and metrics to research branch
         if: success()
         env:
-          GH_TOKEN: ${ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p quant_discovery
           cp results/orderflow-profile/report/summary.md quant_discovery/ORDERFLOW_ZONE_BACKTEST_LATEST.md
@@ -72,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-eth-orderflow-zone-backtest-${ github.run_id }}
+          name: btc-eth-orderflow-zone-backtest
           path: results/orderflow-profile/
           if-no-files-found: warn
           retention-days: 30
