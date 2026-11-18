@@ -82,8 +82,8 @@ def self_test() -> None:
     assert bucket_open_ms(np.array([0, 299999, 300000, 600001], dtype=np.int64)).tolist() == [0, 0, 300000, 600000]
     assert detect_csv_header(io.BytesIO(b"agg_trade_id,price,quantity,first_trade_id,last_trade_id,transact_time,is_buyer_maker\n"), AGG_HEADER)
     assert not detect_csv_header(io.BytesIO(b"1,100.0,0.1,10,10,1788220800000,false\n"), AGG_HEADER)
-    assert detect_csv_header(io.BytesIO(b"open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\\n"), KLINE_HEADER)
-    assert detect_csv_header(io.BytesIO(b"open_time,open,high,low,close,volume,close_time,quote_asset_volume,number_of_trades,taker_buy_base_asset_volume,taker_buy_quote_asset_volume,ignore\\n"), KLINE_HEADER)
+    assert detect_csv_header(io.BytesIO(b"open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\n"), KLINE_HEADER)
+    assert detect_csv_header(io.BytesIO(b"open_time,open,high,low,close,volume,close_time,quote_asset_volume,number_of_trades,taker_buy_base_asset_volume,taker_buy_quote_asset_volume,ignore\n"), KLINE_HEADER)
     print("7 deterministic archive-header and aggTrade ingestion tests passed")
 
 
