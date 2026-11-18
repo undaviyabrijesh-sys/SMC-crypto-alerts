@@ -131,7 +131,7 @@ def value_area(profile: pd.DataFrame, weight_col: str, fraction: float = 0.70) -
             cumulative += rv
     return {"poc": float(d.price.iloc[poc]), "val": float(d.price.iloc[left]),
             "vah": float(d.price.iloc[right]), "covered_share": cumulative / total,
-            "total_weight": total}
+            "poc_share": float(w[poc] / total), "total_weight": total}
 
 
 def self_test() -> None:
@@ -287,9 +287,9 @@ def build_daily_profiles(levels: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFra
             "net_delta": float(group.delta.sum()),
             "net_delta_ratio": float(group.delta.sum() / group.volume.sum()),
             "volume_poc": vp["poc"], "volume_val": vp["val"], "volume_vah": vp["vah"],
-            "volume_value_area_share": vp["covered_share"],
+            "volume_value_area_share": vp["covered_share"], "volume_poc_share": vp["poc_share"],
             "tpo_poc": tp["poc"], "tpo_val": tp["val"], "tpo_vah": tp["vah"],
-            "tpo_value_area_share": tp["covered_share"],
+            "tpo_value_area_share": tp["covered_share"], "tpo_poc_share": tp["poc_share"],
             "tpo_period_price_counts": int(group.tpo_30m_count.sum()),
             "max_tpo_30m_count_at_price": int(group.tpo_30m_count.max()),
             "price_levels": int(len(group)),
@@ -416,9 +416,9 @@ def run(out: Path) -> int:
         tpo_ok = bool(daily.tpo_30m_count.between(1, 48).all())
         daily_ok = bool(daily.day_open_ms.nunique() == 30 and len(summaries) == 30)
         va_ok = bool((summaries.volume_value_area_share >= .70).all()
-                     and (summaries.volume_value_area_share <= 1.0).all()
+                     and ((summaries.volume_value_area_share < 1.0 - 1e-12) | (summaries.volume_poc_share >= .70)).all()
                      and (summaries.tpo_value_area_share >= .70).all()
-                     and (summaries.tpo_value_area_share <= 1.0).all())
+                     and ((summaries.tpo_value_area_share < 1.0 - 1e-12) | (summaries.tpo_poc_share >= .70)).all())
         key_unique = not levels.duplicated(["bar_open_ms", "price"]).any()
         sums_ok = bool(abs(levels.total_qty.sum() - astats["total_qty"]) / astats["total_qty"] <= 1e-10
                        and abs(levels.taker_buy_qty.sum() - astats["buy_qty"]) / astats["buy_qty"] <= 1e-10
