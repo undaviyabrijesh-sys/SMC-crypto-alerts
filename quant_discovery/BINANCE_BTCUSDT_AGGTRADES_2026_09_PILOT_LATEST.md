@@ -1,7 +1,7 @@
 # Binance USD-M BTCUSDT September 2026 aggTrades pilot
 
 - Status: **FAILED**
-- Retrieved: 2026-11-18T11:24:40.532110+00:00
+- Retrieved: 2026-11-18T11:24:47.201557+00:00
 - Requested interval: 2026-09-01T00:00:00+00:00 to 2026-10-01T00:00:00+00:00 (exclusive)
 - Integrity pass: False
 - Reconciliation pass: False
