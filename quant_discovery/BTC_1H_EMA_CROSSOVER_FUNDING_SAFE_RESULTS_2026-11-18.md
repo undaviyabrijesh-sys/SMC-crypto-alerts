@@ -77,7 +77,7 @@ For the strongest 20/50 diagnostic, development monthly net R alternated: positi
 - 10 deterministic test groups passed: complete 1h aggregation, dropped incomplete bars, 1h/4h future-perturbation invariance, stop-first ambiguity, adverse stop gaps, favourable target gap caps and settlement clock.
 - Independent audit recalculated 1,344 fields (trade count, net win rate, PF, net R, max drawdown, losing streak and positive-month fraction) across all 192 summary rows; **zero differences**.
 - 2,908 trade rows; no overlapping positions; no funding-boundary violations; no OOS rows; no split-boundary trades.
-- Local replay was executed from the packaged source and funding CSVs. This was not a GitHub Actions run.
+- Local replay was executed from the packaged source and funding CSVs. The compact committed runner `research/btc_1h_ema_crossover_funding_safe.py` independently reproduced all 192 summary rows, 2,908 trade rows, 1,296 monthly rows and 384 regime rows from the full local implementation; all reported summary metrics, trade-price/R fields and exported monthly/regime values matched exactly after documented rounding. This was not a GitHub Actions run.
 
 ## Limitations
 
