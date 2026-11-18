@@ -405,7 +405,6 @@ def run(out: Path) -> int:
             "signed_delta_base_quantity": agg_stats["signed_delta_qty"],
             "net_delta_fraction_of_volume": agg_stats["net_delta_fraction_of_volume"],
             "aggtrade_zip_validation": {k: agg_stats[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes", "csv_header_present"]},
-            "kline_zip_validation": {k: kmeta[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes", "csv_header_present"]},
         })
         kline_path, kline_download = download_checked_zip(session, kline_url, src)
         meta["kline_download"] = kline_download
@@ -413,6 +412,7 @@ def run(out: Path) -> int:
         meta["kline_expected_sha256"] = kline_download["expected_sha256"]
         klines, kmeta = read_klines(kline_path)
         meta["kline_metadata"] = kmeta
+        meta["kline_zip_validation"] = {k: kmeta[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes", "csv_header_present"]}
         reconciled, rec = reconcile(bucket_acc, klines)
         reconciled["open_time_utc"] = pd.to_datetime(reconciled.open_time_ms, unit="ms", utc=True).astype(str)
         reconciled.to_csv(out / "reconciliation_5m.csv", index=False)
