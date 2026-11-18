@@ -133,7 +133,7 @@ def csv_member(path: Path) -> tuple[str, dict[str, Any]]:
                           "uncompressed_csv_bytes": info.file_size, "zip_members": zf.namelist()}
 
 
-def read_aggtrades(path: Path, bucket_acc: dict[int, list[float]]) -> dict[str, Any]:
+def read_aggtrades(path: Path, bucket_acc: dict[str, np.ndarray]) -> dict[str, Any]:
     member, zip_meta = csv_member(path)
     totals = {"rows": 0, "buy_qty": 0.0, "sell_qty": 0.0, "quantity": 0.0,
               "first_agg_id": None, "last_agg_id": None, "first_timestamp_ms": None,
@@ -143,78 +143,71 @@ def read_aggtrades(path: Path, bucket_acc: dict[int, list[float]]) -> dict[str, 
     prev_id = None
     prev_ts = None
     start_ms, end_ms = int(START.timestamp() * 1000), int(END.timestamp() * 1000)
+    dtypes = {"agg_trade_id": "int64", "price": "float64", "quantity": "float64",
+              "first_trade_id": "int64", "last_trade_id": "int64",
+              "timestamp_ms": "int64", "buyer_maker": "bool"}
     with zipfile.ZipFile(path) as zf, zf.open(member) as fh:
         header_present = detect_csv_header(fh, AGG_HEADER)
         totals["csv_header_present"] = header_present
-        reader = pd.read_csv(fh, header=None, names=AGG_COLS, dtype=str,
-                             chunksize=500_000, low_memory=False)
+        reader = pd.read_csv(fh, header=None, names=AGG_COLS, dtype=dtypes,
+                             chunksize=1_000_000, low_memory=False)
         for chunk in reader:
-            if chunk.shape[1] != 7:
-                raise ValueError(f"Unexpected aggTrade column count: {chunk.shape[1]}")
-            numeric = {}
-            for col in ["agg_trade_id", "price", "quantity", "first_trade_id",
-                        "last_trade_id", "timestamp_ms"]:
-                numeric[col] = pd.to_numeric(chunk[col], errors="coerce")
-            arrays = {k: v.to_numpy(dtype=float) for k, v in numeric.items()}
-            finite = np.ones(len(chunk), dtype=bool)
-            for arr in arrays.values():
-                finite &= np.isfinite(arr)
-            integer_cols = ["agg_trade_id", "first_trade_id", "last_trade_id", "timestamp_ms"]
-            integer_ok = np.ones(len(chunk), dtype=bool)
-            for col in integer_cols:
-                integer_ok &= np.equal(arrays[col], np.floor(arrays[col]))
-            positive = (arrays["price"] > 0) & (arrays["quantity"] > 0)
-            underlying_ok = arrays["first_trade_id"] <= arrays["last_trade_id"]
-            if not np.all(finite & integer_ok & positive & underlying_ok):
-                bad_count = int((~(finite & integer_ok & positive & underlying_ok)).sum())
+            ids = chunk.agg_trade_id.to_numpy(np.int64)
+            ts = chunk.timestamp_ms.to_numpy(np.int64)
+            price = chunk.price.to_numpy(float)
+            qty = chunk.quantity.to_numpy(float)
+            first_id = chunk.first_trade_id.to_numpy(np.int64)
+            last_id = chunk.last_trade_id.to_numpy(np.int64)
+            maker = chunk.buyer_maker.to_numpy(bool)
+            valid = (np.isfinite(price) & np.isfinite(qty) & (price > 0) & (qty > 0)
+                     & (first_id <= last_id))
+            if not valid.all():
+                bad_count = int((~valid).sum())
                 totals["invalid_numeric_rows"] += bad_count
                 raise ValueError(f"Invalid aggTrade numeric rows in {path.name}: {bad_count}")
-            ids = arrays["agg_trade_id"].astype(np.int64)
-            ts = arrays["timestamp_ms"].astype(np.int64)
-            maker = parse_bool(chunk["buyer_maker"])
-            if np.any(ids[1:] <= ids[:-1]):
-                totals["id_order_violations"] += int(np.sum(ids[1:] <= ids[:-1]))
-                raise ValueError("Aggregate trade IDs are not strictly increasing within archive order")
-            if prev_id is not None:
-                if int(ids[0]) <= prev_id:
-                    totals["id_order_violations"] += 1
-                    raise ValueError("Aggregate trade IDs are not strictly increasing across chunks")
-                if int(ids[0]) > prev_id + 1:
-                    totals["aggregate_id_gaps"] += int(ids[0] - prev_id - 1)
-            if np.any(ts[1:] < ts[:-1]):
-                totals["timestamp_regressions"] += int(np.sum(ts[1:] < ts[:-1]))
-                raise ValueError("Timestamps regress while aggregate IDs increase")
-            if prev_ts is not None and int(ts[0]) < prev_ts:
-                totals["timestamp_regressions"] += 1
-                raise ValueError("Timestamp regresses across aggregate-trade chunks")
             if np.any((ts < start_ms) | (ts >= end_ms)):
                 totals["out_of_month_timestamps"] += int(np.sum((ts < start_ms) | (ts >= end_ms)))
                 raise ValueError("AggTrade timestamp falls outside the frozen September 2026 interval")
-            qty = arrays["quantity"]
-            buy = np.where(~maker, qty, 0.0)
-            sell = np.where(maker, qty, 0.0)
-            totals["rows"] += len(chunk)
-            totals["quantity"] += float(qty.sum())
-            totals["buy_qty"] += float(buy.sum())
-            totals["sell_qty"] += float(sell.sum())
+            if len(ids) > 1:
+                diffs = np.diff(ids)
+                duplicate_count = int(np.sum(diffs == 0))
+                order_count = int(np.sum(diffs < 0))
+                totals["duplicate_ids"] += duplicate_count
+                totals["id_order_violations"] += duplicate_count + order_count
+                totals["aggregate_id_gaps"] += int(np.maximum(diffs - 1, 0).sum())
+                totals["timestamp_regressions"] += int(np.sum(np.diff(ts) < 0))
+                if duplicate_count or order_count:
+                    raise ValueError("Aggregate trade IDs are not strictly increasing within archive order")
+                if np.any(np.diff(ts) < 0):
+                    raise ValueError("Timestamps regress while aggregate IDs increase")
+            if prev_id is not None:
+                if int(ids[0]) <= prev_id:
+                    totals["duplicate_ids"] += int(ids[0] == prev_id)
+                    totals["id_order_violations"] += 1
+                    raise ValueError("Aggregate trade IDs are not strictly increasing across chunks")
+                totals["aggregate_id_gaps"] += max(int(ids[0]) - prev_id - 1, 0)
+                if int(ts[0]) < prev_ts:
+                    totals["timestamp_regressions"] += 1
+                    raise ValueError("Timestamp regresses across aggregate-trade chunks")
             if totals["first_agg_id"] is None:
                 totals["first_agg_id"] = int(ids[0])
                 totals["first_timestamp_ms"] = int(ts[0])
             totals["last_agg_id"] = int(ids[-1])
             totals["last_timestamp_ms"] = int(ts[-1])
-            if len(ids) > 1:
-                totals["aggregate_id_gaps"] += int(np.sum(np.maximum(np.diff(ids) - 1, 0)))
-            b = bucket_open_ms(ts)
-            tmp = pd.DataFrame({"bucket": b, "qty": qty, "buy": buy, "sell": sell})
-            grouped = tmp.groupby("bucket", sort=False).agg(
-                quantity=("qty", "sum"), buy_qty=("buy", "sum"),
-                sell_qty=("sell", "sum"), aggtrade_count=("qty", "size"))
-            for key, row in grouped.iterrows():
-                slot = bucket_acc.setdefault(int(key), [0.0, 0.0, 0.0, 0.0])
-                slot[0] += float(row.quantity)
-                slot[1] += float(row.buy_qty)
-                slot[2] += float(row.sell_qty)
-                slot[3] += float(row.aggtrade_count)
+            buy_mask = ~maker
+            buy_qty = np.where(buy_mask, qty, 0.0)
+            sell_qty = np.where(maker, qty, 0.0)
+            bucket = ((ts - start_ms) // BAR_MS).astype(np.int64)
+            if np.any((bucket < 0) | (bucket >= EXPECTED_5M_BARS)):
+                raise ValueError("AggTrade timestamp mapped outside expected 5m bucket range")
+            bucket_acc["quantity"] += np.bincount(bucket, weights=qty, minlength=EXPECTED_5M_BARS)
+            bucket_acc["buy_qty"] += np.bincount(bucket, weights=buy_qty, minlength=EXPECTED_5M_BARS)
+            bucket_acc["sell_qty"] += np.bincount(bucket, weights=sell_qty, minlength=EXPECTED_5M_BARS)
+            bucket_acc["count"] += np.bincount(bucket, minlength=EXPECTED_5M_BARS).astype(np.int64)
+            totals["rows"] += len(chunk)
+            totals["quantity"] += float(qty.sum())
+            totals["buy_qty"] += float(buy_qty.sum())
+            totals["sell_qty"] += float(sell_qty.sum())
             prev_id, prev_ts = int(ids[-1]), int(ts[-1])
     if totals["rows"] == 0:
         raise ValueError("AggTrades archive contains no rows")
@@ -268,36 +261,49 @@ def read_klines(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     return d, meta
 
 
-def reconcile(agg_buckets: dict[int, list[float]], klines: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
-    a = pd.DataFrame.from_dict(agg_buckets, orient="index",
-                               columns=["agg_volume", "agg_taker_buy_base", "agg_taker_sell_base", "aggtrade_count"])
-    a.index.name = "open_time_ms"
-    a = a.reset_index()
+def reconcile(bucket_acc: dict[str, np.ndarray], klines: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
+    start_ms = int(START.timestamp() * 1000)
+    open_times = np.arange(start_ms, start_ms + EXPECTED_5M_BARS * BAR_MS, BAR_MS, dtype=np.int64)
+    a = pd.DataFrame({
+        "open_time_ms": open_times,
+        "agg_volume": bucket_acc["quantity"],
+        "agg_taker_buy_base": bucket_acc["buy_qty"],
+        "agg_taker_sell_base": bucket_acc["sell_qty"],
+        "aggtrade_count": bucket_acc["count"],
+    })
     k = klines[["open_time_ms", "volume", "taker_buy_base", "trade_count"]].rename(
         columns={"volume": "kline_volume", "taker_buy_base": "kline_taker_buy_base",
                  "trade_count": "kline_trade_count"})
     d = k.merge(a, on="open_time_ms", how="outer", indicator=True).sort_values("open_time_ms").reset_index(drop=True)
     left_only = int((d["_merge"] == "left_only").sum())
     right_only = int((d["_merge"] == "right_only").sum())
-    d["agg_volume_filled"] = d.agg_volume.fillna(0.0)
-    d["agg_taker_buy_filled"] = d.agg_taker_buy_base.fillna(0.0)
+    d["agg_volume"] = d.agg_volume.fillna(0.0)
+    d["agg_taker_buy_base"] = d.agg_taker_buy_base.fillna(0.0)
+    d["agg_taker_sell_base"] = d.agg_taker_sell_base.fillna(0.0)
+    d["aggtrade_count"] = d.aggtrade_count.fillna(0).astype(np.int64)
     d["volume_abs_rel_error"] = np.where(d.kline_volume > 0,
-        np.abs(d.agg_volume_filled - d.kline_volume) / d.kline_volume, np.nan)
+        np.abs(d.agg_volume - d.kline_volume) / d.kline_volume, np.nan)
     d["taker_buy_abs_rel_error"] = np.where(d.kline_taker_buy_base > 0,
-        np.abs(d.agg_taker_buy_filled - d.kline_taker_buy_base) / d.kline_taker_buy_base, np.nan)
+        np.abs(d.agg_taker_buy_base - d.kline_taker_buy_base) / d.kline_taker_buy_base, np.nan)
     def rel(a0: float, b0: float) -> float:
         return abs(a0 - b0) / b0 if b0 else math.inf
-    kvol, avol = float(d.kline_volume.sum(skipna=True)), float(d.agg_volume_filled.sum())
-    kbuy, abuy = float(d.kline_taker_buy_base.sum(skipna=True)), float(d.agg_taker_buy_filled.sum())
-    v_err = rel(avol, kvol)
-    b_err = rel(abuy, kbuy)
+    kvol, avol = float(d.kline_volume.sum(skipna=True)), float(d.agg_volume.sum())
+    kbuy, abuy = float(d.kline_taker_buy_base.sum(skipna=True)), float(d.agg_taker_buy_base.sum())
+    v_err, b_err = rel(avol, kvol), rel(abuy, kbuy)
     vm = d.volume_abs_rel_error.dropna().to_numpy(float)
     bm = d.taker_buy_abs_rel_error.dropna().to_numpy(float)
-    matched = d["_merge"].eq("both")
+    both = d["_merge"].eq("both")
+    active_agg = d.aggtrade_count > 0
+    kline_positive = d.kline_volume.fillna(0.0) > 0
+    missing_agg_buckets = int((~active_agg & kline_positive).sum())
+    agg_only_buckets = int((active_agg & ~kline_positive).sum())
+    exact_volume = np.isclose(d.loc[both, "agg_volume"], d.loc[both, "kline_volume"], rtol=1e-8, atol=1e-8)
+    exact_buy = np.isclose(d.loc[both, "agg_taker_buy_base"], d.loc[both, "kline_taker_buy_base"], rtol=1e-8, atol=1e-8)
     summary = {
-        "kline_buckets": int(len(klines)), "aggtrade_buckets": int(len(agg_buckets)),
-        "kline_only_buckets": left_only, "aggtrade_only_buckets": right_only,
-        "matched_buckets": int(matched.sum()),
+        "kline_buckets": int(len(klines)), "aggtrade_buckets": int(active_agg.sum()),
+        "kline_only_buckets": missing_agg_buckets, "aggtrade_only_buckets": agg_only_buckets,
+        "unmatched_timestamp_rows": left_only + right_only,
+        "matched_buckets": int(both.sum()),
         "agg_total_base_quantity": avol, "kline_total_base_volume": kvol,
         "total_volume_relative_error": v_err,
         "agg_taker_buy_base_quantity": abuy, "kline_taker_buy_base_volume": kbuy,
@@ -308,19 +314,17 @@ def reconcile(agg_buckets: dict[int, list[float]], klines: pd.DataFrame) -> tupl
         "taker_buy_per_bar_relative_error_median": float(np.median(bm)) if len(bm) else None,
         "taker_buy_per_bar_relative_error_p95": float(np.quantile(bm, .95)) if len(bm) else None,
         "taker_buy_per_bar_relative_error_max": float(np.max(bm)) if len(bm) else None,
-        "volume_exact_match_fraction_1e-8": float(np.isclose(
-            d.loc[matched, "agg_volume_filled"], d.loc[matched, "kline_volume"],
-            rtol=1e-8, atol=1e-8).mean()) if matched.any() else 0.0,
-        "taker_buy_exact_match_fraction_1e-8": float(np.isclose(
-            d.loc[matched, "agg_taker_buy_filled"], d.loc[matched, "kline_taker_buy_base"],
-            rtol=1e-8, atol=1e-8).mean()) if matched.any() else 0.0,
+        "volume_exact_match_fraction_1e-8": float(exact_volume.mean()) if len(exact_volume) else 0.0,
+        "taker_buy_exact_match_fraction_1e-8": float(exact_buy.mean()) if len(exact_buy) else 0.0,
         "total_volume_tolerance": 0.001, "taker_buy_tolerance": 0.001,
         "total_volume_pass": bool(v_err <= 0.001),
         "taker_buy_pass": bool(b_err <= 0.001),
-        "bucket_coverage_pass": bool(left_only == 0 and right_only == 0 and len(klines) == EXPECTED_5M_BARS),
+        "bucket_coverage_pass": bool(missing_agg_buckets == 0 and agg_only_buckets == 0
+                                     and left_only == 0 and right_only == 0
+                                     and len(klines) == EXPECTED_5M_BARS),
     }
-    d["agg_signed_delta_base"] = d.agg_taker_buy_base.fillna(0.0) - d.agg_taker_sell_base.fillna(0.0)
-    return d.drop(columns=["_merge", "agg_volume_filled", "agg_taker_buy_filled"]), summary
+    d["agg_signed_delta_base"] = d.agg_taker_buy_base - d.agg_taker_sell_base
+    return d.drop(columns=["_merge"]), summary
 
 
 def write_report(out: Path, meta: dict[str, Any]) -> None:
@@ -378,7 +382,12 @@ def run(out: Path) -> int:
         meta["aggtrade_download"] = agg_download
         meta["aggtrade_sha256"] = agg_download["sha256"]
         meta["aggtrade_expected_sha256"] = agg_download["expected_sha256"]
-        bucket_acc: dict[int, list[float]] = {}
+        bucket_acc = {
+            "quantity": np.zeros(EXPECTED_5M_BARS, dtype=float),
+            "buy_qty": np.zeros(EXPECTED_5M_BARS, dtype=float),
+            "sell_qty": np.zeros(EXPECTED_5M_BARS, dtype=float),
+            "count": np.zeros(EXPECTED_5M_BARS, dtype=np.int64),
+        }
         agg_stats = read_aggtrades(agg_path, bucket_acc)
         meta.update({
             "aggtrade_rows": agg_stats["rows"], "first_agg_id": agg_stats["first_agg_id"],
