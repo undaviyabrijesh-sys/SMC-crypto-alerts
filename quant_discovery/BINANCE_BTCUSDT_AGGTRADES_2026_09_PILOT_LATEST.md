@@ -1,10 +1,10 @@
 # Binance USD-M BTCUSDT September 2026 aggTrades pilot
 
-- Status: **FAILED**
-- Retrieved: 2026-11-18T11:24:47.201557+00:00
+- Status: **PASS**
+- Retrieved: 2026-11-18T11:30:48.392047+00:00
 - Requested interval: 2026-09-01T00:00:00+00:00 to 2026-10-01T00:00:00+00:00 (exclusive)
-- Integrity pass: False
-- Reconciliation pass: False
+- Integrity pass: True
+- Reconciliation pass: True
 
 ## Archive integrity
 - aggtrade_rows: 36036629
@@ -23,9 +23,34 @@
 - signed_delta_base_quantity: -42248.30300000077
 
 ## 5-minute reconciliation
+- kline_buckets: 8640
+- aggtrade_buckets: 8640
+- kline_only_buckets: 0
+- aggtrade_only_buckets: 0
+- unmatched_timestamp_rows: 0
+- matched_buckets: 8640
+- agg_total_base_quantity: 4267354.77900014
+- kline_total_base_volume: 4267354.779
+- total_volume_relative_error: 3.273652963653008e-14
+- agg_taker_buy_base_quantity: 2112553.2380000115
+- kline_taker_buy_base_volume: 2112553.238
+- taker_buy_total_relative_error: 5.510645589085733e-15
+- volume_per_bar_relative_error_median: 1.0516627875379301e-14
+- volume_per_bar_relative_error_p95: 4.380483044410305e-05
+- volume_per_bar_relative_error_max: 0.02644125240605231
+- taker_buy_per_bar_relative_error_median: 4.083064934423918e-15
+- taker_buy_per_bar_relative_error_p95: 6.832834682694543e-06
+- taker_buy_per_bar_relative_error_max: 0.07939200088489878
+- volume_exact_match_fraction_1e-8: 0.8862268518518519
+- taker_buy_exact_match_fraction_1e-8: 0.9434027777777778
+- total_volume_tolerance: 0.001
+- taker_buy_tolerance: 0.001
+- total_volume_pass: True
+- taker_buy_pass: True
+- bucket_coverage_pass: True
 
 ## Interpretation
-The frozen data pilot failed before all required checks completed. No market or strategy result is available.
+Ready for a separately preregistered trade-level feature study; this pilot itself contains no strategy result.
 
 ## Source files
 - aggtrade_url: https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip
