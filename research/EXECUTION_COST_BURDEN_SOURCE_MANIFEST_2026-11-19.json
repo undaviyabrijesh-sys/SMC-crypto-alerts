@@ -1,0 +1,16 @@
+{
+  "created_utc": "2026-11-19",
+  "purpose": "Retrospective cross-family execution-cost burden audit; not a new strategy backtest.",
+  "selection_rule": "For split-based families, choose highest development net_R at 10 bps and carry unchanged into validation; never select using validation. Include both true-VP variants as one-month post-hoc diagnostics.",
+  "cost_formula": "cost_R = cost_bps / (abs(entry-stop)/entry*10000); net_R = gross_R - cost_R",
+  "source_manifest": {
+    "btc_5m_crt_previous_hour_sweep_reclaim_2026-11-19.zip": "3b5e36719124b75724b382d79487664151b0c947bc76e98af3a641063d0ebae8",
+    "btc_1h_ema_crossover_funding_safe_research_2026-11-18.zip": "e249ab5abd33b66991706977fd71abe3d37c95fcef563c6651cf951c4f4042c5",
+    "btc_donchian_breakout_research_2026-11-18.zip": "89b142559c814aa518be99ef55b358f5315b9b80ca26dbb79196751b47bbe386",
+    "btc_rsi2_mean_reversion_research_2026-11-18.zip": "7e5108adacf9b990b94866f4df7d3c5573e22c152929809c947f31ea24fc3859",
+    "true_vp_sweep_delta_execution_pilot_2026-11-18.zip": "ad991ff44f6ee7730617094e708970d34161e7fef3f33669af2a9527a9b9903a"
+  },
+  "result": "PASS",
+  "rows": 50,
+  "reproducibility": "Clean second execution reproduced outputs byte-for-byte."
+}
