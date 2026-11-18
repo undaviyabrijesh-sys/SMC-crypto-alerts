@@ -33,8 +33,14 @@ KLINE_COLS = ["open_time_ms", "open", "high", "low", "close", "volume",
               "close_time_ms", "quote_volume", "trade_count",
               "taker_buy_base", "taker_buy_quote", "ignore"]
 KLINE_HEADER = ["open_time", "open", "high", "low", "close", "volume",
-                "close_time", "quote_asset_volume", "number_of_trades",
-                "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume", "ignore"]
+                "close_time", "quote_volume", "count", "taker_buy_volume",
+                "taker_buy_quote_volume", "ignore"]
+KLINE_HEADER_VARIANTS = [
+    KLINE_HEADER,
+    ["open_time", "open", "high", "low", "close", "volume", "close_time",
+     "quote_asset_volume", "number_of_trades", "taker_buy_base_asset_volume",
+     "taker_buy_quote_asset_volume", "ignore"],
+]
 
 
 def parse_checksum(text: str) -> str:
@@ -47,7 +53,10 @@ def parse_checksum(text: str) -> str:
 def detect_csv_header(fh: Any, expected: list[str]) -> bool:
     first = fh.readline().decode("utf-8-sig").strip().split(",")
     normalized = [x.strip().lower() for x in first]
-    if normalized == expected:
+    variants = [expected]
+    if expected == KLINE_HEADER:
+        variants = KLINE_HEADER_VARIANTS
+    if normalized in variants:
         return True
     fh.seek(0)
     return False
