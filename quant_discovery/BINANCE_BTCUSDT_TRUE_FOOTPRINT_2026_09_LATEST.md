@@ -1,7 +1,7 @@
 # BTCUSDT September 2026 true footprint / VP / TPO feature build
 
 - Status: **PASS**
-- Retrieved: 2026-11-18T11:37:45.619475+00:00
+- Retrieved: 2026-11-18T11:40:26.770098+00:00
 - AggTrade rows: 36036629
 - 5m price-level rows: 8510392
 - Daily profile days: 30
