@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build exact-price BTCUSDT 5m footprint, daily volume profile and 30m TPO from Binance aggTrades."""
+# Frozen one-month data feature pilot; no strategy PnL is computed in this module.
 from __future__ import annotations
 
 import argparse
