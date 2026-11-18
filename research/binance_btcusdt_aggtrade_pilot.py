@@ -71,8 +71,8 @@ def self_test() -> None:
     s = pd.Series(["true", "false", "TRUE", "False"])
     assert parse_bool(s).tolist() == [True, False, True, False]
     assert bucket_open_ms(np.array([0, 299999, 300000, 600001], dtype=np.int64)).tolist() == [0, 0, 300000, 600000]
-    assert detect_csv_header(io.BytesIO(b"agg_trade_id,price,quantity,first_trade_id,last_trade_id,transact_time,is_buyer_maker\\n"), AGG_HEADER)
-    assert not detect_csv_header(io.BytesIO(b"1,100.0,0.1,10,10,1788220800000,false\\n"), AGG_HEADER)
+    assert detect_csv_header(io.BytesIO(b"agg_trade_id,price,quantity,first_trade_id,last_trade_id,transact_time,is_buyer_maker\n"), AGG_HEADER)
+    assert not detect_csv_header(io.BytesIO(b"1,100.0,0.1,10,10,1788220800000,false\n"), AGG_HEADER)
     print("5 deterministic aggTrade ingestion tests passed")
 
 
