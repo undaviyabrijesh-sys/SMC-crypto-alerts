@@ -1,6 +1,6 @@
 # Salty Quant Research Ledger
 
-Last updated: 2026-11-18 (UTC)
+Last updated: 2026-11-19 (UTC)
 
 This ledger records reproducible experiments only. "Completed" means the workflow actually finished and outputs were inspected. No experiment here changes live signals or production rules.
 
@@ -1916,4 +1916,15 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - At 4 bps all variants still lost (PF dev 0.548–0.607; validation 0.441–0.611). At zero cost, PF was only 0.942–1.011 development and 0.835–1.062 validation; small positive gross results appeared in different configs in the two periods. Median initial risk 16.30 bps; p10 6.43 bps, making the strategy highly cost-sensitive.
 - Five deterministic tests passed; independent audit reproduced every summary metric exactly (max difference 0), confirmed no overlapping positions, cooldown/holding/funding-boundary rules, and a second clean replay reproduced seven principal output files byte-for-byte. 80 summary rows; 38,228 configuration-trade rows (not unique signals). No config passed the development/validation gate; final 15% OOS untouched.
 - Decision: reject this mechanical prior-hour CRT-style sweep/reclaim definition under tested assumptions. Post-run audit found the existing CRT v1/v2/v3 family in this ledger (15m execution with 1H/4H/1D/weekly references); this is a finer 5m execution-resolution variant, not a new independent family. The prior-art audit should have happened before execution. Do not run further CRT sweep/reclaim variants until the family-wide evidence is consolidated. This does not disprove every discretionary or higher-timeframe CRT approach. No ETH replication. Funding cashflow, spread and market impact not modeled. The CRT run was local; no GitHub Actions run is claimed.
+- No production, main-branch, live-alert or exchange-order changes.
+
+
+## 2026-11-19 — Cross-family execution-cost burden audit
+
+- Audit report: research/EXECUTION_COST_BURDEN_CROSS_FAMILY_AUDIT_2026-11-19.md; 10-bps summary: quant_discovery/EXECUTION_COST_BURDEN_CROSS_FAMILY_2026-11-19.csv; source hashes: research/EXECUTION_COST_BURDEN_SOURCE_MANIFEST_2026-11-19.json. Reproducibility package contains the script and five source research ZIPs.
+- This is a retrospective accounting audit, not a new market backtest. For each split-based family, the representative configuration was selected only by highest development net R at 10 bps, then carried unchanged into validation. Both September true-VP variants are included as post-hoc one-month diagnostics. 50 family/configuration/split/cost rows were produced at 0/4/7/10/20 bps.
+- Cost formula: stop-risk bps = abs(entry-stop)/entry × 10,000; cost_R = round-trip cost bps / stop-risk bps; net_R = gross_R - cost_R. A clean second execution reproduced the CSV and JSON outputs byte-for-byte. Published per-trade net-R parity for EMA, Donchian, RSI(2) and true-VP was below 9e-16 maximum absolute difference; CRT recomputation matched the published summary to rounding.
+- Key finding: 5m CRT and true-VP sweeps had median stop risk about 14–17 bps; at 10 bps assumed round-trip cost, median cost burden was 0.59–0.70R, with 58.7–76.2% of trades paying >0.5R in cost. Gross mean R was already near zero, so widening stops is not justified. The 1h EMA crossover and 15m Donchian had much lower cost_R (median 0.08–0.13R), but their development net results were still negative at 10 bps. RSI(2) was weak before costs.
+- The 1h EMA20/50 crossover (1.5 ATR stop, 3R target, no 4h filter) was the only selected row with positive gross mean in both development and validation, but it failed the 10-bps development net gate and had only 27 validation trades. It is a research lead only, not a candidate.
+- Decision: no promotion, no parameter changes, no OOS inspection. Future reports should include stop-risk bps and cost_R burden. Next confirmatory step is a frozen cross-exchange Binance BTCUSDT replication of the exact EMA20/50 rule, treated as venue robustness rather than independent temporal OOS. Flat cost assumptions still omit maker/taker asymmetry, spread, impact and funding cashflows.
 - No production, main-branch, live-alert or exchange-order changes.
