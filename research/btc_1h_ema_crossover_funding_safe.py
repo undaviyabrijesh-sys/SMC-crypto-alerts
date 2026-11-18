@@ -125,9 +125,9 @@ def main():
       if len(g):
        g['month']=g.entry_time.dt.strftime('%Y-%m')
        for m,q in g.groupby('month'):
-        for b in COSTS:mo.append(dict(config_id=cfg['config_id'],sample=sample,month=m,cost_bps=b,trades=len(q),net_R=q[f'net_R_{b}bp'].sum()))
+        for b in COSTS:mo.append(dict(config_id=cfg['config_id'],sample=sample,month=m,cost_bps=b,trades=len(q),net_R=round(float(q[f'net_R_{b}bp'].sum()),4)))
        for r,q in g.groupby('regime'):
-        for b in COSTS:rg.append(dict(config_id=cfg['config_id'],sample=sample,regime=r,cost_bps=b,trades=len(q),net_R=q[f'net_R_{b}bp'].sum()))
+        for b in COSTS:rg.append(dict(config_id=cfg['config_id'],sample=sample,regime=r,cost_bps=b,trades=len(q),net_R=round(float(q[f'net_R_{b}bp'].sum()),4)))
  out=Path(a.out);out.mkdir(parents=True,exist_ok=True);pd.DataFrame(sm).to_csv(out/'summary_dev_val_costs.csv',index=False);pd.DataFrame(tr).to_csv(out/'trades_dev_val_10bps.csv',index=False);pd.DataFrame(mo).to_csv(out/'monthly_dev_val.csv',index=False);pd.DataFrame(rg).to_csv(out/'regime_dev_val.csv',index=False)
  pri=pd.DataFrame(sm);pri=pri[pri.cost_bps.eq(10)];d=pri[pri['sample'].eq('development')];v=pri[pri['sample'].eq('validation')];j=d.merge(v,on='config_id',suffixes=('_dev','_val'))
  j['pass_both']=(j.trades_dev>=50)&(j.trades_val>=20)&(j.net_R_dev>0)&(j.net_R_val>0)&(j.profit_factor_dev>1.10)&(j.profit_factor_val>1.10)&(j.positive_month_fraction_dev>=.5)&(j.positive_month_fraction_val>=.5)&(j.max_drawdown_R_dev>=-20)&(j.max_drawdown_R_val>=-10);j.to_csv(out/'paired_gates_10bps.csv',index=False)
