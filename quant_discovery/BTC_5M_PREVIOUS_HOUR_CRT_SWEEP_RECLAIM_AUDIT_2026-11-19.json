@@ -1,0 +1,14 @@
+{
+  "summary_rows": 80,
+  "trade_rows": 38228,
+  "independent_metric_max_abs_diff": 0,
+  "overlap_checks": "passed",
+  "cooldown_checks": "passed",
+  "max_holding_minutes": 55.0,
+  "funding_flat_trades": 2508,
+  "median_initial_risk_bps": 16.30142687738336,
+  "p10_initial_risk_bps": 6.432639482979508,
+  "gate_pass_count": 0,
+  "source_sha256": "5b612e1c496f16277b459f58ddff33b69d8f7912b70d8f733f0a17be844eb4fb",
+  "oos_rows": 0
+}
