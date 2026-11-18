@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   pilot:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_BINANCE_AGGTRADE_PILOT:')
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
