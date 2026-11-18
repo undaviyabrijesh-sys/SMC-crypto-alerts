@@ -1,0 +1,101 @@
+name: Binance BTCUSDT September 2026 true footprint and TPO feature build
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_FEATURE_BUILD_PREREGISTRATION.md"
+      - "research/binance_btcusdt_true_footprint_build.py"
+      - ".github/workflows/binance-btcusdt-true-footprint-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: binance-btcusdt-true-footprint-2026-09
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install feature-build dependencies
+        run: python -m pip install --disable-pip-version-check "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
+      - name: Compile and run deterministic feature tests
+        run: |
+          python -m py_compile research/binance_btcusdt_true_footprint_build.py
+          python research/binance_btcusdt_true_footprint_build.py --self-test
+      - name: Download and build exact-price 5m footprint, daily VP and 30m TPO
+        id: build_run
+        continue-on-error: true
+        run: python research/binance_btcusdt_true_footprint_build.py --output-dir results/binance-true-footprint
+      - name: Add feature report to job summary
+        if: always()
+        run: |
+          if [ -f results/binance-true-footprint/report.md ]; then
+            cat results/binance-true-footprint/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No feature report produced; inspect the build logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish feature report and metadata to research branch
+        if: always() && hashFiles('results/binance-true-footprint/metadata.json') != ''
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("results/binance-true-footprint/metadata.json")
+          m=json.loads(p.read_text())
+          m["github_run_id"]=os.environ["RUN_ID"]
+          m["github_run_attempt"]=os.environ["RUN_ATTEMPT"]
+          p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+          PY
+          mkdir -p quant_discovery
+          cp results/binance-true-footprint/report.md quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.md
+          cp results/binance-true-footprint/metadata.json quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin ai-quant-rebuild
+          git reset --hard origin/ai-quant-rebuild
+          cp results/binance-true-footprint/report.md quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.md
+          cp results/binance-true-footprint/metadata.json quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.json
+          git add quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.md quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish BTCUSDT true footprint feature build"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain raw archives, footprint and profile tables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-btcusdt-true-footprint-2026-09
+          path: results/binance-true-footprint/
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
+      - name: Require all feature validation gates
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("results/binance-true-footprint/metadata.json")
+          if not p.exists():
+              raise SystemExit("No metadata.json produced.")
+          m=json.loads(p.read_text())
+          print("Feature build status:", m.get("status"))
+          if m.get("status") != "PASS":
+              raise SystemExit("True footprint/TPO feature validation failed.")
+          PY
