@@ -1,4 +1,5 @@
 {
+  "aggregate_id_gaps": 0,
   "aggtrade_download": {
     "bytes": 437374990,
     "checksum_download": {
@@ -21,22 +22,65 @@
     "url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip"
   },
   "aggtrade_expected_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+  "aggtrade_rows": 36036629,
   "aggtrade_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+  "aggtrade_total_base_quantity": 4267354.779,
   "aggtrade_url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip",
+  "aggtrade_zip_validation": {
+    "csv_header_present": true,
+    "csv_member": "BTCUSDT-aggTrades-2026-09.csv",
+    "uncompressed_csv_bytes": 2394164622,
+    "zip_crc_pass": true
+  },
   "buyer_maker_convention": "true => buyer is maker, taker is seller; false => taker is buyer",
+  "duplicate_ids": 0,
   "end_exclusive_utc": "2026-10-01T00:00:00+00:00",
-  "error": "NameError(\"cannot access free variable 'kmeta' where it is not associated with a value in enclosing scope\")",
+  "error": "ValueError('Kline archive has invalid integer fields')",
+  "first_agg_id": 3435054521,
+  "first_timestamp_utc": "2026-09-01T00:00:00.003000+00:00",
   "github_run_attempt": "1",
-  "github_run_id": "44294110413",
+  "github_run_id": "44294410951",
+  "id_order_violations": 0,
   "integrity_pass": false,
   "interpretation": "The frozen data pilot failed before all required checks completed. No market or strategy result is available.",
+  "kline_download": {
+    "bytes": 389713,
+    "checksum_download": {
+      "bytes": 89,
+      "etag": "\"4b3b53df2e59505eb97e04f08a9c5bb2\"",
+      "last_modified": "Fri, 02 Oct 2026 09:36:21 GMT",
+      "path": "results/binance-aggtrade-pilot/source/BTCUSDT-5m-2026-09.zip.CHECKSUM",
+      "sha256": "d193616659a0e7d98ed113f7469c3dbee296d1c3ba48ba6024993b5f64df4c6d",
+      "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-09.zip.CHECKSUM"
+    },
+    "checksum_path": "results/binance-aggtrade-pilot/source/BTCUSDT-5m-2026-09.zip.CHECKSUM",
+    "checksum_text": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26  BTCUSDT-5m-2026-09.zip",
+    "checksum_url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-09.zip.CHECKSUM",
+    "checksum_verified": true,
+    "etag": "\"9aecaad60749fe6def685fbbaeec77b4\"",
+    "expected_sha256": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26",
+    "last_modified": "Fri, 02 Oct 2026 09:36:21 GMT",
+    "path": "results/binance-aggtrade-pilot/source/BTCUSDT-5m-2026-09.zip",
+    "sha256": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26",
+    "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-09.zip"
+  },
+  "kline_expected_sha256": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26",
+  "kline_sha256": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26",
   "kline_url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-09.zip",
+  "last_agg_id": 3471091149,
+  "last_timestamp_utc": "2026-09-30T23:59:59.591000+00:00",
   "market": "Binance USD-M perpetual",
+  "net_delta_fraction_of_volume": -0.00990034932363911,
+  "out_of_month_timestamps": 0,
   "reconciliation_pass": false,
-  "retrieved_at_utc": "2026-11-18T11:22:53.703552+00:00",
+  "retrieved_at_utc": "2026-11-18T11:24:40.532110+00:00",
+  "signed_delta_base_quantity": -42248.30300000077,
   "signed_delta_convention": "buy taker base quantity minus sell taker base quantity",
   "start_utc": "2026-09-01T00:00:00+00:00",
   "status": "FAILED",
   "strategy_backtest_run": false,
-  "symbol": "BTCUSDT"
+  "symbol": "BTCUSDT",
+  "taker_buy_base_quantity": 2112553.2379999994,
+  "taker_sell_base_quantity": 2154801.541,
+  "timestamp_regressions": 0
 }
