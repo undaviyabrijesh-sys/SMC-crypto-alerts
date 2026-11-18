@@ -1,0 +1,85 @@
+{
+  "symbol": "Delta BTCUSD perpetual",
+  "source": "archived Delta 5m OHLCV; complete UTC-aligned 1h bars",
+  "source_5m_rows": 210239,
+  "source_start": "2024-11-16T11:30:00Z",
+  "source_end": "2026-11-16T11:20:00Z",
+  "source_5m_gaps": 0,
+  "source_sha256": "5b612e1c496f16277b459f58ddff33b69d8f7912b70d8f733f0a17be844eb4fb",
+  "funding_archive_sha256": "e38d6e4eb3140c81e7a1108b096cd42d5829f50663d64275ac10344767a52dab",
+  "full_complete_1h_rows": 17519,
+  "complete_1h_eval_rows": 10356,
+  "eval_start": "2025-09-08T12:00:00Z",
+  "eval_end_exclusive": "2026-11-14T00:00:00Z",
+  "funding_schedule_utc": [
+    "00:00",
+    "08:00",
+    "16:00"
+  ],
+  "funding_cashflow_applied": false,
+  "funding_post_transition_hourly_gaps": 5,
+  "funding_settlement_observations": 1295,
+  "missing_settlement_observations": 0,
+  "funding_handling": "positions closed at a 1h close strictly before the next 8h settlement; no position open at settlement; pre-transition period excluded",
+  "funding_rate_units": "unscaled archive values; not applied; exact rate-to-settlement mapping unresolved",
+  "h4_complete_rows": 4379,
+  "splits": {
+    "development_rows": 7249,
+    "validation_rows": 1553,
+    "oos_rows_reserved_not_evaluated": 1554,
+    "development_end_exclusive": "2026-07-07T13:00:00Z",
+    "validation_end_exclusive": "2026-09-10T06:00:00Z"
+  },
+  "matrix": {
+    "ema_pairs": [
+      [
+        9,
+        21
+      ],
+      [
+        20,
+        50
+      ],
+      [
+        50,
+        200
+      ]
+    ],
+    "atr_multipliers": [
+      1.5,
+      2.5
+    ],
+    "targets_R": [
+      2,
+      3
+    ],
+    "htf_filters": [
+      "none",
+      "4h_ema200"
+    ],
+    "configurations": 24
+  },
+  "costs_bps": [
+    4,
+    7,
+    10,
+    20
+  ],
+  "primary_cost_bps": 10,
+  "trade_records_10bps": 2908,
+  "summary_rows": 192,
+  "deterministic_test_groups_passed": 10,
+  "independent_audit_fields": 1344,
+  "independent_audit_mismatches": 0,
+  "overlapping_positions": false,
+  "funding_boundary_violations": 0,
+  "oos_evaluated": false,
+  "pass_both_count": 0,
+  "limitations": [
+    "funding cashflow not applied",
+    "flat cost assumptions only",
+    "spread/slippage/market impact not separately modeled",
+    "no user-specific fee tier",
+    "1h OHLC ambiguity resolves stop-first"
+  ]
+}
