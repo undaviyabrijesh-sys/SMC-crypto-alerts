@@ -1,0 +1,54 @@
+{
+  "matrix_rows": 1152,
+  "train_gate_passes": 0,
+  "positive_train_net_rows": 85,
+  "metadata_train_eligible": 0,
+  "metadata_validation_passes": 0,
+  "oos_evaluated": false,
+  "dataset_rows": 70079,
+  "dataset_gaps": 0,
+  "invalid_ohlc_rows": 0,
+  "dataset_sha256": "0b03ee0d34fba7b84b522d85ff4a57d6716f05c9f48f4228dee2ddfb9397d8b0",
+  "selected_trade_ledgers": {
+    "best_train_train_trades.csv": {
+      "trades": 14,
+      "win_rate_pct": 50,
+      "profit_factor": 1.624,
+      "net_R": 5.557,
+      "max_drawdown_R": -4.632,
+      "max_losing_streak": 2,
+      "max_hold_hours": 7.75,
+      "no_overlap": true
+    },
+    "best_train_validation_trades.csv": {
+      "trades": 3,
+      "win_rate_pct": 33.33,
+      "profit_factor": 0.954,
+      "net_R": -0.133,
+      "max_drawdown_R": -1.682,
+      "max_losing_streak": 1,
+      "max_hold_hours": 1.25,
+      "no_overlap": true
+    },
+    "best_validation_min20_train_trades.csv": {
+      "trades": 228,
+      "win_rate_pct": 28.95,
+      "profit_factor": 0.57,
+      "net_R": -95.977,
+      "max_drawdown_R": -101.887,
+      "max_losing_streak": 17,
+      "max_hold_hours": 7.75,
+      "no_overlap": true
+    },
+    "best_validation_min20_validation_trades.csv": {
+      "trades": 51,
+      "win_rate_pct": 41.18,
+      "profit_factor": 1.202,
+      "net_R": 8.22,
+      "max_drawdown_R": -8.815,
+      "max_losing_streak": 3,
+      "max_hold_hours": 7.75,
+      "no_overlap": true
+    }
+  }
+}
