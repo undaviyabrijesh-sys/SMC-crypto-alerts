@@ -32,6 +32,7 @@ jobs:
       - name: Install audit dependencies
         run: python -m pip install --disable-pip-version-check "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
       - name: Compile and run deterministic ingestion tests
+        # The official September CSV carries a header row; the parser also supports headerless archives.
         run: |
           python -m py_compile research/binance_btcusdt_aggtrade_pilot.py
           python research/binance_btcusdt_aggtrade_pilot.py --self-test
