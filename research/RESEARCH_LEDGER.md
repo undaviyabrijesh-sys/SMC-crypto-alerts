@@ -992,7 +992,7 @@ This is intentionally distinct from the existing `vwap_reversion_intraday_backte
 - Decision: reject this Supertrend stop-management family under the preregistered funnel. Positive validation-only rows are not sufficient when no corresponding training-qualified candidate passes validation. No OOS was accessed.
 - Known limitations: 15m OHLC only; assumed costs; no separate order-book spread/impact; funding excluded even though an 8h hold can occasionally overlap a funding timestamp; fixed UTC session ignores DST. No live use or production changes.
 
-## BTCUSD 15m support/resistance rejection — preregistered implementation (2026-11-14; results pending)
+## BTCUSD 15m support/resistance rejection — completed, rejected (2026-11-14)
 
 - Motivation: follow the existing research roadmap for a structurally distinct prior-day/4H support-resistance rejection model after CRT, channel failure, SMC/MSS, EMA pullback, VWAP continuation and Supertrend variants failed their train/validation gates. This is not a duplicate of the Donchian failed-breakout study: levels are prior complete UTC-day extremes or confirmed 4H swing pivots.
 - Code: research/support_resistance_rejection_backtest.py; workflow .github/workflows/support-resistance-rejection.yml; branch ai-quant-rebuild.
