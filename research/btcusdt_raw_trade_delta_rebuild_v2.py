@@ -251,7 +251,7 @@ def simulate(data: pd.DataFrame, variant: str, cost_bps: float) -> pd.DataFrame:
         gross_r = (exit_px - entry) / risk if side == "long" else (entry - exit_px) / risk
         net_r = gross_r - (cost_bps / 10000.0 * entry / risk)
         rows.append({
-            "variant": variant, "cost_bps": cost_bps, "signal_time": row.dt,
+            "variant": variant, "cost_bps": cost_bps, "signal_time": row["dt"],
             "entry_time": entry_time, "exit_time": data.loc[exit_i, "dt"], "side": side,
             "entry": entry, "stop": stop, "target_prior_day_poc": target, "target_R": reward / risk,
             "exit": exit_px, "outcome": outcome, "risk": risk, "gross_R": gross_r, "net_R": net_r,
