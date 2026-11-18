@@ -1,6 +1,6 @@
 # BTC 5m previous-hour CRT-style sweep/reclaim — methods
 
-**Study date:** 2026-11-19. **Status:** completed exploratory diagnostic; no promotion. This is a mechanical CRT-style prior-hour range sweep/reclaim definition, not a claim that all discretionary CRT implementations are equivalent.
+**Study date:** 2026-11-19. **Status:** completed exploratory diagnostic; no promotion. Post-run ledger audit found existing CRT v1/v2/v3 tests using 15m execution with 1H/4H/1D/weekly reference ranges. This is a finer 5m execution-resolution variant of that already-tested family, not a new independent strategy family. The prior-art audit should have happened before execution; no further CRT sweep/reclaim variations should run until the family-wide evidence is consolidated. This is a mechanical definition, not a claim that all discretionary CRT implementations are equivalent.
 
 ## Data
 
@@ -41,9 +41,9 @@ By source row index, without shuffling:
 
 OOS was not evaluated because no configuration passed the development/validation gate.
 
-## Promotion gate
+## Screening gate
 
-At 10 bps, an exact configuration needed at least 100 development and 30 validation trades, PF >1.10 and net R >0 in both partitions, and at least 55% positive active months in both. No configuration passed.
+The script encoded this screen before market simulation; it was not separately timestamped as a GitHub preregistration. At 10 bps, an exact configuration needed at least 100 development and 30 validation trades, PF >1.10 and net R >0 in both partitions, and at least 55% positive active months in both. No configuration passed.
 
 ## Limitations
 
