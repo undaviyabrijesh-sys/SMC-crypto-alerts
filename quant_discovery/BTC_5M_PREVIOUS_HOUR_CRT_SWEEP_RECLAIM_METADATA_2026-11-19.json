@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "symbol": "BTCUSD",
+  "source": "Delta BTCUSD 5m OHLCV archive",
+  "source_rows": 210239,
+  "source_start": "2024-11-16T11:30:00Z",
+  "source_end": "2026-11-16T11:20:00Z",
+  "source_sha256": "5b612e1c496f16277b459f58ddff33b69d8f7912b70d8f733f0a17be844eb4fb",
+  "missing_5m_intervals": 0,
+  "invalid_ohlc_rows": 0,
+  "complete_hourly_bars": 17519,
+  "development_end_index": 147167,
+  "validation_end_index": 178703,
+  "oos_end_index": 210239,
+  "variants": 8,
+  "summary_rows": 80,
+  "configuration_trade_rows": 38228,
+  "gate_pass_count": 0,
+  "oos_evaluated": false,
+  "costs_bps_round_trip": [
+    0,
+    4,
+    7,
+    10,
+    20
+  ],
+  "primary_cost_bps": 10,
+  "median_initial_risk_bps": 16.30142687738336,
+  "p10_initial_risk_bps": 6.432639482979508,
+  "independent_audit_max_abs_diff": 0,
+  "clean_replay_outputs_byte_identical": true,
+  "limitations": [
+    "Single BTC instrument/source; no ETH replication.",
+    "No funding cashflow, spread or market-impact model; positions flattened before funding boundaries.",
+    "OHLC intrabar path unavailable; same-bar stop-first.",
+    "No configuration passed development/validation; OOS untouched.",
+    "Local execution; no GitHub Actions run claimed."
+  ]
+}
