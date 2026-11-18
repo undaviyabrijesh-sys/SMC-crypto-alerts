@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import math
 import re
@@ -26,9 +27,14 @@ BAR_MS = 300_000
 EXPECTED_5M_BARS = 30 * 24 * 12
 AGG_COLS = ["agg_trade_id", "price", "quantity", "first_trade_id",
             "last_trade_id", "timestamp_ms", "buyer_maker"]
+AGG_HEADER = ["agg_trade_id", "price", "quantity", "first_trade_id",
+              "last_trade_id", "transact_time", "is_buyer_maker"]
 KLINE_COLS = ["open_time_ms", "open", "high", "low", "close", "volume",
               "close_time_ms", "quote_volume", "trade_count",
               "taker_buy_base", "taker_buy_quote", "ignore"]
+KLINE_HEADER = ["open_time", "open", "high", "low", "close", "volume",
+                "close_time", "quote_asset_volume", "number_of_trades",
+                "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume", "ignore"]
 
 
 def parse_checksum(text: str) -> str:
@@ -36,6 +42,15 @@ def parse_checksum(text: str) -> str:
     if not match:
         raise ValueError(f"Could not parse SHA-256 from CHECKSUM text: {text[:200]!r}")
     return match.group(1).lower()
+
+
+def detect_csv_header(fh: Any, expected: list[str]) -> bool:
+    first = fh.readline().decode("utf-8-sig").strip().split(",")
+    normalized = [x.strip().lower() for x in first]
+    if normalized == expected:
+        return True
+    fh.seek(0)
+    return False
 
 
 def parse_bool(s: pd.Series) -> np.ndarray:
@@ -56,7 +71,9 @@ def self_test() -> None:
     s = pd.Series(["true", "false", "TRUE", "False"])
     assert parse_bool(s).tolist() == [True, False, True, False]
     assert bucket_open_ms(np.array([0, 299999, 300000, 600001], dtype=np.int64)).tolist() == [0, 0, 300000, 600000]
-    print("3 deterministic aggTrade ingestion tests passed")
+    assert detect_csv_header(io.BytesIO(b"agg_trade_id,price,quantity,first_trade_id,last_trade_id,transact_time,is_buyer_maker\\n"), AGG_HEADER)
+    assert not detect_csv_header(io.BytesIO(b"1,100.0,0.1,10,10,1788220800000,false\\n"), AGG_HEADER)
+    print("5 deterministic aggTrade ingestion tests passed")
 
 
 def download_file(session: requests.Session, url: str, path: Path, retries: int = 6) -> dict[str, Any]:
@@ -127,6 +144,8 @@ def read_aggtrades(path: Path, bucket_acc: dict[int, list[float]]) -> dict[str, 
     prev_ts = None
     start_ms, end_ms = int(START.timestamp() * 1000), int(END.timestamp() * 1000)
     with zipfile.ZipFile(path) as zf, zf.open(member) as fh:
+        header_present = detect_csv_header(fh, AGG_HEADER)
+        totals["csv_header_present"] = header_present
         reader = pd.read_csv(fh, header=None, names=AGG_COLS, dtype=str,
                              chunksize=500_000, low_memory=False)
         for chunk in reader:
@@ -208,7 +227,9 @@ def read_aggtrades(path: Path, bucket_acc: dict[int, list[float]]) -> dict[str, 
 def read_klines(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     member, zip_meta = csv_member(path)
     with zipfile.ZipFile(path) as zf, zf.open(member) as fh:
+        header_present = detect_csv_header(fh, KLINE_HEADER)
         d = pd.read_csv(fh, header=None, names=KLINE_COLS, dtype=str)
+    zip_meta["csv_header_present"] = header_present
     if d.shape[1] != 12:
         raise ValueError(f"Unexpected kline column count: {d.shape[1]}")
     for col in ["open_time_ms", "close_time_ms", "trade_count"]:
@@ -374,7 +395,8 @@ def run(out: Path) -> int:
             "taker_sell_base_quantity": agg_stats["sell_qty"],
             "signed_delta_base_quantity": agg_stats["signed_delta_qty"],
             "net_delta_fraction_of_volume": agg_stats["net_delta_fraction_of_volume"],
-            "aggtrade_zip_validation": {k: agg_stats[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes"]},
+            "aggtrade_zip_validation": {k: agg_stats[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes", "csv_header_present"]},
+            "kline_zip_validation": {k: kmeta[k] for k in ["zip_crc_pass", "csv_member", "uncompressed_csv_bytes", "csv_header_present"]},
         })
         kline_path, kline_download = download_checked_zip(session, kline_url, src)
         meta["kline_download"] = kline_download
