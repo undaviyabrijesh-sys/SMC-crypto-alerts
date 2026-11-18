@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Independent audit of CRT study summary and trade ledger."""
-import json
+"""Independent audit of the CRT study's summary and trade ledger."""
+import argparse, json
 from pathlib import Path
 import numpy as np
 import pandas as pd
-root=Path(__file__).parent.parent/"results"
+ap=argparse.ArgumentParser()
+ap.add_argument("--results-dir",type=Path,default=Path(__file__).resolve().parent.parent/"results")
+root=ap.parse_args().results_dir
 meta=json.loads((root/"metadata.json").read_text())
 summary=pd.read_csv(root/"summary_dev_val_costs.csv")
 trades=pd.read_csv(root/"trades_dev_val.csv")
@@ -12,7 +14,6 @@ assert len(summary)==80 and set(summary.cost_bps)=={0,4,7,10,20}
 assert set(trades.split)=={"development","validation"}
 def independent(g,cost):
     if g.empty:return (0,np.nan,np.nan,0.,np.nan,0.,0,np.nan)
-    side=np.where(g.side.values=="long",1.,-1.)
     net=g.gross_R.values-(cost/10000*g.entry.values)/g.risk_points.values
     pos=net[net>0]; neg=net[net<0]; eq=np.r_[0,np.cumsum(net)]; dd=eq-np.maximum.accumulate(eq)
     streak=mx=0
@@ -20,7 +21,8 @@ def independent(g,cost):
         if x<0:streak+=1;mx=max(mx,streak)
         else:streak=0
     month=pd.Series(net).groupby(g.month.values).sum()
-    return (len(g),round((net>0).mean()*100,2),round(pos.sum()/abs(neg.sum()),3) if len(neg) and pos.sum()>0 else (float("inf") if len(pos) else 0.),round(net.sum(),3),round(net.mean(),4),round(dd.min(),3),mx,round((month>0).mean(),3))
+    pf=round(pos.sum()/abs(neg.sum()),3) if len(neg) and pos.sum()>0 else (float("inf") if len(pos) else 0.)
+    return (len(g),round((net>0).mean()*100,2),pf,round(net.sum(),3),round(net.mean(),4),round(dd.min(),3),mx,round((month>0).mean(),3))
 maxdiff=0
 for _,r in summary.iterrows():
     g=trades[(trades.split==r.split)&(trades.variant==r.variant)]
