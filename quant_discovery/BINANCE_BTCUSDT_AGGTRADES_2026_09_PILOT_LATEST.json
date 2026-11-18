@@ -1,0 +1,42 @@
+{
+  "aggtrade_download": {
+    "bytes": 437374990,
+    "checksum_download": {
+      "bytes": 96,
+      "etag": "\"b4e0621497a37c94822a93a1ac75c5be\"",
+      "last_modified": "Thu, 01 Oct 2026 09:28:38 GMT",
+      "path": "results/binance-aggtrade-pilot/source/BTCUSDT-aggTrades-2026-09.zip.CHECKSUM",
+      "sha256": "8912b628b7f8db41e7637b14bad47106edf1621c4e9d7510d28be3dfbce868d0",
+      "url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip.CHECKSUM"
+    },
+    "checksum_path": "results/binance-aggtrade-pilot/source/BTCUSDT-aggTrades-2026-09.zip.CHECKSUM",
+    "checksum_text": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80  BTCUSDT-aggTrades-2026-09.zip",
+    "checksum_url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip.CHECKSUM",
+    "checksum_verified": true,
+    "etag": "\"7f80428fdec3917551f2562768fadbcc-53\"",
+    "expected_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+    "last_modified": "Thu, 01 Oct 2026 09:28:38 GMT",
+    "path": "results/binance-aggtrade-pilot/source/BTCUSDT-aggTrades-2026-09.zip",
+    "sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+    "url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip"
+  },
+  "aggtrade_expected_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+  "aggtrade_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+  "aggtrade_url": "https://data.binance.vision/data/futures/um/monthly/aggTrades/BTCUSDT/BTCUSDT-aggTrades-2026-09.zip",
+  "buyer_maker_convention": "true => buyer is maker, taker is seller; false => taker is buyer",
+  "end_exclusive_utc": "2026-10-01T00:00:00+00:00",
+  "error": "ValueError('Invalid aggTrade numeric rows in BTCUSDT-aggTrades-2026-09.zip: 1')",
+  "github_run_attempt": "1",
+  "github_run_id": "44292645620",
+  "integrity_pass": false,
+  "interpretation": "The frozen data pilot failed before all required checks completed. No market or strategy result is available.",
+  "kline_url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-09.zip",
+  "market": "Binance USD-M perpetual",
+  "reconciliation_pass": false,
+  "retrieved_at_utc": "2026-11-18T11:13:18.505752+00:00",
+  "signed_delta_convention": "buy taker base quantity minus sell taker base quantity",
+  "start_utc": "2026-09-01T00:00:00+00:00",
+  "status": "FAILED",
+  "strategy_backtest_run": false,
+  "symbol": "BTCUSDT"
+}
