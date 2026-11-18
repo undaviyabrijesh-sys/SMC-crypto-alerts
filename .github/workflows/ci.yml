@@ -233,3 +233,87 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
           retention-days: 14
+
+  binance-btcusdt-aggtrade-pilot:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_BINANCE_AGGTRADE_PILOT:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Binance archive audit dependencies
+        run: python -m pip install --disable-pip-version-check "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
+      - name: Compile and run aggTrade ingestion self-tests
+        run: |
+          python -m py_compile research/binance_btcusdt_aggtrade_pilot.py
+          python research/binance_btcusdt_aggtrade_pilot.py --self-test
+      - name: Download and audit September 2026 BTCUSDT aggTrades
+        id: pilot_run
+        continue-on-error: true
+        run: python research/binance_btcusdt_aggtrade_pilot.py --output-dir results/binance-aggtrade-pilot
+      - name: Add pilot report to job summary
+        if: always()
+        run: |
+          if [ -f results/binance-aggtrade-pilot/report.md ]; then
+            cat results/binance-aggtrade-pilot/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report produced; inspect download and parser logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish pilot metadata and report to research branch
+        if: always() && hashFiles('results/binance-aggtrade-pilot/metadata.json') != ''
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("results/binance-aggtrade-pilot/metadata.json")
+          m=json.loads(p.read_text())
+          m["github_run_id"]=os.environ["RUN_ID"]
+          m["github_run_attempt"]=os.environ["RUN_ATTEMPT"]
+          p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+          PY
+          mkdir -p quant_discovery
+          cp results/binance-aggtrade-pilot/report.md quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.md
+          cp results/binance-aggtrade-pilot/metadata.json quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin ai-quant-rebuild
+          git reset --hard origin/ai-quant-rebuild
+          cp results/binance-aggtrade-pilot/report.md quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.md
+          cp results/binance-aggtrade-pilot/metadata.json quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.json
+          git add quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.md quant_discovery/BINANCE_BTCUSDT_AGGTRADES_2026_09_PILOT_LATEST.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Binance BTCUSDT September aggTrades pilot audit"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain raw archives and reconciliation outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-btcusdt-aggtrades-2026-09-pilot
+          path: results/binance-aggtrade-pilot/
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
+      - name: Require integrity and reconciliation pass
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("results/binance-aggtrade-pilot/metadata.json")
+          if not p.exists():
+              raise SystemExit("No metadata.json produced; data pilot failed.")
+          m=json.loads(p.read_text())
+          print("Pilot status:", m.get("status"))
+          if m.get("status") != "PASS":
+              raise SystemExit("Pilot did not pass both integrity and reconciliation gates.")
+          PY
