@@ -1,6 +1,6 @@
 # BTC 5m previous-hour CRT-style sweep/reclaim — results
 
-**Run date:** 2026-11-19. **Decision:** reject all eight tested configurations. No OOS evaluation and no promotion.
+**Run date:** 2026-11-19. **Decision:** reject all eight tested configurations. No OOS evaluation and no promotion. Post-run ledger audit found prior CRT v1/v2/v3 studies using 15m execution with 1H/4H/1D/weekly ranges. This is a 5m execution-resolution variant within that existing family, not a new independent family; the prior-art check should have happened before execution.
 
 ## Data and verification
 
@@ -54,6 +54,6 @@ No active month was positive at 10 bps for this configuration (0/18 development;
 
 ## Decision
 
-All eight configurations failed the predeclared development/validation gate. The final 15% was not evaluated. Do not tune these thresholds against validation or OOS. This mechanical prior-hour range sweep/reclaim definition is rejected under the stated assumptions; this does not disprove every discretionary or higher-timeframe CRT implementation.
+All eight configurations failed the development/validation screening gate encoded in the script; this was not a separately timestamped GitHub preregistration. The final 15% was not evaluated. Do not tune these thresholds against validation or OOS. This mechanical prior-hour range sweep/reclaim definition is rejected under the stated assumptions; this does not disprove every discretionary or higher-timeframe CRT implementation.
 
 Full code, source data, trade ledger and audit are in the downloadable research package. This CRT run was executed locally; no GitHub Actions execution is claimed.
