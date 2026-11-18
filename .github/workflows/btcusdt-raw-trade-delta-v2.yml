@@ -1,0 +1,61 @@
+name: BTCUSDT September raw-trade delta VP replay V2
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/binance_aggtrade_boundary_forensics.py"
+      - "research/btcusdt_raw_trade_delta_rebuild_v2.py"
+      - "research/BTCUSDT_RAW_TRADE_DELTA_VP_REPLAY_PREREGISTRATION_2026-11-18.md"
+      - ".github/workflows/btcusdt-raw-trade-delta-v2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btcusdt-raw-trade-delta-v2-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  corrected-replay:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_BTC_RAW_DELTA_V2:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir "numpy>=1.26" "pandas>=2.1" "requests>=2.31" "tabulate>=0.9"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/binance_aggtrade_boundary_forensics.py research/btcusdt_raw_trade_delta_rebuild_v2.py
+          python research/binance_aggtrade_boundary_forensics.py --self-test
+          python research/btcusdt_raw_trade_delta_rebuild_v2.py --self-test
+      - name: Download 30 daily raw-trade archives, rebuild exact 5m delta and prior-day VP/TPO, then replay frozen rules
+        run: |
+          python research/btcusdt_raw_trade_delta_rebuild_v2.py \
+            --output-dir results/btcusdt-raw-trade-delta-v2 \
+            --work-dir /tmp/btcusdt-raw-trade-delta-v2
+      - name: Add corrected replay report to job summary
+        if: always()
+        run: |
+          if [ -f results/btcusdt-raw-trade-delta-v2/report.md ]; then
+            cat results/btcusdt-raw-trade-delta-v2/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No corrected replay report was produced; inspect failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain compact corrected research outputs only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btcusdt-raw-trade-delta-v2-september-2026
+          path: results/btcusdt-raw-trade-delta-v2/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 30
