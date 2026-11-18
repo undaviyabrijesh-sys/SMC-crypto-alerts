@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "study_type": "one-month exploratory true-footprint reconstruction and event study; not strategy validation",
+  "source_rows": 36036629,
+  "price_tick_usdt": 0.1,
+  "price_level_rows": 8510392,
+  "aggregate_trade_records_reconciled": 36036629,
+  "unique_5m_bars": 8640,
+  "duplicate_price_level_keys": 0,
+  "profile_bars_checked": 8640,
+  "poc_mismatches": 0,
+  "minimum_value_area_volume_fraction": 0.7000000000000001,
+  "volume_relative_error": 0.0,
+  "taker_buy_relative_error": 0.0,
+  "per_bar_volume_error_p95": 4.3804830439899216e-05,
+  "per_bar_volume_error_max": 0.026441252406052662,
+  "per_bar_taker_buy_error_p95": 6.832834740661182e-06,
+  "per_bar_taker_buy_error_max": 0.07939200088489864,
+  "raw_event_candidates": {"absorption": 12, "continuation": 4201},
+  "selected_event_counts": [
+    {"family":"absorption","side":-1,"n":6},
+    {"family":"absorption","side":1,"n":6},
+    {"family":"continuation","side":-1,"n":87},
+    {"family":"continuation","side":1,"n":87}
+  ],
+  "event_rules": {
+    "delta_z": "previous 288 bars; min 96; shifted one bar",
+    "absorption": "delta_z>=2 & close_location<=0.25 => short; delta_z<=-2 & close_location>=0.75 => long",
+    "continuation": "3 consecutive diagonal imbalance ticks; ratio>=3; numerator>=0.10 BTC; close location directional confirm",
+    "cooldown_bars": 48,
+    "entry": "next 5m open",
+    "horizons": {"1h":12,"4h":48},
+    "cost_bps_round_trip": 10,
+    "stops_targets_funding": null
+  }
+}
