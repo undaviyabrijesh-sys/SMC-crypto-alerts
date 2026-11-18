@@ -1,0 +1,46 @@
+{
+  "research_date": "2026-11-18",
+  "instrument": "Delta BTCUSD perpetual",
+  "source_sha256": "5b612e1c496f16277b459f58ddff33b69d8f7912b70d8f733f0a17be844eb4fb",
+  "source_5m_rows": 210239,
+  "source_5m_gap_count": 0,
+  "source_5m_zero_volume": 334,
+  "invalid_ohlc_rows": 0,
+  "invalid_volume_rows": 0,
+  "complete_15m_rows": 70079,
+  "complete_1h_rows": 17519,
+  "derived_15m_sha256": "5cc5a38e08b4299102680089ff90ec8237dcac8d0b96d2dbe4cac61b205f1a09",
+  "splits": {
+    "development": {
+      "start": "2024-11-16T11:30:00Z",
+      "end_exclusive": "2026-04-11T11:15:00Z",
+      "rows": 49055
+    },
+    "validation": {
+      "start": "2026-04-11T11:15:00Z",
+      "end_exclusive": "2026-07-29T23:15:00Z",
+      "rows": 10512
+    },
+    "out_of_sample": {
+      "start": "2026-07-29T23:15:00Z",
+      "end_exclusive": "2026-11-16T11:15:00Z",
+      "rows": 10512,
+      "evaluated": false
+    }
+  },
+  "configurations": 16,
+  "cost_bps": [
+    4,
+    7,
+    10,
+    20
+  ],
+  "summary_rows": 128,
+  "trade_records_10bps": 39941,
+  "deterministic_tests_passed": 11,
+  "independent_audit_max_difference": 0,
+  "position_overlap_groups": 32,
+  "overlapping_positions": false,
+  "configs_passing_both_dev_val": 0,
+  "funding_modeled": false
+}
