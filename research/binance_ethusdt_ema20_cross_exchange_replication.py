@@ -336,7 +336,7 @@ def self_tests():
     assert len(specs)==53 and specs[0]["period"]=="2025-03-08" and specs[-1]["period"]=="2026-07-14"
     assert specs[-1]["end"]==EVAL_END and sum(int((z["end"]-z["start"])/STEP) for z in specs)==int((EVAL_END-DATA_START)/STEP)
     start=pd.Timestamp("2025-01-01T00:00:00Z"); end=start+2*STEP
-    csv_text="open_time,open,high,low,close,volume\\n1735689600000,100,101,99,100,5\\n1735690500000,100,102,99,101,6\\n"
+    csv_text="open_time,open,high,low,close,volume\n1735689600000,100,101,99,100,5\n1735690500000,100,102,99,101,6\n"
     buffer=io.BytesIO()
     with zipfile.ZipFile(buffer,"w",zipfile.ZIP_DEFLATED) as archive: archive.writestr("sample.csv",csv_text)
     parsed,meta=parse_kline_zip(buffer.getvalue(),start,end)
