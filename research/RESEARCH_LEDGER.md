@@ -1928,3 +1928,29 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - The 1h EMA20/50 crossover (1.5 ATR stop, 3R target, no 4h filter) was the only selected row with positive gross mean in both development and validation, but it failed the 10-bps development net gate and had only 27 validation trades. It is a research lead only, not a candidate.
 - Decision: no promotion, no parameter changes, no OOS inspection. Future reports should include stop-risk bps and cost_R burden. Next confirmatory step is a frozen cross-exchange Binance BTCUSDT replication of the exact EMA20/50 rule, treated as venue robustness rather than independent temporal OOS. Flat cost assumptions still omit maker/taker asymmetry, spread, impact and funding cashflows.
 - No production, main-branch, live-alert or exchange-order changes.
+
+
+## 2026-11-19 — EMA20/50 uncertainty audit and Binance cross-exchange replication
+
+### BTC 1H EMA20/50 candidate: clustered uncertainty audit
+- Candidate frozen from the existing Delta study: EMA20/EMA50 crossover, 1.5 × Wilder ATR14 stop, 3R target, no 4H filter, both directions.
+- Source: btc_1h_ema_crossover_funding_safe_research_2026-11-18.zip, member ema_cross_research/results/trades_dev_val_10bps.csv.
+- Source trade-ledger SHA-256: 6464234b5f85c276fa2937ad6817b72070ad4f940f7ddf9e874edecf723d3686.
+- Day/week/month cluster bootstrap: 50,000 resamples per unit, deterministic seeds 20261119/20261120/20261121, net R after 10 bps.
+- Development: 106 trades, -1.8966R, -0.0179R/trade, PF 0.9505; 86 active days, 41 weeks, 11 months.
+- Validation: 27 trades, +7.9900R, +0.2959R/trade, PF 2.3380; 23 active days, 10 weeks, 3 months. Top 3 winning trades contributed 53.91% of positive R.
+- Development mean-R 95% intervals: day [-0.1832, +0.1609], week [-0.1659, +0.1437], month [-0.1691, +0.1885].
+- Validation mean-R 95% intervals: day [-0.0649, +0.7343], week [-0.0002, +0.6950], month [-0.2127, +0.6422].
+- Decision: do not promote. Validation uncertainty remains wide and concentrated; the candidate already failed the development net-PF gate. This is a statistical audit, not a new backtest.
+- Reproducibility: research/bootstrap_btc_ema20_50_delta_candidate.py; report research/BTC_1H_EMA20_50_CLUSTER_BOOTSTRAP_AUDIT_2026-11-19.md.
+
+### Binance BTCUSDT cross-exchange replication
+- Frozen single configuration: EMA20/50, 1.5 × Wilder ATR14, 3R, no HTF filter, both directions; no parameter search.
+- Binance USD-M BTCUSDT 5m klines are aggregated using the same repository engine into complete 1h bars. Actual Binance fundingTime records determine pre-settlement exits.
+- Development [2025-09-08 12:00, 2026-07-07 13:00) UTC; validation [2026-07-07 13:00, 2026-09-10 06:00) UTC. Final OOS not evaluated.
+- This is cross-exchange evidence on overlapping dates, not independent temporal OOS. Delta candidate reference remains development 106 trades/-1.90R/PF 0.950 and validation 27 trades/+7.99R/PF 2.338 at 10 bps.
+- Preregistration: research/BINANCE_BTCUSDT_1H_EMA20_50_CROSS_EXCHANGE_PREREGISTRATION_2026-11-19.md.
+- Runner: research/binance_btcusdt_1h_ema_crossover_replication.py.
+- Workflow: .github/workflows/binance-btcusdt-1h-ema-crossover-replication.yml.
+- First two workflow attempts failed in the deterministic-test harness (first assumed an unavailable self_test API; second had a pandas 3.x timestamp-unit mismatch in the test's nanosecond lookup). These were harness defects, not strategy results. The timestamp lookup was changed to use Timestamp.value nanoseconds explicitly. Third run is pending as of this ledger update; no Binance performance result has been accepted yet.
+- No production, live-alert or main-branch changes. No orders or trades placed.
