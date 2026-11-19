@@ -1,0 +1,45 @@
+name: Binance BTCUSDT 1H EMA20-50 Cross-Exchange Replication
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/binance_btcusdt_1h_ema_crossover_replication.py"
+      - "research/BINANCE_BTCUSDT_1H_EMA20_50_CROSS_EXCHANGE_PREREGISTRATION_2026-11-19.md"
+      - ".github/workflows/binance-btcusdt-1h-ema-crossover-replication.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binance-btcusdt-1h-ema20-50-cross-exchange
+  cancel-in-progress: false
+
+jobs:
+  replicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Run deterministic tests
+        run: python research/binance_btcusdt_1h_ema_crossover_replication.py --self-test
+      - name: Download frozen Binance sample and run replication
+        run: python research/binance_btcusdt_1h_ema_crossover_replication.py --out binance_btcusdt_ema_cross_results
+      - name: Upload reproducible outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-btcusdt-1h-ema20-50-cross-exchange-2026-11-19
+          path: binance_btcusdt_ema_cross_results/
+          if-no-files-found: error
+          retention-days: 30
