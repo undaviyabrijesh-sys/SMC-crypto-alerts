@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build exact-price BTCUSDT 5m footprint, daily volume profile and 30m TPO from Binance aggTrades."""
-# Frozen one-month data feature pilot; no strategy PnL is computed in this module.
+# One completed UTC calendar month per run; no strategy PnL is computed in this module.
 from __future__ import annotations
 
 import argparse
@@ -185,6 +185,14 @@ def self_test() -> None:
     gap_profile = pd.DataFrame({"price": [100.0, 100.2], "volume": [60.0, 40.0]})
     gap_va = value_area(gap_profile, "volume", 0.70)
     assert gap_va["poc"] == 100.0 and gap_va["vah"] == 100.2
+    complete_day = pd.DataFrame({
+        "day_open_ms": np.zeros(48, dtype=np.int64),
+        "period30m_open_ms": np.arange(48, dtype=np.int64) * PERIOD_30M_MS,
+    })
+    complete_brackets = validate_tpo_brackets(complete_day, 0, DAY_MS)
+    assert complete_brackets["pass"] and complete_brackets["minimum_observed_brackets_per_day"] == 48
+    missing_brackets = validate_tpo_brackets(complete_day.iloc[:-1], 0, DAY_MS)
+    assert not missing_brackets["pass"] and missing_brackets["missing_bracket_count"] == 1
     original_month = MONTH
     configure_month("2026-06")
     assert EXPECTED_DAYS == 30 and EXPECTED_5M_BARS == 8640
@@ -193,7 +201,7 @@ def self_test() -> None:
     configure_month("2026-08")
     assert EXPECTED_DAYS == 31 and EXPECTED_5M_BARS == 8928
     configure_month(original_month)
-    print("8 deterministic footprint/TPO/month/value-area tests passed")
+    print("10 deterministic footprint/TPO/month/value-area tests passed")
 
 
 def read_klines(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
@@ -318,6 +326,41 @@ def build_levels(agg_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     return levels, stats
 
 
+def validate_tpo_brackets(levels: pd.DataFrame, start_ms: int, end_ms: int) -> dict[str, Any]:
+    """Require every UTC day to contain trades in all 48 aligned 30-minute brackets."""
+    expected_day_ms = np.arange(start_ms, end_ms, DAY_MS, dtype=np.int64)
+    observed_brackets = levels[["day_open_ms", "period30m_open_ms"]].drop_duplicates()
+    bracket_map = {
+        int(day): set(group.period30m_open_ms.astype(np.int64).tolist())
+        for day, group in observed_brackets.groupby("day_open_ms", sort=True)
+    }
+    missing_days = []
+    bracket_counts = []
+    for day in expected_day_ms:
+        expected_for_day = {int(day + slot * PERIOD_30M_MS) for slot in range(48)}
+        observed_for_day = bracket_map.get(int(day), set())
+        missing = sorted(expected_for_day.difference(observed_for_day))
+        bracket_counts.append(len(observed_for_day))
+        if missing:
+            missing_days.append({
+                "day_utc": pd.to_datetime(day, unit="ms", utc=True).strftime("%Y-%m-%d"),
+                "missing_count": len(missing),
+                "missing_brackets_utc": [
+                    pd.to_datetime(value, unit="ms", utc=True).isoformat() for value in missing
+                ],
+            })
+    missing_count = int(sum(item["missing_count"] for item in missing_days))
+    return {
+        "expected_brackets_per_day": 48,
+        "days_checked": int(len(expected_day_ms)),
+        "minimum_observed_brackets_per_day": int(min(bracket_counts)) if bracket_counts else 0,
+        "maximum_observed_brackets_per_day": int(max(bracket_counts)) if bracket_counts else 0,
+        "missing_bracket_count": missing_count,
+        "missing_days": missing_days,
+        "pass": missing_count == 0 and len(bracket_counts) == len(expected_day_ms),
+    }
+
+
 def build_daily_profiles(levels: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     daily = levels.groupby(["day_open_ms", "price"], as_index=False, sort=True).agg(
         volume=("total_qty", "sum"), taker_buy=("taker_buy_qty", "sum"),
@@ -372,6 +415,12 @@ def write_report(out: Path, meta: dict[str, Any]) -> None:
     lines += ["", "## 5m reconciliation"]
     for k, v in meta.get("reconciliation", {}).items():
         lines.append(f"- {k}: {v}")
+    lines += ["", "## 30m TPO bracket coverage"]
+    for k, v in meta.get("tpo_bracket_validation", {}).items():
+        if k != "missing_days":
+            lines.append(f"- {k}: {v}")
+    for day in meta.get("tpo_bracket_validation", {}).get("missing_days", []):
+        lines.append(f"- Missing brackets on {day.get('day_utc')}: {day.get('missing_brackets_utc')}")
     lines += ["", "## Exact-price footprint outputs"]
     for k, v in meta.get("feature_summary", {}).items():
         lines.append(f"- {k}: {v}")
@@ -473,40 +522,16 @@ def run(out: Path, month: str = DEFAULT_MONTH) -> int:
         bar.to_csv(out / "bar_delta_5m.csv", index=False, float_format="%.12g")
         tpo_ok = bool(daily.tpo_30m_count.between(1, 48).all())
         daily_ok = bool(daily.day_open_ms.nunique() == EXPECTED_DAYS and len(summaries) == EXPECTED_DAYS)
-        expected_day_ms = np.arange(int(START.timestamp() * 1000), int(END.timestamp() * 1000), DAY_MS, dtype=np.int64)
-        observed_brackets = levels[["day_open_ms", "period30m_open_ms"]].drop_duplicates()
-        bracket_map = {
-            int(day): set(group.period30m_open_ms.astype(np.int64).tolist())
-            for day, group in observed_brackets.groupby("day_open_ms", sort=True)
-        }
-        missing_brackets = []
-        bracket_counts = []
-        for day in expected_day_ms:
-            expected_for_day = {int(day + slot * PERIOD_30M_MS) for slot in range(48)}
-            observed_for_day = bracket_map.get(int(day), set())
-            missing = sorted(expected_for_day.difference(observed_for_day))
-            bracket_counts.append(len(observed_for_day))
-            if missing:
-                missing_brackets.append({
-                    "day_utc": pd.to_datetime(day, unit="ms", utc=True).strftime("%Y-%m-%d"),
-                    "missing_count": len(missing),
-                    "missing_brackets_utc": [pd.to_datetime(value, unit="ms", utc=True).isoformat() for value in missing],
-                })
-        bracket_validation_pass = len(missing_brackets) == 0
-        meta["tpo_bracket_validation"] = {
-            "expected_brackets_per_day": 48,
-            "days_checked": int(len(expected_day_ms)),
-            "minimum_observed_brackets_per_day": int(min(bracket_counts)) if bracket_counts else 0,
-            "maximum_observed_brackets_per_day": int(max(bracket_counts)) if bracket_counts else 0,
-            "missing_bracket_count": int(sum(item["missing_count"] for item in missing_brackets)),
-            "missing_days": missing_brackets,
-            "pass": bracket_validation_pass,
-        }
+        bracket_validation = validate_tpo_brackets(
+            levels, int(START.timestamp() * 1000), int(END.timestamp() * 1000)
+        )
+        bracket_validation_pass = bool(bracket_validation["pass"])
+        meta["tpo_bracket_validation"] = bracket_validation
         va_ok = bool((summaries.volume_value_area_share >= .70).all()
                      and ((summaries.volume_value_area_share < 1.0 - 1e-12) | (summaries.volume_poc_share >= .70)).all()
                      and (summaries.tpo_value_area_share >= .70).all()
                      and ((summaries.tpo_value_area_share < 1.0 - 1e-12) | (summaries.tpo_poc_share >= .70)).all())
-        key_unique = not levels.duplicated(["bar_open_ms", "price"]).any()
+        key_unique = not levels.duplicated(["bar_open_ms", "price_tick"]).any()
         sums_ok = bool(abs(levels.total_qty.sum() - astats["total_qty"]) / astats["total_qty"] <= 1e-10
                        and abs(levels.taker_buy_qty.sum() - astats["buy_qty"]) / astats["buy_qty"] <= 1e-10
                        and abs(levels.taker_sell_qty.sum() - astats["sell_qty"]) / astats["sell_qty"] <= 1e-10
