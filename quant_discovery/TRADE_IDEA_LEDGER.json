@@ -645,35 +645,56 @@
       "paper_fill_confirmed": false,
       "realized_r": null,
       "r_assessment": "not_applicable_no_fill",
-      "last_mark": 0.7104,
-      "last_mark_timestamp_utc": "2026-11-19T15:47:25Z",
+      "last_mark": 0.71523055,
+      "last_mark_timestamp_utc": "2026-11-19T16:45:31.001Z",
       "latest_completed_5m_candle": {
-        "timestamp_utc": "2026-11-19T15:40:00Z",
-        "open": 0.7118,
-        "high": 0.7139,
-        "low": 0.7101,
-        "close": 0.7114
+        "timestamp_utc": "2026-11-19T16:40:00Z",
+        "open": 0.7167,
+        "high": 0.7185,
+        "low": 0.7153,
+        "close": 0.7159
       },
       "note": "Historical candle audit shows stop was touched before the entry zone was first touched. The later target touch occurred after invalidation. Preserve the user-directed triggered_unalerted_delivery_blocked classification, but correct prior -1R reporting: there was no valid entry fill, so no realized loss is booked.",
       "last_monitor_check": {
-        "timestamp_utc": "2026-11-19T15:49:01Z",
-        "entry_zone_touched_in_this_check": false,
-        "stop_touched_in_this_check": false,
-        "target_touched_in_this_check": false,
-        "latest_mark": 0.7104,
+        "timestamp_utc": "2026-11-19T16:46:18Z",
+        "entry_zone_touched_this_check": false,
+        "stop_touched_this_check": false,
+        "target_touched_this_check": false,
+        "latest_mark": 0.71523055,
         "latest_completed_5m_candle": {
-          "timestamp_utc": "2026-11-19T15:40:00Z",
-          "open": 0.7118,
-          "high": 0.7139,
-          "low": 0.7101,
-          "close": 0.7114
+          "timestamp_utc": "2026-11-19T16:40:00Z",
+          "open": 0.7167,
+          "high": 0.7185,
+          "low": 0.7153,
+          "close": 0.7159
         },
         "terminal_status": "stop_touched_before_entry_zone",
         "paper_fill_confirmed": false,
         "realized_r": null,
         "r_assessment": "not_applicable_no_fill",
-        "note": "No new touch of original entry zone 0.8590–0.8610, stop 0.8715 or target 0.8300 during this check. Historical target touch was after stop-before-entry invalidation; current mark below target is not a valid trade outcome."
-      }
+        "note": "No new touch of original entry zone 0.8590–0.8610, stop 0.8715 or target 0.8300 during this check. Historical stop touch on 7 Nov at 07:10 UTC preceded first entry-zone touch at 10:25 UTC; later target touch on 8 Nov occurred after invalidation. Current mark below 0.8300 is not a valid trade outcome. Preserve status triggered_unalerted_delivery_blocked; no Discord delivery."
+      },
+      "monitor_checks": [
+        {
+          "timestamp_utc": "2026-11-19T16:46:18Z",
+          "entry_zone_touched_this_check": false,
+          "stop_touched_this_check": false,
+          "target_touched_this_check": false,
+          "latest_mark": 0.71523055,
+          "latest_completed_5m_candle": {
+            "timestamp_utc": "2026-11-19T16:40:00Z",
+            "open": 0.7167,
+            "high": 0.7185,
+            "low": 0.7153,
+            "close": 0.7159
+          },
+          "terminal_status": "stop_touched_before_entry_zone",
+          "paper_fill_confirmed": false,
+          "realized_r": null,
+          "r_assessment": "not_applicable_no_fill",
+          "note": "No new touch of original entry zone 0.8590–0.8610, stop 0.8715 or target 0.8300 during this check. Historical stop touch on 7 Nov at 07:10 UTC preceded first entry-zone touch at 10:25 UTC; later target touch on 8 Nov occurred after invalidation. Current mark below 0.8300 is not a valid trade outcome. Preserve status triggered_unalerted_delivery_blocked; no Discord delivery."
+        }
+      ]
     }
   ],
   "scan_history": [
