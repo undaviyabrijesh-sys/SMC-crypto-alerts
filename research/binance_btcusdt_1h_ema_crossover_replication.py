@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Frozen Binance BTCUSDT replication of the Delta EMA20/50 crossover."""
-import argparse, hashlib, importlib.util, json, time
+import argparse, hashlib, importlib.util, json, time, io, re, zipfile
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -35,36 +35,68 @@ def api(s,url,params):
 
 def download(out):
  out.mkdir(parents=True,exist_ok=True); s=requests.Session()
- kp=out/'BTCUSDT_5m.csv'
- if not kp.exists():
-  cur=int(START.timestamp()*1000); end=int(DATA_END.timestamp()*1000); rows=[]
-  while cur<end:
-   stop=min(end-1,cur+(LIMIT-1)*M5_MS)
-   x=api(s,K,{'symbol':SYMBOL,'interval':'5m','startTime':cur,'endTime':stop,'limit':LIMIT})
-   if not x: break
-   rows.extend(x); nxt=int(x[-1][0])+M5_MS
-   if nxt<=cur: raise RuntimeError('Kline pagination stalled')
-   cur=nxt; time.sleep(.08)
-  if not rows: raise RuntimeError('No Binance klines')
-  cols=['open_ms','open','high','low','close','volume','close_ms','qv','trades','tb','tq','ignore']
-  d=pd.DataFrame(rows,columns=cols); d['timestamp']=pd.to_datetime(d.open_ms.astype('int64'),unit='ms',utc=True)
-  d=d.loc[(d.timestamp>=START)&(d.timestamp<DATA_END),['timestamp','open','high','low','close','volume']]
-  for c in ['open','high','low','close','volume']: d[c]=pd.to_numeric(d[c],errors='coerce')
-  d=d.sort_values('timestamp').drop_duplicates('timestamp',keep='last'); d.to_csv(kp,index=False)
- fp=out/'BTCUSDT_funding.csv'
- if not fp.exists():
-  cur=int(T0.timestamp()*1000); end=int(DATA_END.timestamp()*1000); rows=[]
-  while cur<end:
-   x=api(s,F,{'symbol':SYMBOL,'startTime':cur,'endTime':end-1,'limit':1000})
-   if not x: break
-   rows.extend(x); nxt=int(x[-1]['fundingTime'])+1
-   if nxt<=cur: raise RuntimeError('Funding pagination stalled')
-   cur=nxt
-   if len(x)<1000: break
-   time.sleep(.08)
-  if not rows: raise RuntimeError('No funding records')
-  f=pd.DataFrame(rows); f['timestamp']=pd.to_datetime(f.fundingTime.astype('int64'),unit='ms',utc=True)
-  f['rate']=pd.to_numeric(f.fundingRate,errors='coerce'); f[['timestamp','rate']].sort_values('timestamp').drop_duplicates('timestamp').to_csv(fp,index=False)
+ s.headers.update({"User-Agent":"SaltyQuantResearch/1.0"})
+ manifest=[]
+ def archive(url,kind,period):
+  c=s.get(url+".CHECKSUM",timeout=60); c.raise_for_status()
+  m=re.search(r"([0-9a-fA-F]{64})",c.text)
+  if not m: raise RuntimeError(f"Missing SHA256 checksum for {url}")
+  expected=m.group(1).lower()
+  z=s.get(url,timeout=120); z.raise_for_status()
+  actual=hashlib.sha256(z.content).hexdigest()
+  if actual!=expected: raise RuntimeError(f"Checksum mismatch for {url}: {actual} != {expected}")
+  with zipfile.ZipFile(io.BytesIO(z.content)) as zz:
+   names=[n for n in zz.namelist() if n.lower().endswith(".csv")]
+   if len(names)!=1: raise RuntimeError(f"Expected one CSV in {url}; found {names}")
+   if kind=="klines":
+    d=pd.read_csv(zz.open(names[0]),header=None,usecols=range(6))
+    d.columns=["open_ms","open","high","low","close","volume"]
+    ts=pd.to_numeric(d.open_ms,errors="coerce")
+    unit="us" if ts.median()>1e14 else "ms"
+    d["timestamp"]=pd.to_datetime(ts,unit=unit,utc=True)
+    for col in ["open","high","low","close","volume"]: d[col]=pd.to_numeric(d[col],errors="coerce")
+    d=d[["timestamp","open","high","low","close","volume"]]
+   else:
+    d=pd.read_csv(zz.open(names[0]))
+    cols={str(c).strip().lower():c for c in d.columns}
+    tc=next((cols[k] for k in ["calc_time","fundingtime","funding_time","timestamp","time"] if k in cols),None)
+    rc=next((cols[k] for k in ["last_funding_rate","fundingrate","funding_rate","rate"] if k in cols),None)
+    if tc is None or rc is None:
+     d=pd.read_csv(zz.open(names[0]),header=None)
+     if d.shape[1]<2: raise RuntimeError(f"Unrecognized funding schema in {url}")
+     tc=d.columns[0]; rc=d.columns[-1]
+    rawts=d[tc]; num=pd.to_numeric(rawts,errors="coerce")
+    if num.notna().mean()>.9:
+     unit="us" if num.median()>1e14 else "ms"
+     ts=pd.to_datetime(num,unit=unit,utc=True)
+    else: ts=pd.to_datetime(rawts,utc=True)
+    d=pd.DataFrame({"timestamp":ts,"rate":pd.to_numeric(d[rc],errors="coerce")})
+  manifest.append({"type":kind,"period":period,"url":url,"sha256":actual,"checksum_verified":True,"rows":len(d)})
+  return d
+ start_month=pd.Timestamp(START.year,START.month,1,tz="UTC")
+ end_month=pd.Timestamp(DATA_END.year,DATA_END.month,1,tz="UTC")
+ months=pd.date_range(start_month,end_month,freq="MS")
+ kparts=[]
+ for m in months:
+  ym=m.strftime("%Y-%m")
+  url=f"https://data.binance.vision/data/futures/um/monthly/klines/{SYMBOL}/5m/{SYMBOL}-5m-{ym}.zip"
+  kparts.append(archive(url,"klines",ym)); time.sleep(.05)
+ kd=pd.concat(kparts,ignore_index=True)
+ kd=kd.loc[(kd.timestamp>=START)&(kd.timestamp<DATA_END)].sort_values("timestamp").drop_duplicates("timestamp",keep="last")
+ kp=out/"BTCUSDT_5m.csv"; kd.to_csv(kp,index=False)
+ fstart=pd.Timestamp(T0.year,T0.month,1,tz="UTC")
+ fmonths=pd.date_range(fstart,end_month,freq="MS")
+ fparts=[]
+ for m in fmonths:
+  ym=m.strftime("%Y-%m")
+  url=f"https://data.binance.vision/data/futures/um/monthly/fundingRate/{SYMBOL}/{SYMBOL}-fundingRate-{ym}.zip"
+  fparts.append(archive(url,"funding",ym)); time.sleep(.05)
+ fd=pd.concat(fparts,ignore_index=True)
+ fd=fd.loc[(fd.timestamp>=T0)&(fd.timestamp<=DATA_END)].sort_values("timestamp").drop_duplicates("timestamp",keep="last")
+ if fd.rate.isna().any(): raise RuntimeError("Non-finite funding rates after archive parse")
+ fp=out/"BTCUSDT_funding.csv"; fd.to_csv(fp,index=False)
+ pd.DataFrame(manifest).to_csv(out/"archive_manifest.csv",index=False)
+ (out/"archive_metadata.json").write_text(json.dumps({"checksum_verified_archives":len(manifest),"kline_archives":len(kparts),"funding_archives":len(fparts),"kline_rows":len(kd),"funding_rows":len(fd),"data_end_exclusive":str(DATA_END)},indent=2)+"\n")
  return kp,fp
 
 def load_base():
