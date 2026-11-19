@@ -136,7 +136,7 @@ export default function Home() {
                     <div><span>Historical data store</span><StatusPill>Not queried</StatusPill></div>
                     <div><span>Backtest service</span><StatusPill>Not connected</StatusPill></div>
                     <div><span>Paper lifecycle</span><StatusPill>Not connected</StatusPill></div>
-                    <div><span>Telegram / Discord</span><StatusPill>Existing pipeline</StatusPill></div>
+                    <div><span>Telegram / Discord</span><StatusPill>Code present</StatusPill></div>
                   </div>
                   <div className="system-note">Existing Python modules remain the source of truth. The dashboard will consume them through a read-only API.</div>
                 </section>
@@ -170,7 +170,7 @@ export default function Home() {
         </div>
       </section>
       <aside className="right-rail">
-        <div className="rail-top"><span>QUANT TERMINAL</span><span className="rail-live">● PRIVATE</span></div>
+        <div className="rail-top"><span>QUANT TERMINAL</span><span className="rail-live">● DEVELOPMENT</span></div>
         <div className="rail-card">
           <div className="rail-label">WORKSPACE SEARCH</div>
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search modules..." />
