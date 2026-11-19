@@ -1,7 +1,7 @@
 # BTCUSDT 2026-09 true footprint / VP / TPO feature build
 
 - Status: **PASS**
-- Retrieved: 2026-11-19T11:17:29.083140+00:00
+- Retrieved: 2026-11-19T11:20:51.951692+00:00
 - AggTrade rows: 36036629
 - 5m price-level rows: 8510392
 - Daily profile days: 30
@@ -32,6 +32,14 @@
 - volume_pass: True
 - taker_buy_pass: True
 - coverage_pass: True
+
+## 30m TPO bracket coverage
+- expected_brackets_per_day: 48
+- days_checked: 30
+- minimum_observed_brackets_per_day: 48
+- maximum_observed_brackets_per_day: 48
+- missing_bracket_count: 0
+- pass: True
 
 ## Exact-price footprint outputs
 - unique_price_levels: 124629
