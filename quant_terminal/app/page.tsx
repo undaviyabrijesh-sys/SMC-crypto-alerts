@@ -44,9 +44,44 @@ type MarketSnapshot = {
   markets?: MarketRecord[];
 };
 
+type ScannerCandidate = {
+  strategy_id?: string | null;
+  setup_type?: string | null;
+  direction?: string | null;
+  entry?: number | null;
+  stop_loss?: number | null;
+  take_profit?: number | null;
+  rr?: number | null;
+  quality_score?: number | null;
+  score_type?: string | null;
+  rationale?: string | null;
+  invalidation?: string | null;
+  target_basis?: string | null;
+  timeframes_in_agreement?: string[];
+};
+
+type ScannerSymbol = {
+  symbol: string;
+  status?: string;
+  timestamp?: string | null;
+  latest_closed_5m_candle?: string | null;
+  latest_closed_5m_price?: number | null;
+  decision_status?: string | null;
+  decision_reason?: string | null;
+  selected_strategy?: string | null;
+  research_preview_strategy?: string | null;
+  candidates?: ScannerCandidate[];
+  rejected_candidates?: Array<{ strategy_id?: string | null; reason?: string | null }>;
+  has_open_position?: boolean | null;
+};
+
 type ScannerSnapshot = {
   status: string;
-  symbols?: Array<{ symbol: string; status?: string; candidates?: unknown[] }>;
+  reason?: string | null;
+  as_of?: string;
+  source?: string;
+  malformed_lines_in_tail?: number;
+  symbols?: ScannerSymbol[];
 };
 
 type PositionsSnapshot = {
@@ -57,6 +92,7 @@ type PositionsSnapshot = {
 
 type ResearchSnapshot = {
   status: string;
+  source?: string;
   entry_count?: number;
   entries?: Array<{ title: string; summary: string }>;
 };
@@ -115,6 +151,24 @@ function formatPrice(market: MarketRecord) {
 
 function formatAge(age?: number | null) {
   return age == null || !Number.isFinite(age) ? "age unavailable" : `${Math.max(0, Math.round(age))}m since close`;
+}
+
+function formatLevel(value?: number | null, digits = 2) {
+  return value == null || !Number.isFinite(value)
+    ? "—"
+    : value.toLocaleString("en-US", { maximumFractionDigits: digits });
+}
+
+function formatScannerTimestamp(value?: string | null) {
+  if (!value) return "Timestamp unavailable";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+}
+
+function scannerDecisionTone(status?: string | null): "muted" | "green" | "amber" {
+  if (status === "SELECTED") return "green";
+  if (status === "RESEARCH_ONLY") return "amber";
+  return "muted";
 }
 
 function StatusPill({ children, tone = "muted" }: { children: React.ReactNode; tone?: "muted" | "green" | "amber" }) {
@@ -180,10 +234,13 @@ export default function Home() {
   }, []);
 
   const marketRows = apiData.markets?.markets ?? [];
+  const scannerSymbols = apiData.scanner?.symbols ?? [];
   const candidateCount =
     apiData.scanner && apiData.scanner.status !== "unavailable"
-      ? (apiData.scanner.symbols ?? []).reduce((total, item) => total + (item.candidates?.length ?? 0), 0)
+      ? scannerSymbols.reduce((total, item) => total + (item.candidates?.length ?? 0), 0)
       : null;
+  const rejectedCandidateCount = scannerSymbols.reduce((total, item) => total + (item.rejected_candidates?.length ?? 0), 0);
+  const staleScannerCount = scannerSymbols.filter((item) => item.status === "stale").length;
   const marketFeedStatus = apiData.markets?.status;
   const feedLabel =
     marketFeedStatus === "live" ? "PERSISTED CACHE FRESH" :
@@ -217,6 +274,34 @@ export default function Home() {
         <StatusPill tone={marketTone(market.status)}>{marketLabel(market.status)}</StatusPill>
       </div>
     ));
+  };
+
+  const renderScannerCandidate = (candidate: ScannerCandidate, index: number) => {
+    const direction = candidate.direction === "LONG" || candidate.direction === "SHORT" ? candidate.direction : "DIRECTION UNAVAILABLE";
+    return (
+      <article className="scanner-candidate" key={(candidate.strategy_id ?? "candidate") + "-" + index}>
+        <div className="scanner-candidate-top">
+          <div>
+            <strong>{candidate.setup_type ?? candidate.strategy_id ?? "Candidate name unavailable"}</strong>
+            <small>{candidate.strategy_id ?? "Strategy ID unavailable"}</small>
+          </div>
+          <StatusPill tone={direction === "LONG" ? "green" : direction === "SHORT" ? "amber" : "muted"}>{direction}</StatusPill>
+        </div>
+        <div className="scanner-level-grid">
+          <div><span>ENTRY</span><strong>{formatLevel(candidate.entry, 4)}</strong></div>
+          <div><span>STOP</span><strong>{formatLevel(candidate.stop_loss, 4)}</strong></div>
+          <div><span>TARGET</span><strong>{formatLevel(candidate.take_profit, 4)}</strong></div>
+        </div>
+        <div className="scanner-meta">
+          <span>R:R {formatLevel(candidate.rr, 2)}</span>
+          <span>{candidate.quality_score == null ? "Quality unavailable" : "Quality points " + candidate.quality_score + "/100"}</span>
+          <span>{candidate.timeframes_in_agreement?.length ? candidate.timeframes_in_agreement.join(" · ") : "Timeframe evidence unavailable"}</span>
+        </div>
+        {candidate.score_type ? <small className="scanner-disclaimer">{candidate.score_type === "RULE_QUALITY_POINTS_NOT_PROBABILITY" ? "Rule-quality points are not a probability or expected win rate." : candidate.score_type}</small> : null}
+        {candidate.rationale ? <p className="scanner-rationale">{candidate.rationale}</p> : null}
+        {candidate.invalidation ? <p className="scanner-invalidation">Invalidation: {candidate.invalidation}</p> : null}
+      </article>
+    );
   };
 
   return (
@@ -363,6 +448,110 @@ export default function Home() {
                 </section>
               </div>
               <footer className="page-footer"><span>SALTY QUANT TERMINAL <b>·</b> BUILD 0.2.0</span><span>READ-ONLY MARKET SNAPSHOTS</span></footer>
+            </>
+          ) : active === "AI Scanner" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PERSISTED DETERMINISTIC SCANNER SNAPSHOT</div>
+                  <h1>AI Scanner</h1>
+                  <p>Read-only candidate records from the existing scanner. This page does not generate, rank or execute new signals.</p>
+                </div>
+                <StatusPill tone={marketTone(apiData.scanner?.status)}>{apiData.scanner?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.scanner?.status === "live" ? "Latest scanner records are within the freshness window" : apiData.scanner?.status === "stale" ? "Scanner records are stale" : apiData.loading ? "Loading persisted scanner records" : "Scanner records unavailable"}</strong>
+                  <p>{apiData.scanner?.source ?? "Scanner source unavailable"} · Snapshot: {apiData.scanner?.as_of ?? "timestamp unavailable"} · Malformed lines in retained tail: {apiData.scanner?.malformed_lines_in_tail ?? "unavailable"}</p>
+                </div>
+                <span className="notice-code">READ ONLY</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Symbols scanned" value={apiData.scanner?.status === "unavailable" || !apiData.scanner ? "—" : String(scannerSymbols.length)} note="Latest persisted record per symbol" icon="⌕" />
+                <MetricCard label="Research candidates" value={candidateCount == null ? "—" : String(candidateCount)} note="Candidate records; not approved strategies" icon="◈" />
+                <MetricCard label="Rejected candidates" value={apiData.scanner?.status === "unavailable" || !apiData.scanner ? "—" : String(rejectedCandidateCount)} note="Recorded mechanical rejections" icon="×" />
+                <MetricCard label="Stale symbols" value={apiData.scanner?.status === "unavailable" || !apiData.scanner ? "—" : String(staleScannerCount)} note="Freshness is checked from persisted timestamps" icon="◷" />
+              </div>
+              <div className="scanner-list">
+                {scannerSymbols.length ? scannerSymbols.map((item) => (
+                  <section className="panel scanner-symbol" key={item.symbol}>
+                    <div className="panel-heading">
+                      <div>
+                        <h2>{item.symbol}</h2>
+                        <p>Last scanner record: {formatScannerTimestamp(item.timestamp)}</p>
+                      </div>
+                      <div className="scanner-heading-status">
+                        <StatusPill tone={marketTone(item.status)}>{item.status ?? "unavailable"}</StatusPill>
+                        <StatusPill tone={scannerDecisionTone(item.decision_status)}>{item.decision_status ?? "DECISION UNAVAILABLE"}</StatusPill>
+                      </div>
+                    </div>
+                    <div className="scanner-symbol-body">
+                      <div className="scanner-context">
+                        <div><span>LAST CLOSED 5M PRICE</span><strong>{formatLevel(item.latest_closed_5m_price, 4)}</strong></div>
+                        <div><span>TRIGGER CANDLE</span><strong>{formatScannerTimestamp(item.latest_closed_5m_candle)}</strong></div>
+                        <div><span>OPEN PAPER POSITION</span><strong>{item.has_open_position == null ? "Unknown" : item.has_open_position ? "Yes" : "No"}</strong></div>
+                      </div>
+                      <p className="scanner-decision-reason">{item.decision_reason ?? "Decision reason unavailable."}</p>
+                      {item.research_preview_strategy ? <p className="scanner-preview">Research preview: <strong>{item.research_preview_strategy}</strong></p> : null}
+                      {item.selected_strategy ? <p className="scanner-preview">Selected strategy: <strong>{item.selected_strategy}</strong></p> : null}
+                      <div className="scanner-section-heading"><strong>Candidate records</strong><span>{item.candidates?.length ?? 0}</span></div>
+                      {item.candidates?.length ? <div className="scanner-candidate-grid">{item.candidates.map(renderScannerCandidate)}</div> : <div className="strategy-empty">No candidate records were persisted for this symbol.</div>}
+                      {item.rejected_candidates?.length ? (
+                        <details className="rejected-list">
+                          <summary>{item.rejected_candidates.length} rejected candidate record(s)</summary>
+                          {item.rejected_candidates.slice(0, 10).map((rejected, index) => (
+                            <div key={(rejected.strategy_id ?? "rejected") + "-" + index}>
+                              <strong>{rejected.strategy_id ?? "Strategy unavailable"}</strong>
+                              <span>{rejected.reason ?? "Rejection reason unavailable."}</span>
+                            </div>
+                          ))}
+                        </details>
+                      ) : null}
+                    </div>
+                  </section>
+                )) : <section className="panel"><div className="strategy-empty">{apiData.scanner?.status === "unavailable" || !apiData.scanner ? "The persisted scanner log is unavailable; no metrics are inferred." : "No scanner symbol records are currently persisted."}</div></section>}
+              </div>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · SCANNER</span><span>SHADOW / RESEARCH ONLY UNTIL VALIDATED</span></footer>
+            </>
+          ) : active === "Strategy Research" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">REPOSITORY RESEARCH LEDGER</div>
+                  <h1>Strategy Research</h1>
+                  <p>Recent ledger sections and recorded hypotheses. A heading is not a validation or promotion decision.</p>
+                </div>
+                <StatusPill tone={apiData.research?.status === "available" ? "green" : "amber"}>{apiData.research?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.research?.status === "available" ? "Research ledger connected" : apiData.loading ? "Loading research ledger" : "Research ledger unavailable"}</strong>
+                  <p>{apiData.research?.source ?? "Ledger source unavailable"} · Entries returned: {apiData.research?.entry_count ?? "unavailable"}</p>
+                </div>
+                <span className="notice-code">NO AUTO-PROMOTION</span>
+              </div>
+              <section className="panel research-ledger-panel">
+                <div className="panel-heading">
+                  <div><h2>Recent research history</h2><p>Latest parsed H2 sections from the repository ledger</p></div>
+                  <StatusPill>LEDGER ENTRIES</StatusPill>
+                </div>
+                <div className="research-entry-list">
+                  {apiData.research?.entries?.length ? apiData.research.entries.map((entry, index) => (
+                    <article className="research-entry" key={entry.title + "-" + index}>
+                      <div className="research-entry-marker">{String(index + 1).padStart(2, "0")}</div>
+                      <div className="research-entry-copy">
+                        <strong>{entry.title}</strong>
+                        <p>{entry.summary || "No summary text was recorded for this ledger section."}</p>
+                      </div>
+                      <StatusPill>HISTORY</StatusPill>
+                    </article>
+                  )) : <div className="strategy-empty">{apiData.research?.status === "available" ? "The ledger is readable but no H2 entries were returned." : "The research ledger is unavailable; no research status is inferred."}</div>}
+                </div>
+                <div className="panel-foot">This view displays ledger text only. Strategy approval remains controlled by the existing deterministic validation gates.</div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · RESEARCH</span><span>HYPOTHESES ≠ VALIDATED STRATEGIES</span></footer>
             </>
           ) : (
             <div className="module-empty">
