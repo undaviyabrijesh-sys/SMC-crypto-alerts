@@ -1,0 +1,5 @@
+candidate,split,regime,trades,net_R,avg_R
+best_train_net,train,bear,12,1.1785283708939684,0.09821069757449737
+best_train_net,train,bull,22,-0.31488383655499996,-0.014312901661590908
+best_validation_net_min20,validation,bear,8,-3.0925284381937765,-0.38656605477422207
+best_validation_net_min20,validation,bull,13,-7.715770145693961,-0.5935207804379969
