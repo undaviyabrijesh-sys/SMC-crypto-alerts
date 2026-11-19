@@ -15,4 +15,5 @@
 
 - Local API unit tests: 13 passed using isolated fixture modules for the existing root imports.
 - Local compileall for the new API package: passed.
-- Repository CI verification is pending the commit-triggered workflow; the CI environment will exercise the tests against the actual repository modules.
+- GitHub Actions API contract workflow #9 (run 44478652326) completed successfully: dependency install, API compile and all 13 unit/HTTP contract tests passed against the actual repository modules.
+- The broader deterministic-quant CI run 44478652449 was still in progress at this log update; its later steps are not claimed as passed.
