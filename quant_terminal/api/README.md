@@ -6,10 +6,10 @@ The FastAPI adapter exposes persisted repository data to the Quant Terminal. It 
 
 From the repository root:
 
-\`\`\`bash
+```bash
 python -m pip install -r requirements.txt
 uvicorn quant_terminal.api.main:app --host 127.0.0.1 --port 8000
-\`\`\`
+```
 
 The default is loopback-only. If the API must be reached by a separate trusted server process, set QUANT_API_TOKEN in the API process and send Authorization: Bearer <token> from that server. Never put this token in a NEXT_PUBLIC_* variable or browser bundle. No CORS origins are enabled. Do not expose this API directly to the public internet; deployment requires a separate authentication, network, rate-limit and audit review.
 
