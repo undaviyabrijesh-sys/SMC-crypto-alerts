@@ -1,10 +1,10 @@
 # Salty Quant Terminal
 
-The web interface for **SALTY QUANT AI — QUANT TERMINAL**. This is a crypto-first research and paper-trading dashboard, built as a separate frontend so the existing Python research and paper engines remain authoritative.
+The web interface for SALTY QUANT AI — QUANT TERMINAL. This is a crypto-first research and paper-trading dashboard, built as a separate frontend so the existing Python research and paper engines remain authoritative.
 
 ## Current status
 
-**Phase 0 — UI foundation.** The current page is a navigation and visual shell only. It does not connect to an exchange, load market prices, generate signals, run backtests, or submit orders. Any unavailable metric is intentionally shown as unavailable rather than fabricated.
+**Phase 2 — read-only API foundation implemented.** The Next.js page remains a navigation/visual shell and is not yet wired to the API. The new FastAPI adapter exposes persisted health, market freshness, scanner, research, backtest-artifact, paper-ledger and risk data. It does not fetch exchange data, run engines, mutate state, send alerts or submit orders. Missing data remains unavailable rather than being replaced with synthetic values.
 
 ## Product modules
 
@@ -21,27 +21,35 @@ The web interface for **SALTY QUANT AI — QUANT TERMINAL**. This is a crypto-fi
 ## Architecture boundaries
 
 1. **Frontend:** Next.js App Router + React + TypeScript under this directory.
-2. **Backend:** Reuse existing Python modules in the repository (`data.py`, `quant_strategies.py`, `quant_supervisor.py`, `quant_backtest.py`, `quant_worker.py`, `trade_lifecycle.py`, `options_collector.py`). Do not fork their trading logic into TypeScript.
-3. **API:** Add a small, documented, read-only FastAPI adapter in a later phase. The browser must never receive exchange credentials or direct trading permissions.
+2. **Backend:** Reuse existing Python modules (data.py, quant_strategies.py, quant_supervisor.py, quant_backtest.py, quant_worker.py, trade_lifecycle.py, options_collector.py). Do not fork trading logic into TypeScript.
+3. **API:** quant_terminal/api/main.py is a separate read-only FastAPI projection over persisted repository data. It imports the existing candle normalizer and strategy-approval set, but never calls the market fetcher, worker, paper lifecycle or backtest runner.
 4. **Storage:** Read persisted research logs, experiment metadata and paper state through an explicit adapter. Validate schemas and timestamps before display.
 5. **Charts:** Add charting only after the API contract is stable; chart candles must carry exchange, symbol, timeframe, timestamp and freshness metadata.
 
-## Read-only API contract (planned)
+## Read-only API
 
-- `GET /api/v1/health` — service status, build/version and dependency checks.
-- `GET /api/v1/markets` — instruments, latest closed candles/mark snapshots and freshness.
-- `GET /api/v1/scanner/candidates` — current research candidates and validation reasons.
-- `GET /api/v1/research/experiments` — experiment summaries and frozen ruleset versions.
-- `GET /api/v1/backtests` — saved run metadata and result metrics.
-- `GET /api/v1/paper/positions` — open and historical paper positions.
-- `GET /api/v1/risk/summary` — paper exposure, drawdown and circuit-breaker state.
+See api/README.md for the complete contract, status semantics, environment paths and security boundary. Available endpoints:
 
-Every response should include `as_of`, `source`, and a status such as `live`, `stale`, or `unavailable`. Do not silently substitute cached or synthetic data for live data.
+- GET /api/v1/health
+- GET /api/v1/markets
+- GET /api/v1/scanner/candidates
+- GET /api/v1/research/experiments
+- GET /api/v1/backtests
+- GET /api/v1/paper/positions
+- GET /api/v1/paper/history
+- GET /api/v1/risk/summary
+
+Run locally from the repository root:
+
+    python -m pip install -r requirements.txt
+    uvicorn quant_terminal.api.main:app --host 127.0.0.1 --port 8000
+
+The API is loopback-only unless QUANT_API_TOKEN is configured. No CORS origins are enabled. Do not expose it publicly or deploy it until a separate authentication, network, rate-limit and audit review is complete. The frontend does not receive exchange credentials or the API token.
 
 ## Development sequence
 
-1. Dashboard shell and architecture contract.
-2. Read-only API and feed freshness indicators.
+1. Dashboard shell and architecture contract — complete.
+2. Read-only API and feed freshness/status — backend foundation complete; frontend integration pending.
 3. Scanner and research views backed by saved repository data.
 4. Backtest analytics with fees, slippage, funding (when defensible), and reproducible run metadata.
 5. Paper ledger and trade lifecycle views.
@@ -58,14 +66,12 @@ Every response should include `as_of`, `source`, and a status such as `live`, `s
 - Do not deploy or change production alerts without explicit approval.
 - If a data source is missing or stale, display that fact and suppress misleading metrics.
 
-## Local development
+## Local frontend development
 
 Requirements: Node.js 20.9+ and npm.
 
-```bash
-cd quant_terminal
-npm install
-npm run dev
-```
+    cd quant_terminal
+    npm install
+    npm run dev
 
-Open http://localhost:3000. The initial shell is deliberately feed-independent; backend integration is a subsequent phase.
+Open http://localhost:3000. The page is still feed-independent until the next frontend integration phase.
