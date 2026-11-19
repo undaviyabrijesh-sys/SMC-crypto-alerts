@@ -1954,3 +1954,22 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Workflow: .github/workflows/binance-btcusdt-1h-ema-crossover-replication.yml.
 - First two workflow attempts failed in the deterministic-test harness (first assumed an unavailable self_test API; second had a pandas 3.x timestamp-unit mismatch in the test's nanosecond lookup). These were harness defects, not strategy results. The timestamp lookup was changed to use Timestamp.value nanoseconds explicitly. Third run is pending as of this ledger update; no Binance performance result has been accepted yet.
 - No production, live-alert or main-branch changes. No orders or trades placed.
+
+
+## 2026-11-19 — Binance BTCUSDT EMA20/50 cross-exchange replication completed
+
+- Workflow 44451403028 completed successfully; artifact 14496285405; artifact SHA-256 aaf3d5502895be6b89628f2b04ac672451e0882b2b27e1e50eef18b0b4a89623.
+- REST API attempt returned HTTP 451 from the GitHub runner. Switched to Binance official monthly public-data archives and verified all 36 ZIP CHECKSUMs: 23 kline archives (2024-11 through 2026-09) and 13 fundingRate archives (2025-09 through 2026-09).
+- Data: 191,160 BTCUSDT 5m rows, zero missing 5m intervals; 8,814 complete 1h bars, zero missing hourly intervals; 1,102 funding records; zero trades overlapping funding settlements.
+- Frozen candidate: EMA20/50 1h crossover, next 1h open, 1.5 × Wilder ATR14 stop, 3R target, no HTF filter, both directions, one position at a time. No Binance parameter search.
+- Development at 10 bps: 94 trades, 40.43% win rate, PF 0.933, -2.27R net, -10.80R max DD, max losing streak 7, 6/11 positive months; 2 TP, 19 SL, 73 time exits.
+- Validation at 10 bps: 24 trades, 62.50% win rate, PF 2.953, +8.57R net, -1.57R max DD, max losing streak 4, 2/3 positive months; 1 TP, 1 SL, 22 time exits.
+- Cost sensitivity: development +4.53R at 4 bps, +1.13R at 7 bps, -2.27R at 10 bps, -13.59R at 20 bps. Validation +10.58R/+9.57R/+8.57R/+5.20R at 4/7/10/20 bps.
+- Monthly validation: July +6.54R, August -0.36R, September +2.38R. Development 6/11 positive months.
+- Development side attribution: long +1.68R, short -3.94R. Validation: long +3.66R, short +4.91R. Regime attribution is diagnostic only.
+- The 3R target was rarely reached: 2 target exits in development and 1 in validation; most exits were time exits before funding.
+- Independent ledger audit reconciled the summary; zero overlapping positions; every exit preceded its next actual fundingTime; no split-crossing trades.
+- Cluster bootstrap: 50,000 resamples per day/week/month cluster. Development mean-R 95% CIs all cross zero; probability of positive mean 37.82%–39.00%. Validation day/week CIs are positive but the month CI crosses zero; only 3 validation months; top 3 validation winners contribute 57.78% of positive R. This is descriptive, not proof.
+- Decision: reject for promotion. Binance development again negative at 10 bps, consistent with Delta development (-1.90R). Positive validation is small and concentrated; cross-exchange same-date evidence is not independent temporal OOS. Final OOS after 2026-09-10 06:00 UTC was not evaluated.
+- Reproducible report/runner/bootstrap: quant_discovery/BINANCE_BTCUSDT_1H_EMA20_50_CROSS_EXCHANGE_RESULTS_2026-11-19.md; research/binance_btcusdt_1h_ema_crossover_replication.py; research/bootstrap_binance_btc_ema20_50_replication.py; research/BINANCE_BTCUSDT_1H_EMA20_50_CLUSTER_BOOTSTRAP_AUDIT_2026-11-19.md.
+- Full workflow artifact includes source candles, funding rates, archive manifest, trades, summaries, monthly/regime/side results and metadata. No production/main changes; no alerts or orders.

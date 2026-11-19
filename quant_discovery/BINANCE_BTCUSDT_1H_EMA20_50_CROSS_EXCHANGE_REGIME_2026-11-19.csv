@@ -1,0 +1,5 @@
+sample,regime,trades,win_rate_pct,profit_factor,net_R,avg_R,max_drawdown_R,max_losing_streak,positive_months,active_months,TP,SL,TIME
+development,bear,73,41.10,0.930,-1.87,-0.026,-12.44,7,5,11,2,16,55
+development,bull,21,38.10,0.944,-0.40,-0.019,-3.25,4,3,6,0,3,18
+validation,bear,8,75.00,2.724,2.14,0.267,-1.13,1,1,2,0,1,7
+validation,bull,16,56.25,3.044,6.43,0.402,-2.16,4,2,3,1,0,15
