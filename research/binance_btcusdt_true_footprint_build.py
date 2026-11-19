@@ -34,7 +34,7 @@ EXPECTED_5M_BARS = EXPECTED_DAYS * 24 * 12
 def configure_month(month: str) -> None:
     """Set the one-calendar-month archive window and exact expected row counts."""
     global MONTH, START, END, EXPECTED_DAYS, EXPECTED_5M_BARS
-    if not re.fullmatch(r"\\d{4}-\\d{2}", month):
+    if not re.fullmatch(r"\d{4}-\d{2}", month):
         raise ValueError("Month must use YYYY-MM format")
     year, month_number = (int(part) for part in month.split("-"))
     if not 1 <= month_number <= 12:
