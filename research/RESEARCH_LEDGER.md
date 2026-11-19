@@ -1980,3 +1980,16 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Extend the exact same raw-trade reconstruction and event definitions to completed BTCUSDT USD-M aggTrades months 2026-06, 2026-07 and 2026-08, retaining September as the existing reference month.
 - Verify each aggTrades and matching 5m kline ZIP with its official SHA-256 CHECKSUM; validate aggregate IDs, timestamps, exact-price levels, aggressor-side totals, per-bar reconciliation, daily profiles and 30m TPO before computing any event statistics.
 - Do not change the September event thresholds, cooldown, horizons or cost assumption. Report each month separately and pooled day-cluster intervals; do not select a best month/side or call this a strategy validation.
+
+
+## 2026-11-19 — Multi-month BTCUSDT true-footprint reconstruction preregistered
+
+- New frozen specification: `research/BINANCE_BTCUSDT_TRUE_FOOTPRINT_MULTI_MONTH_EXTENSION_PREREGISTRATION_2026-11-19.md`.
+- Scope: separate official Binance USD-M BTCUSDT aggTrades + matching 5m kline archive builds for 2026-06, 2026-07, 2026-08 and a rebuilt 2026-09 reference. Each archive and official CHECKSUM is downloaded and verified per month. This is a feature/data-integrity build only; no strategy PnL or event selection.
+- Refactored the existing `research/binance_btcusdt_true_footprint_build.py` rather than creating a second feature engine. Added `--month YYYY-MM`; the default remains 2026-09 for backwards-compatible use. Expected days and 5m bar counts are derived from the UTC calendar month.
+- Methodology tightened before extension: exact aggTrade prices must map to integer 0.1 USDT ticks; profile value-area expansion explicitly includes untraded intervening ticks with zero weight; every UTC day must contain all 48 aligned 30m TPO brackets, with missing timestamps listed and the month failing validation. Integer (bar, price_tick) keys are checked for uniqueness.
+- Added deterministic tests for 30/31-day month sizes, contiguous zero-filled value-area expansion, complete 48-bracket coverage and detection of a missing bracket. The workflow runs these tests before each monthly build.
+- New sequential matrix workflow: `.github/workflows/binance-btcusdt-multi-month-footprint.yml`, months June–September 2026, max-parallel 1 to limit memory/disk pressure. Artifacts are retained per month; the workflow has contents:read only and does not push results into the repository.
+- Workflow run 44513565570 was queued and its June 2026 job had entered dependency installation at the time of this ledger update. No month build result is claimed yet. If any month fails a gate, it remains failed and no multi-month event study is run.
+- The rebuilt September profile may differ from the prior September artifact because the earlier value-area expansion skipped empty intervening ticks and did not enforce all 48 brackets/day. The old artifact is preserved as provenance; no byte-for-byte reproduction claim.
+- Next: complete the four monthly data-quality builds; only after all pass, preregister a separate multi-month descriptive event study using the existing frozen absorption/continuation definitions. No strategy parameter search, promotion, live alerts, production changes, main-branch changes or exchange orders.
