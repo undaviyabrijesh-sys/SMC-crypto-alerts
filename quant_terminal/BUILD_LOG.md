@@ -72,3 +72,11 @@
 - Added responsive styling for artifact cards and metadata.
 - Frontend TypeScript/production-build verification is triggered by the branch changes; no result is claimed until the corresponding workflow is inspected.
 - No deployment, live order routes, exchange credentials, alert mutations, production changes or main-branch changes.
+
+### Backtesting UI verification — 2026-11-20
+
+- Frontend workflow [44597784862](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597784862) completed successfully after the Backtesting page changes: dependency installation, TypeScript type-check and production Next.js build all passed.
+- Read-only API workflow [44597784912](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597784912) completed successfully: API compile and all existing read-only API contract tests passed. No API code changed in this increment.
+- Full deterministic repository CI [44597785323](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597785323) was still in progress at this build-log update; no final conclusion is claimed here.
+- ETH archive-replication PR self-test [44597784701](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597784701) passed the deterministic parser/feature tests. The PR lane intentionally skipped historical downloads; the full archive run remains separate and unverified.
+- No deployment, production mutation, exchange order, alert-send route or main-branch change.
