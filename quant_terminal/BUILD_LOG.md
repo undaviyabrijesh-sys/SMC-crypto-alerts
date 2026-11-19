@@ -17,3 +17,4 @@
 - Local compileall for the new API package: passed.
 - GitHub Actions API contract workflow #9 (run 44478652326) completed successfully: dependency install, API compile and all 13 unit/HTTP contract tests passed against the actual repository modules.
 - The broader deterministic-quant CI run 44478652449 was still in progress at this log update; its later steps are not claimed as passed.
+- Follow-up full deterministic-quant CI run #2174 (run 44478766743) completed successfully, including the repository's existing offline test suites, live Delta OHLCV check, funding/mark/OI probe and small historical-archive pilot. This passed after the API dependency and adapter changes.
