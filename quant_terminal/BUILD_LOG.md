@@ -110,3 +110,9 @@
 - Durable ETH report, summary JSON, monthly/fold/cost/side-regime CSVs and research-ledger entry are committed. Full source/trade/control files remain in the Actions artifact for 30 days.
 - Updated the ETH workflow condition so pull requests and ordinary pushes run deterministic tests only; full historical archive download is restricted to workflow_dispatch or a push with the explicit [run-eth-replication] marker. A duplicate PR-triggered run had already been queued under the previous guard; it is tracked separately and is not used as additional evidence.
 - No deployment, main-branch change, paper-state mutation, live alert or exchange order.
+
+### ETH replication reproducibility and workflow-cost guard — 2026-11-20
+
+- A second full run [44636199588](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44636199588) completed and uploaded artifact 14584126868. After download/extraction, all 14 files were byte-identical to the first successful run 44635977816, including the raw 15m source, archive manifest, events/controls, all return tables, monthly/fold/cost/side-regime outputs, report and summary metadata. Source SHA-256 matched exactly.
+- The duplicate was already queued under the earlier pull-request trigger condition. The workflow guard was then tightened: PRs and ordinary pushes execute deterministic tests only; full historical download is allowed only for workflow_dispatch or an explicitly marked [run-eth-replication] push.
+- The byte-identical rerun confirms deterministic reproducibility of the frozen archive download and event-study outputs. It is not a new sample, independent exchange, or temporal OOS validation.
