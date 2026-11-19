@@ -62,7 +62,8 @@ jobs:
           else:
               m = json.loads(meta_path.read_text())
               for key in ("symbol", "timeframe", "data", "csv_sha256",
-                          "train_end_utc", "validation_end_utc", "configurations",
+                          "train_end_utc", "validation_start_utc",
+                          "validation_end_utc", "oos_start_utc", "configurations",
                           "training_eligible", "training_shortlist",
                           "validation_passes", "oos_evaluated", "selected_config",
                           "selected_oos_12bp"):
