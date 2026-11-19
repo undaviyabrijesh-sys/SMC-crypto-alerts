@@ -43,3 +43,11 @@
 - GitHub Actions run 44513113410 completed successfully on commit 67a5f3e7daa0c789d82fff667195ab565d042257. Dependency installation, TypeScript type-check and production Next.js build all passed.
 - A second full frontend verification run 44513405351 also completed successfully after the month-parameterized research builder change. A later superseded run was cancelled during the production build after its type-check had passed; the successful run remains the verification result.
 - Overview and Live Markets use the same-origin proxy and actual API payloads. The proxy's server-only token is never referenced by client components.
+
+
+### Final integration CI on 2026-11-19
+
+- Latest branch commit at this update: `986cc027143abbc5c16f999d80dbe1a52dcbdeb8`.
+- Frontend workflow [44513797683](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513797683) completed successfully: npm dependency install, `npm run typecheck`, and `npm run build`.
+- Read-only API workflow [44513797676](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513797676) completed successfully: dependency install, API compile, and all 13 API contract tests.
+- No frontend/API deployment was performed.
