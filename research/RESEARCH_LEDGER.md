@@ -2081,3 +2081,24 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Fixed in `c0b9f66fc4b681364249435abb126e56f25a85e6`: timestamp-grid validation now uses datetime-native `.dt.floor("15min")` equality and direct Timedelta comparisons, avoiding assumptions about pandas datetime storage units.
 - The subsequent PR verification [44597784701](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597784701) passed the full deterministic self-test step with the GitHub runner's pandas 3.1.1. Because this was the pull-request safety lane, the historical archive download/backtest step was intentionally skipped.
 - The separate push-run metadata for the full archive download is not exposed by the available GitHub run lookup. The 53 archive downloads, checksum manifest and event-study output remain **pending/unverified**; no market performance result is claimed.
+
+## 2026-11-20 — ETHUSDT frozen cross-exchange replication: summary-stage bug and rerun
+
+- Full historical workflow [44597989645](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597989645) failed after its six deterministic tests passed. The archive-download/feature/event pipeline reached the side/regime summary stage; no artifact was uploaded, so the archive manifest, source hash and performance outputs were not available for independent inspection.
+- Root cause: the loop expected three values from a two-column pandas groupby. Pandas yields a key tuple and group frame, causing ValueError: not enough values to unpack (expected 3, got 2).
+- Corrected in code commit 094c11b06724583468237c723973e01b0c54ba06: added side_regime_rows() using tuple-key unpacking; replaced the faulty loop; added a deterministic regression fixture with long/bull and short/bear groups and checks for count, mean and paired lift.
+- Workflow trigger hardened in commit 7db8c2d6cb47856fd970d179fd9d8d49e43f84f5: ordinary branch pushes continue to run deterministic tests only; an explicit [run-eth-replication] commit-message marker permits a targeted push to run the frozen archive replication. This avoids downloading 53 archives on every ordinary code push.
+- Targeted rerun [44635977816](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44635977816) was queued; its job reached the historical replication step after all seven deterministic tests passed. At the time of this ledger update, archive download/event-study completion and artifact upload were still in progress. No Binance ETH performance result is claimed.
+- Frozen specification remains unchanged: 53 official archive periods, 47,424 expected 15m bars over [2025-03-08 00:00 UTC, 2026-07-15 00:00 UTC), 5,000 day-cluster bootstrap repetitions, 4/7/10/20bp costs with 10bp primary, 1h/4h horizons and deterministic same-day/side/regime/3h-bucket controls. Reserved final four months remain untouched.
+- The full run must pass all archive checksums, ZIP CRCs, exact archive row counts, 15m continuity, source SHA-256, future-perturbation invariance and event/control outputs before any performance interpretation. No stop/target study or promotion follows an inconclusive replication.
+
+## 2026-11-20 — Quant Terminal paper lifecycle views connected
+
+- Extended quant_terminal/app/page.tsx to consume the existing read-only GET /api/v1/paper/history endpoint alongside the existing paper-position and risk snapshots.
+- Added typed paper position/history records and three read-only views: Paper Trading (open position geometry and lifecycle status), Portfolio (retained gross-R diagnostics, open symbols, pending outcomes and explicit unavailable account equity/notional exposure/circuit-breaker fields), and Trade History (latest returned closed paper records with stored gross R).
+- No paper state is mutated. No open/close/modify controls were added. No exchange orders or execution endpoints were added.
+- Portfolio labels retained gross-R sum/drawdown as diagnostics only; it is not a fee-adjusted equity curve. Account equity and notional exposure remain unavailable because capital and position quantities are not persisted by the source paper engine.
+- Trade History labels the stored gross_R field as gross, before fees/funding/slippage; the API returns its existing bounded sample and retained-history count. It does not infer net P&L.
+- Responsive horizontal tables and limitation disclosures added to quant_terminal/app/globals.css. No new API endpoint or second lifecycle engine was introduced.
+- Frontend type-check/production build for these newest paper/portfolio/history changes is pending the latest GitHub Actions verification. The prior Backtesting-only frontend build passed, but that result does not verify these new views.
+- No deployment, main-branch change, live alert, paper-state write or exchange order.
