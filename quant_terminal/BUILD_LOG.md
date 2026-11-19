@@ -80,3 +80,22 @@
 - Full deterministic repository CI [44597785323](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597785323) was still in progress at this build-log update; no final conclusion is claimed here.
 - ETH archive-replication PR self-test [44597784701](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597784701) passed the deterministic parser/feature tests. The PR lane intentionally skipped historical downloads; the full archive run remains separate and unverified.
 - No deployment, production mutation, exchange order, alert-send route or main-branch change.
+
+## 2026-11-20 — Paper Trading, Portfolio and Trade History views
+
+- Extended the frontend data contract with typed paper position, paper history and expanded risk-summary fields.
+- The dashboard now reads GET /api/v1/paper/history in parallel with existing paper positions and risk endpoints.
+- Paper Trading view displays persisted open simulated positions, entry/stop/target geometry, R:R, status, source and snapshot time. It is explicitly read-only.
+- Portfolio view displays only fields already persisted by the paper risk endpoint: open positions/symbols, pending outcomes, retained gross-R sum and retained gross-R drawdown. Account equity, notional exposure and circuit-breaker state remain unavailable and are displayed as such.
+- Trade History view displays the bounded recent sample from the existing lifecycle history endpoint, including entry/exit, status, exit time and stored gross R. Gross R is not represented as net account P&L.
+- Added responsive horizontally scrollable paper position/history tables, portfolio symbol chips and a known-limitations panel.
+- No backend endpoint, paper lifecycle, state file, execution route or exchange adapter was changed. No simulated trade was created or modified by the UI.
+- The prior Backtesting-only frontend build passed in run 44597784862. The new Paper Trading/Portfolio/Trade History frontend changes are awaiting their own latest TypeScript and production-build verification; no pass is claimed until that run is inspected.
+- No deployment, main-branch change, production-rule change, live alert or exchange order.
+
+## 2026-11-20 — ETH replication runner summary aggregation fix
+
+- The frozen Binance ETHUSDT replication's first full historical run [44597989645](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44597989645) passed deterministic tests and reached the final side/regime summary stage, then failed because a two-column pandas groupby yields (key_tuple, group), not three separate values.
+- Fixed the summary aggregation in research/binance_ethusdt_ema20_cross_exchange_replication.py and added a side_regime_groupby deterministic regression test. Seven self-test groups now run before any historical download.
+- Updated the workflow to run the expensive frozen replication only on workflow_dispatch, pull_request, or a push with the explicit [run-eth-replication] marker. Ordinary branch pushes remain in the deterministic-only lane.
+- Targeted rerun [44635977816](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44635977816) passed the deterministic step and was still in the archive-download/event-study step at the time of this log update. No market performance result is claimed until the run and uploaded artifact are inspected.
