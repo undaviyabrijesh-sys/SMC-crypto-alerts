@@ -435,6 +435,19 @@ def summarize_diagnostics(trades: pd.DataFrame, label: str, monthly_rows: list, 
         })
 
 
+def split_boundary_metadata(index: pd.DatetimeIndex, a: int, b: int) -> dict:
+    """Return unambiguous last-bar and first-bar timestamps for end-exclusive splits."""
+    if not (0 < a < b < len(index)):
+        raise ValueError("invalid chronological split boundaries")
+    return {
+        "train_end_utc": index[a - 1].isoformat(),
+        "validation_start_utc": index[a].isoformat(),
+        "validation_end_utc": index[b - 1].isoformat(),
+        "oos_start_utc": index[b].isoformat(),
+        "split_end_exclusive": True,
+    }
+
+
 def run(price_path: Path, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = load_ohlcv(price_path)
@@ -443,6 +456,7 @@ def run(price_path: Path, out_dir: Path):
     a, b = int(n * 0.70), int(n * 0.85)
     if a < 1 or b <= a or b >= n:
         raise ValueError("insufficient rows for chronological 70/15/15 split")
+    split_meta = split_boundary_metadata(d.index, a, b)
     bounds = {"train": (0, a), "validation": (a, b), "oos": (b, n)}
 
     configs = []
@@ -621,17 +635,14 @@ def run(price_path: Path, out_dir: Path):
     top_train.to_csv(out_dir / "top_train.csv", index=False)
     top_val.to_csv(out_dir / "top_validation.csv", index=False)
 
-    train_end = d.index[a]
-    validation_end = d.index[b]
     meta = {
         "classification": "experimental research only; no live use",
         "symbol": "BTCUSD",
         "timeframe": "5m traded-price OHLCV; 15m/1h/4h derived only from complete 5m bars",
         "data": quality,
         "csv_sha256": sha256(price_path),
-        "chronological_split": "70/15/15 by 5m row count",
-        "train_end_utc": train_end.isoformat(),
-        "validation_end_utc": validation_end.isoformat(),
+        "chronological_split": "70/15/15 by 5m row count; each split end is exclusive",
+        **split_meta,
         "configurations": len(configs),
         "training_eligible": int(len(eligible)),
         "training_shortlist": int(min(len(eligible), MAX_SHORTLIST)),
@@ -732,7 +743,16 @@ def self_test():
         BANDS, CONFIRMATIONS, VOLUME_FILTERS, STOPS, TARGETS, SESSIONS, HTF4_FILTERS
     )))
     assert config_count == 648
-    print("10 deterministic VWAP trend-continuation tests passed")
+
+    # Metadata must report last included bars and first bars of each next split.
+    split_index = pd.date_range("2026-01-01", periods=100, freq="5min", tz="UTC")
+    split_meta = split_boundary_metadata(split_index, 70, 85)
+    assert split_meta["train_end_utc"] == split_index[69].isoformat()
+    assert split_meta["validation_start_utc"] == split_index[70].isoformat()
+    assert split_meta["validation_end_utc"] == split_index[84].isoformat()
+    assert split_meta["oos_start_utc"] == split_index[85].isoformat()
+    assert split_meta["split_end_exclusive"] is True
+    print("11 deterministic VWAP trend-continuation tests passed")
 
 
 def main():
