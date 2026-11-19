@@ -36,3 +36,10 @@
 
 - GitHub Actions frontend workflow was added and triggered by the branch commits. Type-check/build results must be read from the resulting run before claiming success.
 - Existing API contract tests were not modified in this increment; prior 13/13 API contract pass remains the last verified API test result.
+
+
+### Frontend integration verification — 2026-11-19
+
+- GitHub Actions run 44513113410 completed successfully on commit 67a5f3e7daa0c789d82fff667195ab565d042257. Dependency installation, TypeScript type-check and production Next.js build all passed.
+- A second full frontend verification run 44513405351 also completed successfully after the month-parameterized research builder change. A later superseded run was cancelled during the production build after its type-check had passed; the successful run remains the verification result.
+- Overview and Live Markets use the same-origin proxy and actual API payloads. The proxy's server-only token is never referenced by client components.
