@@ -2040,3 +2040,14 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Read-only API PR run [44552777259](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777259) completed successfully. Full deterministic CI was still in progress at this ledger update; do not claim it passed until its final run status is checked.
 - No deployment, main-branch change, live alert, exchange order or strategy promotion.
 
+## 2026-11-19 — Multi-month BTC true-footprint event study preregistered
+
+- Frozen amendment: `research/BINANCE_BTCUSDT_TRUE_FOOTPRINT_MULTI_MONTH_EVENT_STUDY_PREREGISTRATION_2026-11-19.md`.
+- Uses the four feature artifacts from successful reconstruction run 44513565570: June 14524680968, July 14525415431, August 14524786744, September 14525551088. No source data is refetched by the event-study workflow.
+- Important data-alignment amendment: absorption z-score uses official per-bar Binance kline delta `(2 × taker_buy_base − total_base_volume) / total_base_volume`, with preceding 288 completed bars, shifted one bar, minimum 96, population standard deviation. This avoids using aggTrade-derived 5m delta where boundary-assignment discrepancies exist.
+- Footprint continuation retains exact-price aggTrade diagonal imbalance (ratio ≥3, numerator ≥0.10 BTC, ≥3 consecutive 0.1 USDT ticks) but only on bars where both total-volume and taker-buy per-bar reconciliation errors are ≤0.10%. This screen reduces known alignment risk but does not prove every price-level assignment; raw-trade boundary validation remains required before any executable strategy claim.
+- Frozen common rules: 48-bar global cooldown per family across directions; first 288 bars and final 48 bars of each month censored; next 5m open entry; 12/48-bar fixed horizons; 10 bps round-trip deduction; 10,000 day-cluster bootstrap resamples. Report month-by-month and pooled descriptive bps statistics only.
+- No stop, target, R, account PnL, funding, spread, slippage or market-impact model. No parameter search, best-side/month selection, OOS claim or promotion.
+- Runner: `research/binance_btcusdt_true_footprint_event_study.py`; workflow: `.github/workflows/binance-btcusdt-footprint-event-study.yml`.
+- Workflow run [44553749894](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44553749894) was queued after the preregistration and runner were committed. No event-study result is claimed until all four monthly jobs and the pooled job complete successfully.
+
