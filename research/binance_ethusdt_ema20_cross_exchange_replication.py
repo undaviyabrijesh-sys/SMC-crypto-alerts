@@ -110,8 +110,9 @@ def parse_kline_zip(payload: bytes, expected_start: pd.Timestamp, expected_end: 
         raise ValueError("Duplicate timestamps inside a kline archive")
     if not frame["timestamp"].between(expected_start, expected_end - STEP, inclusive="both").all():
         raise ValueError("Kline archive contains timestamps outside its declared archive window")
-    offsets = (frame["timestamp"].astype("int64") - expected_start.value) % STEP.value
-    if (offsets != 0).any():
+    # Compare datetime values directly: pandas may retain millisecond or
+    # microsecond resolution, so .astype("int64") is not always nanoseconds.
+    if expected_start != expected_start.floor("15min") or not frame["timestamp"].dt.floor("15min").eq(frame["timestamp"]).all():
         raise ValueError("Kline timestamps are not aligned to the 15-minute grid")
     expected_rows = int((expected_end - expected_start) / STEP)
     if len(frame) != expected_rows:
