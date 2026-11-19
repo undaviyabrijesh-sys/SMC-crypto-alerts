@@ -85,7 +85,7 @@ def self_test(base):
  assert list(h.index[:2])==[pd.Timestamp('2026-01-01T01:00:00Z'),pd.Timestamp('2026-01-01T02:00:00Z')]
  assert h.index[0]==ix[12]
  # Actual funding-time lookup uses the first settlement strictly after entry.
- ns=pd.date_range('2026-01-01T00:00:00Z',periods=10,freq='8h').astype('int64').to_numpy()
+ ns=np.fromiter((t.value for t in pd.date_range('2026-01-01T00:00:00Z',periods=10,freq='8h')),dtype=np.int64,count=10)
  def nxt(t):
   j=int(np.searchsorted(ns,pd.Timestamp(t).value,side='right')); return pd.Timestamp(ns[j],tz='UTC')
  assert nxt(pd.Timestamp('2026-01-01T00:00:00Z'))==pd.Timestamp('2026-01-01T08:00:00Z')
@@ -115,7 +115,7 @@ def main():
  if f.rate.isna().any() or not np.isfinite(f.rate.to_numpy(float)).all(): raise RuntimeError('Bad funding rates')
  f=f[(f.timestamp>=T0)&(f.timestamp<=DATA_END)]; dt=f.timestamp.diff().dropna().dt.total_seconds()/3600
  if len(f)<100 or (dt>12).any() or (dt<=0).any(): raise RuntimeError('Funding archive gap/non-monotonicity')
- ns=f.timestamp.astype('int64').to_numpy()
+ ns=np.fromiter((pd.Timestamp(t).value for t in f.timestamp),dtype=np.int64,count=len(f))
  def next_funding(ts):
   i=int(np.searchsorted(ns,pd.Timestamp(ts).value,side='right'))
   if i>=len(ns): raise RuntimeError('No next funding timestamp')
