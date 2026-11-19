@@ -32,6 +32,7 @@ jobs:
           python -m py_compile research/btc_vwap_trend_continuation_backtest.py
           python research/btc_vwap_trend_continuation_backtest.py --self-test
       - name: Download two years of BTCUSD traded 5m candles
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-btc-vwap-matrix]'))
         run: >-
           python bootstrap_historical_data.py
           --years 2
@@ -41,12 +42,13 @@ jobs:
           --request-delay 0.2
           --retries 6
       - name: Run preregistered VWAP trend-continuation matrix
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-btc-vwap-matrix]'))
         run: |
           python research/btc_vwap_trend_continuation_backtest.py \
             --price-5m-csv historical_data/BTC_5m.csv \
             --output-dir results/btc-vwap-trend
       - name: Add verified results to job summary
-        if: always()
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-btc-vwap-matrix]')))
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
@@ -98,7 +100,7 @@ jobs:
                           print("No rows")
           PY
       - name: Retain inputs and reproducible outputs
-        if: always()
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-btc-vwap-matrix]')))
         uses: actions/upload-artifact@v4
         with:
           name: btc-vwap-trend-continuation-${{ github.run_id }}
