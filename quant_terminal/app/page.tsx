@@ -166,8 +166,18 @@ type BacktestSnapshot = {
 
 type RiskSnapshot = {
   status: string;
+  as_of?: string;
+  source?: string;
   account_equity?: number | null;
   account_exposure?: number | null;
+  open_positions?: number | null;
+  open_symbols?: string[];
+  pending_outcomes?: number | null;
+  realized_gross_r_retained_history?: number | null;
+  max_drawdown_r_retained_history?: number | null;
+  retained_history_trades?: number | null;
+  circuit_breaker?: string | null;
+  limitations?: string[];
 };
 
 type DashboardData = {
@@ -768,6 +778,56 @@ export default function Home() {
                 <div className="panel-foot">Source: {apiData.positions?.source ?? "unavailable"} · Snapshot: {apiData.positions?.as_of ?? "unavailable"} · No real exchange positions are queried.</div>
               </section>
               <footer className="page-footer"><span>SALTY QUANT TERMINAL · PAPER TRADING</span><span>SIMULATION ONLY · READ ONLY</span></footer>
+            </>
+          ) : active === "Portfolio" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PAPER PORTFOLIO DIAGNOSTICS</div>
+                  <h1>Portfolio</h1>
+                  <p>Read-only risk summary from retained paper lifecycle records. This is not a funded account or exchange portfolio.</p>
+                </div>
+                <StatusPill tone={apiData.risk?.status === "available" ? "green" : "amber"}>{apiData.risk?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.risk?.status === "available" ? "Retained paper risk diagnostics are readable" : apiData.loading ? "Loading paper risk state" : "Paper risk state unavailable"}</strong>
+                  <p>{apiData.risk?.source ?? "Risk source unavailable"} · {apiData.risk?.as_of ?? "Snapshot time unavailable"} · Account capital and notional position quantities are not persisted.</p>
+                </div>
+                <span className="notice-code">NO REAL CAPITAL</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Account equity" value={formatLevel(apiData.risk?.account_equity, 2)} note="Unavailable in current paper-state schema" icon="◉" />
+                <MetricCard label="Notional exposure" value={formatLevel(apiData.risk?.account_exposure, 2)} note="Position quantities are not persisted" icon="↗" />
+                <MetricCard label="Open paper positions" value={apiData.risk?.status === "available" ? formatArtifactValue(apiData.risk.open_positions) : "—"} note="Source risk snapshot" icon="▤" />
+                <MetricCard label="Pending outcomes" value={apiData.risk?.status === "available" ? formatArtifactValue(apiData.risk.pending_outcomes) : "—"} note="Existing lifecycle queue" icon="◷" />
+                <MetricCard label="Retained gross R" value={formatLevel(apiData.risk?.realized_gross_r_retained_history, 3)} note="Sum of stored gross-R records" icon="◇" />
+                <MetricCard label="Retained max drawdown" value={formatLevel(apiData.risk?.max_drawdown_r_retained_history, 3)} note="Gross-R sequence, retained history only" icon="⌁" />
+                <MetricCard label="Trades in R diagnostic" value={formatArtifactValue(apiData.risk?.retained_history_trades)} note="Only records with numeric gross R" icon="◷" />
+                <MetricCard label="Circuit breaker" value={apiData.risk?.circuit_breaker === "unavailable_not_persisted" ? "Unavailable" : apiData.risk?.circuit_breaker ?? "—"} note="Not persisted by the paper engine" icon="⛨" />
+              </div>
+              <section className="panel paper-ledger-panel">
+                <div className="panel-heading">
+                  <div><h2>Open paper symbols</h2><p>Symbols reported by the persisted paper risk snapshot</p></div>
+                  <StatusPill>SIMULATED ONLY</StatusPill>
+                </div>
+                <div className="paper-symbol-list">
+                  {apiData.risk?.status === "available" && apiData.risk.open_symbols ? (
+                    apiData.risk.open_symbols.length
+                      ? apiData.risk.open_symbols.map((symbol) => <span className="paper-symbol-chip" key={symbol}>{symbol}</span>)
+                      : <div className="paper-empty">No open paper symbols are currently recorded.</div>
+                  ) : <div className="paper-empty">Open-symbol data is unavailable.</div>}
+                </div>
+                <div className="panel-foot">This drawdown is a retained gross-R diagnostic, not account-equity drawdown. Costs, funding and unrealized P&L are not represented here.</div>
+              </section>
+              {apiData.risk?.limitations?.length ? (
+                <section className="panel risk-limitations-panel">
+                  <div className="panel-heading"><div><h2>Known data limitations</h2><p>Metrics intentionally left unavailable</p></div><StatusPill>TRANSPARENCY</StatusPill></div>
+                  <ul>{apiData.risk.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul>
+                </section>
+              ) : null}
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · PORTFOLIO</span><span>PAPER DIAGNOSTICS · NOT ACCOUNT EQUITY</span></footer>
             </>
           ) : active === "Trade History" ? (
             <>
