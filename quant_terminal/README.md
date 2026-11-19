@@ -4,7 +4,7 @@ The web interface for SALTY QUANT AI — QUANT TERMINAL. This is a crypto-first 
 
 ## Current status
 
-**Phase 2 — read-only API foundation implemented.** The Next.js page remains a navigation/visual shell and is not yet wired to the API. The new FastAPI adapter exposes persisted health, market freshness, scanner, research, backtest-artifact, paper-ledger and risk data. It does not fetch exchange data, run engines, mutate state, send alerts or submit orders. Missing data remains unavailable rather than being replaced with synthetic values.
+**Phase 3 foundation — read-only API and Overview/Live Markets integration implemented.** The Next.js Overview and Live Markets pages now consume persisted health, market freshness, scanner, research-ledger, backtest-artifact, paper-position and risk snapshots through a same-origin server proxy. The other modules remain placeholders. The FastAPI adapter still does not fetch exchange data, run engines, mutate state, send alerts or submit orders. Missing data remains unavailable rather than being replaced with synthetic values.
 
 ## Product modules
 
@@ -50,7 +50,7 @@ The API is loopback-only unless QUANT_API_TOKEN is configured. No CORS origins a
 
 1. Dashboard shell and architecture contract — complete.
 2. Read-only API and feed freshness/status — backend foundation complete; frontend integration pending.
-3. Scanner and research views backed by saved repository data.
+3. Scanner and research views backed by saved repository data — next UI integration.
 4. Backtest analytics with fees, slippage, funding (when defensible), and reproducible run metadata.
 5. Paper ledger and trade lifecycle views.
 6. Data-grounded AI Analyst.
