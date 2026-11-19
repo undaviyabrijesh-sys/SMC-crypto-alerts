@@ -642,7 +642,7 @@ export default function Home() {
                           <summary>Recorded metadata · not an approval decision</summary>
                           <div className="backtest-metadata-list">
                             {Object.entries(artifact.metadata).map(([key, value]) => (
-                              <div key={key}><span>{key.replaceAll("_", " ")}</span><strong>{formatArtifactValue(value)}</strong></div>
+                              <div key={key}><span>{key.replace(/_/g, " ")}</span><strong>{formatArtifactValue(value)}</strong></div>
                             ))}
                           </div>
                         </details>
