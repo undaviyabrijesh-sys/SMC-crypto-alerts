@@ -1,0 +1,33 @@
+{
+  "status": "completed_inconclusive",
+  "symbol": "ETHUSDT",
+  "asset": "ETH",
+  "strategy": "15m EMA20 pullback/reclaim with completed 4h EMA50/EMA200 regime",
+  "strategy_id": "eth_15m_ema20_4h_regime_event_study",
+  "run_id": "44635977816",
+  "start_utc": "2025-03-08T00:00:00Z",
+  "end_utc": "2026-07-15T00:00:00Z",
+  "evaluation_start_utc": "2025-09-08T12:00:00Z",
+  "evaluation_end_exclusive_utc": "2026-07-15T00:00:00Z",
+  "configurations": 1,
+  "oos_evaluated": false,
+  "trade_count": null,
+  "event_count": 17,
+  "matched_event_count": 16,
+  "archive_count": 53,
+  "checksum_verified_archives": 53,
+  "missing_15m_intervals": 0,
+  "source_sha256": "9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59",
+  "artifact_id": 14583462052,
+  "artifact_sha256": "92ce6f2d61bfe7f7075f1080fbedd89bcc481347ffb4f918e86c180cb9f23829",
+  "primary_round_trip_cost_bps": 10,
+  "cost_sensitivity_bps": [4, 7, 10, 20],
+  "bootstrap_repetitions": 5000,
+  "validation_decision": "inconclusive_not_promoted",
+  "limitations": [
+    "Fixed-horizon event study, not a stop/target strategy backtest",
+    "No R-based PnL or account drawdown",
+    "Funding cashflows, spread, variable slippage and market impact not modeled",
+    "Reserved final four-month holdout not downloaded or evaluated"
+  ]
+}
