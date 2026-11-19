@@ -2019,3 +2019,24 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Every day had all 48 UTC 30m TPO brackets (minimum and maximum 48; zero missing brackets). Contiguous zero-filled 0.1-tick volume/TPO value-area coverage passed; minimum daily coverage was 70.00023% for volume and 70.0% for TPO.
 - Decision: September feature reconstruction PASS. This is not a strategy result; metadata explicitly records `strategy_backtest_run=false`. No entries, stops, targets, costs, funding or PnL were tested.
 - Report and metadata were published to `quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.md/.json`. The historical September artifact from the prior implementation remains provenance and is not overwritten as a byte-for-byte reproduction.
+
+## 2026-11-19 — BTCUSDT multi-month true-footprint feature reconstruction completed
+
+- Workflow [44513565570](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570) completed successfully on commit `22f53846cef9a507af0871aa97329139b586f9b0`.
+- All four sequential matrix jobs passed their final metadata gates: 2026-06, 2026-07, 2026-08 and 2026-09. Each job also passed Python compilation and all 10 deterministic footprint/month/TPO/value-area tests.
+- Artifacts: June [14524680968](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570/artifacts/14524680968), July [14525415431](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570/artifacts/14525415431), August [14524786744](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570/artifacts/14524786744), September [14525551088](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570/artifacts/14525551088). Each contains the checked source archives, derived feature tables, metadata and monthly report; artifacts are retained by Actions for 30 days.
+- Frozen scope remains feature/data reconstruction only. The workflow computes no absorption/continuation event returns, stop/target PnL, funding, strategy metrics or promotion decision. All four monthly metadata gates report PASS; this is not a strategy result.
+- Important event-study guardrail: the build validates monthly volume/taker-buy totals and reports per-bar errors, but does not enforce a strict maximum per-bar aggTrade-to-kline error. September's known p95/max per-bar errors are 0.00438%/2.6441% for total volume and 0.000683%/7.9392% for taker-buy volume. Do not feed unfiltered aggTrade-derived 5m delta into the frozen absorption z-score without an explicit alignment policy.
+- Next event-study amendment should use official kline per-bar taker-buy and total volume for the bar-level absorption delta, and either exclude footprint-continuation bars whose per-bar aggTrade reconciliation exceeds 0.10% for either measure or reconstruct those bars from validated raw trades. Keep the original September event study as historical provenance; no threshold tuning or best-month selection.
+- The next event study remains unrun. No new strategy PnL or R-multiple result is claimed.
+
+## 2026-11-19 — Quant Terminal Scanner and Strategy Research views connected
+
+- Extended `quant_terminal/app/page.tsx` to render the existing read-only `/api/v1/scanner/candidates` and `/api/v1/research/experiments` payloads in dedicated AI Scanner and Strategy Research views.
+- Scanner view displays latest persisted per-symbol status, freshness timestamp, decision status/reason, candidate entry/stop/target/RR, rule-quality points, timeframes, rationale, invalidation and recorded rejection reasons. It does not generate or rank candidates.
+- Strategy Research view displays recent H2 sections from the repository research ledger and explicitly states that ledger headings are not validation or promotion decisions.
+- Added responsive styling in `quant_terminal/app/globals.css`. No API endpoint, strategy engine, market-data source, paper state, alert path or production rule was changed.
+- Frontend push run [44552763666](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552763666) and PR run [44552777079](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777079) completed successfully: npm install, TypeScript type-check and Next.js production build.
+- Read-only API PR run [44552777259](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777259) completed successfully. Full deterministic CI was still in progress at this ledger update; do not claim it passed until its final run status is checked.
+- No deployment, main-branch change, live alert, exchange order or strategy promotion.
+

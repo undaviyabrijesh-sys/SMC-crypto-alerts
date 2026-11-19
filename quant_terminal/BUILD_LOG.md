@@ -51,3 +51,14 @@
 - Frontend workflow [44513797683](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513797683) completed successfully: npm dependency install, `npm run typecheck`, and `npm run build`.
 - Read-only API workflow [44513797676](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513797676) completed successfully: dependency install, API compile, and all 13 API contract tests.
 - No frontend/API deployment was performed.
+
+## 2026-11-19 — Scanner and Strategy Research read-only UI integration
+
+- Connected the existing scanner and research API snapshots to dedicated navigation views; no new backend endpoints were added.
+- AI Scanner now shows persisted per-symbol freshness, decision status/reason, candidate risk geometry, RR, rule-quality points, evidence timeframes, rationale/invalidation and recorded rejections. It is a view of the deterministic scanner log, not a new AI or signal-generation engine.
+- Strategy Research now renders recent research-ledger sections. It explicitly does not infer validation status from headings or promote strategies.
+- Added responsive scanner/candidate/research timeline styling in `app/globals.css`.
+- Frontend push run [44552763666](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552763666) and PR run [44552777079](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777079) passed dependency installation, TypeScript type-check and production Next.js build.
+- Read-only API PR run [44552777259](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777259) passed. Full deterministic CI was still running at this update.
+- No deployment, exchange credentials, live order routes, alert mutations or production changes.
+
