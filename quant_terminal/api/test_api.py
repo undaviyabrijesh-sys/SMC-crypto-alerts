@@ -117,7 +117,7 @@ class ReadOnlyApiTests(unittest.TestCase):
             "oos_evaluated": False,
         }), encoding="utf-8")
         metrics = self.discovery_dir / "ETH_TEST_METRICS.csv"
-        metrics.write_text("horizon,events,mean_net_bps\\n4h,16,30.18\\n", encoding="utf-8")
+        metrics.write_text("horizon,events,mean_net_bps" + chr(10) + "4h,16,30.18" + chr(10), encoding="utf-8")
 
         result = main.build_backtest_snapshot()
         self.assertEqual(result["status"], "available")
