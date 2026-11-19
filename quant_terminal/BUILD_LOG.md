@@ -116,3 +116,10 @@
 - A second full run [44636199588](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44636199588) completed and uploaded artifact 14584126868. After download/extraction, all 14 files were byte-identical to the first successful run 44635977816, including the raw 15m source, archive manifest, events/controls, all return tables, monthly/fold/cost/side-regime outputs, report and summary metadata. Source SHA-256 matched exactly.
 - The duplicate was already queued under the earlier pull-request trigger condition. The workflow guard was then tightened: PRs and ordinary pushes execute deterministic tests only; full historical download is allowed only for workflow_dispatch or an explicitly marked [run-eth-replication] push.
 - The byte-identical rerun confirms deterministic reproducibility of the frozen archive download and event-study outputs. It is not a new sample, independent exchange, or temporal OOS validation.
+
+### Backtesting inventory — normalized ETH event-study records
+
+- Added a discoverable METADATA JSON and METRICS CSV for the completed Binance ETHUSDT 15m EMA20/4h regime event study.
+- The existing read-only backtest artifact index already scans METADATA JSON and METRICS CSV files; the existing UI displays recorded metadata, CSV columns and bounded sample rows. No new API endpoint or backtest engine was added.
+- Metadata marks the result completed_inconclusive, identifies 17 events/16 matched pairs, records the source hash and archive verification, and explicitly leaves trade_count null because the study is fixed-horizon rather than a stop-based trade backtest.
+- Metrics CSV exposes the 1h/4h means, medians, descriptive PF, matched lift, confidence intervals and month/fold stability to the artifact inventory. The dashboard remains a local read-only development app; no deployment or remote runtime integration was performed.
