@@ -75,3 +75,29 @@ Requirements: Node.js 20.9+ and npm.
     npm run dev
 
 Open http://localhost:3000. The page is still feed-independent until the next frontend integration phase.
+
+
+## Frontend integration status — 2026-11-19
+
+**Phase 3 foundation:** Overview and Live Markets now consume the read-only API through a same-origin Next.js server route. The browser never receives the FastAPI token or calls the Python API directly.
+
+- Market rows are populated only from `GET /api/v1/markets`; missing prices remain unavailable.
+- “Cache fresh” means the latest persisted closed 5m candle passed the API freshness/continuity checks. It is not a websocket quote or executable bid/ask.
+- Overview counts use the saved scanner records, paper-position ledger and authoritative `APPROVED_STRATEGIES` count.
+- Paper equity remains unavailable because the existing paper engine does not persist account capital.
+- Recent research entries are read from the research ledger. Static strategy examples were removed from the Overview.
+- The chart renderer is still not integrated; the UI does not draw synthetic candles.
+- Other modules remain explicit placeholders until their data contracts are connected.
+
+### Server-side proxy configuration
+
+The proxy route is `/api/quant/*` and allowlists only the documented read-only GET endpoints. It defaults to `http://127.0.0.1:8000`.
+
+- Set `QUANT_API_BASE_URL` only in the Next.js server environment when FastAPI is not on loopback.
+- Set `QUANT_API_TOKEN` only as a server-side environment variable; never use `NEXT_PUBLIC_*`.
+- Remote upstreams require HTTPS and a token. Redirects are rejected, queries are allowlisted, and proxy responses are no-store.
+- The API remains loopback-only without its token. No public deployment is approved.
+
+### Frontend verification
+
+The `quant-terminal-frontend.yml` workflow runs dependency installation, TypeScript type-checking and a production Next.js build. Results must be reported from the actual workflow run; adding the workflow does not itself prove a build passed.
