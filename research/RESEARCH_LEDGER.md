@@ -2001,3 +2001,9 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Corrected the parser in commit `be0f064bee4640746dd6a393a8e18dfb33c6fdc4`. The multi-month workflow's deterministic feature-test step then passed on the checked-out code before starting its first month download.
 - The single-month legacy workflow was changed to `workflow_dispatch` only in commit `fc9d40cfcdab00d57ce73caf95bda8336840cff0`; the new sequential matrix workflow is the automatic path for June–September. Already queued legacy attempts cannot be treated as new results.
 - At this ledger update, the corrected standalone September build run 44513396598 remained in progress, a superseded run 44513508344 was pending, and multi-month run 44513565570 had passed dependency installation, compilation and all 10 deterministic tests; its June download/build step was still in progress. No monthly data-validation result is claimed until metadata/report artifacts are inspected.
+
+
+### Current multi-month feature-build status — 2026-11-19
+
+- Multi-month workflow [44513565570](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570): 10 deterministic tests passed in the June job; official archive download/reconstruction remains in progress. July, August and September matrix jobs are queued sequentially. No month has yet passed its market-data/profile gates in the available run output.
+- Legacy standalone September workflow is now manual-only to avoid triggering duplicate monthly rebuilds on every code push. Previously queued legacy attempts are not treated as validation results.
