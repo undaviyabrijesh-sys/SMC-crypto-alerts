@@ -3,7 +3,7 @@
   "repository": "undaviyabrijesh-sys/SMC-crypto-alerts",
   "branch": "ai-quant-rebuild",
   "path": "quant_discovery/TRADE_IDEA_LEDGER.json",
-  "updated_at_utc": "2026-11-19T12:35:02Z",
+  "updated_at_utc": "2026-11-19T13:29:22Z",
   "recovery": {
     "status": "reinitialized_from_zero_byte_file",
     "prior_file_was_empty": true,
@@ -72,6 +72,17 @@
           "max_high_after_trigger": 959.64,
           "tp1": 963.8519,
           "tp2": 973
+        },
+        {
+          "type": "post_stop_monitor_check",
+          "timestamp_utc": "2026-11-19T13:20:00Z",
+          "candle": {
+            "open": 943.89,
+            "high": 945.09,
+            "low": 941.9,
+            "close": 942.87
+          },
+          "note": "Original stop had already been touched at 12:25 UTC. No TP1 or TP2 touch occurred before stop; setup remains terminal and no confirmed paper fill exists."
         }
       ],
       "paper_fill_confirmed": false,
@@ -82,9 +93,16 @@
       "realized_r": null,
       "conditional_r_if_entry_assumed": -1,
       "terminal": true,
-      "last_mark": 945.20422611,
-      "last_mark_timestamp_utc": "2026-11-19T12:34:28Z",
-      "note": "Entry zone traded after trigger, then original stop was touched. Because Discord delivery was not confirmed, no active alerted setup or paper fill is recorded. Conditional stop-first path is -1R only if a fill is assumed."
+      "last_mark": 945.09615516,
+      "last_mark_timestamp_utc": "2026-11-19T13:28:05Z",
+      "note": "Entry zone traded after trigger, then original stop was touched. Because Discord delivery was not confirmed, no active alerted setup or paper fill is recorded. Conditional stop-first path is -1R only if a fill is assumed.",
+      "latest_completed_5m_candle": {
+        "timestamp_utc": "2026-11-19T13:20:00Z",
+        "open": 943.89,
+        "high": 945.09,
+        "low": 941.9,
+        "close": 942.87
+      }
     },
     {
       "setup_id": "BTCUSDT-L-20261119T1225Z-5M-SWEEP-01",
@@ -99,7 +117,15 @@
         "followup_close": 63709.9,
         "local_high_to_break": 64056
       },
-      "note": "Sell-side sweep and reclaim observed; no completed MSS/break above 64056 and higher-timeframe 4h/daily trend remains bearish."
+      "note": "Sell-side sweep and reclaim remain above 63540, but no completed break above 64056; 4h/daily trend bearish.",
+      "last_check": {
+        "timestamp_utc": "2026-11-19T13:29:22Z",
+        "mark": 63703.4,
+        "last_completed_5m_close": 63705.7,
+        "last_completed_5m_low": 63705.7,
+        "local_high_to_break": 64056,
+        "status": "watch_only_confirmation_pending"
+      }
     },
     {
       "setup_id": "XRPUSDT-L-20261119T1215Z-15M-SWEEP-01",
@@ -114,7 +140,14 @@
         "followup_5m_close": 0.9801,
         "local_high_to_break": 0.9936
       },
-      "note": "15m sell-side sweep/reclaim held above the swept level, but no local-high breakout; 15m taker buy/sell ratio 0.575 and long accounts are crowded."
+      "note": "Reclaim above 0.9783 remains, but local-high breakout 0.9936 not confirmed; latest 5m taker flow sell-dominant.",
+      "last_check": {
+        "timestamp_utc": "2026-11-19T13:29:22Z",
+        "mark": 0.9877,
+        "last_completed_5m_close": 0.9867,
+        "local_high_to_break": 0.9936,
+        "status": "watch_only_confirmation_pending"
+      }
     },
     {
       "setup_id": "SUIUSDT-L-20261119T1215Z-15M-SWEEP-01",
@@ -129,7 +162,14 @@
         "followup_5m_close": 0.7262,
         "local_high_to_break": 0.7339
       },
-      "note": "15m sell-side sweep/reclaim remains above 0.7252, but no 5m MSS or break above 0.7339."
+      "note": "Sweep/reclaim above 0.723 remains intact; no completed breakout above 0.7339, so watch-only.",
+      "last_check": {
+        "timestamp_utc": "2026-11-19T13:29:22Z",
+        "mark": 0.7308,
+        "last_completed_5m_close": 0.7301,
+        "local_high_to_break": 0.7339,
+        "status": "watch_only_confirmation_pending"
+      }
     },
     {
       "setup_id": "ETHUSDT-L-20261119T1215Z-15M-SWEEP-01",
@@ -158,6 +198,38 @@
         "subsequent_5m_close": 9.168
       },
       "note": "Reclaim failed on the following completed 5m candle; no entry."
+    },
+    {
+      "setup_id": "ADAUSDT-L-20261119T1315Z-5M-RANGE-BO-WATCH-01",
+      "symbol": "ADAUSDT",
+      "bias": "LONG",
+      "timeframe": "5m",
+      "status": "watch_only_breakout_confirmation_pending",
+      "reference": {
+        "range_high": 0.1557,
+        "mark": 0.15530506,
+        "last_completed_5m_candle": {
+          "timestamp_utc": "2026-11-19T13:20:00Z",
+          "open": 0.1552,
+          "high": 0.1554,
+          "low": 0.1551,
+          "close": 0.1552
+        },
+        "15m_ema20": 0.153925,
+        "15m_ema50": 0.153236,
+        "1h_ema20": 0.153004,
+        "1h_ema50": 0.152875,
+        "4h_ema20": 0.153872,
+        "4h_ema50": 0.160168,
+        "oi_change_60m_pct": 0.3947,
+        "taker_buy_sell_5m": 1.4673,
+        "relative_volume_15m": 5.1098
+      },
+      "requirements": {
+        "trigger": "Completed 5m close above 0.1557 followed by a retest that holds above the breakout level.",
+        "minimum_planned_reward_to_risk": 2
+      },
+      "note": "Strong 15m participation and positive short-window OI/taker flow, but 0.1557 has only been wicked; no completed close above the range high. 4h and daily remain bearish. No entry, stop or targets assigned."
     }
   ],
   "user_directed_exceptions": [
@@ -208,15 +280,25 @@
       "paper_fill_confirmed": false,
       "realized_r": null,
       "r_assessment": "not_applicable_no_fill",
-      "last_mark": 0.72707719,
-      "last_mark_timestamp_utc": "2026-11-19T12:34:28Z",
+      "last_mark": 0.7308,
+      "last_mark_timestamp_utc": "2026-11-19T13:28:05Z",
       "latest_completed_5m_candle": {
-        "timestamp_utc": "2026-11-19T12:30:00Z",
-        "high": 0.7278,
-        "low": 0.7249,
-        "close": 0.7262
+        "timestamp_utc": "2026-11-19T13:20:00Z",
+        "high": 0.7317,
+        "low": 0.7301,
+        "close": 0.7301
       },
-      "note": "Historical candle audit shows stop was touched before the entry zone was first touched. The later target touch occurred after invalidation. Preserve the user-directed triggered_unalerted_delivery_blocked classification, but correct prior -1R reporting: there was no valid entry fill, so no realized loss is booked."
+      "note": "Historical candle audit shows stop was touched before the entry zone was first touched. The later target touch occurred after invalidation. Preserve the user-directed triggered_unalerted_delivery_blocked classification, but correct prior -1R reporting: there was no valid entry fill, so no realized loss is booked.",
+      "last_monitor_check": {
+        "timestamp_utc": "2026-11-19T13:29:22Z",
+        "entry_zone_touched": false,
+        "stop_touched_in_this_check": false,
+        "target_touched_in_this_check": false,
+        "terminal_status": "stop_touched_before_entry_zone",
+        "paper_fill_confirmed": false,
+        "realized_r": null,
+        "r_assessment": "not_applicable_no_fill"
+      }
     }
   ],
   "scan_history": [
@@ -261,6 +343,182 @@
       "liquidation_heatmap_available": false,
       "force_order_stream_available": false,
       "adl_endpoint_available": false
+    },
+    {
+      "scan_id": "crypto-trade-idea-desk-2026-11-19T132922Z",
+      "market_data": {
+        "mark_ticker_timestamp_utc": "2026-11-19T13:28:05Z",
+        "order_book_timestamp_utc": "2026-11-19T13:29:22Z",
+        "last_completed_5m_candle_open_utc": "2026-11-19T13:20:00Z",
+        "last_completed_15m_candle_open_utc": "2026-11-19T13:00:00Z",
+        "last_completed_1h_candle_open_utc": "2026-11-19T12:00:00Z",
+        "last_completed_4h_candle_open_utc": "2026-11-19T08:00:00Z",
+        "last_completed_daily_candle_open_utc": "2026-11-18T00:00:00Z",
+        "latest_oi_5m_statistics_timestamp_utc": "2026-11-19T13:25:00Z",
+        "latest_taker_5m_timestamp_utc": "2026-11-19T13:20:00Z",
+        "latest_global_long_short_timestamp_utc": "2026-11-19T12:00:00Z",
+        "latest_adl_update_timestamp_utc": "2026-11-19T12:00:00Z"
+      },
+      "universe": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "BNBUSDT",
+        "XRPUSDT",
+        "DOGEUSDT",
+        "ADAUSDT",
+        "LINKUSDT",
+        "SUIUSDT",
+        "ZECUSDT",
+        "HYPEUSDT"
+      ],
+      "market_snapshot": [
+        [
+          "BTCUSDT",
+          63703.4,
+          -0.521,
+          14118038658.59,
+          0.00000942
+        ],
+        [
+          "ETHUSDT",
+          1804,
+          0.486,
+          8201105909.9,
+          0.00007004
+        ],
+        [
+          "SOLUSDT",
+          74.79,
+          0.714,
+          1305774184.64,
+          0.00005338
+        ],
+        [
+          "BNBUSDT",
+          592.42,
+          0.473,
+          257181916.32,
+          0.00006471
+        ],
+        [
+          "XRPUSDT",
+          0.9877,
+          0.254,
+          611422623.48,
+          0.00008626
+        ],
+        [
+          "DOGEUSDT",
+          0.05958172,
+          0.455,
+          213498857.55,
+          0.00007151
+        ],
+        [
+          "ADAUSDT",
+          0.15530506,
+          0.975,
+          150621585.74,
+          0.0001
+        ],
+        [
+          "LINKUSDT",
+          9.221,
+          0.798,
+          90626682.63,
+          0.00004589
+        ],
+        [
+          "SUIUSDT",
+          0.7308,
+          0.606,
+          119362539.9,
+          0.0001
+        ],
+        [
+          "ZECUSDT",
+          945.09615516,
+          1.177,
+          1189191106.91,
+          0.00003069
+        ],
+        [
+          "HYPEUSDT",
+          68.754,
+          0.343,
+          433286827.6,
+          0.00003437
+        ]
+      ],
+      "derivatives": {
+        "oi_change_60m_pct": {
+          "BTC": 0.0903,
+          "ETH": -0.2085,
+          "SOL": -0.0564,
+          "BNB": -0.163,
+          "XRP": 0.167,
+          "DOGE": -0.269,
+          "ADA": 0.3947,
+          "LINK": -0.3398,
+          "SUI": -0.1302,
+          "ZEC": -0.8391,
+          "HYPE": 0.003
+        },
+        "taker_buy_sell_ratio_latest_5m": {
+          "BTC": 0.8412,
+          "ETH": 0.8992,
+          "SOL": 0.4823,
+          "BNB": 0.3108,
+          "XRP": 0.5141,
+          "DOGE": 1.0537,
+          "ADA": 1.4673,
+          "LINK": 0.9296,
+          "SUI": 0.3945,
+          "ZEC": 1.0946,
+          "HYPE": 0.7751
+        },
+        "long_account_pct_latest_1h": {
+          "BTC": 71.75,
+          "ETH": 68.6,
+          "SOL": 76.72,
+          "BNB": 70.84,
+          "XRP": 74.43,
+          "DOGE": 70.45,
+          "ADA": 67.82,
+          "LINK": 63.69,
+          "SUI": 66.02,
+          "ZEC": 43.67,
+          "HYPE": 59.51
+        },
+        "adl_risk": "LOW for all 11; last update 12:00 UTC and stale versus scan",
+        "liquidation_heatmap_available": false,
+        "force_order_stream_available": false
+      },
+      "regime": {
+        "ema_alignment_15m_bullish": 11,
+        "ema_alignment_1h_bullish": 7,
+        "ema_alignment_4h_bullish": 0,
+        "ema_alignment_daily_bullish": 0,
+        "last_completed_15m_candles_red": 9,
+        "relative_volume_above_1_5x": 5,
+        "taker_sell_dominant_latest_5m": 8,
+        "open_interest_expanding_60m": 4,
+        "decision": "NO_NEW_TRADE"
+      },
+      "new_qualified_setups": 0,
+      "new_paper_fills": 0,
+      "discord_entry_deliveries_confirmed": 0,
+      "notes": [
+        "BTC sweep/reclaim still lacks break above 64056.",
+        "ETH reclaim watch failed subsequent 5m hold.",
+        "XRP reclaim above 0.9783 intact but no break above 0.9936.",
+        "LINK reclaim failed; no new setup.",
+        "SUI watch remains below 0.7339 breakout threshold.",
+        "ADA added as shadow watch only; 0.1557 range high not closed above.",
+        "ZEC original long stop was touched at 12:25 UTC; no TP was hit first and no Discord-confirmed fill exists.",
+        "User-directed SUI short remains terminal: stop touched before entry zone; no valid fill and no realized R."
+      ]
     }
   ],
   "delivery": {
