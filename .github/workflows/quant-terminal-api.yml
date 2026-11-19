@@ -22,7 +22,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quant-terminal-api-\${{ github.ref }}
+  group: quant-terminal-api-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
