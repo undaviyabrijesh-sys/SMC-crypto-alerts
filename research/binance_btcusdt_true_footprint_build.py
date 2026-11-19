@@ -20,12 +20,34 @@ import requests
 
 BASE = "https://data.binance.vision/data/futures/um"
 SYMBOL = "BTCUSDT"
+DEFAULT_MONTH = "2026-09"
+MONTH = DEFAULT_MONTH
 START = pd.Timestamp("2026-09-01T00:00:00Z")
 END = pd.Timestamp("2026-10-01T00:00:00Z")
 BAR_MS = 300_000
 PERIOD_30M_MS = 1_800_000
 DAY_MS = 86_400_000
-EXPECTED_5M_BARS = 8_640
+EXPECTED_DAYS = 30
+EXPECTED_5M_BARS = EXPECTED_DAYS * 24 * 12
+
+
+def configure_month(month: str) -> None:
+    """Set the one-calendar-month archive window and exact expected row counts."""
+    global MONTH, START, END, EXPECTED_DAYS, EXPECTED_5M_BARS
+    if not re.fullmatch(r"\\d{4}-\\d{2}", month):
+        raise ValueError("Month must use YYYY-MM format")
+    year, month_number = (int(part) for part in month.split("-"))
+    if not 1 <= month_number <= 12:
+        raise ValueError("Month number must be between 01 and 12")
+    start = pd.Timestamp(year=year, month=month_number, day=1, tz="UTC")
+    if month_number == 12:
+        end = pd.Timestamp(year=year + 1, month=1, day=1, tz="UTC")
+    else:
+        end = pd.Timestamp(year=year, month=month_number + 1, day=1, tz="UTC")
+    days = int((end - start) / pd.Timedelta(days=1))
+    MONTH, START, END = month, start, end
+    EXPECTED_DAYS = days
+    EXPECTED_5M_BARS = days * 24 * 12
 AGG_HEADER = ["agg_trade_id", "price", "quantity", "first_trade_id",
               "last_trade_id", "transact_time", "is_buyer_maker"]
 AGG_COLS = ["agg_trade_id", "price", "quantity", "first_trade_id",
@@ -113,25 +135,37 @@ def csv_member(path: Path) -> tuple[str, dict[str, Any]]:
 
 def value_area(profile: pd.DataFrame, weight_col: str, fraction: float = 0.70) -> dict[str, float]:
     d = profile.sort_values("price").reset_index(drop=True)
-    w = d[weight_col].to_numpy(float)
-    if len(w) == 0 or not np.isfinite(w).all() or float(w.sum()) <= 0:
+    observed_prices = d.price.to_numpy(float)
+    observed_ticks = np.rint(observed_prices * 10.0).astype(np.int64)
+    if not np.allclose(observed_prices, observed_ticks / 10.0, rtol=0, atol=1e-8):
+        raise ValueError("Profile contains prices outside the frozen 0.1 USDT grid")
+    observed_weights = d[weight_col].to_numpy(float)
+    if len(observed_weights) == 0 or not np.isfinite(observed_weights).all() or np.any(observed_weights < 0):
         raise ValueError(f"Invalid profile weights for {weight_col}")
+    total = float(observed_weights.sum())
+    if total <= 0:
+        raise ValueError(f"Zero total profile weight for {weight_col}")
+    # Include every intervening 0.1 USDT tick. Untraded ticks have zero weight
+    # but still count as adjacent levels when expanding the contiguous value area.
+    weight_by_tick = {int(tick): float(weight) for tick, weight in zip(observed_ticks, observed_weights)}
+    full_ticks = np.arange(int(observed_ticks.min()), int(observed_ticks.max()) + 1, dtype=np.int64)
+    w = np.asarray([weight_by_tick.get(int(tick), 0.0) for tick in full_ticks], dtype=float)
     total = float(w.sum())
-    poc = int(np.argmax(w))
+    poc = int(np.argmax(w))  # first maximum is the lower-price tie break
     left = right = poc
     cumulative = float(w[poc])
     target = total * fraction
     while cumulative < target and (left > 0 or right < len(w) - 1):
         lv = float(w[left - 1]) if left > 0 else -1.0
         rv = float(w[right + 1]) if right < len(w) - 1 else -1.0
-        if lv >= rv:  # deterministic tie-break: lower price first
+        if lv >= rv:
             left -= 1
             cumulative += lv
         else:
             right += 1
             cumulative += rv
-    return {"poc": float(d.price.iloc[poc]), "val": float(d.price.iloc[left]),
-            "vah": float(d.price.iloc[right]), "covered_share": cumulative / total,
+    return {"poc": float(full_ticks[poc] / 10.0), "val": float(full_ticks[left] / 10.0),
+            "vah": float(full_ticks[right] / 10.0), "covered_share": cumulative / total,
             "poc_share": float(w[poc] / total), "total_weight": total}
 
 
@@ -147,7 +181,19 @@ def self_test() -> None:
     toy = pd.DataFrame({"day": [0, 0, 0], "price": [100.0, 100.0, 100.0],
                         "period": [0, 0, 1800000]})
     assert len(toy.drop_duplicates(["day", "price", "period"])) == 2
-    print("5 deterministic footprint/TPO/value-area tests passed")
+    # Empty intervening price ticks remain part of contiguous value-area expansion.
+    gap_profile = pd.DataFrame({"price": [100.0, 100.2], "volume": [60.0, 40.0]})
+    gap_va = value_area(gap_profile, "volume", 0.70)
+    assert gap_va["poc"] == 100.0 and gap_va["vah"] == 100.2
+    original_month = MONTH
+    configure_month("2026-06")
+    assert EXPECTED_DAYS == 30 and EXPECTED_5M_BARS == 8640
+    configure_month("2026-07")
+    assert EXPECTED_DAYS == 31 and EXPECTED_5M_BARS == 8928
+    configure_month("2026-08")
+    assert EXPECTED_DAYS == 31 and EXPECTED_5M_BARS == 8928
+    configure_month(original_month)
+    print("8 deterministic footprint/TPO/month/value-area tests passed")
 
 
 def read_klines(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
@@ -171,7 +217,7 @@ def read_klines(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     start_ms, end_ms = int(START.timestamp() * 1000), int(END.timestamp() * 1000)
     expected = np.arange(start_ms, end_ms, BAR_MS, dtype=np.int64)
     if not np.array_equal(d.open_time_ms.to_numpy(np.int64), expected):
-        raise ValueError("Kline archive does not contain exactly 8,640 ordered September bars")
+        raise ValueError(f"Kline archive does not contain exactly {EXPECTED_5M_BARS} ordered {MONTH} bars")
     shape = (d.high >= d[["open", "close", "low"]].max(axis=1)) & (d.low <= d[["open", "close", "high"]].min(axis=1))
     valid = ((d[["open", "high", "low", "close"]] > 0).all(axis=1)
              & (d.volume >= 0) & (d.taker_buy_base >= 0)
@@ -188,7 +234,7 @@ def build_levels(agg_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     member, zmeta = csv_member(agg_path)
     stats = {"rows": 0, "first_id": None, "last_id": None, "first_ts": None, "last_ts": None,
              "id_gaps": 0, "duplicate_ids": 0, "id_order_violations": 0,
-             "timestamp_regressions": 0, "out_of_month": 0,
+             "timestamp_regressions": 0, "out_of_month": 0, "off_tick_rows": 0,
              "total_qty": 0.0, "buy_qty": 0.0, "sell_qty": 0.0}
     start_ms, end_ms = int(START.timestamp() * 1000), int(END.timestamp() * 1000)
     dtypes = {"agg_trade_id": "int64", "price": "float64", "quantity": "float64",
@@ -210,6 +256,11 @@ def build_levels(agg_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
             maker = chunk.buyer_maker.to_numpy(bool)
             if not np.isfinite(price).all() or not np.isfinite(qty).all() or np.any(price <= 0) or np.any(qty <= 0) or np.any(first_id > last_id):
                 raise ValueError("Invalid aggTrade numeric/price/quantity/underlying-ID row")
+            price_tick = np.rint(price * 10.0).astype(np.int64)
+            off_tick = ~np.isclose(price, price_tick / 10.0, rtol=0, atol=1e-8)
+            stats["off_tick_rows"] += int(off_tick.sum())
+            if off_tick.any():
+                raise ValueError("AggTrade price is outside the frozen 0.1 USDT price grid")
             if np.any((ts < start_ms) | (ts >= end_ms)):
                 stats["out_of_month"] += int(np.sum((ts < start_ms) | (ts >= end_ms)))
                 raise ValueError("Out-of-month aggTrade timestamp")
@@ -236,12 +287,12 @@ def build_levels(agg_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
             buy_mask = ~maker
             bar = ((ts // BAR_MS) * BAR_MS).astype(np.int64)
             tmp = pd.DataFrame({
-                "bar_open_ms": bar, "price": price, "qty": qty,
+                "bar_open_ms": bar, "price_tick": price_tick, "qty": qty,
                 "buy_qty": np.where(buy_mask, qty, 0.0),
                 "sell_qty": np.where(maker, qty, 0.0),
                 "aggtrade_count": np.ones(len(chunk), dtype=np.int64),
             })
-            g = tmp.groupby(["bar_open_ms", "price"], sort=False, observed=True).agg(
+            g = tmp.groupby(["bar_open_ms", "price_tick"], sort=False, observed=True).agg(
                 total_qty=("qty", "sum"), taker_buy_qty=("buy_qty", "sum"),
                 taker_sell_qty=("sell_qty", "sum"), aggtrade_count=("aggtrade_count", "sum")
             ).reset_index()
@@ -254,9 +305,10 @@ def build_levels(agg_path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
     if not partials:
         raise ValueError("No aggTrade rows")
     partial = pd.concat(partials, ignore_index=True)
-    levels = partial.groupby(["bar_open_ms", "price"], as_index=False, sort=True).agg(
+    levels = partial.groupby(["bar_open_ms", "price_tick"], as_index=False, sort=True).agg(
         total_qty=("total_qty", "sum"), taker_buy_qty=("taker_buy_qty", "sum"),
         taker_sell_qty=("taker_sell_qty", "sum"), aggtrade_count=("aggtrade_count", "sum"))
+    levels["price"] = levels.price_tick.astype(float) / 10.0
     levels["delta_qty"] = levels.taker_buy_qty - levels.taker_sell_qty
     levels["day_open_ms"] = (levels.bar_open_ms // DAY_MS) * DAY_MS
     levels["period30m_open_ms"] = (levels.bar_open_ms // PERIOD_30M_MS) * PERIOD_30M_MS
@@ -302,7 +354,7 @@ def write_report(out: Path, meta: dict[str, Any]) -> None:
     out.mkdir(parents=True, exist_ok=True)
     (out / "metadata.json").write_text(json.dumps(meta, indent=2, sort_keys=True, default=str))
     lines = [
-        "# BTCUSDT September 2026 true footprint / VP / TPO feature build",
+        f"# BTCUSDT {meta.get('month', 'unknown')} true footprint / VP / TPO feature build",
         "",
         f"- Status: **{meta.get('status')}**",
         f"- Retrieved: {meta.get('retrieved_at_utc')}",
@@ -327,23 +379,27 @@ def write_report(out: Path, meta: dict[str, Any]) -> None:
     (out / "report.md").write_text("\n".join(lines) + "\n")
 
 
-def run(out: Path) -> int:
+def run(out: Path, month: str = DEFAULT_MONTH) -> int:
+    configure_month(month)
     out.mkdir(parents=True, exist_ok=True)
     src = out / "source"
     src.mkdir(exist_ok=True)
     session = requests.Session()
     session.headers.update({"User-Agent": "SaltyQuant-TrueFootprintBuild/1.0",
                             "Accept": "application/zip,application/octet-stream,*/*"})
-    agg_url = f"{BASE}/monthly/aggTrades/{SYMBOL}/{SYMBOL}-aggTrades-2026-09.zip"
-    kline_url = f"{BASE}/monthly/klines/{SYMBOL}/5m/{SYMBOL}-5m-2026-09.zip"
+    agg_url = f"{BASE}/monthly/aggTrades/{SYMBOL}/{SYMBOL}-aggTrades-{MONTH}.zip"
+    kline_url = f"{BASE}/monthly/klines/{SYMBOL}/5m/{SYMBOL}-5m-{MONTH}.zip"
     meta: dict[str, Any] = {
-        "status": "running", "symbol": SYMBOL, "market": "Binance USD-M perpetual",
+        "status": "running", "symbol": SYMBOL, "month": MONTH, "market": "Binance USD-M perpetual",
         "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
         "start_utc": START.isoformat(), "end_exclusive_utc": END.isoformat(),
         "aggtrade_url": agg_url, "kline_url": kline_url,
         "price_level_definition": "exact aggTrade price; no coarser rounding",
         "aggressor_side": "buyer_maker=false => taker buy; true => taker sell",
-        "tpo_definition": "count of distinct UTC 30-minute periods per day and exact traded price",
+        "tpo_definition": "count of distinct UTC 30-minute periods per day and exact integer-tenth USDT price tick",
+        "price_grid_tick_size_usdt": 0.1,
+        "expected_5m_bars": EXPECTED_5M_BARS,
+        "expected_days": EXPECTED_DAYS,
         "strategy_backtest_run": False,
     }
     try:
@@ -361,6 +417,7 @@ def run(out: Path) -> int:
             "id_order_violations": astats["id_order_violations"],
             "timestamp_regressions": astats["timestamp_regressions"],
             "out_of_month_timestamps": astats["out_of_month"],
+            "off_tick_price_rows": astats["off_tick_rows"],
             "aggtrade_total_base_quantity": astats["total_qty"],
             "taker_buy_base_quantity": astats["buy_qty"], "taker_sell_base_quantity": astats["sell_qty"],
             "signed_delta_base_quantity": astats["signed_delta_qty"],
@@ -415,7 +472,36 @@ def run(out: Path) -> int:
         bar["bar_open_utc"] = pd.to_datetime(bar.bar_open_ms, unit="ms", utc=True).astype(str)
         bar.to_csv(out / "bar_delta_5m.csv", index=False, float_format="%.12g")
         tpo_ok = bool(daily.tpo_30m_count.between(1, 48).all())
-        daily_ok = bool(daily.day_open_ms.nunique() == 30 and len(summaries) == 30)
+        daily_ok = bool(daily.day_open_ms.nunique() == EXPECTED_DAYS and len(summaries) == EXPECTED_DAYS)
+        expected_day_ms = np.arange(int(START.timestamp() * 1000), int(END.timestamp() * 1000), DAY_MS, dtype=np.int64)
+        observed_brackets = levels[["day_open_ms", "period30m_open_ms"]].drop_duplicates()
+        bracket_map = {
+            int(day): set(group.period30m_open_ms.astype(np.int64).tolist())
+            for day, group in observed_brackets.groupby("day_open_ms", sort=True)
+        }
+        missing_brackets = []
+        bracket_counts = []
+        for day in expected_day_ms:
+            expected_for_day = {int(day + slot * PERIOD_30M_MS) for slot in range(48)}
+            observed_for_day = bracket_map.get(int(day), set())
+            missing = sorted(expected_for_day.difference(observed_for_day))
+            bracket_counts.append(len(observed_for_day))
+            if missing:
+                missing_brackets.append({
+                    "day_utc": pd.to_datetime(day, unit="ms", utc=True).strftime("%Y-%m-%d"),
+                    "missing_count": len(missing),
+                    "missing_brackets_utc": [pd.to_datetime(value, unit="ms", utc=True).isoformat() for value in missing],
+                })
+        bracket_validation_pass = len(missing_brackets) == 0
+        meta["tpo_bracket_validation"] = {
+            "expected_brackets_per_day": 48,
+            "days_checked": int(len(expected_day_ms)),
+            "minimum_observed_brackets_per_day": int(min(bracket_counts)) if bracket_counts else 0,
+            "maximum_observed_brackets_per_day": int(max(bracket_counts)) if bracket_counts else 0,
+            "missing_bracket_count": int(sum(item["missing_count"] for item in missing_brackets)),
+            "missing_days": missing_brackets,
+            "pass": bracket_validation_pass,
+        }
         va_ok = bool((summaries.volume_value_area_share >= .70).all()
                      and ((summaries.volume_value_area_share < 1.0 - 1e-12) | (summaries.volume_poc_share >= .70)).all()
                      and (summaries.tpo_value_area_share >= .70).all()
@@ -428,9 +514,10 @@ def run(out: Path) -> int:
         integrity = bool(ad["checksum_verified"] and kd["checksum_verified"]
                          and astats["zip_crc_pass"] and km["zip_crc_pass"]
                          and astats["duplicate_ids"] == 0 and astats["id_order_violations"] == 0
-                         and astats["timestamp_regressions"] == 0 and astats["out_of_month"] == 0)
+                         and astats["timestamp_regressions"] == 0 and astats["out_of_month"] == 0
+                         and astats["off_tick_rows"] == 0)
         reconciliation = bool(rec["volume_pass"] and rec["taker_buy_pass"] and rec["coverage_pass"])
-        profile_validation = bool(tpo_ok and daily_ok and va_ok and key_unique and sums_ok)
+        profile_validation = bool(tpo_ok and daily_ok and bracket_validation_pass and va_ok and key_unique and sums_ok)
         meta["integrity_pass"] = integrity
         meta["reconciliation_pass"] = reconciliation
         meta["profile_validation_pass"] = profile_validation
@@ -448,12 +535,14 @@ def run(out: Path) -> int:
             "price_level_key_unique": bool(key_unique),
             "price_level_quantity_sums_match": bool(sums_ok),
             "tpo_count_range_1_to_48": bool(tpo_ok),
-            "daily_profiles_30_days": bool(daily_ok),
+            "daily_profiles_expected_days": bool(daily_ok),
+            "tpo_48_brackets_every_day": bool(bracket_validation_pass),
+            "price_grid_0_1_usdt": bool(astats["off_tick_rows"] == 0),
             "value_area_70pct_check": bool(va_ok),
         }
         meta["status"] = "PASS" if integrity and reconciliation and profile_validation else "FAIL"
         meta["interpretation"] = (
-            "Exact-price trade-level volume-at-price, aggressor delta and 30m TPO features were reconstructed and validated for this one-month pilot. This is a data feature result, not a strategy edge."
+            f"Exact-price trade-level volume-at-price, aggressor delta and 30m TPO features were reconstructed and validated for {MONTH}. This is a data feature result, not a strategy edge."
             if meta["status"] == "PASS" else
             "Feature build failed at least one frozen validation. Do not use the outputs for strategy research until the failure is explained."
         )
@@ -473,12 +562,13 @@ def run(out: Path) -> int:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default="results/binance-true-footprint")
+    p.add_argument("--month", default=DEFAULT_MONTH, help="Completed UTC calendar month in YYYY-MM format")
     p.add_argument("--self-test", action="store_true")
     a = p.parse_args()
     if a.self_test:
         self_test()
         return 0
-    return run(Path(a.output_dir))
+    return run(Path(a.output_dir), a.month)
 
 
 if __name__ == "__main__":
