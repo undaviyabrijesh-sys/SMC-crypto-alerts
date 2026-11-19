@@ -97,9 +97,22 @@ type ResearchSnapshot = {
   entries?: Array<{ title: string; summary: string }>;
 };
 
+type BacktestArtifact = {
+  name: string;
+  path: string;
+  bytes: number;
+  metadata?: Record<string, unknown>;
+  metadata_status?: string;
+  data_status?: string;
+  columns?: string[];
+  rows?: Array<Record<string, string>>;
+};
+
 type BacktestSnapshot = {
   status: string;
+  source?: string;
   artifact_count?: number;
+  artifacts?: BacktestArtifact[];
 };
 
 type RiskSnapshot = {
@@ -163,6 +176,25 @@ function formatScannerTimestamp(value?: string | null) {
   if (!value) return "Timestamp unavailable";
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+}
+
+function formatArtifactBytes(value?: number) {
+  if (value == null || !Number.isFinite(value) || value < 0) return "—";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function formatArtifactValue(value: unknown) {
+  if (value == null) return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return Number.isFinite(value) ? value.toLocaleString("en-US") : "—";
+  if (typeof value === "string") return value || "—";
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "—";
+  }
 }
 
 function scannerDecisionTone(status?: string | null): "muted" | "green" | "amber" {
@@ -552,6 +584,87 @@ export default function Home() {
                 <div className="panel-foot">This view displays ledger text only. Strategy approval remains controlled by the existing deterministic validation gates.</div>
               </section>
               <footer className="page-footer"><span>SALTY QUANT TERMINAL · RESEARCH</span><span>HYPOTHESES ≠ VALIDATED STRATEGIES</span></footer>
+            </>
+          ) : active === "Backtesting" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PERSISTED QUANT DISCOVERY ARTIFACTS</div>
+                  <h1>Backtesting</h1>
+                  <p>Read-only inventory of saved experiment outputs. This page never launches or recomputes a backtest.</p>
+                </div>
+                <StatusPill tone={apiData.backtests?.status === "available" ? "green" : "amber"}>
+                  {apiData.backtests?.status ?? "unavailable"}
+                </StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.backtests?.status === "available" ? "Saved research artifacts are indexed" : apiData.loading ? "Loading saved artifacts" : "Backtest artifacts unavailable"}</strong>
+                  <p>{apiData.backtests?.source ?? "Artifact source unavailable"} · The inventory is not a strategy approval or a claim that every file contains a completed test.</p>
+                </div>
+                <span className="notice-code">READ ONLY</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard
+                  label="Indexed artifacts"
+                  value={apiData.backtests?.status === "available" ? String(apiData.backtests.artifact_count ?? 0) : "—"}
+                  note="Persisted files discovered"
+                  icon="▤"
+                />
+                <MetricCard label="Execution" value="Disabled" note="No backtest is launched here" icon="⌁" />
+                <MetricCard label="Source" value="Repository" note="quant_discovery artifacts" icon="◈" />
+                <MetricCard label="Promotion" value="Separate gate" note="No automatic approval" icon="⛨" />
+              </div>
+              <section className="panel backtest-artifacts-panel">
+                <div className="panel-heading">
+                  <div><h2>Saved experiment artifacts</h2><p>Metadata and file provenance returned by the read-only API</p></div>
+                  <StatusPill>ARTIFACT INVENTORY</StatusPill>
+                </div>
+                <div className="backtest-artifact-list">
+                  {apiData.backtests?.artifacts?.length ? apiData.backtests.artifacts.map((artifact) => (
+                    <article className="backtest-artifact" key={artifact.path}>
+                      <div className="backtest-artifact-heading">
+                        <div className="backtest-artifact-title">
+                          <strong>{artifact.name}</strong>
+                          <small>{artifact.path}</small>
+                        </div>
+                        <StatusPill>FILE ONLY</StatusPill>
+                      </div>
+                      <div className="backtest-artifact-meta">
+                        <div><span>FILE SIZE</span><strong>{formatArtifactBytes(artifact.bytes)}</strong></div>
+                        <div><span>SYMBOL / ASSET</span><strong>{formatArtifactValue(artifact.metadata?.symbol ?? artifact.metadata?.asset)}</strong></div>
+                        <div><span>STRATEGY</span><strong>{formatArtifactValue(artifact.metadata?.strategy ?? artifact.metadata?.strategy_id)}</strong></div>
+                        <div><span>RECORDED TRADES</span><strong>{formatArtifactValue(artifact.metadata?.trade_count)}</strong></div>
+                      </div>
+                      {artifact.metadata && Object.keys(artifact.metadata).length > 0 ? (
+                        <details className="backtest-artifact-details">
+                          <summary>Recorded metadata · not an approval decision</summary>
+                          <div className="backtest-metadata-list">
+                            {Object.entries(artifact.metadata).map(([key, value]) => (
+                              <div key={key}><span>{key.replaceAll("_", " ")}</span><strong>{formatArtifactValue(value)}</strong></div>
+                            ))}
+                          </div>
+                        </details>
+                      ) : null}
+                      {artifact.columns?.length ? (
+                        <p className="backtest-columns">CSV columns: {artifact.columns.join(" · ")}</p>
+                      ) : null}
+                      {artifact.metadata_status === "unreadable" || artifact.data_status === "unreadable" ? (
+                        <p className="backtest-warning">The file exists, but its metadata or sample rows could not be parsed.</p>
+                      ) : null}
+                    </article>
+                  )) : (
+                    <div className="strategy-empty">
+                      {apiData.backtests?.status === "available"
+                        ? "The artifact directory is readable, but no supported metadata, primary CSV or results files were indexed."
+                        : "No artifact inventory is available. Missing files are not treated as zero trades or failed strategies."}
+                    </div>
+                  )}
+                </div>
+                <div className="panel-foot">Artifact presence does not prove reproducibility, validation, positive expectancy or promotion. Open each experiment report for its dataset, assumptions, costs and evaluation splits.</div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · BACKTESTING</span><span>ARTIFACTS ≠ VALIDATED STRATEGIES</span></footer>
             </>
           ) : (
             <div className="module-empty">
