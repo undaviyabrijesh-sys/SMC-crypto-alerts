@@ -2125,3 +2125,10 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Source SHA-256 matched exactly: 9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59. The ZIP container digests differ because the ZIP files were created separately; extracted file content is identical.
 - This is a reproducibility confirmation, not an independent dataset or temporal OOS test. It does not change the inconclusive decision for the 4h event definition or the rejection of the 1h definition.
 - The duplicate run had already been queued under the previous PR trigger condition. The workflow was then changed so PRs and ordinary pushes run deterministic tests only; full archive replication now requires workflow_dispatch or the explicit [run-eth-replication] push marker.
+
+### ETH replication normalized for Quant Terminal Backtesting inventory
+
+- Added API-compatible metadata JSON and normalized metrics CSV for the completed ETH event study: BINANCE_ETHUSDT_15M_EMA20_4H_CROSS_EXCHANGE_METADATA_2026-11-20.json and BINANCE_ETHUSDT_15M_EMA20_4H_CROSS_EXCHANGE_METRICS_2026-11-20.csv.
+- The metadata explicitly records status completed_inconclusive, event count (not trade count), matched-pair count, source hash, 53 verified archives, assumed cost, untouched holdout and fixed-horizon limitations. trade_count is null; no trades are invented for this event study.
+- The normalized metrics CSV exposes the 1h/4h event means, medians, descriptive PF, matched lift, day-cluster intervals, month/fold counts and event-sequence drawdown to the existing read-only Backtesting artifact inventory. No backtest engine or API code was duplicated or changed.
+- These are persisted research records; the local dashboard/API runtime has not been deployed or connected to a new remote environment. No promotion or live change.
