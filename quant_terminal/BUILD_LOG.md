@@ -18,3 +18,21 @@
 - GitHub Actions API contract workflow #9 (run 44478652326) completed successfully: dependency install, API compile and all 13 unit/HTTP contract tests passed against the actual repository modules.
 - The broader deterministic-quant CI run 44478652449 was still in progress at this log update; its later steps are not claimed as passed.
 - Follow-up full deterministic-quant CI run #2174 (run 44478766743) completed successfully, including the repository's existing offline test suites, live Delta OHLCV check, funding/mark/OI probe and small historical-archive pilot. This passed after the API dependency and adapter changes.
+
+
+## 2026-11-19 — Overview and Live Markets read-only integration (Phase 3 foundation)
+
+- Added `quant_terminal/app/api/quant/[...path]/route.ts`, a same-origin Next.js server-side proxy with an explicit allowlist for the eight read-only API endpoints.
+- Proxy defaults to loopback FastAPI at 127.0.0.1:8000. A non-loopback upstream requires a server-only token and HTTPS. Browser-supplied auth headers are not forwarded; redirects are rejected; only documented query parameters are accepted; requests time out after 10 seconds.
+- Connected the Overview to persisted health, market, scanner, research-ledger, backtest-artifact, paper-position and risk snapshots. Data refreshes every 30 seconds.
+- Connected the Live Markets page to the actual configured BTC, ETH and XAU/XAUT market records, including last persisted close, age, venue and per-timeframe freshness.
+- Replaced static strategy examples and synthetic market rows with API-backed records. Paper equity remains unavailable because the source state does not persist account capital. The UI explicitly distinguishes a fresh persisted candle cache from a websocket/live executable quote.
+- Added market freshness and snapshot provenance UI. Candlestick chart rendering remains pending; no synthetic chart data is generated.
+- Added `.github/workflows/quant-terminal-frontend.yml` to install dependencies, run TypeScript type-checking and build the Next.js app on relevant branch changes.
+- Updated frontend/API documentation with server-only environment configuration and proxy security constraints.
+- No exchange, strategy, paper-lifecycle, alert, production or main-branch logic was changed. No deployment performed.
+
+### Checks
+
+- GitHub Actions frontend workflow was added and triggered by the branch commits. Type-check/build results must be read from the resulting run before claiming success.
+- Existing API contract tests were not modified in this increment; prior 13/13 API contract pass remains the last verified API test result.
