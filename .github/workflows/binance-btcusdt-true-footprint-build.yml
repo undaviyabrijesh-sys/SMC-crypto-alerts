@@ -1,13 +1,6 @@
-name: Binance BTCUSDT September 2026 true footprint and TPO feature build
+name: Binance BTCUSDT single-month true footprint reference build (manual)
 
 on:
-  push:
-    branches:
-      - ai-quant-rebuild
-    paths:
-      - "research/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_FEATURE_BUILD_PREREGISTRATION.md"
-      - "research/binance_btcusdt_true_footprint_build.py"
-      - ".github/workflows/binance-btcusdt-true-footprint-build.yml"
   workflow_dispatch:
 
 permissions:
