@@ -1993,3 +1993,11 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Workflow run 44513565570 was queued and its June 2026 job had entered dependency installation at the time of this ledger update. No month build result is claimed yet. If any month fails a gate, it remains failed and no multi-month event study is run.
 - The rebuilt September profile may differ from the prior September artifact because the earlier value-area expansion skipped empty intervening ticks and did not enforce all 48 brackets/day. The old artifact is preserved as provenance; no byte-for-byte reproduction claim.
 - Next: complete the four monthly data-quality builds; only after all pass, preregister a separate multi-month descriptive event study using the existing frozen absorption/continuation definitions. No strategy parameter search, promotion, live alerts, production changes, main-branch changes or exchange orders.
+
+
+### Multi-month footprint workflow execution status — 2026-11-19
+
+- The first push-triggered legacy September build (run 44513376569, commit 115683521146031a389bbf65be9eb05e4a4556b4) failed in deterministic tests before downloading market data. Cause: an over-escaped YYYY-MM regular expression in the new month parser. No market result was produced by that failed run.
+- Corrected the parser in commit `be0f064bee4640746dd6a393a8e18dfb33c6fdc4`. The multi-month workflow's deterministic feature-test step then passed on the checked-out code before starting its first month download.
+- The single-month legacy workflow was changed to `workflow_dispatch` only in commit `fc9d40cfcdab00d57ce73caf95bda8336840cff0`; the new sequential matrix workflow is the automatic path for June–September. Already queued legacy attempts cannot be treated as new results.
+- At this ledger update, the corrected standalone September build run 44513396598 remained in progress, a superseded run 44513508344 was pending, and multi-month run 44513565570 had passed dependency installation, compilation and all 10 deterministic tests; its June download/build step was still in progress. No monthly data-validation result is claimed until metadata/report artifacts are inspected.
