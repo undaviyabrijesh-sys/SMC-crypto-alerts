@@ -151,3 +151,7 @@ The verified archive and experiment outputs live outside Git where appropriate. 
 ## Safety boundary
 
 This branch is paper-only. It does not place exchange orders, enable live trading, change credentials, deploy infrastructure, or modify the default `main` branch. The legacy default-branch scheduled workflow is separate and must be resolved explicitly before any production cutover.
+
+## Salty Quant Terminal
+
+A separate Next.js dashboard shell now lives in [quant_terminal/](quant_terminal/). It is currently a **Phase 0 UI foundation**: it shows explicit unavailable states and is not yet wired to exchange feeds or the Python services. See [quant_terminal/README.md](quant_terminal/README.md) for the API contract, architecture boundaries and build sequence. Continue development only on `ai-quant-rebuild`; do not deploy or enable live trading as part of this work.
