@@ -49,3 +49,17 @@ All data endpoints are GET only. Every response carries a source and an explicit
 ## Safety boundary
 
 There are no order, cancel, amend, alert-send, worker-run or backtest-run endpoints. No exchange credentials are imported by this adapter. Keep the API local until the separate deployment security review is complete.
+
+
+## Next.js server-side proxy
+
+The browser calls only same-origin routes under `/api/quant/*`. The Next.js route handler at `app/api/quant/[...path]/route.ts` allowlists the eight documented GET endpoints and forwards only the supported query parameters.
+
+- `QUANT_API_BASE_URL` is server-only and defaults to `http://127.0.0.1:8000`.
+- `QUANT_API_TOKEN` is server-only. Never prefix it with `NEXT_PUBLIC_` and never expose it to client components.
+- Without a token, the proxy accepts only a loopback API base.
+- With a token, a non-loopback API base must use HTTPS.
+- Redirects are rejected, requests have a 10-second timeout, and responses are marked `no-store`.
+- Unknown endpoint paths and query parameters are rejected. The proxy does not accept request bodies or forward browser-supplied authorization headers.
+
+For a single-host local development setup, run FastAPI on 127.0.0.1:8000 and Next.js on its normal development port. For separate hosts, configure the private HTTPS API URL and the same server-side token in the Next.js runtime. Do not deploy either service publicly until the separate security review is complete.
