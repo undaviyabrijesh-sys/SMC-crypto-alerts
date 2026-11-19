@@ -2007,3 +2007,15 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 
 - Multi-month workflow [44513565570](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513565570): 10 deterministic tests passed in the June job; official archive download/reconstruction remains in progress. July, August and September matrix jobs are queued sequentially. No month has yet passed its market-data/profile gates in the available run output.
 - Legacy standalone September workflow is now manual-only to avoid triggering duplicate monthly rebuilds on every code push. Previously queued legacy attempts are not treated as validation results.
+
+
+### September 2026 reference rebuild completed — 2026-11-19
+
+- Standalone corrected month-parameterized build [44513396598](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513396598) completed successfully; artifact [14524284567](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44513396598/artifacts/14524284567), 673,653,877 bytes, SHA-256 `3213e14b6087a07f6264ec733e1346d9430fe88783477f4e6711f80f7200f89e`.
+- This run checked out commit `be0f064bee4640746dd6a393a8e18dfb33c6fdc4`; it includes the month parameterization, integer 0.1 USDT ticks, zero-filled contiguous value-area expansion and inline 48-bracket/day gate. The later `e976fd0` revision factors bracket validation into a helper and adds missing-bracket unit coverage; the multi-month workflow tests that later revision.
+- Official archive checksums verified: aggTrades SHA-256 `252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80`; 5m kline SHA-256 `3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26`. ZIP CRC passed for both.
+- 36,036,629 aggTrade records; 8,640 contiguous 5m kline bars; 8,510,392 exact-price 5m price-level rows; 30 daily profiles; 124,629 unique exact prices. AggTrade IDs had zero gaps, duplicates or order violations; zero timestamp regressions, out-of-month rows or off-grid prices.
+- Total volume and taker-buy volume reconcile exactly to official klines at monthly aggregate level; zero unmatched bars. Per-bar p95 relative errors: volume 0.00438%, taker-buy 0.000683%; maxima 2.644% and 7.939% respectively.
+- Every day had all 48 UTC 30m TPO brackets (minimum and maximum 48; zero missing brackets). Contiguous zero-filled 0.1-tick volume/TPO value-area coverage passed; minimum daily coverage was 70.00023% for volume and 70.0% for TPO.
+- Decision: September feature reconstruction PASS. This is not a strategy result; metadata explicitly records `strategy_backtest_run=false`. No entries, stops, targets, costs, funding or PnL were tested.
+- Report and metadata were published to `quant_discovery/BINANCE_BTCUSDT_TRUE_FOOTPRINT_2026_09_LATEST.md/.json`. The historical September artifact from the prior implementation remains provenance and is not overwritten as a byte-for-byte reproduction.
