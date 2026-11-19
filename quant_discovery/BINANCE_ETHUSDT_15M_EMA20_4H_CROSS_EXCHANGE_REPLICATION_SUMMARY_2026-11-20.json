@@ -23,7 +23,12 @@
   "source_sha256": "9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59",
   "events": 17,
   "matched_controls": 16,
-  "costs_bps_round_trip": [4, 7, 10, 20],
+  "costs_bps_round_trip": [
+    4,
+    7,
+    10,
+    20
+  ],
   "primary_cost_bps": 10,
   "bootstrap_repetitions": 5000,
   "self_tests": [
@@ -46,8 +51,14 @@
       "event_median_net10_bps": -18.955585269284082,
       "control_mean_net10_bps": -6.028334413998295,
       "paired_lift_bps": -11.048889295299515,
-      "event_mean_ci_95": [-44.50059033695724, 10.26879254330673],
-      "paired_lift_ci_95": [-53.59486901169981, 24.71475834744065],
+      "event_mean_ci_95": [
+        -44.50059033695724,
+        10.26879254330673
+      ],
+      "paired_lift_ci_95": [
+        -53.59486901169981,
+        24.71475834744065
+      ],
       "positive_months": 2,
       "active_months": 8,
       "positive_nonempty_folds": 1,
@@ -65,8 +76,14 @@
       "event_median_net10_bps": -13.177947912617052,
       "control_mean_net10_bps": -4.9280846405438155,
       "paired_lift_bps": 35.11191060672658,
-      "event_mean_ci_95": [-20.90923593696457, 91.27112368869986],
-      "paired_lift_ci_95": [-14.202133771628873, 92.76859921208867],
+      "event_mean_ci_95": [
+        -20.90923593696457,
+        91.27112368869986
+      ],
+      "paired_lift_ci_95": [
+        -14.202133771628873,
+        92.76859921208867
+      ],
       "positive_months": 5,
       "active_months": 8,
       "positive_nonempty_folds": 3,
@@ -86,5 +103,11 @@
   "not_a_strategy_backtest": true,
   "funding_cashflows_applied": false,
   "stop_target_pnl_available": false,
-  "account_drawdown_available": false
+  "account_drawdown_available": false,
+  "reproducibility_rerun": {
+    "workflow_run_id": 44636199588,
+    "artifact_id": 14584126868,
+    "all_14_extracted_files_byte_identical": true,
+    "source_sha256_identical": true
+  }
 }
