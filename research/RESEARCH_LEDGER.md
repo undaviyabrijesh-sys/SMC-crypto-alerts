@@ -1952,7 +1952,7 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Preregistration: research/BINANCE_BTCUSDT_1H_EMA20_50_CROSS_EXCHANGE_PREREGISTRATION_2026-11-19.md.
 - Runner: research/binance_btcusdt_1h_ema_crossover_replication.py.
 - Workflow: .github/workflows/binance-btcusdt-1h-ema-crossover-replication.yml.
-- First two workflow attempts failed in the deterministic-test harness (first assumed an unavailable self_test API; second had a pandas 3.x timestamp-unit mismatch in the test's nanosecond lookup). These were harness defects, not strategy results. The timestamp lookup was changed to use Timestamp.value nanoseconds explicitly. Third run is pending as of this ledger update; no Binance performance result has been accepted yet.
+- First two workflow attempts failed in the deterministic-test harness (first assumed an unavailable self_test API; second had a pandas 3.x timestamp-unit mismatch in the test's nanosecond lookup). These were harness defects, not strategy results. The timestamp lookup was changed to use Timestamp.value nanoseconds explicitly. The third run later completed successfully as workflow 44451403028; final results and audit are recorded in the following ledger entry.
 - No production, live-alert or main-branch changes. No orders or trades placed.
 
 
