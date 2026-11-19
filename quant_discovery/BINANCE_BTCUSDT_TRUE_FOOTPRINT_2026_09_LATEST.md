@@ -1,7 +1,7 @@
-# BTCUSDT September 2026 true footprint / VP / TPO feature build
+# BTCUSDT 2026-09 true footprint / VP / TPO feature build
 
 - Status: **PASS**
-- Retrieved: 2026-11-18T11:40:26.770098+00:00
+- Retrieved: 2026-11-19T11:17:29.083140+00:00
 - AggTrade rows: 36036629
 - 5m price-level rows: 8510392
 - Daily profile days: 30
@@ -40,12 +40,14 @@
 - median_price_levels_per_5m_bar: 781.0
 - max_price_levels_per_5m_bar: 16594
 - max_tpo_30m_count_at_one_price: 33
-- daily_volume_value_area_share_min: 0.7000023047458303
+- daily_volume_value_area_share_min: 0.7000023047458304
 - daily_tpo_value_area_share_min: 0.7
 - price_level_key_unique: True
 - price_level_quantity_sums_match: True
 - tpo_count_range_1_to_48: True
-- daily_profiles_30_days: True
+- daily_profiles_expected_days: True
+- tpo_48_brackets_every_day: True
+- price_grid_0_1_usdt: True
 - value_area_70pct_check: True
 
 No strategy signal, entry, stop, target, fee, funding or PnL was tested.

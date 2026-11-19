@@ -34,17 +34,21 @@
   "daily_profile_days": 30,
   "duplicate_ids": 0,
   "end_exclusive_utc": "2026-10-01T00:00:00+00:00",
+  "expected_5m_bars": 8640,
+  "expected_days": 30,
   "feature_summary": {
     "bars_with_footprint": 8640,
-    "daily_profiles_30_days": true,
+    "daily_profiles_expected_days": true,
     "daily_tpo_value_area_share_min": 0.7,
-    "daily_volume_value_area_share_min": 0.7000023047458303,
+    "daily_volume_value_area_share_min": 0.7000023047458304,
     "max_price_levels_per_5m_bar": 16594,
     "max_tpo_30m_count_at_one_price": 33,
     "mean_price_levels_per_5m_bar": 984.9990740740741,
     "median_price_levels_per_5m_bar": 781.0,
+    "price_grid_0_1_usdt": true,
     "price_level_key_unique": true,
     "price_level_quantity_sums_match": true,
+    "tpo_48_brackets_every_day": true,
     "tpo_count_range_1_to_48": true,
     "unique_price_levels": 124629,
     "value_area_70pct_check": true
@@ -52,10 +56,10 @@
   "first_agg_id": 3435054521,
   "first_timestamp_utc": "2026-09-01T00:00:00.003000+00:00",
   "github_run_attempt": "1",
-  "github_run_id": "44296515366",
+  "github_run_id": "44513396598",
   "id_order_violations": 0,
   "integrity_pass": true,
-  "interpretation": "Exact-price trade-level volume-at-price, aggressor delta and 30m TPO features were reconstructed and validated for this one-month pilot. This is a data feature result, not a strategy edge.",
+  "interpretation": "Exact-price trade-level volume-at-price, aggressor delta and 30m TPO features were reconstructed and validated for 2026-09. This is a data feature result, not a strategy edge.",
   "kline_download": {
     "bytes": 389713,
     "checksum_download": {
@@ -90,7 +94,10 @@
   "last_agg_id": 3471091149,
   "last_timestamp_utc": "2026-09-30T23:59:59.591000+00:00",
   "market": "Binance USD-M perpetual",
+  "month": "2026-09",
+  "off_tick_price_rows": 0,
   "out_of_month_timestamps": 0,
+  "price_grid_tick_size_usdt": 0.1,
   "price_level_definition": "exact aggTrade price; no coarser rounding",
   "price_level_rows": 8510392,
   "profile_validation_pass": true,
@@ -109,7 +116,7 @@
     "volume_per_bar_relative_error_p95": 4.380483043990616e-05
   },
   "reconciliation_pass": true,
-  "retrieved_at_utc": "2026-11-18T11:40:26.770098+00:00",
+  "retrieved_at_utc": "2026-11-19T11:17:29.083140+00:00",
   "signed_delta_base_quantity": -42248.30300000124,
   "start_utc": "2026-09-01T00:00:00+00:00",
   "status": "PASS",
@@ -118,5 +125,14 @@
   "taker_buy_base_quantity": 2112553.2379999994,
   "taker_sell_base_quantity": 2154801.5410000007,
   "timestamp_regressions": 0,
-  "tpo_definition": "count of distinct UTC 30-minute periods per day and exact traded price"
+  "tpo_bracket_validation": {
+    "days_checked": 30,
+    "expected_brackets_per_day": 48,
+    "maximum_observed_brackets_per_day": 48,
+    "minimum_observed_brackets_per_day": 48,
+    "missing_bracket_count": 0,
+    "missing_days": [],
+    "pass": true
+  },
+  "tpo_definition": "count of distinct UTC 30-minute periods per day and exact integer-tenth USDT price tick"
 }
