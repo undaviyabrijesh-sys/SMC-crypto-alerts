@@ -107,12 +107,26 @@ class ReadOnlyApiTests(unittest.TestCase):
         self.assertEqual(result["entry_count"], 2)
         self.assertEqual(result["entries"][0]["title"], "Next step")
 
-    def test_backtest_artifact_metadata_is_read(self):
-        artifact = self.discovery_dir / "BTC_TEST_METADATA.json"
-        artifact.write_text(json.dumps({"status": "rejected", "symbol": "BTC", "trade_count": 12}), encoding="utf-8")
+    def test_backtest_artifact_metadata_and_metrics_are_read(self):
+        metadata = self.discovery_dir / "ETH_TEST_METADATA.json"
+        metadata.write_text(json.dumps({
+            "status": "completed_inconclusive",
+            "symbol": "ETHUSDT",
+            "strategy": "EMA20 pullback event study",
+            "run_id": "test-run",
+            "oos_evaluated": False,
+        }), encoding="utf-8")
+        metrics = self.discovery_dir / "ETH_TEST_METRICS.csv"
+        metrics.write_text("horizon,events,mean_net_bps\\n4h,16,30.18\\n", encoding="utf-8")
+
         result = main.build_backtest_snapshot()
         self.assertEqual(result["status"], "available")
-        self.assertEqual(result["artifacts"][0]["metadata"]["trade_count"], 12)
+        artifacts = {item["name"]: item for item in result["artifacts"]}
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["status"], "completed_inconclusive")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["symbol"], "ETHUSDT")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["oos_evaluated"], False)
+        self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["columns"], ["horizon", "events", "mean_net_bps"])
+        self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["rows"][0]["mean_net_bps"], "30.18")
 
     def test_api_has_no_mutating_data_routes(self):
         data_routes = [route for route in main.app.routes if getattr(route, "path", "").startswith("/api/v1/")]
