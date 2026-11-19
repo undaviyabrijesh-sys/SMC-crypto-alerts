@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Frozen Binance ETHUSDT cross-exchange replication of the Delta ETH EMA study."""
 from __future__ import annotations
-import argparse, hashlib, json, time
+import argparse, hashlib, io, json, re, time, zipfile
 from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
 
-BASE="https://fapi.binance.com/fapi/v1/klines"
+BASE="https://data.binance.vision/data/futures/um"
 SYMBOL="ETHUSDT"; INTERVAL="15m"; STEP=pd.Timedelta(minutes=15)
 STEP_MS=900_000; LIMIT=1500
 DATA_START=pd.Timestamp("2025-03-08T00:00:00Z")
@@ -16,45 +16,170 @@ EVAL_END=pd.Timestamp("2026-07-15T00:00:00Z")
 HORIZONS={"1h":4,"4h":16}; COSTS=(4.,7.,10.,20.); PRIMARY=10.
 SEED=20261117; BOOT_REPS=5000
 
+def parse_checksum(text: str) -> str:
+    match = re.search(r"\b([0-9a-fA-F]{64})\b", text)
+    if not match:
+        raise ValueError("Unable to parse SHA-256 from Binance CHECKSUM file")
+    return match.group(1).lower()
+
+
+def archive_specs() -> list[dict]:
+    """Use exact daily boundary archives so no part of the reserved holdout is downloaded."""
+    specs = []
+
+    def add_daily(day: pd.Timestamp) -> None:
+        start = day.normalize()
+        end = start + pd.Timedelta(days=1)
+        period = start.strftime("%Y-%m-%d")
+        url = f"{BASE}/daily/klines/{SYMBOL}/{INTERVAL}/{SYMBOL}-{INTERVAL}-{period}.zip"
+        specs.append({"kind": "daily", "period": period, "start": start, "end": end, "url": url})
+
+    def add_month(month: pd.Timestamp) -> None:
+        start = month.normalize()
+        end = start + pd.offsets.MonthBegin(1)
+        period = start.strftime("%Y-%m")
+        url = f"{BASE}/monthly/klines/{SYMBOL}/{INTERVAL}/{SYMBOL}-{INTERVAL}-{period}.zip"
+        specs.append({"kind": "monthly", "period": period, "start": start, "end": end, "url": url})
+
+    for day in pd.date_range("2025-03-08T00:00:00Z", "2025-03-31T00:00:00Z", freq="D"):
+        add_daily(day)
+    for month in pd.date_range("2025-04-01T00:00:00Z", "2026-06-01T00:00:00Z", freq="MS"):
+        add_month(month)
+    for day in pd.date_range("2026-07-01T00:00:00Z", "2026-07-14T00:00:00Z", freq="D"):
+        add_daily(day)
+    return specs
+
+
+def request_bytes(session: requests.Session, url: str, retries: int = 6) -> bytes:
+    last_error = None
+    for attempt in range(retries):
+        try:
+            response = session.get(url, timeout=(20, 120))
+            if response.status_code in (418, 429, 500, 502, 503, 504):
+                last_error = RuntimeError(f"HTTP {response.status_code} for {url}")
+                if attempt + 1 < retries:
+                    time.sleep(min(2 ** attempt, 30))
+                    continue
+                raise last_error
+            response.raise_for_status()
+            return response.content
+        except Exception as exc:
+            last_error = exc
+            if attempt + 1 < retries:
+                time.sleep(min(2 ** attempt, 20))
+    raise RuntimeError(f"Archive request failed: {url}; {last_error}")
+
+
+def parse_kline_zip(payload: bytes, expected_start: pd.Timestamp, expected_end: pd.Timestamp) -> tuple[pd.DataFrame, dict]:
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        bad_member = archive.testzip()
+        if bad_member:
+            raise ValueError(f"ZIP CRC failure in {bad_member}")
+        members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+        if len(members) != 1:
+            raise ValueError(f"Expected one CSV member, found {members}")
+        with archive.open(members[0]) as handle:
+            raw = pd.read_csv(handle, header=None, usecols=range(6), dtype=str)
+
+    raw.columns = ["open_time", "open", "high", "low", "close", "volume"]
+    open_numeric = pd.to_numeric(raw["open_time"], errors="coerce")
+    header_rows = open_numeric.isna()
+    if header_rows.any():
+        if int(header_rows.sum()) != 1 or not bool(header_rows.iloc[0]):
+            raise ValueError("Kline CSV contains malformed open-time rows, not just an optional header")
+        raw = raw.loc[~header_rows].copy()
+        open_numeric = open_numeric.loc[~header_rows]
+    if raw.empty:
+        raise ValueError("Kline archive contains no data rows")
+
+    unit = "us" if float(open_numeric.median()) > 1e14 else "ms"
+    timestamps = pd.to_datetime(open_numeric.astype("int64"), unit=unit, utc=True)
+    frame = raw[["open", "high", "low", "close", "volume"]].apply(pd.to_numeric, errors="coerce")
+    frame.insert(0, "timestamp", timestamps)
+    if not np.isfinite(frame[["open", "high", "low", "close", "volume"]].to_numpy(float)).all():
+        raise ValueError("Kline archive contains non-finite OHLCV")
+    if (frame[["open", "high", "low", "close"]] <= 0).any().any() or (frame["volume"] < 0).any():
+        raise ValueError("Kline archive contains invalid price or volume")
+    if (frame["high"] < frame[["open", "low", "close"]].max(axis=1)).any():
+        raise ValueError("Kline archive contains invalid high values")
+    if (frame["low"] > frame[["open", "high", "close"]].min(axis=1)).any():
+        raise ValueError("Kline archive contains invalid low values")
+
+    frame = frame.sort_values("timestamp").reset_index(drop=True)
+    if frame["timestamp"].duplicated().any():
+        raise ValueError("Duplicate timestamps inside a kline archive")
+    if not frame["timestamp"].between(expected_start, expected_end - STEP, inclusive="both").all():
+        raise ValueError("Kline archive contains timestamps outside its declared archive window")
+    offsets = (frame["timestamp"].astype("int64") - expected_start.value) % STEP.value
+    if (offsets != 0).any():
+        raise ValueError("Kline timestamps are not aligned to the 15-minute grid")
+    expected_rows = int((expected_end - expected_start) / STEP)
+    if len(frame) != expected_rows:
+        raise ValueError(f"Archive row-count mismatch: expected {expected_rows}, got {len(frame)}")
+    if len(frame) > 1 and not frame["timestamp"].diff().dropna().eq(STEP).all():
+        raise ValueError("Missing or irregular 15-minute timestamps inside archive")
+    return frame, {"csv_member": members[0], "zip_crc_pass": True, "timestamp_unit": unit,
+                   "header_rows_removed": int(header_rows.sum()), "rows": int(len(frame)),
+                   "expected_rows": expected_rows}
+
+
 def download(out: Path) -> pd.DataFrame:
-    out.mkdir(parents=True,exist_ok=True)
-    cache=out/"ETHUSDT_15m_binance.csv"
-    if cache.exists():
-        d=pd.read_csv(cache,parse_dates=["timestamp"]).set_index("timestamp").sort_index()
-        return d
-    start=int(DATA_START.timestamp()*1000); end=int(EVAL_END.timestamp()*1000)
-    sess=requests.Session(); rows=[]; cursor=start; calls=0
-    while cursor<end:
-        stop=min(cursor+LIMIT*STEP_MS-1,end-1)
-        params={"symbol":SYMBOL,"interval":INTERVAL,"startTime":cursor,"endTime":stop,"limit":LIMIT}
-        last_error=None
-        for attempt in range(6):
-            try:
-                r=sess.get(BASE,params=params,timeout=30)
-                if r.status_code in (418,429):
-                    time.sleep(min(2**attempt,30)); continue
-                r.raise_for_status(); payload=r.json()
-                if not isinstance(payload,list): raise RuntimeError(f"Unexpected Binance response: {payload}")
-                last_error=None; break
-            except Exception as exc:
-                last_error=exc; time.sleep(min(2**attempt,20))
-        if last_error is not None: raise RuntimeError(f"Download failed at {cursor}: {last_error}")
-        if not payload: break
-        rows.extend(payload); calls+=1
-        last=int(payload[-1][0]); nxt=last+STEP_MS
-        if nxt<=cursor: raise RuntimeError("Binance pagination did not advance")
-        cursor=nxt
-        time.sleep(0.08)
-    if not rows: raise RuntimeError("No Binance klines returned")
-    d=pd.DataFrame(rows,columns=["open_time","open","high","low","close","volume","close_time","quote_volume","trades","taker_buy_base","taker_buy_quote","ignore"])
-    d["timestamp"]=pd.to_datetime(d.open_time.astype("int64"),unit="ms",utc=True)
-    d=d[["timestamp","open","high","low","close","volume"]].copy().set_index("timestamp")
-    duplicates_removed=int(d.index.duplicated(keep="last").sum())
-    for c in ["open","high","low","close","volume"]: d[c]=pd.to_numeric(d[c],errors="coerce")
-    d=d[~d.index.duplicated(keep="last")].sort_index()
-    d.to_csv(cache)
-    (out/"download_metadata.json").write_text(json.dumps({"venue":"Binance USDⓈ-M","symbol":SYMBOL,"interval":INTERVAL,"start":str(d.index.min()),"end_open":str(d.index.max()),"rows":len(d),"requests":calls,"duplicates_removed":duplicates_removed},indent=2))
-    return d
+    """Download only preregistered official archives and verify each SHA-256 sidecar."""
+    out.mkdir(parents=True, exist_ok=True)
+    session = requests.Session()
+    session.headers.update({"User-Agent": "SaltyQuantResearch/1.0"})
+    frames = []
+    manifest = []
+    specs = archive_specs()
+    for spec in specs:
+        url = spec["url"]
+        checksum_text = request_bytes(session, url + ".CHECKSUM").decode("utf-8", errors="replace")
+        expected_hash = parse_checksum(checksum_text)
+        archive_bytes = request_bytes(session, url)
+        actual_hash = hashlib.sha256(archive_bytes).hexdigest()
+        if actual_hash != expected_hash:
+            raise RuntimeError(f"SHA-256 mismatch for {url}: expected {expected_hash}, got {actual_hash}")
+        frame, parsed = parse_kline_zip(archive_bytes, spec["start"], spec["end"])
+        frames.append(frame)
+        manifest.append({
+            "archive_type": spec["kind"], "period": spec["period"], "url": url,
+            "checksum_url": url + ".CHECKSUM", "expected_sha256": expected_hash,
+            "actual_sha256": actual_hash, "checksum_verified": True, **parsed,
+        })
+        time.sleep(0.03)
+
+    combined = pd.concat(frames, ignore_index=True).sort_values("timestamp").reset_index(drop=True)
+    if combined["timestamp"].duplicated().any():
+        raise RuntimeError("Duplicate timestamps across Binance archive boundaries")
+    if combined.empty or combined["timestamp"].iloc[0] != DATA_START or combined["timestamp"].iloc[-1] != EVAL_END - STEP:
+        raise RuntimeError("Downloaded data does not exactly cover the preregistered [DATA_START, EVAL_END) window")
+    expected_total = int((EVAL_END - DATA_START) / STEP)
+    if len(combined) != expected_total:
+        raise RuntimeError(f"Total row-count mismatch: expected {expected_total}, got {len(combined)}")
+    if not combined["timestamp"].diff().dropna().eq(STEP).all():
+        raise RuntimeError("Combined archive data has missing or irregular 15-minute intervals")
+
+    indexed = combined.set_index("timestamp")
+    indexed.index.name = "timestamp"
+    cache = out / "ETHUSDT_15m_binance.csv"
+    indexed.to_csv(cache)
+    pd.DataFrame(manifest).to_csv(out / "archive_manifest.csv", index=False)
+    source_sha256 = hashlib.sha256(cache.read_bytes()).hexdigest()
+    metadata = {
+        "venue": "Binance USDⓈ-M", "symbol": SYMBOL, "interval": INTERVAL,
+        "archive_source": "official data.binance.vision archives",
+        "archive_count": len(manifest), "checksum_verified_archives": sum(bool(x["checksum_verified"]) for x in manifest),
+        "daily_archives": sum(x["archive_type"] == "daily" for x in manifest),
+        "monthly_archives": sum(x["archive_type"] == "monthly" for x in manifest),
+        "start": str(indexed.index.min()), "end_open": str(indexed.index.max()),
+        "rows": int(len(indexed)), "expected_rows": expected_total, "missing_15m_intervals": 0,
+        "source_sha256": source_sha256, "reserved_holdout_downloaded": False,
+        "reserved_holdout_start": str(EVAL_END),
+        "archive_manifest": "archive_manifest.csv",
+    }
+    (out / "download_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return indexed
+
 
 def rma(x: pd.Series,n:int)->pd.Series:
     a=x.to_numpy(float); out=np.full(len(a),np.nan)
@@ -206,7 +331,17 @@ def self_tests():
     assert np.allclose(s.loc[prior,"ema20"],s2.loc[prior,"ema20"],equal_nan=True)
     assert next_settlement(pd.Timestamp("2026-11-17T07:59:00Z"))==pd.Timestamp("2026-11-17T08:00:00Z")
     assert next_settlement(pd.Timestamp("2026-11-17T08:00:00Z"))==pd.Timestamp("2026-11-17T16:00:00Z")
-    return ["complete_4h_aggregation","future_perturbation_invariance","funding_settlement_grid"]
+    assert parse_checksum("0123456789abcdef" * 4 + "  archive.zip") == "0123456789abcdef" * 4
+    specs=archive_specs()
+    assert len(specs)==53 and specs[0]["period"]=="2025-03-08" and specs[-1]["period"]=="2026-07-14"
+    assert specs[-1]["end"]==EVAL_END and sum(int((z["end"]-z["start"])/STEP) for z in specs)==int((EVAL_END-DATA_START)/STEP)
+    start=pd.Timestamp("2025-01-01T00:00:00Z"); end=start+2*STEP
+    csv_text="open_time,open,high,low,close,volume\\n1735689600000,100,101,99,100,5\\n1735690500000,100,102,99,101,6\\n"
+    buffer=io.BytesIO()
+    with zipfile.ZipFile(buffer,"w",zipfile.ZIP_DEFLATED) as archive: archive.writestr("sample.csv",csv_text)
+    parsed,meta=parse_kline_zip(buffer.getvalue(),start,end)
+    assert len(parsed)==2 and meta["header_rows_removed"]==1 and meta["zip_crc_pass"]
+    return ["complete_4h_aggregation","future_perturbation_invariance","funding_settlement_grid","checksum_parser","53_archive_exact_window","zip_crc_header_and_kline_parser"]
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--out",default="binance_eth_ema_results"); ap.add_argument("--self-test",action="store_true"); a=ap.parse_args()
