@@ -323,6 +323,23 @@ def losing_streak(x):
     for v in x: cur=cur+1 if v<0 else 0; mx=max(mx,cur)
     return int(mx)
 
+def side_regime_rows(p: pd.DataFrame, horizon: str) -> list[dict]:
+    """Summarize paired event outcomes by side and completed higher-timeframe regime."""
+    rows = []
+    if p.empty:
+        return rows
+    for (side, regime), group in p.groupby(["side", "regime"], sort=True):
+        rows.append({
+            "horizon": horizon,
+            "side": str(side),
+            "regime": str(regime),
+            "matched": int(len(group)),
+            "win_rate": float((group.net_10bps > 0).mean()),
+            "mean_net10_bps": float(group.net_10bps.mean()),
+            "paired_lift_bps": float((group.net_10bps - group.control_net_10bps).mean()),
+        })
+    return rows
+
 def self_tests():
     idx=pd.date_range("2025-01-01",periods=16*24,freq="15min",tz="UTC")
     x=pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.,"volume":1.},index=idx); x["segment"]=1
@@ -342,7 +359,19 @@ def self_tests():
     with zipfile.ZipFile(buffer,"w",zipfile.ZIP_DEFLATED) as archive: archive.writestr("sample.csv",csv_text)
     parsed,meta=parse_kline_zip(buffer.getvalue(),start,end)
     assert len(parsed)==2 and meta["header_rows_removed"]==1 and meta["zip_crc_pass"]
-    return ["complete_4h_aggregation","future_perturbation_invariance","funding_settlement_grid","checksum_parser","53_archive_exact_window","zip_crc_header_and_kline_parser"]
+    paired = pd.DataFrame({
+        "side": ["long", "short", "long"],
+        "regime": ["bull", "bear", "bull"],
+        "net_10bps": [10.0, -5.0, 0.0],
+        "control_net_10bps": [1.0, -1.0, 0.0],
+    })
+    grouped = side_regime_rows(paired, "1h")
+    assert len(grouped) == 2
+    assert grouped[0]["side"] == "long" and grouped[0]["regime"] == "bull"
+    assert grouped[0]["matched"] == 2 and grouped[0]["mean_net10_bps"] == 5.0
+    assert grouped[0]["paired_lift_bps"] == 4.5
+    assert grouped[1]["side"] == "short" and grouped[1]["regime"] == "bear"
+    return ["complete_4h_aggregation","future_perturbation_invariance","funding_settlement_grid","checksum_parser","53_archive_exact_window","zip_crc_header_and_kline_parser","side_regime_groupby"]
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--out",default="binance_eth_ema_results"); ap.add_argument("--self-test",action="store_true"); a=ap.parse_args()
@@ -381,8 +410,7 @@ def main():
             "event_mean_day_cluster_ci":bootstrap_ci(p,"net_10bps"),"paired_lift_day_cluster_ci":bootstrap_ci(p.assign(lift=lift),"lift"),
             "event_sequence_drawdown_bps":drawdown(order.net_10bps),"max_losing_streak":losing_streak(order.net_10bps),
             "positive_months":int((mon>0).sum()),"active_months":len(mon),"positive_fold_fraction":float(np.mean(np.asarray(fold_means)>0)) if fold_means else None}
-        for side,reg,g in p.groupby(["side","regime"]):
-            sides.append({"horizon":h,"side":side,"regime":reg,"matched":len(g),"win_rate":float((g.net_10bps>0).mean()),"mean_net10_bps":float(g.net_10bps.mean()),"paired_lift_bps":float((g.net_10bps-g.control_net_10bps).mean())})
+        sides.extend(side_regime_rows(p, h))
         for b in COSTS:
             costs.append({"horizon":h,"cost_bps":b,"events":len(p),"event_mean_net_bps":float((p.gross_bps-b).mean()),"control_mean_net_bps":float((p.control_gross_bps-b).mean()),"paired_lift_bps":float(lift.mean())})
     pd.DataFrame(monthly).to_csv(out/"monthly_results.csv",index=False); pd.DataFrame(wf).to_csv(out/"walk_forward_folds.csv",index=False); pd.DataFrame(sides).to_csv(out/"side_regime_breakdown.csv",index=False); pd.DataFrame(costs).to_csv(out/"cost_sensitivity.csv",index=False)
