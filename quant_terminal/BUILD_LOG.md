@@ -62,3 +62,13 @@
 - Read-only API PR run [44552777259](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44552777259) passed. Full deterministic CI was still running at this update.
 - No deployment, exchange credentials, live order routes, alert mutations or production changes.
 
+## 2026-11-20 — Backtesting artifact inventory UI (Phase 4 foundation)
+
+- Extended the frontend backtest snapshot contract to include the persisted artifact inventory already returned by `GET /api/v1/backtests`.
+- Added a dedicated Backtesting view showing artifact count, source, file size, recorded symbol/strategy/trade metadata, metadata details and CSV column names when present.
+- Every record is labelled `FILE ONLY`; the page explicitly states that artifact presence does not prove a completed/reproducible test, positive expectancy, validation or strategy promotion.
+- The page does not launch or recompute backtests. The existing deterministic backtest engine and persisted artifacts remain the source of truth.
+- No new API endpoint or engine was added; paper trading, account equity, and full normalized performance analytics remain pending.
+- Added responsive styling for artifact cards and metadata.
+- Frontend TypeScript/production-build verification is triggered by the branch changes; no result is claimed until the corresponding workflow is inspected.
+- No deployment, live order routes, exchange credentials, alert mutations, production changes or main-branch changes.
