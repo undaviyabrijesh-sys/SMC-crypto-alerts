@@ -1973,3 +1973,10 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Decision: reject for promotion. Binance development again negative at 10 bps, consistent with Delta development (-1.90R). Positive validation is small and concentrated; cross-exchange same-date evidence is not independent temporal OOS. Final OOS after 2026-09-10 06:00 UTC was not evaluated.
 - Reproducible report/runner/bootstrap: quant_discovery/BINANCE_BTCUSDT_1H_EMA20_50_CROSS_EXCHANGE_RESULTS_2026-11-19.md; research/binance_btcusdt_1h_ema_crossover_replication.py; research/bootstrap_binance_btc_ema20_50_replication.py; research/BINANCE_BTCUSDT_1H_EMA20_50_CLUSTER_BOOTSTRAP_AUDIT_2026-11-19.md.
 - Full workflow artifact includes source candles, funding rates, archive manifest, trades, summaries, monthly/regime/side results and metadata. No production/main changes; no alerts or orders.
+
+
+### Next research step queued — multi-month true-footprint feature replication
+- Existing September 2026 true-footprint feature pilot is explicitly one month and hypothesis-generating only; its frozen spec prohibits promotion or threshold tuning from that sample.
+- Extend the exact same raw-trade reconstruction and event definitions to completed BTCUSDT USD-M aggTrades months 2026-06, 2026-07 and 2026-08, retaining September as the existing reference month.
+- Verify each aggTrades and matching 5m kline ZIP with its official SHA-256 CHECKSUM; validate aggregate IDs, timestamps, exact-price levels, aggressor-side totals, per-bar reconciliation, daily profiles and 30m TPO before computing any event statistics.
+- Do not change the September event thresholds, cooldown, horizons or cost assumption. Report each month separately and pooled day-cluster intervals; do not select a best month/side or call this a strategy validation.
