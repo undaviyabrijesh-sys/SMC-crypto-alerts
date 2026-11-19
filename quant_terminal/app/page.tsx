@@ -84,10 +84,59 @@ type ScannerSnapshot = {
   symbols?: ScannerSymbol[];
 };
 
+type PaperPosition = {
+  signal_id?: string | null;
+  sym?: string | null;
+  dir?: string | null;
+  entry?: number | null;
+  sl?: number | null;
+  tp?: number | null;
+  rr?: number | null;
+  setup_type?: string | null;
+  strategy_id?: string | null;
+  quality_score?: number | null;
+  score_type?: string | null;
+  triggered_at?: string | null;
+  status?: string | null;
+  entry_source?: string | null;
+};
+
 type PositionsSnapshot = {
   status: string;
+  source?: string;
+  as_of?: string;
+  reason?: string | null;
   position_count?: number | null;
-  positions?: unknown[] | null;
+  pending_outcome_count?: number | null;
+  positions?: PaperPosition[] | null;
+};
+
+type PaperTrade = {
+  signal_id?: string | null;
+  sym?: string | null;
+  dir?: string | null;
+  entry?: number | null;
+  exit?: number | null;
+  sl?: number | null;
+  tp?: number | null;
+  rr?: number | null;
+  setup_type?: string | null;
+  strategy_id?: string | null;
+  triggered_at?: string | null;
+  exit_time?: string | null;
+  status?: string | null;
+  gross_R?: number | null;
+  gross_pnl_pct?: number | null;
+  entry_source?: string | null;
+};
+
+type HistorySnapshot = {
+  status: string;
+  source?: string;
+  reason?: string | null;
+  trade_count?: number | null;
+  retained_trade_limit?: number;
+  trades?: PaperTrade[] | null;
 };
 
 type ResearchSnapshot = {
@@ -127,6 +176,7 @@ type DashboardData = {
   markets: MarketSnapshot | null;
   scanner: ScannerSnapshot | null;
   positions: PositionsSnapshot | null;
+  history: HistorySnapshot | null;
   research: ResearchSnapshot | null;
   backtests: BacktestSnapshot | null;
   risk: RiskSnapshot | null;
@@ -226,6 +276,7 @@ export default function Home() {
     markets: null,
     scanner: null,
     positions: null,
+    history: null,
     research: null,
     backtests: null,
     risk: null
@@ -240,17 +291,18 @@ export default function Home() {
       if (inFlight) return;
       inFlight = true;
       try {
-        const [health, markets, scanner, positions, research, backtests, risk] = await Promise.all([
+        const [health, markets, scanner, positions, history, research, backtests, risk] = await Promise.all([
           fetchApi<HealthSnapshot>("health"),
           fetchApi<MarketSnapshot>("markets"),
           fetchApi<ScannerSnapshot>("scanner/candidates"),
           fetchApi<PositionsSnapshot>("paper/positions"),
+          fetchApi<HistorySnapshot>("paper/history"),
           fetchApi<ResearchSnapshot>("research/experiments"),
           fetchApi<BacktestSnapshot>("backtests"),
           fetchApi<RiskSnapshot>("risk/summary")
         ]);
         if (!cancelled) {
-          setApiData({ loading: false, health, markets, scanner, positions, research, backtests, risk });
+          setApiData({ loading: false, health, markets, scanner, positions, history, research, backtests, risk });
         }
       } finally {
         inFlight = false;
@@ -665,6 +717,108 @@ export default function Home() {
                 <div className="panel-foot">Artifact presence does not prove reproducibility, validation, positive expectancy or promotion. Open each experiment report for its dataset, assumptions, costs and evaluation splits.</div>
               </section>
               <footer className="page-footer"><span>SALTY QUANT TERMINAL · BACKTESTING</span><span>ARTIFACTS ≠ VALIDATED STRATEGIES</span></footer>
+            </>
+          ) : active === "Paper Trading" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PERSISTED PAPER POSITION LEDGER</div>
+                  <h1>Paper Trading</h1>
+                  <p>Open simulated positions from the existing paper lifecycle state. This page is read-only and cannot create, close or modify trades.</p>
+                </div>
+                <StatusPill tone={apiData.positions?.status === "available" ? "green" : "amber"}>{apiData.positions?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.positions?.status === "available" ? "Paper position state is readable" : apiData.loading ? "Loading paper state" : "Paper state unavailable"}</strong>
+                  <p>{apiData.positions?.reason ?? apiData.positions?.source ?? "The API has not returned a paper-state source."} · Positions are persisted simulations, not exchange positions.</p>
+                </div>
+                <span className="notice-code">NO ORDER ROUTES</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Open paper positions" value={apiData.positions?.status === "available" ? String(apiData.positions.position_count ?? "—") : "—"} note="Persisted position records" icon="↗" />
+                <MetricCard label="Pending outcomes" value={apiData.positions?.status === "available" ? formatArtifactValue(apiData.positions.pending_outcome_count) : "—"} note="Existing lifecycle queue" icon="◷" />
+                <MetricCard label="Account equity" value="—" note="Not persisted by the current paper engine" icon="◉" />
+                <MetricCard label="Execution" value="Read only" note="No create, close or modify controls" icon="⛨" />
+              </div>
+              <section className="panel paper-ledger-panel">
+                <div className="panel-heading">
+                  <div><h2>Open simulated positions</h2><p>Entry geometry and provenance from the persisted paper state</p></div>
+                  <StatusPill>SIMULATED ONLY</StatusPill>
+                </div>
+                {apiData.positions?.positions?.length ? (
+                  <div className="paper-position-list">
+                    <div className="paper-position-row paper-table-head"><span>SYMBOL / SETUP</span><span>DIRECTION</span><span>ENTRY</span><span>STOP</span><span>TARGET</span><span>R:R</span><span>STATUS</span></div>
+                    {apiData.positions.positions.map((position, index) => (
+                      <div className="paper-position-row" key={position.signal_id ?? position.sym ?? index}>
+                        <div><strong>{position.sym ?? "—"}</strong><small>{position.strategy_id ?? position.setup_type ?? "Strategy unavailable"}</small></div>
+                        <span>{position.dir ?? "—"}</span>
+                        <span>{formatLevel(position.entry, 6)}</span>
+                        <span>{formatLevel(position.sl, 6)}</span>
+                        <span>{formatLevel(position.tp, 6)}</span>
+                        <span>{formatLevel(position.rr, 2)}</span>
+                        <StatusPill>{position.status ?? "status unavailable"}</StatusPill>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="paper-empty">{apiData.positions?.status === "available" ? "No open paper positions are currently persisted." : "Paper positions cannot be displayed until the source state is available."}</div>
+                )}
+                <div className="panel-foot">Source: {apiData.positions?.source ?? "unavailable"} · Snapshot: {apiData.positions?.as_of ?? "unavailable"} · No real exchange positions are queried.</div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · PAPER TRADING</span><span>SIMULATION ONLY · READ ONLY</span></footer>
+            </>
+          ) : active === "Trade History" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PERSISTED PAPER TRADE HISTORY</div>
+                  <h1>Trade History</h1>
+                  <p>Closed simulated trade records retained by the existing lifecycle engine. Gross R is not a fee-adjusted account return.</p>
+                </div>
+                <StatusPill tone={apiData.history?.status === "available" ? "green" : "amber"}>{apiData.history?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.history?.status === "available" ? "Paper history is readable" : apiData.loading ? "Loading paper history" : "Paper history unavailable"}</strong>
+                  <p>{apiData.history?.reason ?? apiData.history?.source ?? "The API has not returned a history source."} · Retained history is limited by the source engine.</p>
+                </div>
+                <span className="notice-code">NO LIVE TRADES</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Retained trade records" value={apiData.history?.status === "available" ? formatArtifactValue(apiData.history.trade_count) : "—"} note="Count reported by paper state" icon="◷" />
+                <MetricCard label="Rows returned" value={apiData.history?.status === "available" ? String(apiData.history.trades?.length ?? 0) : "—"} note="Read-only API sample" icon="▤" />
+                <MetricCard label="History retention" value={apiData.history?.retained_trade_limit == null ? "—" : String(apiData.history.retained_trade_limit)} note="Source engine retained-record limit" icon="⌁" />
+                <MetricCard label="P&L basis" value="Gross R" note="Before fees, funding and slippage" icon="◇" />
+              </div>
+              <section className="panel paper-ledger-panel">
+                <div className="panel-heading">
+                  <div><h2>Closed paper trades</h2><p>Most recent records returned by the read-only API</p></div>
+                  <StatusPill>HISTORICAL · PAPER</StatusPill>
+                </div>
+                {apiData.history?.trades?.length ? (
+                  <div className="paper-history-list">
+                    <div className="paper-history-row paper-table-head"><span>SYMBOL / STRATEGY</span><span>SIDE</span><span>ENTRY</span><span>EXIT</span><span>GROSS R</span><span>STATUS</span><span>EXIT TIME</span></div>
+                    {apiData.history.trades.slice().reverse().map((trade, index) => (
+                      <div className="paper-history-row" key={trade.signal_id ?? (trade.sym ?? "trade") + "-" + index}>
+                        <div><strong>{trade.sym ?? "—"}</strong><small>{trade.strategy_id ?? trade.setup_type ?? "Strategy unavailable"}</small></div>
+                        <span>{trade.dir ?? "—"}</span>
+                        <span>{formatLevel(trade.entry, 6)}</span>
+                        <span>{formatLevel(trade.exit, 6)}</span>
+                        <strong>{formatLevel(trade.gross_R, 3)}</strong>
+                        <StatusPill>{trade.status ?? "status unavailable"}</StatusPill>
+                        <span>{trade.exit_time ?? "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="paper-empty">{apiData.history?.status === "available" ? "No closed paper trades are currently retained." : "Trade history cannot be displayed until the source state is available."}</div>
+                )}
+                <div className="panel-foot">Source: {apiData.history?.source ?? "unavailable"} · Returned rows: {apiData.history?.trades?.length ?? "unavailable"} · Gross R is the stored lifecycle field, not net realized account P&L.</div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · TRADE HISTORY</span><span>GROSS RESULTS · PAPER ONLY</span></footer>
             </>
           ) : (
             <div className="module-empty">
