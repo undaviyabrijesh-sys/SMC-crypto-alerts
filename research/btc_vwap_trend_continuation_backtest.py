@@ -716,7 +716,23 @@ def self_test():
     }, index=pd.date_range("2026-01-01", periods=n, freq="5min", tz="UTC"))
     sig = build_signals(test, 0.10, "reclaim_close", 1.0, False)
     assert any(x["signal_i"] == 1 and x["side"] == 1 for x in sig)
-    print("8 deterministic VWAP trend-continuation tests passed")
+
+    # A reclaim across the UTC-day VWAP reset must not create a signal.
+    cross_day = test.copy()
+    cross_day["vwap_day"] = [
+        pd.Timestamp("2026-01-01", tz="UTC"),
+        pd.Timestamp("2026-01-02", tz="UTC"),
+        pd.Timestamp("2026-01-02", tz="UTC"),
+    ]
+    cross_day_signals = build_signals(cross_day, 0.10, "reclaim_close", 1.0, False)
+    assert not any(x["signal_i"] == 1 for x in cross_day_signals)
+
+    # The frozen research matrix must remain exactly 648 configurations.
+    config_count = len(list(itertools.product(
+        BANDS, CONFIRMATIONS, VOLUME_FILTERS, STOPS, TARGETS, SESSIONS, HTF4_FILTERS
+    )))
+    assert config_count == 648
+    print("10 deterministic VWAP trend-continuation tests passed")
 
 
 def main():
