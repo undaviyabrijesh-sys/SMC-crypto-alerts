@@ -246,13 +246,13 @@ def build_research_snapshot(limit: int = 50) -> dict[str, Any]:
         content = LEDGER_PATH.read_text(encoding="utf-8")
     except (OSError, UnicodeError):
         return {"status": "unavailable", "source": str(LEDGER_PATH), "entries": []}
-    matches = list(re.finditer(r"(?m)^##\\s+(.+)$", content))
+    matches = list(re.finditer(r"(?m)^##\s+(.+)$", content))
     entries = []
     for index, match in enumerate(matches):
         start = match.end()
         end = matches[index + 1].start() if index + 1 < len(matches) else len(content)
         section = content[start:end].strip()
-        paragraph = next((part.strip() for part in re.split(r"\\n\\s*\\n", section) if part.strip()), "")
+        paragraph = next((part.strip() for part in re.split(r"\n\s*\n", section) if part.strip()), "")
         entries.append({"title": match.group(1).strip(), "summary": paragraph[:700]})
     return {"status": "available", "source": str(LEDGER_PATH), "entry_count": len(entries), "entries": entries[-limit:][::-1]}
 
