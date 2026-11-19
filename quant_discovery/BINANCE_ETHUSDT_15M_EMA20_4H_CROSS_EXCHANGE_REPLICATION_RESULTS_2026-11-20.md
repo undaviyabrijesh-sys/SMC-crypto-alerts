@@ -90,3 +90,9 @@ The Binance 4h mean (+30.18 bps) is directionally similar to the prior Delta poi
 - The final four-month holdout remains untouched.
 
 Detailed monthly, chronological-fold, cost and side/regime tables are committed alongside this report. Full source and trade/control CSVs remain in the 30-day GitHub Actions artifact.
+
+## Independent rerun reproducibility check
+
+A second PR-triggered run, [44636199588](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44636199588), also completed and uploaded artifact [14584126868](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44636199588/artifacts/14584126868). The second ZIP was downloaded and extracted. All 14 files were byte-identical to the first artifact, including the source 15m CSV, 53-entry archive manifest, events, controls, event/control returns, monthly results, folds, side/regime and cost tables, report, metadata and summary. The source SHA-256 was identical. The two ZIP container digests differ because the ZIP archives were generated separately; their extracted file contents are identical.
+
+The second full run was already queued under the prior pull-request trigger guard. The workflow was subsequently tightened so pull requests and ordinary pushes run deterministic tests only; a full archive replication now requires manual workflow dispatch or the explicit marked push.
