@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import requests
 
 BAR = pd.Timedelta(minutes=15)
 BETA_LOOKBACKS = (960, 2880)       # 10d / 30d
@@ -22,11 +23,14 @@ Z_LOOKBACKS = (288, 672)           # 3d / 7d
 ENTRY_ZS = (1.5, 2.0, 2.5)
 STOP_ZS = (3.5, 4.0)
 TARGET_ZS = (0.0, 0.5)
-MAX_HOLDS = (96, 192)              # 24h / 48h
+MAX_HOLDS = (16, 24)               # 4h / 6h; funding-safe intraday caps
 DIRECTIONS = ("both", "long_spread_only", "short_spread_only")
 CORR_FILTERS = (0.0, 0.6)
 COSTS = (6, 12, 20)                # assumed round-trip bps per leg
 MIN_TRAIN, MIN_VALIDATION = 40, 20
+FUNDING_TRANSITION = pd.Timestamp("2025-09-08T12:00:00Z")
+FUNDING_HOURS_UTC = (0, 8, 16)
+DELTA_API = "https://api.india.delta.exchange"
 
 
 def file_sha256(path: Path) -> str:
@@ -37,7 +41,7 @@ def file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def load_ohlcv(path: Path, label: str) -> pd.DataFrame:
+def load_ohlcv(path: Path, label: str, as_of: pd.Timestamp | None = None) -> pd.DataFrame:
     d = pd.read_csv(path, parse_dates=["timestamp"])
     d["timestamp"] = pd.to_datetime(d["timestamp"], utc=True)
     if d["timestamp"].duplicated().any():
@@ -58,6 +62,10 @@ def load_ohlcv(path: Path, label: str) -> pd.DataFrame:
         d["volume"] = pd.to_numeric(d["volume"], errors="coerce")
         if d.volume.isna().any() or (d.volume < 0).any():
             raise ValueError(f"{label}: invalid volume")
+    if (d.index.minute % 15 != 0).any() or (d.index.second != 0).any():
+        raise ValueError(f"{label}: timestamps are off the 15m UTC grid")
+    if as_of is not None:
+        d = d.loc[d.index + BAR <= as_of]
     return d
 
 
@@ -173,6 +181,64 @@ def split_bounds(n: int):
     return {"train": (0, a), "validation": (a, b), "oos": (b, n)}
 
 
+def next_funding_settlement(ts: pd.Timestamp) -> pd.Timestamp:
+    ts = pd.Timestamp(ts).tz_convert("UTC")
+    day = ts.normalize()
+    return next(
+        (day + pd.Timedelta(hours=h) for h in FUNDING_HOURS_UTC
+         if day + pd.Timedelta(hours=h) > ts),
+        day + pd.Timedelta(days=1),
+    )
+
+
+def funding_safe_entry(ts: pd.Timestamp) -> bool:
+    ts = pd.Timestamp(ts).tz_convert("UTC")
+    if ts.minute == 0 and ts.second == 0 and ts.hour in FUNDING_HOURS_UTC:
+        return False
+    return ts + BAR < next_funding_settlement(ts)
+
+
+def funding_flatten_bar(ts: pd.Timestamp) -> bool:
+    ts = pd.Timestamp(ts).tz_convert("UTC")
+    return ts + BAR == next_funding_settlement(ts)
+
+
+def assert_no_funding_overlap(trades: pd.DataFrame) -> None:
+    for trade in trades.itertuples(index=False):
+        entry = pd.Timestamp(trade.entry_time).tz_convert("UTC")
+        exit_time = pd.Timestamp(trade.exit_time).tz_convert("UTC")
+        if entry < next_funding_settlement(entry) <= exit_time:
+            raise ValueError(
+                f"position overlaps Delta funding snapshot: {entry.isoformat()} -> {exit_time.isoformat()}"
+            )
+
+
+def current_product_spec(symbol: str) -> dict:
+    response = requests.get(
+        f"{DELTA_API}/v2/products/{symbol}",
+        headers={"Accept": "application/json", "User-Agent": "SaltyQuantPairFundingAudit/1.0"},
+        timeout=20,
+    )
+    response.raise_for_status()
+    product = response.json().get("result") or {}
+    specs = product.get("product_specs") or {}
+    if product.get("contract_type") != "perpetual_futures":
+        raise ValueError(f"{symbol}: current product is not perpetual_futures")
+    interval = int(specs.get("rate_exchange_interval") or 0)
+    if interval != 28800:
+        raise ValueError(f"{symbol}: expected current 28800-second funding interval, got {interval}")
+    return {
+        "symbol": symbol,
+        "contract_type": product.get("contract_type"),
+        "rate_exchange_interval_seconds": interval,
+        "funding_method": product.get("funding_method"),
+        "contract_value": product.get("contract_value"),
+        "contract_unit_currency": product.get("contract_unit_currency"),
+        "settling_asset": (product.get("settling_asset") or {}).get("symbol"),
+        "taker_commission_rate": product.get("taker_commission_rate"),
+    }
+
+
 def metrics(t: pd.DataFrame) -> dict:
     if t.empty:
         return {"trades": 0, "win_rate_pct": 0.0, "profit_factor": None,
@@ -202,6 +268,7 @@ def metrics(t: pd.DataFrame) -> dict:
         "TP": int((x.outcome == "TP").sum()),
         "SL": int((x.outcome == "SL").sum()),
         "TIME": int((x.outcome == "TIME").sum()),
+        "FUNDING_FLAT": int((x.outcome == "FUNDING_FLAT").sum()),
     }
 
 
@@ -243,6 +310,8 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
             continue
         if f.segment.iloc[entry_i] != f.segment.iloc[sig_i]:
             continue
+        if not funding_safe_entry(f.index[entry_i]):
+            continue
         if not np.all(f.segment.iloc[entry_i:entry_i + max_hold].to_numpy()
                       == f.segment.iloc[entry_i]):
             continue
@@ -268,6 +337,9 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
             row = f.iloc[j]
             op, hi, lo, cl = spread_ohlc(row, alpha, beta)
             zo, zh, zl = (op - mu) / sigma, (hi - mu) / sigma, (lo - mu) / sigma
+            if funding_flatten_bar(f.index[j]):
+                exit_z, outcome, exit_i = float(zo), "FUNDING_FLAT", j
+                break
             fill, why = check_exit(side, zo, zh, zl, cfg["stop_z"], cfg["target_z"])
             if why:
                 exit_z, outcome, exit_i = float(fill), why, j
@@ -294,8 +366,9 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
             "beta": beta, "entry_z": entry_z, "exit_z": exit_z,
             "entry_btc": float(f.btc_open.iloc[entry_i]),
             "entry_eth": float(f.eth_open.iloc[entry_i]),
-            "exit_btc": float(f.btc_close.iloc[exit_i]),
-            "exit_eth": float(f.eth_close.iloc[exit_i]),
+            "exit_btc": float(f.btc_open.iloc[exit_i]) if outcome == "FUNDING_FLAT" else float(f.btc_close.iloc[exit_i]),
+            "exit_eth": float(f.eth_open.iloc[exit_i]) if outcome == "FUNDING_FLAT" else float(f.eth_close.iloc[exit_i]),
+            "exit_fill_reference": "bar_open" if outcome == "FUNDING_FLAT" else "spread_ohlc_event",
             "outcome": outcome, "gross_R": gross_R, "cost_R": cost_R,
             "net_R": net_R, "gross_pair_return_pct": gross_pair_return_pct,
             "net_pair_return_pct": net_pair_return_pct,
@@ -305,12 +378,19 @@ def simulate(f: pd.DataFrame, signals: list[tuple[int, int]], split_name: str,
             **cfg,
         })
         last_exit = exit_i
-    return pd.DataFrame(rows)
+    trades = pd.DataFrame(rows)
+    assert_no_funding_overlap(trades)
+    return trades
 
 
 def run(btc_path: Path, eth_path: Path, out: Path):
-    btc, eth = load_ohlcv(btc_path, "BTC"), load_ohlcv(eth_path, "ETH")
+    as_of = pd.Timestamp.now(tz="UTC")
+    btc, eth = load_ohlcv(btc_path, "BTC", as_of), load_ohlcv(eth_path, "ETH", as_of)
     pair = align_pair(btc, eth)
+    pair = pair.loc[pair.index >= FUNDING_TRANSITION].copy()
+    if len(pair) < 10000:
+        raise ValueError(f"only {len(pair)} post-transition aligned 15m rows; need at least 10000")
+    product_specs = {symbol: current_product_spec(symbol) for symbol in ("BTCUSD", "ETHUSD")}
     pair = add_regime(pair)
     bounds = split_bounds(len(pair))
     beta_windows = sorted(set(BETA_LOOKBACKS))
@@ -425,6 +505,12 @@ def run(btc_path: Path, eth_path: Path, out: Path):
         "btc_rows": len(btc), "eth_rows": len(eth), "aligned_rows": len(pair),
         "btc_sha256": file_sha256(btc_path), "eth_sha256": file_sha256(eth_path),
         "start_utc": aligned.min().isoformat(), "end_utc": aligned.max().isoformat(),
+        "as_of_utc": as_of.isoformat(), "forming_15m_candles_excluded": True,
+        "funding_transition_utc": FUNDING_TRANSITION.isoformat(),
+        "product_specs_current": product_specs,
+        "funding_cashflow_included": False,
+        "funding_avoidance_verified_by_backtest": True,
+        "funding_policy": "Use only data from the 2025-09-08 12:00 UTC mechanism transition; verify current BTCUSD/ETHUSD 8h product intervals; skip exact-boundary entries; force flat at the 15m open before each 00:00/08:00/16:00 UTC snapshot; assert no trade overlaps a snapshot. No funding cashflow is imputed.",
         "btc_gap_count": int((btc.index.to_series().diff().dropna() != BAR).sum()),
         "eth_gap_count": int((eth.index.to_series().diff().dropna() != BAR).sum()),
         "aligned_gap_count": int((pair.index.to_series().diff().dropna() != BAR).sum()),
@@ -440,15 +526,15 @@ def run(btc_path: Path, eth_path: Path, out: Path):
         "oos_evaluated": selected_cfg is not None,
         "selected_config": selected_cfg,
         "signal": "cross of completed 15m residual z beyond +/-1.5/2.0/2.5; rolling OLS log(ETH) on log(BTC) uses prior 10d/30d only; residual mean/std uses prior 3d/7d only",
-        "entry_exit": "next 15m open for both legs; freeze signal-time alpha/beta/mean/std; stop z 3.5/4.0; target z 0/0.5; max hold 24h/48h; one pair position at a time/config",
+        "entry_exit": "next 15m open for both legs; freeze signal-time alpha/beta/mean/std; stop z 3.5/4.0; target z 0/0.5; max hold 4h/6h, with earlier pre-snapshot flatten; one pair position at a time/config",
         "hedge_ratio": "positive beta only, constrained to 0.25-4.0; 1 ETH notional versus beta BTC notional",
-        "costs": "6/12/20bp assumed round-trip per leg; 12bp per leg primary; funding, borrow, separate spread and market impact excluded",
+        "costs": "6/12/20bp combined fee+slippage scenarios per leg round-trip; 12bp per leg primary (5bp fee + 1bp slippage per side scenario); account tier not verified; separate spread/depth/market impact excluded",
         "return_convention": "net pair return percentage is per gross pair notional (1 ETH leg + beta BTC leg), before funding; compounded sequentially for reporting; net R divides the same pair P&L by the fixed residual-spread stop distance",
         "execution": "synthetic log-spread OHLC uses adverse cross-leg extremes; stop checked before target; adverse stop gaps at observed open; target at target; timeout at final close",
         "selection_gates": "train >=40 trades, PF>=1.05, net R>0, positive months>=50%, DD>=-20R; validation >=20 trades, PF>=1.05, net R>0, positive months>=50%, DD>=-12R; OOS only after one validation pass",
         "limitations": [
             "Rolling residual mean-reversion is a statistical hypothesis, not proof of cointegration or stationarity.",
-            "Funding/borrow and contract-specific settlement cashflows are excluded; 24h/48h holding results are diagnostic and cannot be promoted without them.",
+            "Funding cashflow is not imputed. The sample starts at the post-transition mechanism and every position is force-flat before each verified 8h snapshot; no position may overlap a snapshot.",
             "Costs are assumed per leg round-trip and actual account fee tier/spread are not verified.",
             "Synthetic spread OHLC is conservative but cannot reconstruct exact intrabar ordering between two independently traded legs."
         ],
@@ -472,6 +558,11 @@ def self_test():
     assert np.isclose(hi, np.log(110.0 / 40.0))
     assert np.isclose(lo, np.log(90.0 / 60.0))
     assert np.isclose(cl, np.log(105.0 / 55.0))
+    # Funding-safe entry/flatten clock: never open at a snapshot or hold through it.
+    assert funding_safe_entry(pd.Timestamp("2026-01-01T23:30:00Z"))
+    assert not funding_safe_entry(pd.Timestamp("2026-01-01T23:45:00Z"))
+    assert not funding_safe_entry(pd.Timestamp("2026-01-02T00:00:00Z"))
+    assert funding_flatten_bar(pd.Timestamp("2026-01-01T23:45:00Z"))
     # Stop-first when both stop and target are touched.
     assert check_exit(-1, 2.0, 4.0, -1.0, 3.5, 0.0) == (3.5, "SL")
     assert check_exit(1, -2.0, 1.0, -4.0, 3.5, 0.0) == (-3.5, "SL")
@@ -518,7 +609,7 @@ def self_test():
     })
     assert make_signals(sf, 1.5, 0.6, "both") == [(1, -1), (3, 1)]
     assert make_signals(sf, 1.5, 0.0, "both") == [(1, -1), (3, 1)]
-    print("8 pair causality, gap, spread-OHLC, signal-column and execution self-tests passed")
+    print("12 pair causality, gap, spread-OHLC, signal-column, execution and funding-boundary self-tests passed")
 
 
 def main():
