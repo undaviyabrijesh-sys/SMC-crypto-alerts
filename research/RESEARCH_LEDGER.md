@@ -2180,3 +2180,9 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Static review of the newly added future-perturbation test found that the existing Supertrend engine returns the ATR as a pandas Series but returns the Supertrend line as a NumPy array. The first wrapper test used `.iloc` on both and would fail on the line array.
 - Corrected the test to use `.iloc` only for ATR and ordinary slicing for the NumPy line/direction arrays. This is a test-only correction; indicator, signal, execution and frozen parameters are unchanged.
 - Correction commit: `93acd8412e47f1062733bc43e77b62e1285187b5`. Await the marked CI run before claiming the wrapper tests or historical replication passed.
+
+### ETH Supertrend inherited risk-guard disclosure — 2026-11-20
+- Further source inspection found the reused simulator's existing fixed guard: skip non-positive initial risk or initial stop distance greater than 5% of entry. This guard was active in the local preflight but was not explicit in the first prose preregistration.
+- Added the exact guard to the output metadata/report and a separate audit CSV of rejected signals. The local preflight counted three such exclusions among 500 funding-safe flips. The signal/stop/target configuration is unchanged; this is a disclosure of an inherited engine rule, not an optimized filter.
+- Addendum: `research/ETHUSDT_SUPERTREND_RISK_GUARD_ADDENDUM_2026-11-20.md`; code commit `c36085702d07aeb2bc65ba3bbd6d3bba686e0813`.
+- The earlier marker push preceded this final disclosure/test correction. The next marked run is the authoritative attempt for the corrected wrapper.
