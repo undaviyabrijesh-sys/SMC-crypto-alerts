@@ -153,3 +153,12 @@
 - Kept the API's existing 512 KB per-file parsing cap and 25-row response bound. Files without supported CSV rows continue to show metadata/provenance only.
 - Added compact responsive table styling. No API route, engine, paper state, execution behavior, or strategy validation gate changed.
 - Next frontend check: TypeScript and production build on `ai-quant-rebuild`.
+
+
+## 2026-11-20 — Backtesting CSV evidence preview and ETH Supertrend result indexing
+
+- Backtesting artifact discovery now indexes all CSV files contained in the bounded `quant_discovery/` directory, rather than only PRIMARY/METRICS-named CSVs. The API still reads at most 512 KB per CSV and returns only the last up to 25 rows.
+- The UI displays those persisted rows in a collapsed, horizontally scrollable preview. It renders recorded values verbatim; it does not recalculate performance or infer validation/promotion.
+- Added an API regression test for monthly and trade-named CSV discovery plus the 25-row bound.
+- Completed authoritative ETH Supertrend workflow [44693535437](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44693535437). All 53 official archive checksums passed; 47,424 contiguous bars were reconstructed. Development: 332 trades, PF 0.789, -24.25R, DD -28.58R, 13-loss streak. Validation: 75 trades, PF 0.748, -8.26R, DD -18.42R, 11-loss streak. Both gates failed; final 15% holdout remains retired/not evaluated. Full report and normalized result tables are committed under `quant_discovery/`.
+- No API order/alert routes, strategy engines, paper state or production rules changed.

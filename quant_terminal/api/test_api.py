@@ -128,6 +128,24 @@ class ReadOnlyApiTests(unittest.TestCase):
         self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["columns"], ["horizon", "events", "mean_net_bps"])
         self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["rows"][0]["mean_net_bps"], "30.18")
 
+    def test_backtest_all_csv_artifacts_are_indexed_with_bounded_preview(self):
+        metrics = self.discovery_dir / "ETH_TEST_MONTHLY.csv"
+        metrics.write_text("month,net_R" + chr(10) + "2026-01,1.5" + chr(10), encoding="utf-8")
+        trades = self.discovery_dir / "ETH_TEST_TRADES.csv"
+        rows = ["entry_time,side,net_R"]
+        rows.extend(f"2026-01-{day:02d}T00:00:00Z,long,{day / 100:.2f}" for day in range(1, 31))
+        trades.write_text(chr(10).join(rows) + chr(10), encoding="utf-8")
+
+        result = main.build_backtest_snapshot()
+        artifacts = {item["name"]: item for item in result["artifacts"]}
+        self.assertIn("ETH_TEST_MONTHLY.csv", artifacts)
+        self.assertIn("ETH_TEST_TRADES.csv", artifacts)
+        self.assertEqual(artifacts["ETH_TEST_MONTHLY.csv"]["rows"][0]["net_R"], "1.5")
+        preview = artifacts["ETH_TEST_TRADES.csv"]["rows"]
+        self.assertEqual(len(preview), 25)
+        self.assertEqual(preview[0]["entry_time"], "2026-01-06T00:00:00Z")
+        self.assertEqual(preview[-1]["entry_time"], "2026-01-30T00:00:00Z")
+
     def test_api_has_no_mutating_data_routes(self):
         data_routes = [route for route in main.app.routes if getattr(route, "path", "").startswith("/api/v1/")]
         self.assertTrue(data_routes)

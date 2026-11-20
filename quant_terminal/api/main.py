@@ -261,7 +261,7 @@ def build_backtest_snapshot(limit: int = 50) -> dict[str, Any]:
     if not DISCOVERY_DIR.is_dir():
         return {"status": "unavailable", "source": str(DISCOVERY_DIR), "artifacts": []}
     candidates = []
-    patterns = ("*METADATA*.json", "*metadata*.json", "*PRIMARY*.csv", "*METRICS*.csv", "*RESULTS*.md")
+    patterns = ("*METADATA*.json", "*metadata*.json", "*.csv", "*RESULTS*.md")
     seen = set()
     for pattern in patterns:
         for path in DISCOVERY_DIR.glob(pattern):

@@ -1,0 +1,148 @@
+{
+  "status": "completed_validation_gates_failed_holdout_retired",
+  "symbol": "ETHUSDT",
+  "asset": "ETH",
+  "venue": "Binance USD-M",
+  "strategy": "15m Supertrend flip continuation",
+  "strategy_id": "ethusdt_15m_supertrend_hl2_atr10_x3_2r_4h",
+  "run_id": "44693535437",
+  "start_utc": "2025-03-08T00:00:00Z",
+  "end_utc": "2026-07-15T00:00:00Z",
+  "end_exclusive": true,
+  "configurations": 1,
+  "trade_count": 407,
+  "development_trade_count": 332,
+  "validation_trade_count": 75,
+  "validation_passes": false,
+  "oos_evaluated": false,
+  "oos_status": "retired_contaminated_by_local_preflight_access",
+  "source_sha256": "9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59",
+  "archive_count": 53,
+  "checksum_verified_archives": 53,
+  "rows_15m": 47424,
+  "missing_or_irregular_intervals": 0,
+  "zero_volume_rows": 0,
+  "configuration": {
+    "source": "hl2",
+    "atr": "Wilder ATR(10)",
+    "multiplier": 3,
+    "signal": "confirmed direction flip on completed 15m candle",
+    "entry": "next 15m open",
+    "direction": "both",
+    "stop": "signal candle Supertrend line",
+    "target_r": 2,
+    "max_hold_bars": 16,
+    "max_hold_hours": 4,
+    "session": "all UTC hours",
+    "trend_filter": "none",
+    "max_initial_stop_risk_pct_of_entry": 5,
+    "position_concurrency": 1
+  },
+  "cost_model": {
+    "primary_round_trip_bps": 12,
+    "sensitivity_round_trip_bps": [
+      6,
+      12,
+      20
+    ],
+    "verified_fee_tier": false,
+    "separate_spread_slippage_market_impact": false
+  },
+  "funding_policy": {
+    "settlement_hours_utc": [
+      0,
+      8,
+      16
+    ],
+    "excluded_raw_signals": 543,
+    "raw_signals": 1043,
+    "eligible_after_funding_exclusion": 500,
+    "excluded_fraction": 0.5206136146,
+    "cashflows_applied": false,
+    "excluded_entry_hours_utc": {
+      "4": 27,
+      "5": 29,
+      "6": 37,
+      "7": 36,
+      "12": 51,
+      "13": 54,
+      "14": 95,
+      "15": 71,
+      "20": 36,
+      "21": 27,
+      "22": 50,
+      "23": 30
+    }
+  },
+  "risk_guard_excluded_signals": 3,
+  "splits": {
+    "development_start": "2025-03-08T00:00:00Z",
+    "development_last_bar_open": "2026-02-16T18:45:00Z",
+    "validation_first_bar_open": "2026-02-16T19:00:00Z",
+    "validation_last_bar_open": "2026-05-01T21:15:00Z",
+    "retired_holdout_first_bar_open": "2026-05-01T21:30:00Z",
+    "retired_holdout_last_bar_open": "2026-07-14T23:45:00Z",
+    "holdout_evaluated": false
+  },
+  "metrics_at_12bps": {
+    "development": {
+      "trades": 332,
+      "profitable_pct": 43.07,
+      "profit_factor": 0.789,
+      "net_R": -24.25,
+      "avg_R": -0.073,
+      "max_drawdown_R": -28.58,
+      "max_losing_streak": 13,
+      "positive_month_fraction": 0.167,
+      "TP": 22,
+      "SL": 58,
+      "TIME": 252,
+      "long_trades": 151,
+      "short_trades": 181,
+      "gross_R": 4.392993,
+      "gross_mean_R": 0.013232,
+      "gross_profit_factor": 1.0445,
+      "median_cost_R": 0.076652,
+      "p90_cost_R": 0.137736,
+      "total_cost_R": 28.639513
+    },
+    "validation": {
+      "trades": 75,
+      "profitable_pct": 37.33,
+      "profit_factor": 0.748,
+      "net_R": -8.26,
+      "avg_R": -0.11,
+      "max_drawdown_R": -18.42,
+      "max_losing_streak": 11,
+      "positive_month_fraction": 0.333,
+      "TP": 6,
+      "SL": 18,
+      "TIME": 51,
+      "long_trades": 39,
+      "short_trades": 36,
+      "gross_R": -0.782861,
+      "gross_mean_R": -0.010438,
+      "gross_profit_factor": 0.9718,
+      "median_cost_R": 0.088833,
+      "p90_cost_R": 0.159828,
+      "total_cost_R": 7.476957
+    }
+  },
+  "ambiguity_audit": {
+    "development": {
+      "first_touch_ambiguous_bars": 0,
+      "stop_gap_fills": 0
+    },
+    "validation": {
+      "first_touch_ambiguous_bars": 0,
+      "stop_gap_fills": 0
+    }
+  },
+  "decision": "rejected_exact_frozen_definition",
+  "limitations": [
+    "Funding exclusion removes 52.06% of raw flips and changes session composition",
+    "Flat costs do not model separate spread, variable slippage or market impact",
+    "R is not account return or equity drawdown",
+    "Final 15% holdout is retired and not evaluated"
+  ]
+}

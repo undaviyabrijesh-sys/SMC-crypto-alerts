@@ -2186,3 +2186,19 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Added the exact guard to the output metadata/report and a separate audit CSV of rejected signals. The local preflight counted three such exclusions among 500 funding-safe flips. The signal/stop/target configuration is unchanged; this is a disclosure of an inherited engine rule, not an optimized filter.
 - Addendum: `research/ETHUSDT_SUPERTREND_RISK_GUARD_ADDENDUM_2026-11-20.md`; code commit `c36085702d07aeb2bc65ba3bbd6d3bba686e0813`.
 - The earlier marker push preceded this final disclosure/test correction. The next marked run is the authoritative attempt for the corrected wrapper.
+
+
+### ETHUSDT 15m Supertrend authoritative cross-asset replication — 2026-11-20
+- Authoritative full archive workflow [44693535437](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44693535437) completed successfully; its 12-file artifact was independently inspected and trade-ledger metrics were recalculated.
+- Dataset: Binance USD-M ETHUSDT 15m, 2025-03-08 00:00 UTC inclusive to 2026-07-15 00:00 UTC exclusive; 47,424 bars; 53/53 archive checksums verified; 0 missing/irregular intervals; source SHA-256 `9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59`.
+- Frozen config: HL2 Supertrend, Wilder ATR(10) x3, confirmed direction flip, next 15m open, signal-bar Supertrend stop, fixed 2R target, both directions, all UTC hours, one position, 16-bar/4h cap, no trend/session filter. Inherited simulator guard skips non-positive or >5% entry-price initial risk.
+- Funding treatment: exclude signals when the full 4h maximum holding horizon reaches/crosses the next 00:00/08:00/16:00 UTC settlement; no funding cashflow is imputed. 543/1,043 raw flips excluded (52.06%); 500 eligible; 3 further signals rejected by the inherited 5% risk guard. Exclusions cluster in UTC entry hours 04–07, 12–15 and 20–23, changing the eligible session mix.
+- Costs: assumed 12 bps round trip primary, 6/20 bps sensitivity; not a verified account fee tier; no separate spread, variable slippage or market-impact model. Same-bar ambiguity stop-first; adverse stop gaps.
+- Development (12 bps): 332 trades, 43.07% profitable, PF 0.789, net -24.25R, avg -0.073R, max DD -28.58R, max losing streak 13, 2/12 positive months, TP/SL/TIME 22/58/252.
+- Validation (12 bps): 75 trades, 37.33% profitable, PF 0.748, net -8.26R, avg -0.110R, max DD -18.42R, max losing streak 11, 1/3 positive months, TP/SL/TIME 6/18/51.
+- Independent audit from saved trade ledgers: development gross +4.393R / gross PF 1.044 / total assumed cost 28.640R; validation gross -0.783R / gross PF 0.972 / total assumed cost 7.477R. No duplicate entry timestamps or overlapping positions; 0 first-touch ambiguous bars and 0 adverse stop-gap fills in both splits.
+- Cost sensitivity (development/validation net R): 6 bps -9.93R/-4.52R; 12 bps -24.25R/-8.26R; 20 bps -43.34R/-13.24R. Validation is negative before costs.
+- Decision: reject this exact frozen baseline. Development and validation gates failed. The final 15% historical segment was accidentally materialized during local preflight and is retired; no OOS metrics are reported. Do not tune the validation sample or inspect the retired segment.
+- Full report: `quant_discovery/ETH_SUPERTREND_INTRADAY_REPLICATION_RESULTS_2026-11-20.md`; metadata, primary metrics, cost sensitivity, monthly and regime tables are saved beside it. Full trade ledgers remain in the 12-file workflow artifact.
+- Next research step: if revisiting Supertrend, use a separately preregistered new-data confirmation after 2026-07-15 UTC and a real funding cashflow/market execution model; do not reuse this validation or retired holdout. Prefer moving to a distinct, not-yet-tested BTC market-structure hypothesis after prior-art audit.
+- Scope: research-only; no strategy promotion, production changes, main-branch modification, live alerts or exchange orders.
