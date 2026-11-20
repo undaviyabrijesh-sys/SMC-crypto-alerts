@@ -13,7 +13,7 @@ Decision: **Rejected — development and validation gates failed; no OOS evaluat
 - Both directions, all UTC hours, no trend/session filter.
 - Stop at the signal candle's Supertrend line; fixed 2R target.
 - Maximum 16 bars / four hours; one position at a time.
-- Exclude an entry if the full four-hour maximum holding window reaches or crosses the next 00:00, 08:00 or 16:00 UTC funding settlement. No funding cashflow is imputed.
+- Funding screen used in this run: exclude an entry if the full four-hour maximum holding window reaches or crosses the assumed default 00:00/08:00/16:00 UTC grid. This is not a verified historical settlement schedule. No funding cashflow is imputed.
 - Inherited simulator guard: reject non-positive initial risk or stop distance greater than 5% of entry.
 - Same-bar stop/target ambiguity is stop-first; adverse gap-through stop fill; no trades cross a data gap or split.
 - Primary assumed cost: 12 bps round trip; sensitivity at 6 and 20 bps. This is not a verified account fee tier and does not separately model spread, variable slippage or market impact.
