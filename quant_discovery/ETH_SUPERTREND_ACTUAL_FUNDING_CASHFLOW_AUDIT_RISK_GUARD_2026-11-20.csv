@@ -1,0 +1,7 @@
+signal_time,entry_time,side,entry,stop,risk_pct_of_entry,reason
+2025-04-07T13:45:00+00:00,2025-04-07T14:00:00+00:00,long,1549.51,1453.5762985672534,6.191228287184117,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk
+2025-05-21T17:15:00+00:00,2025-05-21T17:30:00+00:00,short,2476.71,2612.04469388431,5.464293109985025,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk
+2025-10-10T21:45:00+00:00,2025-10-10T22:00:00+00:00,long,3941.17,3531.5553904870176,10.393223573532289,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk
+2026-02-03T20:15:00+00:00,2026-02-03T20:30:00+00:00,long,2247.64,2113.460671673957,5.969787346996968,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk
+2026-02-06T01:30:00+00:00,2026-02-06T01:45:00+00:00,long,1920.4,1775.3626069186835,7.552457461014196,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk
+2026-03-23T11:00:00+00:00,2026-03-23T11:15:00+00:00,long,2168.9,2050.6647813048053,5.451390967550132,inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk

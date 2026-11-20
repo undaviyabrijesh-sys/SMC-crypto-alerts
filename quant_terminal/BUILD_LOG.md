@@ -169,3 +169,8 @@
 - Corrected the ETH Supertrend result metadata/report: the earlier 00:00/08:00/16:00 UTC exclusion was only an assumed default-8h grid, not a verified historical ETHUSDT settlement schedule. Binance USD-M can switch settlement frequency; exact historical funding records expose `fundingTime`, `fundingRate` and `markPrice`.
 - The 543 excluded / 500 remaining signal counts are now explicitly conditional on that proxy. The negative price-cost development/validation findings remain recorded, but no funding-aware PnL is claimed.
 - Added a frozen funding-cashflow audit preregistration. It is an accounting correction only: same signal rules, no parameter tuning, no OOS, no promotion.
+
+## 2026-11-20 — Actual ETH funding cashflow results indexed for Backtesting
+- Added the 1,483-row official ETHUSDT funding snapshot and reproducible actual-funding audit outputs to the research branch.
+- Committed normalized metadata, funding-aware trade ledgers, monthly/regime/side summaries, cost sensitivity and ambiguous-settlement rows under quant_discovery/. The existing read-only Backtesting artifact index discovers these CSV/metadata/report files; it does not recompute them.
+- The audit is explicitly research-only and rejected; no strategy promotion, paper-state mutation, live order or alert route was added.

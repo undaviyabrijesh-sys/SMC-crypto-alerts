@@ -1,0 +1,29 @@
+{
+  "source": "Binance USD-M GET /fapi/v1/fundingRate via connected Binance public-data connector; fields fundingTime, fundingRate, markPrice, rateType",
+  "symbol": "ETHUSDT",
+  "rows": 1483,
+  "first_funding_time_utc": "2025-03-08T00:00:00+00:00",
+  "last_funding_time_utc": "2026-07-15T00:00:00.005000+00:00",
+  "interval_hours_rounded": {
+    "8": 1482
+  },
+  "minimum_interval_ms": 28799984,
+  "maximum_interval_ms": 28800016,
+  "rate_type_counts": {
+    "Regular": 1483
+  },
+  "funding_rate_min": -0.00036526,
+  "funding_rate_max": 0.0001,
+  "mark_price_min": 1459.71,
+  "mark_price_max": 4829.83,
+  "sha256": "23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6",
+  "path": "research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv",
+  "retrieval_window_start_ms_inclusive": 1741392000000,
+  "retrieval_window_end_ms_inclusive": 1784102400000,
+  "page_limits": [
+    1000,
+    1000
+  ],
+  "retrieved_via": "connected Binance USD-M public funding history action",
+  "all_observed_intervals_within_8h_maximum": true
+}
