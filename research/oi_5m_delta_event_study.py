@@ -417,13 +417,36 @@ def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
         pairs.append(row)
 
     frame = pd.DataFrame(pairs)
+    # Fail closed: re-check the persisted pair table, not only the candidate filter.
+    if not frame.empty:
+        selected_control_ns = datetime_index_ns(pd.to_datetime(frame["control_time"], utc=True))
+        all_event_ns = datetime_index_ns(main_events.index)
+        nearest_event_distance = np.min(
+            np.abs(selected_control_ns[:, None] - all_event_ns[None, :]), axis=1)
+        if np.any(nearest_event_distance < min_sep_ns):
+            raise StudyError("Matched control forward window overlaps a main-event window")
+        if len(np.unique(selected_control_ns)) != len(selected_control_ns):
+            raise StudyError("Matched controls reuse a timestamp")
+        if len(selected_control_ns) > 1 and np.any(
+                np.diff(np.sort(selected_control_ns)) < min_sep_ns):
+            raise StudyError("Selected matched-control forward windows overlap")
+        for pair in frame.itertuples(index=False):
+            if features.loc[pair.event_time, "split"] != pair.split:
+                raise StudyError("Matched event split mismatch")
+            if features.loc[pair.control_time, "split"] != pair.split:
+                raise StudyError("Matched control split mismatch")
+            if not bool(features.loc[pair.event_time, "split_safe_4h"]):
+                raise StudyError("Matched event horizon crosses a chronological split")
+            if not bool(features.loc[pair.control_time, "split_safe_4h"]):
+                raise StudyError("Matched control horizon crosses a chronological split")
     summary = {
         "matched_pairs": int(len(frame)),
         "matching": (
             "same split, same 5m price direction, same prior-24h regime, "
             "same training-defined absolute-return decile; nearest within +/-24h; "
             "controls at least 4h05 from every main-event timestamp; selected "
-            "control windows at least 4h05 apart; no control reuse"
+            "control windows at least 4h05 apart; no control reuse; post-match "
+            "non-overlap and split-safety invariants asserted"
         ),
         "minimum_forward_window_separation_minutes": 245,
     }
@@ -473,7 +496,7 @@ def matched_control_bootstrap(pairs: pd.DataFrame, asset: str,
     for split, group in pairs.groupby("split", sort=True):
         for horizon in ("15m", "1h", "4h"):
             column = f"event_minus_control_{horizon}_pct"
-            seed_text = f"{asset}|{split}|{horizon}|matched-control-v1"
+            seed_text = f"{asset}|{split}|{horizon}|matched-control-v2"
             seed = int.from_bytes(hashlib.sha256(seed_text.encode()).digest()[:4], "big")
             stats = cluster_bootstrap_mean_ci(group, column, n_boot=n_boot, seed=seed)
             if not stats["pairs"]:
@@ -670,7 +693,7 @@ def run(args) -> dict:
             "main_spec": "absolute 5m OI close-to-close change >=5%, 60-minute cooldown; expansion/contraction separated",
             "zscore_context": "prior 288 completed 5m changes, current observation excluded; descriptive only",
             "outcomes": "future traded-price and OI close changes at 5m/15m/1h/4h; no outcome crosses a gap",
-            "matching": "nearest non-event controls in same split, same 5m price direction, same prior-24h regime and training-defined absolute-return decile; no reuse; within +/-24h"},
+            "matching": "nearest non-event controls in same split, same 5m price direction, same prior-24h regime and training-defined absolute-return decile; within +/-24h; at least 4h05 from every main event and from other selected controls; post-match split-safety and non-overlap invariants asserted"},
         "cross_venue": cross_venue, "binance_errors": binance_errors,
         "limitations": ["Binance USD-M OI statistics retain only the latest month; cross-venue control is recent-period context, not two-year history.",
             "Delta OI values are treated as base-asset OI based on prior ticker/candle reconciliation; venue-specific OI is not economically identical to Binance aggregate OI.",
@@ -684,7 +707,7 @@ def run(args) -> dict:
         "## Main specification", "- Absolute 5m OI close-to-close change >=5%; 60-minute cooldown.",
         "- Event timestamp is candle open + 5m (close availability).",
         "- Outcomes: future traded-price and OI changes at 5m/15m/1h/4h; gaps are never filled.",
-        "- Matched controls: same split/direction/regime and training-only absolute-return decile; nearest within +/-24h.", "",
+        "- Matched controls: same split/direction/regime and training-only absolute-return decile; nearest within +/-24h; controls are at least 4h05 from every main event and from other selected controls; post-match invariants are asserted.", "",
         "## Data quality"]
     for asset, q in quality.items():
         agg = q["five_to_one_hour_aggregation"]
