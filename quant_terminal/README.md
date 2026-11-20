@@ -49,12 +49,12 @@ The API is loopback-only unless QUANT_API_TOKEN is configured. No CORS origins a
 ## Development sequence
 
 1. Dashboard shell and architecture contract — complete.
-2. Read-only API and feed freshness/status — backend foundation complete; frontend integration pending.
-3. Scanner and research views backed by saved repository data — next UI integration.
-4. Backtest analytics with fees, slippage, funding (when defensible), and reproducible run metadata.
-5. Paper ledger and trade lifecycle views.
-6. Data-grounded AI Analyst.
-7. Tests, security review, accessibility and deployment-readiness checklist.
+2. Read-only API and feed freshness/status — backend and frontend foundation complete.
+3. Scanner and research views backed by saved repository data — connected.
+4. Backtesting artifact inventory and normalized metadata/metrics — connected; no backtest execution from the UI.
+5. Paper ledger, Portfolio diagnostics and Trade History — connected read-only.
+6. AI Analyst evidence brief and Risk Management visibility — implementation added; latest frontend verification pending.
+7. Final integration tests, security review, accessibility and deployment-readiness checklist.
 
 ## Non-negotiable safety and research rules
 
@@ -74,12 +74,12 @@ Requirements: Node.js 20.9+ and npm.
     npm install
     npm run dev
 
-Open http://localhost:3000. The page is still feed-independent until the next frontend integration phase.
+Open http://localhost:3000. Configure the server-side API proxy as documented above to populate persisted repository data; unavailable/stale sources remain explicit.
 
 
 ## Frontend integration status — 2026-11-19
 
-**Phase 3 foundation:** Overview and Live Markets now consume the read-only API through a same-origin Next.js server route. The browser never receives the FastAPI token or calls the Python API directly.
+**First-release read-only integration:** Overview, Live Markets, AI Scanner, Strategy Research, Backtesting, Paper Trading, Portfolio and Trade History consume existing API projections through a same-origin Next.js server route. AI Analyst and Risk Management have now been added as evidence/diagnostic views; their latest frontend verification is pending. The browser never receives the FastAPI token or calls the Python API directly.
 
 - Market rows are populated only from `GET /api/v1/markets`; missing prices remain unavailable.
 - “Cache fresh” means the latest persisted closed 5m candle passed the API freshness/continuity checks. It is not a websocket quote or executable bid/ask.
@@ -87,7 +87,8 @@ Open http://localhost:3000. The page is still feed-independent until the next fr
 - Paper equity remains unavailable because the existing paper engine does not persist account capital.
 - Recent research entries are read from the research ledger. Static strategy examples were removed from the Overview.
 - The chart renderer is still not integrated; the UI does not draw synthetic candles.
-- Other modules remain explicit placeholders until their data contracts are connected.
+- AI Analyst is a deterministic evidence digest, not a connected generative model. It does not predict prices or create signals.
+- Risk Management exposes only persisted paper diagnostics and entry-to-stop price geometry. Account equity, notional exposure, monetary risk, daily loss controls and circuit-breaker state remain unavailable.
 
 ### Server-side proxy configuration
 
