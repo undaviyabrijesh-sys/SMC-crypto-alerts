@@ -229,8 +229,8 @@ def self_test() -> list[str]:
         changed.iloc[350:, changed.columns.get_loc(column)] *= 1.25
     prepared_b, tr_b, _ = st.prepare_base(changed)
     atr_b, direction_b, line_b = st.build_supertrend(prepared_b, tr_b, ATR_SOURCE, ATR_LENGTH, ATR_MULTIPLIER)
-    for left, right in ((atr_a, atr_b), (line_a, line_b)):
-        assert np.allclose(left.iloc[:350], right.iloc[:350], equal_nan=True)
+    assert np.allclose(atr_a.iloc[:350], atr_b.iloc[:350], equal_nan=True)
+    assert np.allclose(line_a[:350], line_b[:350], equal_nan=True)
     assert np.array_equal(direction_a[:350], direction_b[:350])
     assert OOS_EVALUATION_ENABLED is False
     assert split_gates(
