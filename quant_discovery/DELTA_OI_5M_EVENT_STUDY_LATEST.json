@@ -2,8 +2,8 @@
   "classification": "descriptive event study only; not an executable strategy backtest",
   "venue": "Delta Exchange India OI-prefixed historical candles and traded-price candles",
   "period": {
-    "requested_start_utc": "2024-11-20T03:55:00+00:00",
-    "requested_end_exclusive_utc": "2026-11-20T15:55:00+00:00"
+    "requested_start_utc": "2024-11-20T07:20:00+00:00",
+    "requested_end_exclusive_utc": "2026-11-20T19:20:00+00:00"
   },
   "symbols": [
     "BTCUSD",
@@ -14,15 +14,15 @@
       "api_symbol": "OI:BTCUSD",
       "resolution": "5m",
       "step_seconds": 300,
-      "rows": 210374,
-      "first_open_utc": "2024-11-20T03:55:00+00:00",
-      "last_open_utc": "2026-11-20T15:50:00+00:00",
-      "last_close_utc": "2026-11-20T15:55:00+00:00",
-      "gap_intervals": 4,
-      "irregular_intervals": 4,
-      "largest_gap_seconds": 2400,
-      "csv_sha256": "83a5fe31d5ddf3fd55916e7f84e9c6162ccdbef6b02e4b398010a69b06589284",
-      "response_bytes_sha256": "329115184a0270dfc72b12189b4961623c13220e5826b34417f146c9f7d36517",
+      "rows": 210382,
+      "first_open_utc": "2024-11-20T07:20:00+00:00",
+      "last_open_utc": "2026-11-20T19:15:00+00:00",
+      "last_close_utc": "2026-11-20T19:20:00+00:00",
+      "gap_intervals": 2,
+      "irregular_intervals": 2,
+      "largest_gap_seconds": 600,
+      "csv_sha256": "50b940f5776eadabbe5759f048af09a1b41633e959bbf6a396c40ceb8be9ee7a",
+      "response_bytes_sha256": "237078b3a2b0bc27324fd1dd018eb3051db916e85e8ed25d936196ad6178456b",
       "quarantined_nonpositive_oi_rows": 2,
       "quarantine_csv_path": "results/oi-5m-event-study/data/BTC_oi_5m_quarantined_nonpositive_oi.csv",
       "quarantine_csv_sha256": "b966f64f36809a1cef8ee920c90222fe5aa262eb75fbc56c4f194078718a7588",
@@ -38,14 +38,14 @@
       "resolution": "5m",
       "step_seconds": 300,
       "rows": 210384,
-      "first_open_utc": "2024-11-20T03:55:00+00:00",
-      "last_open_utc": "2026-11-20T15:50:00+00:00",
-      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "first_open_utc": "2024-11-20T07:20:00+00:00",
+      "last_open_utc": "2026-11-20T19:15:00+00:00",
+      "last_close_utc": "2026-11-20T19:20:00+00:00",
       "gap_intervals": 0,
       "irregular_intervals": 0,
       "largest_gap_seconds": 300,
-      "csv_sha256": "d9d2796acb84375386d6af1a4eecee6d1d6c6f9b5550ab0b0fa7ea7e1bcfd731",
-      "response_bytes_sha256": "92ccdc513bd8990807f7f9581250b1135ea3c9291696e52b9a3f3ae46e03fbe5",
+      "csv_sha256": "9532cc83eb6a4357d847f9b56ba5a66a6f44036f446ea596d904cb6f6531bd4f",
+      "response_bytes_sha256": "f1cdb6825f49e77909b8a67378fa6bf9490d673704065bb68422632e3e0ee83f",
       "quarantined_nonpositive_oi_rows": 0,
       "quarantine_csv_path": null,
       "quarantine_csv_sha256": null,
@@ -58,14 +58,14 @@
       "resolution": "1h",
       "step_seconds": 3600,
       "rows": 17530,
-      "first_open_utc": "2024-11-20T03:00:00+00:00",
-      "last_open_utc": "2026-11-20T14:00:00+00:00",
-      "last_close_utc": "2026-11-20T15:00:00+00:00",
+      "first_open_utc": "2024-11-20T07:00:00+00:00",
+      "last_open_utc": "2026-11-20T18:00:00+00:00",
+      "last_close_utc": "2026-11-20T19:00:00+00:00",
       "gap_intervals": 2,
       "irregular_intervals": 2,
       "largest_gap_seconds": 7200,
-      "csv_sha256": "0907467804ca090418859bc853a31a7f89dbfdcb609c94fc4f33a9a6048946b8",
-      "response_bytes_sha256": "d335c82dc9e4b280ce6d6b7234fbf02bd06919c0a0f525d3952ef104dcb51016",
+      "csv_sha256": "b326ea0090c0a87df430137e1efc04c636ab72c886c0d5151f7b32747e7734b4",
+      "response_bytes_sha256": "5d9ca5785f1f07d28abdb9a1980260a179eac8241d4d4dbb12b9c2201f5ff540",
       "quarantined_nonpositive_oi_rows": 2,
       "quarantine_csv_path": "results/oi-5m-event-study/data/BTC_oi_1h_quarantined_nonpositive_oi.csv",
       "quarantine_csv_sha256": "d9f69482a815530f8a50882f64d8a3a7f47a62a04e2f9771fbc9246d29578179",
@@ -80,15 +80,15 @@
       "api_symbol": "OI:ETHUSD",
       "resolution": "5m",
       "step_seconds": 300,
-      "rows": 210381,
-      "first_open_utc": "2024-11-20T03:55:00+00:00",
-      "last_open_utc": "2026-11-20T15:50:00+00:00",
-      "last_close_utc": "2026-11-20T15:55:00+00:00",
-      "gap_intervals": 3,
-      "irregular_intervals": 3,
+      "rows": 210382,
+      "first_open_utc": "2024-11-20T07:20:00+00:00",
+      "last_open_utc": "2026-11-20T19:15:00+00:00",
+      "last_close_utc": "2026-11-20T19:20:00+00:00",
+      "gap_intervals": 2,
+      "irregular_intervals": 2,
       "largest_gap_seconds": 600,
-      "csv_sha256": "52326fe7334c91d3484bc4af18cbb7a5d24f522e5da278616ef2a0307386f68a",
-      "response_bytes_sha256": "d395c7d2169f95a8f01580788287b66a57dfc1af85b76ff01cda2c8fbf4fa2b5",
+      "csv_sha256": "1390b23969c482af5be085e151057ba10e2d99f1ba3379d8dc9e59a76c3d300d",
+      "response_bytes_sha256": "d4f95aff0d8590fd50b9823b4dbbe0350772b2cedf873f0bf117701d98b1a884",
       "quarantined_nonpositive_oi_rows": 2,
       "quarantine_csv_path": "results/oi-5m-event-study/data/ETH_oi_5m_quarantined_nonpositive_oi.csv",
       "quarantine_csv_sha256": "f21e3d1d64f5774556f178f10b0e87ee06a66a0f34ee63af96d2a44df29b68c1",
@@ -104,14 +104,14 @@
       "resolution": "5m",
       "step_seconds": 300,
       "rows": 210384,
-      "first_open_utc": "2024-11-20T03:55:00+00:00",
-      "last_open_utc": "2026-11-20T15:50:00+00:00",
-      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "first_open_utc": "2024-11-20T07:20:00+00:00",
+      "last_open_utc": "2026-11-20T19:15:00+00:00",
+      "last_close_utc": "2026-11-20T19:20:00+00:00",
       "gap_intervals": 0,
       "irregular_intervals": 0,
       "largest_gap_seconds": 300,
-      "csv_sha256": "57f276bc5ba89c0c6370dbb264683236d9228ec7b6caa85354a1e0e8b82b166a",
-      "response_bytes_sha256": "3ccdc0562a369a08610b9e86f131f3f45c0555efbf5e40fb0831366c108b5c31",
+      "csv_sha256": "4c2533a8ec06fa16855b0ef9672e585beb7c768b063e4cd346a61abfdd3175c5",
+      "response_bytes_sha256": "9e7ef2f42ca2f90e71ee022f640cbcde83aa94fdd64e07e5b51137f9aa2489ab",
       "quarantined_nonpositive_oi_rows": 0,
       "quarantine_csv_path": null,
       "quarantine_csv_sha256": null,
@@ -124,14 +124,14 @@
       "resolution": "1h",
       "step_seconds": 3600,
       "rows": 17530,
-      "first_open_utc": "2024-11-20T03:00:00+00:00",
-      "last_open_utc": "2026-11-20T14:00:00+00:00",
-      "last_close_utc": "2026-11-20T15:00:00+00:00",
+      "first_open_utc": "2024-11-20T07:00:00+00:00",
+      "last_open_utc": "2026-11-20T18:00:00+00:00",
+      "last_close_utc": "2026-11-20T19:00:00+00:00",
       "gap_intervals": 2,
       "irregular_intervals": 2,
       "largest_gap_seconds": 7200,
-      "csv_sha256": "9644c74c417bdedbc5fcacd565399deebcaa1ee2bb3b1ea856968dac716a4e79",
-      "response_bytes_sha256": "af5f889dc98f39ad34bfce46e8e4fc136bd203277104f71a4f286951c17e3c41",
+      "csv_sha256": "a4a90968a0f0dcb19220d8042155fc96b0fcf74e6ebb9b12a19f8e1a9f5edaec",
+      "response_bytes_sha256": "5af8ec5e215af76acf52607e2dccf417fab3e786e6c3fc5c35bcee0a0e67935a",
       "quarantined_nonpositive_oi_rows": 2,
       "quarantine_csv_path": "results/oi-5m-event-study/data/ETH_oi_1h_quarantined_nonpositive_oi.csv",
       "quarantine_csv_sha256": "16e51c88e68357efe89a0eae1065db2c68faabc37180e12007ffa65f0ccbd128",
@@ -145,59 +145,19 @@
   },
   "data_quality": {
     "BTC": {
-      "oi_5m_rows": 210374,
+      "oi_5m_rows": 210382,
       "price_5m_rows": 210384,
       "oi_1h_rows": 17530,
-      "oi_5m_gaps": 4,
+      "oi_5m_gaps": 2,
       "price_5m_gaps": 0,
       "oi_1h_gaps": 2,
       "five_to_one_hour_aggregation": {
-        "complete_5m_hours": 17526,
+        "complete_5m_hours": 17529,
         "hourly_api_rows": 17530,
-        "common_hours": 17526,
-        "matches_within_0_1pct": 17510,
-        "match_fraction_pct": 99.909,
+        "common_hours": 17529,
+        "matches_within_0_1pct": 17511,
+        "match_fraction_pct": 99.897,
         "examples": [
-          {
-            "hour_open_utc": "2024-11-20T04:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T05:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T06:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T07:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
           {
             "hour_open_utc": "2024-11-20T08:00:00+00:00",
             "relative_difference_pct": {
@@ -209,7 +169,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T10:00:00+00:00",
+            "hour_open_utc": "2024-11-20T09:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -219,7 +179,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T11:00:00+00:00",
+            "hour_open_utc": "2024-11-20T10:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -229,7 +189,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T12:00:00+00:00",
+            "hour_open_utc": "2024-11-20T11:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -239,7 +199,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T13:00:00+00:00",
+            "hour_open_utc": "2024-11-20T12:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -250,6 +210,46 @@
           },
           {
             "hour_open_utc": "2026-11-20T14:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T15:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T16:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T17:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T18:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -262,59 +262,19 @@
       }
     },
     "ETH": {
-      "oi_5m_rows": 210381,
+      "oi_5m_rows": 210382,
       "price_5m_rows": 210384,
       "oi_1h_rows": 17530,
-      "oi_5m_gaps": 3,
+      "oi_5m_gaps": 2,
       "price_5m_gaps": 0,
       "oi_1h_gaps": 2,
       "five_to_one_hour_aggregation": {
-        "complete_5m_hours": 17528,
+        "complete_5m_hours": 17529,
         "hourly_api_rows": 17530,
-        "common_hours": 17528,
-        "matches_within_0_1pct": 17505,
+        "common_hours": 17529,
+        "matches_within_0_1pct": 17506,
         "match_fraction_pct": 99.869,
         "examples": [
-          {
-            "hour_open_utc": "2024-11-20T04:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T05:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T06:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
-          {
-            "hour_open_utc": "2024-11-20T07:00:00+00:00",
-            "relative_difference_pct": {
-              "open": 0.0,
-              "high": 0.0,
-              "low": 0.0,
-              "close": 0.0
-            },
-            "match_within_0_1pct": true
-          },
           {
             "hour_open_utc": "2024-11-20T08:00:00+00:00",
             "relative_difference_pct": {
@@ -326,7 +286,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T10:00:00+00:00",
+            "hour_open_utc": "2024-11-20T09:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -336,7 +296,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T11:00:00+00:00",
+            "hour_open_utc": "2024-11-20T10:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -346,7 +306,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T12:00:00+00:00",
+            "hour_open_utc": "2024-11-20T11:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -356,7 +316,7 @@
             "match_within_0_1pct": true
           },
           {
-            "hour_open_utc": "2026-11-20T13:00:00+00:00",
+            "hour_open_utc": "2024-11-20T12:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -367,6 +327,46 @@
           },
           {
             "hour_open_utc": "2026-11-20T14:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T15:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T16:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T17:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T18:00:00+00:00",
             "relative_difference_pct": {
               "open": 0.0,
               "high": 0.0,
@@ -381,20 +381,20 @@
   },
   "splits": {
     "BTC": {
-      "train_end_available_utc": "2026-04-15T12:20:30+00:00",
-      "validation_end_available_utc": "2026-08-03T02:07:45+00:00",
-      "first_oos_available_utc": "2026-08-03T02:12:45+00:00",
-      "first_available_utc": "2024-11-20T04:00:00+00:00",
-      "last_available_utc": "2026-11-20T15:55:00+00:00",
-      "feature_rows": 210374
+      "train_end_available_utc": "2026-04-15T15:45:30+00:00",
+      "validation_end_available_utc": "2026-08-03T05:32:45+00:00",
+      "first_oos_available_utc": "2026-08-03T05:37:45+00:00",
+      "first_available_utc": "2024-11-20T07:25:00+00:00",
+      "last_available_utc": "2026-11-20T19:20:00+00:00",
+      "feature_rows": 210382
     },
     "ETH": {
-      "train_end_available_utc": "2026-04-15T12:20:30+00:00",
-      "validation_end_available_utc": "2026-08-03T02:07:45+00:00",
-      "first_oos_available_utc": "2026-08-03T02:12:45+00:00",
-      "first_available_utc": "2024-11-20T04:00:00+00:00",
-      "last_available_utc": "2026-11-20T15:55:00+00:00",
-      "feature_rows": 210381
+      "train_end_available_utc": "2026-04-15T15:45:30+00:00",
+      "validation_end_available_utc": "2026-08-03T05:32:45+00:00",
+      "first_oos_available_utc": "2026-08-03T05:37:45+00:00",
+      "first_available_utc": "2024-11-20T07:25:00+00:00",
+      "last_available_utc": "2026-11-20T19:20:00+00:00",
+      "feature_rows": 210382
     }
   },
   "event_method": {
@@ -416,43 +416,304 @@
   },
   "cross_venue": {
     "BTC_matched_control": {
-      "matched_pairs": 2753,
-      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls without replacement",
-      "mean_event_minus_control_15m_pct": 0.01151792430740077,
-      "event_beats_control_15m_fraction_pct": 51.18053033054849,
-      "mean_event_minus_control_1h_pct": 0.002067912405102054,
-      "event_beats_control_1h_fraction_pct": 50.708318198329096,
-      "mean_event_minus_control_4h_pct": 0.0016528665432962413,
-      "event_beats_control_4h_fraction_pct": 50.52669814747548
+      "matched_pairs": 685,
+      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse",
+      "minimum_forward_window_separation_minutes": 245,
+      "mean_event_minus_control_15m_pct": 0.012155556283276622,
+      "event_beats_control_15m_fraction_pct": 52.846715328467155,
+      "mean_event_minus_control_1h_pct": -0.010042694743053696,
+      "event_beats_control_1h_fraction_pct": 47.88321167883212,
+      "mean_event_minus_control_4h_pct": -0.1101885667674939,
+      "event_beats_control_4h_fraction_pct": 46.56934306569343,
+      "cluster_bootstrap": [
+        {
+          "asset": "BTC",
+          "split": "oos",
+          "horizon": "15m",
+          "pairs": 89,
+          "event_days": 64,
+          "mean_lift_bps": 1.078000664273567,
+          "median_lift_bps": 0.07336946600156047,
+          "event_beats_control_pct": 51.68539325842697,
+          "ci_low_bps": -8.812794284640523,
+          "ci_high_bps": 10.555386072703849,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "oos",
+          "horizon": "1h",
+          "pairs": 89,
+          "event_days": 64,
+          "mean_lift_bps": 10.575602155942509,
+          "median_lift_bps": 0.9380154909077731,
+          "event_beats_control_pct": 50.56179775280899,
+          "ci_low_bps": -7.893834255389887,
+          "ci_high_bps": 29.163238723913615,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "oos",
+          "horizon": "4h",
+          "pairs": 89,
+          "event_days": 64,
+          "mean_lift_bps": 14.100363816597335,
+          "median_lift_bps": -1.010636439566781,
+          "event_beats_control_pct": 49.43820224719101,
+          "ci_low_bps": -16.932114005893194,
+          "ci_high_bps": 49.542165053172894,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "train",
+          "horizon": "15m",
+          "pairs": 476,
+          "event_days": 324,
+          "mean_lift_bps": 1.0987369753101435,
+          "median_lift_bps": 0.6496105378317463,
+          "event_beats_control_pct": 51.05042016806722,
+          "ci_low_bps": -2.4722358635751727,
+          "ci_high_bps": 4.6460050882127835,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "train",
+          "horizon": "1h",
+          "pairs": 476,
+          "event_days": 324,
+          "mean_lift_bps": -3.8437755637473154,
+          "median_lift_bps": -4.35901076281664,
+          "event_beats_control_pct": 46.42857142857143,
+          "ci_low_bps": -9.624931686954566,
+          "ci_high_bps": 2.1577702720528045,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "train",
+          "horizon": "4h",
+          "pairs": 476,
+          "event_days": 324,
+          "mean_lift_bps": -17.045150109475564,
+          "median_lift_bps": -9.026523351967075,
+          "event_beats_control_pct": 45.79831932773109,
+          "ci_low_bps": -28.35008889312008,
+          "ci_high_bps": -5.72554901051544,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "validation",
+          "horizon": "15m",
+          "pairs": 120,
+          "event_days": 77,
+          "mean_lift_bps": 1.7809562169706084,
+          "median_lift_bps": 4.474365548310377,
+          "event_beats_control_pct": 60.83333333333333,
+          "ci_low_bps": -6.969301529806722,
+          "ci_high_bps": 10.08262544564327,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "validation",
+          "horizon": "1h",
+          "pairs": 120,
+          "event_days": 77,
+          "mean_lift_bps": 1.6706998880471706,
+          "median_lift_bps": 2.4223253093397235,
+          "event_beats_control_pct": 51.66666666666667,
+          "ci_low_bps": -11.265307943948685,
+          "ci_high_bps": 15.213384409673928,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "BTC",
+          "split": "validation",
+          "horizon": "4h",
+          "pairs": 120,
+          "event_days": 77,
+          "mean_lift_bps": -5.744647926167726,
+          "median_lift_bps": -11.174660410621652,
+          "event_beats_control_pct": 47.5,
+          "ci_low_bps": -25.85465726531524,
+          "ci_high_bps": 15.581463672016207,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        }
+      ],
+      "bootstrap_note": "UTC event-day cluster bootstrap, 5,000 replicates; descriptive intervals only, not adjusted across the threshold/cooldown grid."
     },
     "BTC_cross_venue": {
       "status": "unavailable",
-      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500"
     },
     "ETH_matched_control": {
-      "matched_pairs": 2965,
-      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls without replacement",
-      "mean_event_minus_control_15m_pct": 0.016664437084314,
-      "event_beats_control_15m_fraction_pct": 51.36593591905565,
-      "mean_event_minus_control_1h_pct": 0.02074666482446683,
-      "event_beats_control_1h_fraction_pct": 51.70320404721753,
-      "mean_event_minus_control_4h_pct": 0.0348246203302527,
-      "event_beats_control_4h_fraction_pct": 52.54637436762226
+      "matched_pairs": 627,
+      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse",
+      "minimum_forward_window_separation_minutes": 245,
+      "mean_event_minus_control_15m_pct": -0.003871525393534209,
+      "event_beats_control_15m_fraction_pct": 49.601275917065394,
+      "mean_event_minus_control_1h_pct": -0.04664267011694411,
+      "event_beats_control_1h_fraction_pct": 48.963317384370015,
+      "mean_event_minus_control_4h_pct": -0.06860352498100594,
+      "event_beats_control_4h_fraction_pct": 49.441786283891545,
+      "cluster_bootstrap": [
+        {
+          "asset": "ETH",
+          "split": "oos",
+          "horizon": "15m",
+          "pairs": 100,
+          "event_days": 68,
+          "mean_lift_bps": -5.896580221703018,
+          "median_lift_bps": -0.9850666960786736,
+          "event_beats_control_pct": 47.0,
+          "ci_low_bps": -20.29088444135984,
+          "ci_high_bps": 7.465797431686602,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "oos",
+          "horizon": "1h",
+          "pairs": 100,
+          "event_days": 68,
+          "mean_lift_bps": -11.953894831972235,
+          "median_lift_bps": -8.499539128468125,
+          "event_beats_control_pct": 48.0,
+          "ci_low_bps": -36.279833719645346,
+          "ci_high_bps": 12.453829239549608,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "oos",
+          "horizon": "4h",
+          "pairs": 100,
+          "event_days": 68,
+          "mean_lift_bps": -22.645326520449878,
+          "median_lift_bps": -10.082710650224925,
+          "event_beats_control_pct": 47.0,
+          "ci_low_bps": -64.10582502526884,
+          "ci_high_bps": 18.937339908211083,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "train",
+          "horizon": "15m",
+          "pairs": 433,
+          "event_days": 298,
+          "mean_lift_bps": 1.0872754191164178,
+          "median_lift_bps": 0.19526539173808644,
+          "event_beats_control_pct": 50.11547344110855,
+          "ci_low_bps": -5.097516110839,
+          "ci_high_bps": 7.229813403225892,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "train",
+          "horizon": "1h",
+          "pairs": 433,
+          "event_days": 298,
+          "mean_lift_bps": -5.320231747857486,
+          "median_lift_bps": -2.175048854968775,
+          "event_beats_control_pct": 48.72979214780601,
+          "ci_low_bps": -15.804863755507444,
+          "ci_high_bps": 5.459959135921759,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "train",
+          "horizon": "4h",
+          "pairs": 433,
+          "event_days": 298,
+          "mean_lift_bps": -10.917176856114057,
+          "median_lift_bps": -2.017046001325795,
+          "event_beats_control_pct": 49.19168591224018,
+          "ci_low_bps": -28.97922199190471,
+          "ci_high_bps": 7.908213036524031,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "validation",
+          "horizon": "15m",
+          "pairs": 94,
+          "event_days": 65,
+          "mean_lift_bps": -1.3178391115074704,
+          "median_lift_bps": 0.9315601400439188,
+          "event_beats_control_pct": 50.0,
+          "ci_low_bps": -11.188565995071047,
+          "ci_high_bps": 8.61598685821562,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "validation",
+          "horizon": "1h",
+          "pairs": 94,
+          "event_days": 65,
+          "mean_lift_bps": 6.1122809966714815,
+          "median_lift_bps": 0.7399872784674688,
+          "event_beats_control_pct": 51.06382978723404,
+          "ci_low_bps": -10.229018884327722,
+          "ci_high_bps": 23.081767699540155,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        },
+        {
+          "asset": "ETH",
+          "split": "validation",
+          "horizon": "4h",
+          "pairs": 94,
+          "event_days": 65,
+          "mean_lift_bps": 28.61945972801385,
+          "median_lift_bps": 2.8532711221945783,
+          "event_beats_control_pct": 53.191489361702125,
+          "ci_low_bps": -4.855926391263911,
+          "ci_high_bps": 65.51775175454951,
+          "bootstrap_replicates": 5000,
+          "cluster": "UTC event day"
+        }
+      ],
+      "bootstrap_note": "UTC event-day cluster bootstrap, 5,000 replicates; descriptive intervals only, not adjusted across the threshold/cooldown grid."
     },
     "ETH_cross_venue": {
       "status": "unavailable",
-      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500"
     }
   },
   "binance_errors": {
-    "BTC": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500",
-    "ETH": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+    "BTC": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500",
+    "ETH": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500"
   },
   "limitations": [
     "Binance USD-M OI statistics retain only the latest month; cross-venue control is recent-period context, not two-year history.",
     "Delta OI values are treated as base-asset OI based on prior ticker/candle reconciliation; venue-specific OI is not economically identical to Binance aggregate OI.",
     "This is conditional forward behaviour, not a strategy test; no entries, stops, fees, funding, R, PF or trading drawdown.",
     "Matched controls are descriptive and may retain unobserved confounding.",
+    "Matched-control 4h forward windows are separated by at least 4h05 from every main event and from other selected controls; UTC event-day cluster intervals remain descriptive.",
     "Historical Delta OI sampling remains exchange-specific despite prior live ticker and 5m/1h reconciliation."
   ]
 }
