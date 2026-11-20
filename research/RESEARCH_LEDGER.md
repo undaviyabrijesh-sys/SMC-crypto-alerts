@@ -2176,3 +2176,7 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Decision at preflight: do not promote. Development and validation are negative at 12bp and also negative at 6bp. If the authoritative run reproduces this, reject this frozen ETH Supertrend baseline; do not tune the validation sample or inspect the retired holdout.
 - Scope: research-only on `ai-quant-rebuild`; no `main` or production changes, no live alerts, no exchange orders.
 
+### ETH Supertrend wrapper self-test correction — 2026-11-20
+- Static review of the newly added future-perturbation test found that the existing Supertrend engine returns the ATR as a pandas Series but returns the Supertrend line as a NumPy array. The first wrapper test used `.iloc` on both and would fail on the line array.
+- Corrected the test to use `.iloc` only for ATR and ordinary slicing for the NumPy line/direction arrays. This is a test-only correction; indicator, signal, execution and frozen parameters are unchanged.
+- Correction commit: `93acd8412e47f1062733bc43e77b62e1285187b5`. Await the marked CI run before claiming the wrapper tests or historical replication passed.
