@@ -74,6 +74,30 @@ def eligible_signals(data: pd.DataFrame, signals: list[dict]) -> tuple[list[dict
     return kept, excluded
 
 
+def risk_guard_exclusions(data: pd.DataFrame, signals: list[dict]) -> list[dict]:
+    """Audit the existing simulator's fixed maximum initial-risk guard (5% of entry)."""
+    excluded = []
+    for signal in signals:
+        entry_i = int(signal["entry_i"])
+        if entry_i >= len(data):
+            continue
+        entry = float(data.open.iloc[entry_i])
+        stop = float(signal["stop_line"])
+        side = signal["side"]
+        risk = entry - stop if side == "long" else stop - entry
+        if not np.isfinite(risk) or risk <= 0 or risk / entry > 0.05:
+            excluded.append({
+                "signal_time": data.index[int(signal["signal_i"])].isoformat(),
+                "entry_time": data.index[entry_i].isoformat(),
+                "side": side,
+                "entry": entry,
+                "stop": stop,
+                "risk_pct_of_entry": (risk / entry * 100.0) if np.isfinite(risk) and entry > 0 else None,
+                "reason": "inherited_simulator_guard_nonpositive_or_over_5pct_initial_risk",
+            })
+    return excluded
+
+
 def apply_cost(trades: pd.DataFrame, cost_bps: float) -> pd.DataFrame:
     result = trades.copy()
     if result.empty:
@@ -266,6 +290,10 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
     data, tr, hourly = st.prepare_base(raw)
     signals_all = st.build_signals(data, tr, ATR_SOURCE, ATR_LENGTH, ATR_MULTIPLIER)
     signals, excluded = eligible_signals(data, signals_all)
+    risk_excluded = risk_guard_exclusions(data, signals)
+    pd.DataFrame(risk_excluded, columns=["signal_time", "entry_time", "side", "entry", "stop", "risk_pct_of_entry", "reason"]).to_csv(
+        output_dir / "risk_guard_excluded_signals.csv", index=False
+    )
     if not signals:
         raise RuntimeError("No settlement-safe Supertrend signals")
     pd.DataFrame(excluded, columns=["signal_time", "entry_time", "utc_hour", "next_settlement", "reason"]).to_csv(
@@ -285,6 +313,7 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
     config = {
         "config_id": "hl2_atr10_x3_2R_both_all_4h",
         "source": ATR_SOURCE, "atr_length": ATR_LENGTH,
+        "max_initial_stop_risk_pct_of_entry": 5.0,
         "atr_multiplier": ATR_MULTIPLIER, "target_r": TARGET_R,
         "filter": "none", "direction": "both", "session": "all",
     }
@@ -366,6 +395,7 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
         },
         "data_quality": data_quality, "splits": split_metadata,
         "signal_count_before_funding_exclusion": len(signals_all),
+        "risk_guard_excluded_signal_count": len(risk_excluded),
         "train_gate": gates["train_pass"], "validation_gate": gates["validation_pass"],
         "development_validation_pass": gates["development_validation_pass"],
         "oos_evaluated": False, "oos_status": oos_status,
@@ -379,8 +409,8 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
         f"- Status: {summary['status']}; OOS evaluated: {summary['oos_evaluated']}.",
         f"- Data: {data_quality['rows']:,} 15m bars; {data_quality['start_utc']} to {data_quality['end_open_utc']}; gaps/irregular intervals: {gap_count}; source SHA-256: {data_quality['source_sha256']}.",
         f"- Official archives: {data_quality['archive_count']}; checksum-verified: {data_quality['checksum_verified_archives']}.",
-        f"- Frozen rule: HL2 Supertrend, Wilder ATR(10) x3, next-open entry, signal-bar line stop, 2R target, both directions, all hours, 4h maximum hold.",
-        f"- Funding-safe entries: {len(signals):,} eligible / {len(signals_all):,} raw flips; {len(excluded):,} excluded because the full 4h horizon reached/crossed the next UTC funding settlement.",
+        f"- Frozen rule: HL2 Supertrend, Wilder ATR(10) x3, next-open entry, signal-bar line stop, 2R target, both directions, all hours, 4h maximum hold; inherited simulator rejects non-positive or >5% entry-price stop risk.",
+        f"- Funding-safe entries: {len(signals):,} / {len(signals_all):,} raw flips; {len(excluded):,} excluded at settlement boundaries; {len(risk_excluded):,} additionally rejected by the inherited 5% initial-risk guard.",
         f"- Primary cost: assumed {PRIMARY_COST_BPS:.0f} bps round trip; funding cashflows are not applied because settlement-crossing entries are excluded.", "",
         "## Primary-cost results", "",
     ]
