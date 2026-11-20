@@ -3274,29 +3274,42 @@
           "stop_touched_this_check": false,
           "minimum_low_since_previous_check": 61395.1,
           "maximum_high_since_previous_check": 61827.1
+        },
+        {
+          "type": "post_tp1_monitor_check",
+          "timestamp_utc": "2026-11-20T06:32:42Z",
+          "latest_completed_5m_candle": {
+            "timestamp_utc": "2026-11-20T06:25:00Z",
+            "open": 61858.9,
+            "high": 61868,
+            "low": 61721.3,
+            "close": 61775.2
+          },
+          "mark_reference": 61833.3,
+          "tp2_touched": false,
+          "stop_touched": false,
+          "paper_fill_confirmed": false,
+          "realized_r": null
         }
       ],
       "last_check": {
-        "timestamp_utc": "2026-11-20T05:36:18Z",
-        "mark": 61613.3,
+        "timestamp_utc": "2026-11-20T06:32:42Z",
+        "latest_mark_reference": 61833.3,
         "latest_completed_5m_candle": {
-          "t": "2026-11-20T05:30:00Z",
-          "o": 61657,
-          "h": 61657.1,
-          "l": 61539,
-          "c": 61594,
-          "v": 419.385,
-          "takerBuy": 173.453
+          "timestamp_utc": "2026-11-20T06:25:00Z",
+          "open": 61858.9,
+          "high": 61868,
+          "low": 61721.3,
+          "close": 61775.2
         },
-        "stop_touched_since_trigger": false,
-        "tp1_touched_since_trigger": true,
-        "tp2_touched_since_trigger": false,
-        "minimum_low_since_previous_check": 61395.1,
-        "maximum_high_since_previous_check": 61827.1,
+        "tp1_previously_touched": true,
+        "original_tp2": 61255.6,
+        "original_stop": 62390,
+        "tp2_touched_this_check": false,
+        "stop_touched_this_check": false,
         "paper_fill_confirmed": false,
         "realized_r": null,
-        "terminal": false,
-        "note": "Since the previous check, the original TP2 61255.6 and stop 62390 were not touched. TP1 61781.6 had already been touched at 04:05Z. This remains an unalerted shadow observation with no confirmed paper fill."
+        "note": "No new terminal touch since prior scan. Continue shadow monitoring against original TP2/stop; no confirmed fill because Discord delivery was not confirmed."
       }
     },
     {
