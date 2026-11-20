@@ -35,6 +35,11 @@ class StudyError(RuntimeError):
     pass
 
 
+def datetime_index_ns(index: Any) -> np.ndarray:
+    """Convert any pandas datetime resolution to explicit Unix nanoseconds."""
+    return pd.DatetimeIndex(index).as_unit("ns").asi8
+
+
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -349,8 +354,8 @@ def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
 
     min_sep_ns = pd.Timedelta(hours=4, minutes=5).value
     window_ns = pd.Timedelta(hours=24).value
-    event_ns = np.sort(main_events.index.asi8)
-    control_ns = controls.index.asi8
+    event_ns = np.sort(datetime_index_ns(main_events.index))
+    control_ns = datetime_index_ns(controls.index)
 
     # Remove any control whose 4h forward window would overlap a main-event
     # 4h outcome window. Search only the nearest event on either side.
@@ -374,14 +379,16 @@ def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
         if pool.empty:
             continue
 
-        distances = pd.Series(np.abs(pool.index.asi8 - t.value), index=pool.index)
+        t_ns = int(pd.Timestamp(t).as_unit("ns").value)
+        pool_ns = datetime_index_ns(pool.index)
+        distances = pd.Series(np.abs(pool_ns - t_ns), index=pool.index)
         distances = distances[distances <= window_ns]
         if distances.empty:
             continue
 
         # Prevent selected control forward windows from overlapping one another.
         if used_control_ns:
-            candidate_ns = distances.index.asi8
+            candidate_ns = datetime_index_ns(distances.index)
             used_ns = np.asarray(used_control_ns, dtype=np.int64)  # maintained sorted
             used_pos = np.searchsorted(used_ns, candidate_ns)
             used_left = used_ns[np.clip(used_pos - 1, 0, len(used_ns) - 1)]
@@ -393,8 +400,9 @@ def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
             continue
 
         ctime = distances.idxmin()
-        insert_at = int(np.searchsorted(used_control_ns, ctime.value))
-        used_control_ns.insert(insert_at, ctime.value)
+        ctime_ns = int(pd.Timestamp(ctime).as_unit("ns").value)
+        insert_at = int(np.searchsorted(used_control_ns, ctime_ns))
+        used_control_ns.insert(insert_at, ctime_ns)
         row = {
             "event_time": t, "control_time": ctime, "split": ev.split,
             "oi_direction": ev.oi_direction, "price_direction": ev.price_direction,
@@ -744,7 +752,7 @@ def self_test() -> None:
     assert og.loc[idx[349] + pd.Timedelta(minutes=5), "segment"] != og.loc[idx[351] + pd.Timedelta(minutes=5), "segment"]
     assert pd.isna(og.loc[idx[349] + pd.Timedelta(minutes=5), "fwd_price_1h_pct"])
     # Matched-control forward windows must not overlap any event or each other.
-    mt = pd.date_range("2025-01-01T00:00:00Z", periods=2400, freq="5min")
+    mt = pd.date_range("2025-01-01T00:00:00Z", periods=2400, freq="5min").as_unit("us")
     mf = pd.DataFrame(index=mt)
     mf["split"] = np.where(np.arange(2400) < 1000, "train",
         np.where(np.arange(2400) < 1700, "validation", "oos"))
@@ -762,8 +770,8 @@ def self_test() -> None:
     matched, match_meta = matched_control_study(mf, me)
     print(f"Matched-control fixture diagnostic: pairs={len(matched)}, metadata={match_meta}")
     assert len(matched) >= 1 and match_meta.get("minimum_forward_window_separation_minutes") == 245, match_meta
-    event_ns = event_times.asi8
-    control_times = pd.to_datetime(matched.control_time, utc=True).astype("int64").to_numpy()
+    event_ns = datetime_index_ns(event_times)
+    control_times = datetime_index_ns(pd.to_datetime(matched.control_time, utc=True))
     assert (np.min(np.abs(control_times[:, None] - event_ns[None, :]), axis=1)
             >= pd.Timedelta(hours=4, minutes=5).value).all()
     if len(control_times) > 1:

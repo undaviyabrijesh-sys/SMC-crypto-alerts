@@ -2306,3 +2306,10 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - The expanded 2,400-row synthetic fixture still failed the combined expected-pair-count assertion in workflow [44800874439](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44800874439). The run stopped before any historical download; no new event result exists.
 - Added a concise diagnostic print for the synthetic matched-pair count and metadata, and relaxed the test to require at least one valid non-overlapping match while checking all returned control/event and control/control separations. This isolates the actual contract under test rather than requiring a particular greedy-match count.
 - No matching rule, event threshold, data window or historical result was changed. Full rerun remains blocked until this deterministic test passes.
+
+
+### 2026-11-21 — pandas datetime-resolution bug found in OI matching test
+
+- The second self-test diagnostic showed zero matches despite a valid synthetic fixture. Inspection identified a pandas 3.1 datetime-resolution mismatch: DatetimeIndex.asi8 can be microseconds while Timedelta.value is nanoseconds. Comparing these integers silently rejected every control as too close.
+- Added explicit DatetimeIndex.as_unit("ns") conversion for event/control timestamps and made the regression fixture intentionally use microsecond-resolution timestamps. This directly tests the cross-version failure mode.
+- Matching rule remains 4h05 non-overlap. No historical market data was downloaded or evaluated by the failed runs [44800653783](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44800653783), [44800874439](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44800874439), and [44801096312](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44801096312).
