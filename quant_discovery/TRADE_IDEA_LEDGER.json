@@ -13954,5 +13954,111 @@
     "delivery_blocker": "No qualified entry trigger; runtime also exposes no authorized GitHub workflow-dispatch or Discord-send action.",
     "last_attempt_utc": "2026-11-19T18:19:37Z",
     "last_check_utc": "2026-11-20T02:40:20.547Z"
-  }
+  },
+  "manual_scans": [
+    {
+      "scan_timestamp_utc": "2026-11-20T03:08:45Z",
+      "source": "Fresh Binance USDⓈ-M 5m candles for BTC, ETH, SOL, BNB, XRP, DOGE, ADA, LINK, SUI, ZEC, HYPE; BTC/ETH 15m context sampled.",
+      "latest_completed_5m_open_utc": "2026-11-20T03:00:00Z",
+      "forming_5m_open_utc": "2026-11-20T03:05:00Z",
+      "forming_candles_excluded": true,
+      "latest_completed_5m_close": {
+        "BTCUSDT": 62061.5,
+        "ETHUSDT": 1743.97,
+        "SOLUSDT": 72.69,
+        "BNBUSDT": 573.98,
+        "XRPUSDT": 0.955,
+        "DOGEUSDT": 0.0574,
+        "ADAUSDT": 0.1492,
+        "LINKUSDT": 8.873,
+        "SUIUSDT": 0.7001,
+        "ZECUSDT": 867.74,
+        "HYPEUSDT": 65.691
+      },
+      "market_read": "Broad rebound from the prior selloff extended into 02:55 UTC on most markets, with strong 5m volume expansion; the 03:00 UTC completed candle pulled back/rejected the impulse across the basket. The 03:05 UTC candles were still forming at scan time and were excluded from confirmation.",
+      "candidates": [
+        {
+          "symbol": "BTCUSDT",
+          "status": "pending_watch_only",
+          "bias": "LONG_continuation_or_failed_retest",
+          "trigger": "Need a completed 5m hold/reclaim above the 02:55 impulse base/high area; avoid chasing the impulse.",
+          "cancel": "Break below the 03:00 candle low 62052.2 before a valid retest."
+        },
+        {
+          "symbol": "ETHUSDT",
+          "status": "pending_watch_only",
+          "bias": "LONG_continuation_or_failed_retest",
+          "trigger": "Need completed 5m recovery and hold above the 02:55 impulse base; no entry during pullback.",
+          "cancel": "Break below the 03:00 candle low 1743.5 before a valid retest."
+        },
+        {
+          "symbol": "SOLUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "BNBUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "XRPUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "ADAUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "LINKUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "SUIUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "ZECUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        },
+        {
+          "symbol": "HYPEUSDT",
+          "status": "shadow_watch_retest_not_confirmed",
+          "bias": "LONG_countertrend_rebound",
+          "trigger": "Wait for a fresh completed 5m higher low/retest hold after the 02:55 rebound; 15m trend/context still needs confirmation.",
+          "cancel": "Break below the 03:00 completed 5m candle low before a valid retest."
+        }
+      ],
+      "new_qualified_setups": [],
+      "new_paper_fills": 0,
+      "discord_delivery": "not_attempted_no_qualified_trigger_and_no_authorized_send_action",
+      "note": "No entry, stop, or target assigned to shadow watches. This is not a validated strategy signal. Preserve earlier ledger history and the separate worker state."
+    }
+  ]
 }
