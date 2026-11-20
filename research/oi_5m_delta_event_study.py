@@ -326,54 +326,161 @@ def event_metrics(x: pd.DataFrame) -> dict:
 
 def matched_control_study(features: pd.DataFrame, main_events: pd.DataFrame,
                           threshold_pct: float = MAIN_THRESHOLD_PCT) -> tuple[pd.DataFrame, dict]:
-    """Nearest non-event control matched on split, price direction, regime and train-only magnitude decile."""
+    """Match controls with non-overlapping 4h05 forward windows.
+
+    A control must be at least 4h05 from every main event, and selected control
+    windows must also be at least 4h05 apart. This prevents paired/control
+    forward-return windows from sharing price-path observations.
+    """
     train_abs = features.loc[features.split == "train", "price_ret_5m"].abs().dropna()
     if len(train_abs) < 100:
         return pd.DataFrame(), {"matched_pairs": 0, "reason": "insufficient training returns"}
     edges = np.unique(np.quantile(train_abs, np.linspace(0, 1, 11)))
-    bins = np.searchsorted(edges[1:-1], features.price_ret_5m.abs().to_numpy(), side="right")
     work = features.copy()
-    work["price_bin"] = bins
-    work["price_direction"] = np.select([work.price_ret_5m > 0, work.price_ret_5m < 0],
+    work["price_bin"] = np.searchsorted(
+        edges[1:-1], work.price_ret_5m.abs().to_numpy(), side="right")
+    work["price_direction"] = np.select(
+        [work.price_ret_5m > 0, work.price_ret_5m < 0],
         ["up", "down"], default="flat")
     work["is_event"] = work.oi_pct.abs() * 100 >= threshold_pct
-    controls, used, pairs = work[(~work.is_event) & work.split_safe_4h], set(), []
+    controls = work[(~work.is_event) & work.split_safe_4h].copy()
+    if controls.empty or main_events.empty:
+        return pd.DataFrame(), {"matched_pairs": 0, "reason": "no eligible controls or events"}
+
+    min_sep_ns = pd.Timedelta(hours=4, minutes=5).value
+    window_ns = pd.Timedelta(hours=24).value
+    event_ns = np.sort(main_events.index.asi8)
+    control_ns = controls.index.asi8
+
+    # Remove any control whose 4h forward window would overlap a main-event
+    # 4h outcome window. Search only the nearest event on either side.
+    pos = np.searchsorted(event_ns, control_ns)
+    left = event_ns[np.clip(pos - 1, 0, len(event_ns) - 1)]
+    right = event_ns[np.clip(pos, 0, len(event_ns) - 1)]
+    nearest_event_ns = np.minimum(np.abs(control_ns - left), np.abs(control_ns - right))
+    controls = controls.loc[nearest_event_ns >= min_sep_ns]
+
+    pairs, used_control_ns = [], []
     for t, ev in main_events.sort_index().iterrows():
         if ev.price_direction == "flat" or pd.isna(ev.fwd_price_4h_pct):
             continue
-        pool = controls[(controls.split == ev.split)
+        pool = controls[
+            (controls.split == ev.split)
             & (controls.price_direction == ev.price_direction)
             & (controls.regime24h == ev.regime24h)
             & (controls.price_bin == work.loc[t, "price_bin"])
-            & controls.fwd_price_4h_pct.notna()]
-        if not pool.empty:
-            pool = pool.loc[~pool.index.isin(used)]
+            & controls.fwd_price_4h_pct.notna()
+        ]
         if pool.empty:
             continue
-        distances = (pool.index - t).to_series(index=pool.index).abs()
-        distances = distances[distances <= pd.Timedelta(hours=24)]
+
+        distances = pd.Series(np.abs(pool.index.asi8 - t.value), index=pool.index)
+        distances = distances[distances <= window_ns]
         if distances.empty:
             continue
+
+        # Prevent selected control forward windows from overlapping one another.
+        if used_control_ns:
+            candidate_ns = distances.index.asi8
+            used_ns = np.asarray(used_control_ns, dtype=np.int64)  # maintained sorted
+            used_pos = np.searchsorted(used_ns, candidate_ns)
+            used_left = used_ns[np.clip(used_pos - 1, 0, len(used_ns) - 1)]
+            used_right = used_ns[np.clip(used_pos, 0, len(used_ns) - 1)]
+            nearest_used_ns = np.minimum(
+                np.abs(candidate_ns - used_left), np.abs(candidate_ns - used_right))
+            distances = distances.loc[nearest_used_ns >= min_sep_ns]
+        if distances.empty:
+            continue
+
         ctime = distances.idxmin()
-        used.add(ctime)
-        row = {"event_time": t, "control_time": ctime, "split": ev.split,
+        insert_at = int(np.searchsorted(used_control_ns, ctime.value))
+        used_control_ns.insert(insert_at, ctime.value)
+        row = {
+            "event_time": t, "control_time": ctime, "split": ev.split,
             "oi_direction": ev.oi_direction, "price_direction": ev.price_direction,
             "regime24h": ev.regime24h, "event_oi_pct": ev.oi_pct * 100,
-            "control_oi_pct": work.loc[ctime, "oi_pct"] * 100}
+            "control_oi_pct": work.loc[ctime, "oi_pct"] * 100,
+        }
         for h in ("15m", "1h", "4h"):
             row[f"event_fwd_{h}_pct"] = ev[f"fwd_price_{h}_pct"]
             row[f"control_fwd_{h}_pct"] = work.loc[ctime, f"fwd_price_{h}_pct"]
-            row[f"event_minus_control_{h}_pct"] = row[f"event_fwd_{h}_pct"] - row[f"control_fwd_{h}_pct"]
+            row[f"event_minus_control_{h}_pct"] = (
+                row[f"event_fwd_{h}_pct"] - row[f"control_fwd_{h}_pct"])
         pairs.append(row)
+
     frame = pd.DataFrame(pairs)
-    summary = {"matched_pairs": int(len(frame)),
-        "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls without replacement"}
+    summary = {
+        "matched_pairs": int(len(frame)),
+        "matching": (
+            "same split, same 5m price direction, same prior-24h regime, "
+            "same training-defined absolute-return decile; nearest within +/-24h; "
+            "controls at least 4h05 from every main-event timestamp; selected "
+            "control windows at least 4h05 apart; no control reuse"
+        ),
+        "minimum_forward_window_separation_minutes": 245,
+    }
     for h in ("15m", "1h", "4h"):
         c = f"event_minus_control_{h}_pct"
-        summary[f"mean_event_minus_control_{h}_pct"] = float(frame[c].mean()) if len(frame) else None
-        summary[f"event_beats_control_{h}_fraction_pct"] = float((frame[c] > 0).mean() * 100) if len(frame) else None
+        summary[f"mean_event_minus_control_{h}_pct"] = (
+            float(frame[c].mean()) if len(frame) else None)
+        summary[f"event_beats_control_{h}_fraction_pct"] = (
+            float((frame[c] > 0).mean() * 100) if len(frame) else None)
     return frame, summary
 
+
+def cluster_bootstrap_mean_ci(pairs: pd.DataFrame, column: str,
+                              n_boot: int = 5000, seed: int = 0) -> dict:
+    """UTC event-day cluster bootstrap for a paired mean; descriptive, not a p-value."""
+    if pairs.empty or column not in pairs:
+        return {"pairs": 0, "event_days": 0, "mean_pct": None,
+                "ci_low_pct": None, "ci_high_pct": None}
+    sample = pairs[["event_time", column]].dropna().copy()
+    if sample.empty:
+        return {"pairs": 0, "event_days": 0, "mean_pct": None,
+                "ci_low_pct": None, "ci_high_pct": None}
+    sample["event_day"] = pd.to_datetime(sample.event_time, utc=True).dt.floor("D")
+    grouped = [g[column].to_numpy(dtype=float)
+               for _, g in sample.groupby("event_day", sort=True)]
+    sums = np.asarray([x.sum() for x in grouped], dtype=float)
+    counts = np.asarray([len(x) for x in grouped], dtype=float)
+    rng = np.random.default_rng(seed)
+    draws = rng.integers(0, len(grouped), size=(n_boot, len(grouped)))
+    means = sums[draws].sum(axis=1) / counts[draws].sum(axis=1)
+    return {
+        "pairs": int(len(sample)),
+        "event_days": int(len(grouped)),
+        "mean_pct": float(sample[column].mean()),
+        "ci_low_pct": float(np.quantile(means, 0.025)),
+        "ci_high_pct": float(np.quantile(means, 0.975)),
+        "bootstrap_replicates": int(n_boot),
+        "cluster": "UTC event day",
+    }
+
+
+def matched_control_bootstrap(pairs: pd.DataFrame, asset: str,
+                              n_boot: int = 5000) -> list[dict]:
+    rows = []
+    for split, group in pairs.groupby("split", sort=True):
+        for horizon in ("15m", "1h", "4h"):
+            column = f"event_minus_control_{horizon}_pct"
+            seed_text = f"{asset}|{split}|{horizon}|matched-control-v1"
+            seed = int.from_bytes(hashlib.sha256(seed_text.encode()).digest()[:4], "big")
+            stats = cluster_bootstrap_mean_ci(group, column, n_boot=n_boot, seed=seed)
+            if not stats["pairs"]:
+                continue
+            values = group[column].dropna()
+            rows.append({
+                "asset": asset, "split": split, "horizon": horizon,
+                "pairs": stats["pairs"], "event_days": stats["event_days"],
+                "mean_lift_bps": stats["mean_pct"] * 100,
+                "median_lift_bps": float(values.median() * 100),
+                "event_beats_control_pct": float((values > 0).mean() * 100),
+                "ci_low_bps": stats["ci_low_pct"] * 100,
+                "ci_high_bps": stats["ci_high_pct"] * 100,
+                "bootstrap_replicates": stats["bootstrap_replicates"],
+                "cluster": stats["cluster"],
+            })
+    return rows
 
 def fetch_binance_oi(session: requests.Session, symbol: str,
                      start_ms: int, end_ms: int) -> pd.DataFrame:
@@ -487,7 +594,7 @@ def run(args) -> dict:
             except Exception as exc:
                 binance_errors[asset] = f"{type(exc).__name__}: {exc}"
 
-    summaries, monthly, regimes, events_out, pairs_out = [], [], [], [], []
+    summaries, monthly, regimes, events_out, pairs_out, bootstrap_out = [], [], [], [], [], []
     cross_venue, quality, split_meta = {}, {}, {}
     for asset in ("BTC", "ETH"):
         oi5, px5, oi1 = (frames[f"{asset}_{k}"] for k in ("oi_5m", "price_5m", "oi_1h"))
@@ -523,6 +630,10 @@ def run(args) -> dict:
                         regimes.append({"asset": asset, "split": split, "regime24h": regime,
                             "oi_direction": direction, **event_metrics(g)})
                     pairs, pair_summary = matched_control_study(f, ev)
+                    asset_bootstrap = matched_control_bootstrap(pairs, asset)
+                    bootstrap_out.extend(asset_bootstrap)
+                    pair_summary["cluster_bootstrap"] = asset_bootstrap
+                    pair_summary["bootstrap_note"] = "UTC event-day cluster bootstrap, 5,000 replicates; descriptive intervals only, not adjusted across the threshold/cooldown grid."
                     cross_venue[f"{asset}_matched_control"] = pair_summary
                     if not pairs.empty:
                         pairs_out.append(pairs.assign(asset=asset))
@@ -538,6 +649,7 @@ def run(args) -> dict:
         pd.concat(events_out, ignore_index=True).to_csv(out_dir / "main_5pct_events.csv", index=False)
     if pairs_out:
         pd.concat(pairs_out, ignore_index=True).to_csv(out_dir / "matched_controls.csv", index=False)
+    pd.DataFrame(bootstrap_out).to_csv(out_dir / "matched_control_bootstrap.csv", index=False)
     metadata = {"classification": "descriptive event study only; not an executable strategy backtest",
         "venue": "Delta Exchange India OI-prefixed historical candles and traded-price candles",
         "period": {"requested_start_utc": start5.isoformat(), "requested_end_exclusive_utc": end5.isoformat()},
@@ -554,6 +666,7 @@ def run(args) -> dict:
             "Delta OI values are treated as base-asset OI based on prior ticker/candle reconciliation; venue-specific OI is not economically identical to Binance aggregate OI.",
             "This is conditional forward behaviour, not a strategy test; no entries, stops, fees, funding, R, PF or trading drawdown.",
             "Matched controls are descriptive and may retain unobserved confounding.",
+            "Matched-control 4h forward windows are separated by at least 4h05 from every main event and from other selected controls; UTC event-day cluster intervals remain descriptive.",
             "Historical Delta OI sampling remains exchange-specific despite prior live ticker and 5m/1h reconciliation."]}
     (out_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, default=str) + "\n")
     md = ["# Delta 5m OI impulse event study — BTC/ETH", "",
@@ -628,7 +741,34 @@ def self_test() -> None:
     og = build_features(oi.drop(idx[350]), px)
     assert og.loc[idx[349] + pd.Timedelta(minutes=5), "segment"] != og.loc[idx[351] + pd.Timedelta(minutes=5), "segment"]
     assert pd.isna(og.loc[idx[349] + pd.Timedelta(minutes=5), "fwd_price_1h_pct"])
-    print("8 OI 5m causality, cooldown, gap, quarantine and aggregation tests passed")
+    # Matched-control forward windows must not overlap any event or each other.
+    mt = pd.date_range("2025-01-01T00:00:00Z", periods=1200, freq="5min")
+    mf = pd.DataFrame(index=mt)
+    mf["split"] = np.where(np.arange(1200) < 500, "train",
+        np.where(np.arange(1200) < 850, "validation", "oos"))
+    mf["split_safe_4h"] = True
+    mf["oi_pct"] = 0.0
+    event_times = mt[[600, 1000]]
+    mf.loc[event_times, "oi_pct"] = 0.06
+    mf["price_ret_5m"] = 0.001
+    mf["regime24h"] = "range"
+    for h, value in (("15m", 0.01), ("1h", 0.02), ("4h", 0.03)):
+        mf[f"fwd_price_{h}_pct"] = value
+    me = mf.loc[event_times].copy()
+    me["oi_direction"] = "expansion"
+    me["price_direction"] = "up"
+    matched, match_meta = matched_control_study(mf, me)
+    assert len(matched) == 2 and match_meta["minimum_forward_window_separation_minutes"] == 245
+    event_ns = event_times.asi8
+    control_times = pd.to_datetime(matched.control_time, utc=True).astype("int64").to_numpy()
+    assert (np.min(np.abs(control_times[:, None] - event_ns[None, :]), axis=1)
+            >= pd.Timedelta(hours=4, minutes=5).value).all()
+    assert abs(int(control_times[0]) - int(control_times[1])) >= pd.Timedelta(hours=4, minutes=5).value
+    # Cluster bootstrap is deterministic for a frozen seed.
+    ci1 = cluster_bootstrap_mean_ci(matched, "event_minus_control_4h_pct", n_boot=250, seed=17)
+    ci2 = cluster_bootstrap_mean_ci(matched, "event_minus_control_4h_pct", n_boot=250, seed=17)
+    assert ci1 == ci2
+    print("10 OI causality, gap, aggregation, non-overlap matching and bootstrap tests passed")
 
 
 def build_parser():

@@ -58,9 +58,13 @@ jobs:
           mkdir -p quant_discovery
           cp results/oi-5m-event-study/report/summary.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md
           cp results/oi-5m-event-study/report/metadata.json quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.json
+          cp results/oi-5m-event-study/report/event_summary.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_EVENT_SUMMARY_LATEST.csv
+          cp results/oi-5m-event-study/report/monthly.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_MONTHLY_LATEST.csv
+          cp results/oi-5m-event-study/report/regimes.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_REGIMES_LATEST.csv
+          cp results/oi-5m-event-study/report/matched_control_bootstrap.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_MATCHED_CONTROL_BOOTSTRAP_LATEST.csv
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.json
+          git add quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.json quant_discovery/DELTA_OI_5M_EVENT_STUDY_EVENT_SUMMARY_LATEST.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_MONTHLY_LATEST.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_REGIMES_LATEST.csv quant_discovery/DELTA_OI_5M_EVENT_STUDY_MATCHED_CONTROL_BOOTSTRAP_LATEST.csv
           if ! git diff --cached --quiet; then
             git commit -m "Publish Delta 5m OI event study summary"
             git push origin HEAD:ai-quant-rebuild

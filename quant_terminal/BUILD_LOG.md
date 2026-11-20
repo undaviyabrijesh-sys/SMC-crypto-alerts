@@ -196,3 +196,15 @@
 - The existing read-only Backtesting artifact index discovers these persisted files; the Strategy Research page also receives the updated research ledger entry. No new API route, frontend-side statistical calculation or trading engine was added.
 - The diagnostic is explicitly train-only, statistical (not a backtest), and classified no_full_train_cointegration_evidence. It records that validation/OOS data were not downloaded or evaluated.
 - Full workflow artifact: 14645822140, SHA-256 0375c84a337b9821397452e020833ae99352ef746ab08695fc46b0dbae2ad975. No strategy promotion, paper-state mutation, order/alert route or production rule change.
+
+
+## 2026-11-21 — Delta 5m OI matched-control overlap correction
+
+- Inspected completed OI event-study run [44768774326](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44768774326) and downloaded its 75 MB Actions artifact (19 files, including 2-year raw 5m/1h OI and price data, features, monthly/regime/event summaries and matched controls).
+- Independent artifact audit found the original nearest-control method selected controls inside four hours of their paired event for 89.0% of BTC and 89.6% of ETH pairs. The event and control 4h forward-return windows therefore overlapped. The original matched-control lift estimates are superseded.
+- Corrected research/oi_5m_delta_event_study.py: controls are now at least 4h05 from every main event and selected control windows are at least 4h05 apart; same split/direction/regime/train-only return-decile matching and +/-24h nearest matching are retained.
+- Added 5,000-replicate UTC event-day cluster bootstrap intervals for paired mean lift, with explicit descriptive-only labeling. Added deterministic tests for event/control non-overlap, control/control non-overlap and bootstrap reproducibility.
+- Updated .github/workflows/oi-5m-delta-event-study.yml to publish compact event-summary, monthly, regime and matched-control-bootstrap CSVs alongside the Markdown/JSON summary. The existing read-only Quant Terminal artifact index discovers these files; no new API or engine.
+- Full two-year historical rerun is triggered by this commit. No new OI event-study result is claimed until the workflow completes and the artifact is inspected.
+- Existing full repository CI had passed before this methodology correction; new script tests and full historical rerun remain pending.
+- No strategy promotion, production rule, paper state, live alert, exchange order, main branch or deployment changed.
