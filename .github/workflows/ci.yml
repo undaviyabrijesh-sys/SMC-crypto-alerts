@@ -233,3 +233,57 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
           retention-days: 14
+
+  eth-supertrend-research:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_ETH_SUPERTREND:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install ETH Supertrend research dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Compile reused engines and ETH wrapper
+        run: |
+          python -m py_compile research/eth_supertrend_intraday_replication.py
+          python -m py_compile research/supertrend_intraday_backtest.py
+          python -m py_compile research/binance_ethusdt_ema20_cross_exchange_replication.py
+      - name: Run deterministic ETH Supertrend tests
+        run: python research/eth_supertrend_intraday_replication.py --self-test
+      - name: Download official ETH archives and run frozen Supertrend replication
+        run: python research/eth_supertrend_intraday_replication.py --out eth_supertrend_intraday_results
+      - name: Publish ETH Supertrend research summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p=Path("eth_supertrend_intraday_results/summary.json")
+          print("# ETHUSDT Supertrend intraday replication")
+          if not p.exists():
+              print("No summary artifact produced; inspect the failed step logs.")
+          else:
+              x=json.loads(p.read_text())
+              print(f"- Status: {x.get('status')}; OOS evaluated: {x.get('oos_evaluated')}")
+              print(f"- Signals before/after funding exclusion: {x.get('signal_count_before_funding_exclusion')} / {x.get('funding_exclusion',{}).get('eligible_signal_count')}")
+              print(f"- Source SHA-256: {x.get('data_quality',{}).get('source_sha256')}")
+              for sample, metrics in x.get("metrics_at_primary_cost", {}).items():
+                  if metrics is None:
+                      print(f"- {sample}: not evaluated")
+                  else:
+                      print(f"- {sample}: trades={metrics.get('trades')}, win={metrics.get('profitable_pct')}%, PF={metrics.get('profit_factor')}, netR={metrics.get('net_R')}, DD={metrics.get('max_drawdown_R')}, losing_streak={metrics.get('max_losing_streak')}, positive_month_fraction={metrics.get('positive_month_fraction')}")
+              print("- Funding settlement-crossing entries excluded; no funding cashflows applied.")
+              print("- R is stop-distance normalized, not account return.")
+          PY
+      - name: Retain ETH source and reproducible Supertrend outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ethusdt-supertrend-intraday-replication-${{ github.run_id }}
+          path: eth_supertrend_intraday_results/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 30
