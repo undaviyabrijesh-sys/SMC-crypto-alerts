@@ -2222,3 +2222,14 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Funding attribution uses actual markPrice and side-aware cashflow, with a 1-second entry boundary and lower/upper bounds for TP/SL exit-candle ambiguity. Costs remain assumed, not account-tier verified; no separate spread/variable slippage/market impact. R is per initial stop risk, not account return.
 - Decision: reject this exact Supertrend baseline; no strategy promotion. Script research/eth_supertrend_actual_funding_cashflow_audit.py; workflow eth-supertrend-funding-cashflow-audit.yml; report/summary/trade ledgers and monthly/regime/side/cost tables committed under quant_discovery/.
 - Next step: do not tune this baseline. Move to a distinct BTC market-structure hypothesis only after prior-art audit; preserve funding-aware accounting for all perpetual research.
+
+
+## 2026-11-20 — Delta BTC/ETH funding cashflow model status correction
+
+- Added research/DELTA_FUNDING_CASHFLOW_MODEL_STATUS_2026-11-20.md after reviewing the official 3 May 2024 mechanism notice and the current India perpetual-contract guide.
+- Clarified the three historical regimes: before 3 May 2024, minute-rate/minute-exchange (outside the current archive); 3 May 2024–8 September 2025, 8-hour rate held flat but funding exchanged every minute; from 8 September 2025 12:00 UTC, 8-hour position-snapshot funding for the standard schedule.
+- The official sources confirm the mechanism timeline, but do not document the exact pre-transition per-minute allocation formula. Rate/480 remains an inference only and is not applied.
+- The current guide uses underlying index price for payment value; product metadata exposes funding_method=mark_price. The price-base interpretation remains unresolved. Historical FUNDING candles also lack the WebSocket nfr field needed to independently establish rate-to-settlement alignment.
+- Safe interim rule: Delta BTCUSD/ETHUSD strategy backtests remain funding_unmodeled until those semantics are verified. Do not silently subtract a guessed rate or use the Binance ETH cashflow implementation for Delta.
+- Official references: https://global.delta.exchange/support/solutions/articles/80001014551/ ; https://guides.delta.exchange/delta-exchange-india-user-guide/derivatives-guide/docs.md ; https://docs.delta.exchange/.
+- Next step: reconcile 1-minute MARK and underlying INDEX candles around Delta funding boundaries, compare the last pre-boundary and boundary-hour FUNDING observations, and preserve explicit lower/upper sensitivities if no unique mapping can be established.
