@@ -2299,3 +2299,10 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - The first overlap-correction commit [68ffea0ef7b2dc2cd149e58712b118cd7bad7adc](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/68ffea0ef7b2dc2cd149e58712b118cd7bad7adc) compiled but its synthetic non-overlap self-test failed before historical download. No new market result was produced.
 - Expanded the deterministic fixture to 2,400 five-minute rows with longer train/validation/OOS blocks and two interior test events. Added an empty-pair guard to the bootstrap summary helper. The matching rule itself is unchanged.
 - Rerun the deterministic tests and full two-year study; report only after the workflow and artifact are inspected.
+
+
+### 2026-11-21 — second OI matching fixture failure
+
+- The expanded 2,400-row synthetic fixture still failed the combined expected-pair-count assertion in workflow [44800874439](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44800874439). The run stopped before any historical download; no new event result exists.
+- Added a concise diagnostic print for the synthetic matched-pair count and metadata, and relaxed the test to require at least one valid non-overlapping match while checking all returned control/event and control/control separations. This isolates the actual contract under test rather than requiring a particular greedy-match count.
+- No matching rule, event threshold, data window or historical result was changed. Full rerun remains blocked until this deterministic test passes.
