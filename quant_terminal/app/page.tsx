@@ -350,6 +350,8 @@ export default function Home() {
       ? String(apiData.positions.position_count)
       : "—";
   const candidateValue = candidateCount == null ? "—" : String(candidateCount);
+  const freshMarketCount = marketRows.filter((market) => market.status === "live").length;
+  const paperPositionRows = apiData.positions?.positions ?? [];
 
   const renderMarketRows = () => {
     if (!marketRows.length) {
@@ -450,7 +452,7 @@ export default function Home() {
           {active === "Overview" ? (
             <>
               <div className="page-heading">
-                <div><div className="eyebrow">THURSDAY, NOVEMBER 19, 2026 <span>•</span> RESEARCH WORKSPACE</div><h1>Market overview</h1><p>Your research and paper-trading operations, in one place.</p></div>
+                <div><div className="eyebrow">RESEARCH WORKSPACE <span>•</span> PERSISTED SNAPSHOTS</div><h1>Market overview</h1><p>Your research and paper-trading operations, in one place.</p></div>
                 <div className="heading-tags"><StatusPill tone="green">PAPER MODE</StatusPill><StatusPill>SHADOW RESEARCH</StatusPill></div>
               </div>
 
@@ -879,6 +881,136 @@ export default function Home() {
                 <div className="panel-foot">Source: {apiData.history?.source ?? "unavailable"} · Returned rows: {apiData.history?.trades?.length ?? "unavailable"} · Gross R is the stored lifecycle field, not net realized account P&L.</div>
               </section>
               <footer className="page-footer"><span>SALTY QUANT TERMINAL · TRADE HISTORY</span><span>GROSS RESULTS · PAPER ONLY</span></footer>
+            </>
+          ) : active === "AI Analyst" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">DETERMINISTIC EVIDENCE BRIEF · READ ONLY</div>
+                  <h1>AI Analyst</h1>
+                  <p>A source-grounded summary of persisted market, scanner, research, backtest and paper records. No external model call or signal generation is performed here.</p>
+                </div>
+                <StatusPill tone="green">EVIDENCE MODE</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>This analyst does not predict prices or recommend trades</strong>
+                  <p>Every observation below is derived from the same read-only API snapshots used elsewhere in the terminal. Missing or stale sources remain explicitly unavailable.</p>
+                </div>
+                <span className="notice-code">NO ORDERS</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Fresh market snapshots" value={apiData.markets?.status === "unavailable" || !apiData.markets ? "—" : String(freshMarketCount) + " / " + String(marketRows.length)} note={apiData.markets?.status === "live" ? "Persisted 5m cache passed freshness checks" : apiData.markets?.status === "stale" ? "One or more market snapshots are stale" : "Market source unavailable"} icon="◫" />
+                <MetricCard label="Scanner candidates" value={candidateCount == null ? "—" : String(candidateCount)} note={apiData.scanner?.status === "stale" ? "Count comes from a stale persisted scan" : "Persisted candidate records; not win probabilities"} icon="⌕" />
+                <MetricCard label="Research artifacts" value={apiData.backtests?.status === "available" ? String(apiData.backtests.artifact_count ?? "—") : "—"} note="File inventory only; not a count of profitable strategies" icon="▤" />
+                <MetricCard label="Open paper positions" value={apiData.positions?.status === "available" ? String(apiData.positions.position_count ?? "—") : "—"} note="Simulated ledger only; no exchange positions" icon="⇄" />
+              </div>
+              <div className="content-grid analyst-grid">
+                <section className="panel analyst-evidence-panel">
+                  <div className="panel-heading"><div><h2>Current evidence state</h2><p>Source status, not an inferred market forecast</p></div><StatusPill>SNAPSHOT</StatusPill></div>
+                  <div className="analyst-evidence-list">
+                    <div><span>Market cache</span><StatusPill tone={marketTone(apiData.markets?.status)}>{apiData.markets?.status ?? "unavailable"}</StatusPill><small>{apiData.markets?.source ?? "Source unavailable"}</small></div>
+                    <div><span>Deterministic scanner</span><StatusPill tone={marketTone(apiData.scanner?.status)}>{apiData.scanner?.status ?? "unavailable"}</StatusPill><small>{apiData.scanner?.as_of ?? "Snapshot time unavailable"}</small></div>
+                    <div><span>Research ledger</span><StatusPill tone={apiData.research?.status === "available" ? "green" : "amber"}>{apiData.research?.status ?? "unavailable"}</StatusPill><small>{apiData.research?.entry_count == null ? "Entry count unavailable" : String(apiData.research.entry_count) + " parsed sections"}</small></div>
+                    <div><span>Backtest inventory</span><StatusPill tone={apiData.backtests?.status === "available" ? "green" : "amber"}>{apiData.backtests?.status ?? "unavailable"}</StatusPill><small>{apiData.backtests?.source ?? "Artifact source unavailable"}</small></div>
+                    <div><span>Paper ledger</span><StatusPill tone={apiData.positions?.status === "available" ? "green" : "amber"}>{apiData.positions?.status ?? "unavailable"}</StatusPill><small>{apiData.positions?.source ?? "Paper source unavailable"}</small></div>
+                  </div>
+                  <div className="panel-foot">Approved strategy count from the existing supervisor: {approvedCount}. The analyst cannot alter approval state.</div>
+                </section>
+                <section className="panel analyst-latest-panel">
+                  <div className="panel-heading"><div><h2>Latest research record</h2><p>Most recent parsed ledger section</p></div><StatusPill>HISTORY</StatusPill></div>
+                  {apiData.research?.entries?.[0] ? (
+                    <div className="analyst-latest-copy">
+                      <strong>{apiData.research.entries[0].title}</strong>
+                      <p>{apiData.research.entries[0].summary || "The ledger section has no summary paragraph."}</p>
+                    </div>
+                  ) : (
+                    <div className="paper-empty">No latest research record is available. The analyst will not infer a research conclusion.</div>
+                  )}
+                  <div className="panel-foot">A ledger heading or saved artifact is not, by itself, a validation or promotion decision.</div>
+                </section>
+              </div>
+              <section className="panel analyst-guardrails-panel">
+                <div className="panel-heading"><div><h2>Evidence guardrails</h2><p>What this analyst can and cannot conclude</p></div><StatusPill>TRANSPARENCY</StatusPill></div>
+                <div className="analyst-guardrails">
+                  <div><b>01</b><span>Candidate counts are not probabilities or expected win rates.</span></div>
+                  <div><b>02</b><span>Backtest artifact counts do not establish positive expectancy or out-of-sample validity.</span></div>
+                  <div><b>03</b><span>Stored paper gross R is not fee-adjusted account P&amp;L or equity drawdown.</span></div>
+                  <div><b>04</b><span>Stale, missing or unsupported fields remain unavailable instead of being estimated.</span></div>
+                  <div><b>05</b><span>No signal, strategy approval, order or execution alert can be created from this page.</span></div>
+                </div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · AI ANALYST</span><span>DETERMINISTIC EVIDENCE · NO GENERATIVE CLAIMS</span></footer>
+            </>
+          ) : active === "Risk Management" ? (
+            <>
+              <div className="page-heading">
+                <div>
+                  <div className="eyebrow">PAPER RISK VISIBILITY · READ ONLY</div>
+                  <h1>Risk Management</h1>
+                  <p>Persisted paper-ledger diagnostics and explicit risk-data gaps. This is not an account-level risk engine.</p>
+                </div>
+                <StatusPill tone={apiData.risk?.status === "available" ? "green" : "amber"}>{apiData.risk?.status ?? "unavailable"}</StatusPill>
+              </div>
+              <div className="notice">
+                <span className="notice-icon">i</span>
+                <div>
+                  <strong>{apiData.risk?.status === "available" ? "Paper risk snapshot is readable" : apiData.loading ? "Loading paper risk snapshot" : "Paper risk snapshot unavailable"}</strong>
+                  <p>{apiData.risk?.source ?? "Risk source unavailable"} · {apiData.risk?.as_of ?? "Snapshot time unavailable"} · Values below are limited to persisted paper records.</p>
+                </div>
+                <span className="notice-code">NO LIVE RISK CONTROLS</span>
+              </div>
+              <div className="metric-grid">
+                <MetricCard label="Open paper positions" value={apiData.risk?.status === "available" ? formatArtifactValue(apiData.risk.open_positions) : "—"} note="Persisted simulated positions" icon="⇄" />
+                <MetricCard label="Pending outcomes" value={apiData.risk?.status === "available" ? formatArtifactValue(apiData.risk.pending_outcomes) : "—"} note="Existing lifecycle queue" icon="◷" />
+                <MetricCard label="Retained gross R" value={apiData.risk?.status === "available" ? formatLevel(apiData.risk.realized_gross_r_retained_history, 3) : "—"} note="Stored gross-R history only" icon="◇" />
+                <MetricCard label="Retained gross-R drawdown" value={apiData.risk?.status === "available" ? formatLevel(apiData.risk.max_drawdown_r_retained_history, 3) : "—"} note="Not account-equity drawdown" icon="⌁" />
+                <MetricCard label="Account equity" value="—" note="Not persisted by the current paper engine" icon="◉" />
+                <MetricCard label="Notional exposure" value="—" note="Position quantities are not persisted" icon="↗" />
+                <MetricCard label="Circuit breaker" value="—" note="No persisted circuit-breaker state" icon="⛨" />
+                <MetricCard label="Numeric gross-R records" value={apiData.risk?.status === "available" ? formatArtifactValue(apiData.risk.retained_history_trades) : "—"} note="Records included in the retained R diagnostic" icon="▤" />
+              </div>
+              <section className="panel risk-position-panel">
+                <div className="panel-heading"><div><h2>Open-position price risk</h2><p>Entry-to-stop distance per simulated position; size and capital risk are unknown</p></div><StatusPill>PRICE GEOMETRY ONLY</StatusPill></div>
+                {apiData.positions?.status === "available" && paperPositionRows.length ? (
+                  <div className="risk-position-list">
+                    <div className="risk-position-row risk-position-head"><span>SYMBOL / STRATEGY</span><span>SIDE</span><span>ENTRY</span><span>STOP</span><span>PRICE DISTANCE</span><span>DISTANCE %</span></div>
+                    {paperPositionRows.map((position, index) => {
+                      const entry = position.entry;
+                      const stop = position.sl;
+                      const valid = typeof entry === "number" && Number.isFinite(entry) && entry > 0 && typeof stop === "number" && Number.isFinite(stop);
+                      const distance = valid ? Math.abs(entry - stop) : null;
+                      const distancePct = valid && distance != null ? (distance / entry) * 100 : null;
+                      return (
+                        <div className="risk-position-row" key={position.signal_id ?? position.sym ?? index}>
+                          <div><strong>{position.sym ?? "—"}</strong><small>{position.strategy_id ?? position.setup_type ?? "Strategy unavailable"}</small></div>
+                          <span>{position.dir ?? "—"}</span>
+                          <span>{formatLevel(entry, 6)}</span>
+                          <span>{formatLevel(stop, 6)}</span>
+                          <span>{formatLevel(distance, 6)}</span>
+                          <span>{distancePct == null ? "—" : formatLevel(distancePct, 3) + "%"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="paper-empty">{apiData.positions?.status === "available" ? "No open paper positions are currently persisted." : "Position geometry is unavailable because the paper-state source is unavailable."}</div>
+                )}
+                <div className="panel-foot">Distance is absolute entry-to-stop price movement. Without quantity, leverage, contract multiplier and account equity it cannot be converted into monetary risk or portfolio exposure.</div>
+              </section>
+              <section className="panel risk-readiness-panel">
+                <div className="panel-heading"><div><h2>Risk-control data readiness</h2><p>Required inputs for an account-level risk engine</p></div><StatusPill>GAPS EXPOSED</StatusPill></div>
+                <div className="risk-readiness-grid">
+                  <div><span>Account capital / equity</span><StatusPill>NOT PERSISTED</StatusPill><small>Risk per trade and account drawdown cannot be calculated.</small></div>
+                  <div><span>Position quantity / notional</span><StatusPill>NOT PERSISTED</StatusPill><small>Portfolio concentration and leverage cannot be calculated.</small></div>
+                  <div><span>Daily loss limit / circuit breaker</span><StatusPill>NOT PERSISTED</StatusPill><small>No active risk-control state is exposed by the paper engine.</small></div>
+                  <div><span>Net costs / funding cashflows</span><StatusPill>NOT IN GROSS R</StatusPill><small>Stored lifecycle gross R excludes fee-adjusted account P&amp;L.</small></div>
+                  <div><span>Trade-level stop geometry</span><StatusPill tone={apiData.positions?.status === "available" ? "green" : "amber"}>{apiData.positions?.status === "available" ? "AVAILABLE WHEN PRESENT" : "UNAVAILABLE"}</StatusPill><small>Price distance can be displayed for persisted open positions.</small></div>
+                  <div><span>Retained history</span><StatusPill tone={apiData.history?.status === "available" ? "green" : "amber"}>{apiData.history?.status ?? "unavailable"}</StatusPill><small>{apiData.history?.retained_trade_limit == null ? "Retention limit unavailable" : "Source retention limit: " + String(apiData.history.retained_trade_limit) + " records"}.</small></div>
+                </div>
+              </section>
+              <footer className="page-footer"><span>SALTY QUANT TERMINAL · RISK MANAGEMENT</span><span>DIAGNOSTICS ONLY · NO AUTOMATIC CONTROLS</span></footer>
             </>
           ) : (
             <div className="module-empty">
