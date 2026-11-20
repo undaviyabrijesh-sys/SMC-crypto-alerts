@@ -1,4 +1,5 @@
 name: ETHUSDT Supertrend Intraday Cross-Asset Replication
+run-name: ETH Supertrend — authoritative archive replay
 
 on:
   push:
