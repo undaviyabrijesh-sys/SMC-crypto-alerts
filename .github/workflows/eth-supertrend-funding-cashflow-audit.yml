@@ -104,7 +104,7 @@ jobs:
             "symbol":"ETHUSDT",
             "strategy":"15m Supertrend actual funding cashflow audit",
             "run_id":int(os.environ["GITHUB_RUN_ID"]),
-            "start_utc":s["split_boundaries"]["development_last_bar_open"],
+            "start_utc":s["data_quality"]["source_start_utc"],
             "end_utc":s["split_boundaries"]["validation_last_bar_open"],
             "configurations":1,
             "trade_count":a+b,
