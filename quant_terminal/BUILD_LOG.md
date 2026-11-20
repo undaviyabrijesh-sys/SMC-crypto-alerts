@@ -145,3 +145,11 @@
 - Updated the Overview eyebrow to remove a stale hard-coded calendar date.
 - Frontend type-check/production build for these latest two views is pending the next frontend workflow run. Existing API contracts remain unchanged; no order, alert or paper-state mutation routes were added.
 - No deployment, main-branch modification or production rule change.
+
+## 2026-11-20 — Backtesting CSV evidence preview
+
+- Extended the existing Backtesting artifact cards to render a collapsed, horizontally scrollable preview of the last up to 25 rows already returned by the read-only API for persisted CSV artifacts.
+- The preview uses the artifact's recorded column names and row values verbatim; it does not calculate, normalize, or promote performance metrics in the browser.
+- Kept the API's existing 512 KB per-file parsing cap and 25-row response bound. Files without supported CSV rows continue to show metadata/provenance only.
+- Added compact responsive table styling. No API route, engine, paper state, execution behavior, or strategy validation gate changed.
+- Next frontend check: TypeScript and production build on `ai-quant-rebuild`.
