@@ -277,7 +277,7 @@ def build_backtest_snapshot(limit: int = 50) -> dict[str, Any]:
                 try:
                     payload = json.loads(path.read_text(encoding="utf-8"))
                     if isinstance(payload, dict):
-                        item["metadata"] = {key: payload[key] for key in ("status", "symbol", "asset", "strategy", "strategy_id", "run_id", "start_utc", "end_utc", "configurations", "trade_count", "validation_passes", "oos_evaluated") if key in payload}
+                        item["metadata"] = {key: payload[key] for key in ("status", "symbol", "asset", "strategy", "strategy_id", "run_id", "start_utc", "end_utc", "data_source_end_utc", "configurations", "trade_count", "validation_passes", "oos_evaluated", "decision", "parent_workflow_run_id", "funding_records", "funding_sha256", "funding_accounting_status", "primary_cost_bps_round_trip") if key in payload}
                 except (OSError, UnicodeError, json.JSONDecodeError):
                     item["metadata_status"] = "unreadable"
             elif path.suffix.lower() == ".csv" and path.stat().st_size <= 512_000:

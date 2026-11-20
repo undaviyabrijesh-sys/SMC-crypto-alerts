@@ -174,3 +174,9 @@
 - Added the 1,483-row official ETHUSDT funding snapshot and reproducible actual-funding audit outputs to the research branch.
 - Committed normalized metadata, funding-aware trade ledgers, monthly/regime/side summaries, cost sensitivity and ambiguous-settlement rows under quant_discovery/. The existing read-only Backtesting artifact index discovers these CSV/metadata/report files; it does not recompute them.
 - The audit is explicitly research-only and rejected; no strategy promotion, paper-state mutation, live order or alert route was added.
+
+
+## 2026-11-20 — Backtesting metadata exposes funding evidence
+- Expanded the read-only artifact metadata projection to include decision, parent workflow, funding record count/hash, funding accounting status, primary assumed round-trip cost and source-data end time.
+- The ETHUSDT actual-funding audit metadata and its four saved trade ledgers are now discoverable in Backtesting. All trade-ledger CSVs are below the API's 512 KB preview cap; the UI still shows only the last 25 rows per file and does not recompute results.
+- Added a regression test for these funding-evidence fields. The data remains research-only and rejected; no promotion state or live execution route was added.

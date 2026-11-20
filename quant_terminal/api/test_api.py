@@ -115,6 +115,12 @@ class ReadOnlyApiTests(unittest.TestCase):
             "strategy": "EMA20 pullback event study",
             "run_id": "test-run",
             "oos_evaluated": False,
+            "decision": "no_promotion",
+            "parent_workflow_run_id": 44693535437,
+            "funding_records": 1483,
+            "funding_sha256": "23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6",
+            "funding_accounting_status": "actual_event_time_with_boundary_bounds",
+            "primary_cost_bps_round_trip": 12,
         }), encoding="utf-8")
         metrics = self.discovery_dir / "ETH_TEST_METRICS.csv"
         metrics.write_text("horizon,events,mean_net_bps" + chr(10) + "4h,16,30.18" + chr(10), encoding="utf-8")
@@ -125,6 +131,10 @@ class ReadOnlyApiTests(unittest.TestCase):
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["status"], "completed_inconclusive")
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["symbol"], "ETHUSDT")
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["oos_evaluated"], False)
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["decision"], "no_promotion")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["funding_records"], 1483)
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["funding_accounting_status"], "actual_event_time_with_boundary_bounds")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["primary_cost_bps_round_trip"], 12)
         self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["columns"], ["horizon", "events", "mean_net_bps"])
         self.assertEqual(artifacts["ETH_TEST_METRICS.csv"]["rows"][0]["mean_net_bps"], "30.18")
 

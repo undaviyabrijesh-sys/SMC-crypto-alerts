@@ -14,5 +14,6 @@
   "funding_sha256": "23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6",
   "primary_cost_bps_round_trip": 12,
   "decision": "no_promotion; funding accounting correction only; retired holdout not evaluated",
-  "data_source_end_utc": "2026-07-14T23:45:00+00:00"
+  "data_source_end_utc": "2026-07-14T23:45:00+00:00",
+  "funding_accounting_status": "actual_event_time_with_boundary_bounds"
 }
