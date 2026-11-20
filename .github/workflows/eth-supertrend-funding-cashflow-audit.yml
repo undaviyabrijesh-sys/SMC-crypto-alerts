@@ -1,0 +1,101 @@
+name: ETHUSDT Supertrend Actual Funding Cashflow Audit
+run-name: ETH Supertrend — actual funding events and cashflow bounds
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/eth_supertrend_actual_funding_cashflow_audit.py"
+      - "research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv"
+      - ".github/workflows/eth-supertrend-funding-cashflow-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: eth-supertrend-funding-cashflow-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_ETH_SUPERTREND_FUNDING_AUDIT:'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+
+      - name: Download immutable parent Supertrend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ethusdt-supertrend-intraday-replication-2026-11-20
+          path: parent_artifact
+          repository: ${{ github.repository }}
+          run-id: 44693535437
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile audit and reused engines
+        run: |
+          python -m py_compile \
+            research/eth_supertrend_actual_funding_cashflow_audit.py \
+            research/eth_supertrend_intraday_replication.py \
+            research/binance_ethusdt_ema20_cross_exchange_replication.py \
+            research/supertrend_intraday_backtest.py
+
+      - name: Run deterministic funding accounting tests
+        run: python research/eth_supertrend_actual_funding_cashflow_audit.py --self-test
+
+      - name: Verify committed official funding snapshot
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          p=Path("research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv")
+          d=pd.read_csv(p)
+          assert len(d)==1483, f"expected 1483 funding events, got {len(d)}"
+          assert d.symbol.eq("ETHUSDT").all()
+          assert d.fundingTime.is_monotonic_increasing
+          assert not d.fundingTime.duplicated().any()
+          assert d.markPrice.notna().all() and (d.markPrice.astype(float)>0).all()
+          print(f"PASS official funding snapshot: {len(d)} rows")
+          print(f"first={d.fundingTime.iloc[0]} last={d.fundingTime.iloc[-1]}")
+          PY
+
+      - name: Replay every raw flip with actual funding cashflows
+        run: |
+          python research/eth_supertrend_actual_funding_cashflow_audit.py \
+            --parent-artifact parent_artifact \
+            --funding-csv research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv \
+            --out eth_supertrend_funding_audit_results
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          if [ -f eth_supertrend_funding_audit_results/REPORT.md ]; then
+            cat eth_supertrend_funding_audit_results/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Funding cashflow audit did not produce REPORT.md; inspect the failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload reproducible funding audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ethusdt-supertrend-actual-funding-cashflow-audit-${{ github.run_id }}
+          path: |
+            eth_supertrend_funding_audit_results/
+          if-no-files-found: warn
+          retention-days: 30
