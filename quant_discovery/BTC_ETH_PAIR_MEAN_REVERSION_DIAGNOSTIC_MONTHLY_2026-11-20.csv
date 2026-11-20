@@ -1,0 +1,15 @@
+candidate,split,month,count,net_R,mean_R
+best_validation_candidate_min20,train,2025-09,4,-1.026352,-0.256588
+best_validation_candidate_min20,train,2025-10,24,-7.190689,-0.299612
+best_validation_candidate_min20,train,2025-11,32,-8.090429,-0.252826
+best_validation_candidate_min20,train,2025-12,20,-3.473965,-0.173698
+best_validation_candidate_min20,train,2026-01,25,-6.309815,-0.252393
+best_validation_candidate_min20,train,2026-02,10,-0.872405,-0.087241
+best_validation_candidate_min20,train,2026-03,25,-2.907660,-0.116306
+best_validation_candidate_min20,train,2026-04,19,-4.737729,-0.249354
+best_validation_candidate_min20,train,2026-05,21,0.822730,0.039178
+best_validation_candidate_min20,train,2026-06,20,-3.314777,-0.165739
+best_validation_candidate_min20,train,2026-07,6,-1.800823,-0.300137
+best_validation_candidate_min20,validation,2026-07,9,-1.296841,-0.144093
+best_validation_candidate_min20,validation,2026-08,12,-1.844422,-0.153702
+best_validation_candidate_min20,validation,2026-09,13,1.506669,0.115898

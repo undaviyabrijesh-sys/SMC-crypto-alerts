@@ -180,3 +180,11 @@
 - Expanded the read-only artifact metadata projection to include decision, parent workflow, funding record count/hash, funding accounting status, primary assumed round-trip cost and source-data end time.
 - The ETHUSDT actual-funding audit metadata and its four saved trade ledgers are now discoverable in Backtesting. All trade-ledger CSVs are below the API's 512 KB preview cap; the UI still shows only the last 25 rows per file and does not recompute results.
 - Added a regression test for these funding-evidence fields. The data remains research-only and rejected; no promotion state or live execution route was added.
+
+
+## 2026-11-20 — BTC/ETH pair study indexed in Backtesting
+
+- Added normalized pair-study RESULTS Markdown, METADATA JSON, METRICS CSV and diagnostic monthly/regime CSVs under `quant_discovery/`; the existing read-only artifact index discovers these files without a new endpoint or backtest engine.
+- The indexed record is explicitly `completed_rejected`: 576 nominal configurations, zero training-eligible, zero validation passes, OOS not evaluated. The full matrix and raw trades remain in the GitHub Actions artifact; the committed CSVs are bounded summaries.
+- Metadata records the source hashes, workflow/artifact IDs, chronological boundaries, primary assumed cost and the conditional funding-avoidance caveat. No UI-side metric calculation or strategy promotion.
+- Existing frontend/API implementation is unchanged. This is data indexing only; no paper-state, order, alert or production rule mutation.
