@@ -68,3 +68,8 @@ For a single-host local development setup, run FastAPI on 127.0.0.1:8000 and Nex
 ### Backtesting CSV previews
 
 The Backtesting UI renders a collapsed, horizontally scrollable preview of the last up to 25 rows returned for each supported CSV artifact under `quant_discovery/`. The API reads the persisted file verbatim, only when it is at most 512 KB. It does not recalculate metrics, infer a strategy's approval state, or treat an artifact row as an executed/live trade. Larger files remain listed by filename and size without a row preview.
+
+
+## Backtesting artifact metadata
+
+The read-only backtest inventory projects recorded status, strategy, symbol, run/date range, configuration and trade counts, validation/OOS state, decision, parent workflow, funding record count/hash, funding-accounting status, primary assumed round-trip cost and source-data end time. CSV previews remain bounded to the final 25 rows and files up to 512 KB. These are persisted research artifacts only; the API never reruns a backtest or infers approval from a file.
