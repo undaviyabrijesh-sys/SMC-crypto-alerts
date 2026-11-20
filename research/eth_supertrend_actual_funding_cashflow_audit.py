@@ -417,6 +417,8 @@ def run(parent_artifact: Path, funding_path: Path, output_dir: Path) -> dict:
     signals = st.build_signals(data, tr, "hl2", 10, 3.0)
     if len(signals) != 1043:
         raise AuditError(f"Unexpected raw Supertrend flip count: {len(signals)}")
+    risk_guard_exclusions = parent.risk_guard_exclusions(data, signals)
+    pd.DataFrame(risk_guard_exclusions).to_csv(output_dir / "risk_guard_excluded_signals.csv", index=False)
     gap_mask = data.index.to_series().diff().ne(BAR).to_numpy(copy=True)
     gap_mask[0] = False
     config = {
@@ -471,9 +473,11 @@ def run(parent_artifact: Path, funding_path: Path, output_dir: Path) -> dict:
             regimes.extend(summary_rows(trades, f"{label}/{sample}", "regime", bound))
             sides.extend(summary_rows(trades, f"{label}/{sample}", "side", bound))
         for cost in COSTS_BPS:
-            cost_frame = apply_funding(trades.drop(columns=[
-                c for c in trades.columns if c in ("cost_R", "cost_bps_round_trip", "net_R_lower", "net_R_upper")
-            ]), funding, cost)
+            drop_columns = [
+                c for c in trades.columns
+                if c.startswith("funding_") or c in ("cost_R", "cost_bps_round_trip", "net_R_lower", "net_R_upper")
+            ]
+            cost_frame = apply_funding(trades.drop(columns=drop_columns), funding, cost)
             cost_rows.append({
                 "sample": f"{label}/{sample}",
                 "cost_bps_round_trip": cost,
@@ -534,6 +538,7 @@ def run(parent_artifact: Path, funding_path: Path, output_dir: Path) -> dict:
             "funding_rows": int(len(funding)),
             "funding_sha256": funding_meta["sha256"],
             "raw_supertrend_flips": int(len(signals)),
+            "inherited_risk_guard_exclusions": int(len(risk_guard_exclusions)),
             "funding_schedule": funding_meta,
             "coverage": coverage,
         },
