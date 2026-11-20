@@ -135,3 +135,13 @@
 - Added two more deterministic tests to the VWAP script (UTC-day VWAP reset and exact 648-config count), then added an end-exclusive split-boundary metadata helper/test. Latest self-test-only workflow [44637457514](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44637457514) passed all 11 deterministic tests. Historical download, matrix, summary and artifact steps were skipped as intended.
 - The VWAP workflow now requires workflow_dispatch or a push containing [run-btc-vwap-matrix] to run the expensive 2-year matrix; ordinary pushes run tests only. The ETH workflow similarly requires workflow_dispatch or [run-eth-replication], and its artifact-upload step is gated to the same full-run condition. Two intermediate ETH PR runs failed because the upload step still ran after the historical download was skipped; the upload guard was corrected, and [44637089205](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44637089205) passed.
 - Current UI is still a local read-only development app. No deployment, main-branch modification, production rule change, live alert, paper-state write or exchange order.
+
+## 2026-11-20 — AI Analyst and Risk Management evidence views implemented
+
+- Connected the final two first-release terminal sections using the existing read-only API snapshots; no new API endpoint or second risk engine was added.
+- AI Analyst is explicitly a deterministic evidence brief, not a claim of an external generative-model connection. It summarizes persisted market freshness, scanner candidate counts, research-ledger entries, backtest artifact inventory, paper position state and authoritative approved-strategy count. It does not predict prices, create signals or promote strategies.
+- Risk Management displays the existing retained gross-R diagnostics, open/pending paper counts and per-position entry-to-stop price distance when those fields exist. It explicitly leaves account equity, notional exposure, monetary position risk, daily loss limit and circuit-breaker state unavailable because the source paper schema does not persist the required capital/quantity/control inputs.
+- No account-level risk is inferred from position count or price distance. Gross-R drawdown is labeled as a retained diagnostic, not account-equity drawdown.
+- Updated the Overview eyebrow to remove a stale hard-coded calendar date.
+- Frontend type-check/production build for these latest two views is pending the next frontend workflow run. Existing API contracts remain unchanged; no order, alert or paper-state mutation routes were added.
+- No deployment, main-branch modification or production rule change.
