@@ -92,7 +92,7 @@ No regime filter is justified by this sample.
 
 ## Funding-selection limitation
 
-There were 1,043 raw flips. The causal funding-window exclusion removed 543 (52.06%) and left 500 eligible signals; the inherited 5% risk guard rejected three more. Exclusions were concentrated in entry hours 04–07, 12–15 and 20–23 UTC. This changes the eligible session mix. The study therefore does not establish how the unfiltered strategy behaves with actual funding cashflows.
+There were 1,043 raw flips. The **assumed default-8h grid screen** removed 543 (52.06%) and left 500 signals for this conditional replay; the inherited 5% risk guard rejected three more. Exclusions were concentrated in entry hours 04–07, 12–15 and 20–23 UTC, materially changing the session mix. Binance USD-M funding settlement intervals can change to hourly and four-hour schedules; the official funding history exposes the actual per-event `fundingTime`, `fundingRate` and associated `markPrice`. Therefore the 543/500 counts are not verified actual-settlement counts, and this replay is not funding-aware. See [Binance funding history API](https://developers.binance.info/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data) and [Binance interval-change notice](https://www.binance.com/en/square/post/23518010224298).
 
 ## Execution audit
 
@@ -102,8 +102,8 @@ There were 1,043 raw flips. The causal funding-window exclusion removed 543 (52.
 
 ## Decision and next step
 
-Reject this exact ETH Supertrend baseline. It fails development and validation gates, has weak gross expectancy, poor month/regime stability and does not survive the 6 bps sensitivity. Do not tune the same validation sample or inspect the retired holdout.
+Do not promote this ETH Supertrend baseline. The tested default-grid subset fails development and validation gates, has weak gross expectancy, poor month/regime stability and does not survive the 6 bps sensitivity. This is a rejection of the tested proxy implementation, not a complete funding-aware assessment of every raw flip. Do not tune the same validation sample or inspect the retired holdout.
 
-A future confirmation would require a separate preregistration and genuinely new data after 2026-07-15 00:00 UTC, with actual funding cashflows or a defensible execution-time funding model rather than excluding more than half the signals.
+Next diagnostic: replay the unchanged signals/entries/exits against actual Binance funding events and associated mark prices, report exact funding cashflows plus conservative bounds for funding events falling inside an OHLC exit bar, and compare with the default-grid exclusion. This is an accounting correction only, not a strategy rescue or OOS evaluation.
 
 The successful workflow produced the 12-file artifact `ethusdt-supertrend-intraday-replication-2026-11-20.zip`; the saved trade ledgers and supporting tables are retained there. No strategy was promoted, no live alerts were sent and no orders were placed.

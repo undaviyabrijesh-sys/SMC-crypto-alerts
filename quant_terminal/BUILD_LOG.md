@@ -162,3 +162,10 @@
 - Added an API regression test for monthly and trade-named CSV discovery plus the 25-row bound.
 - Completed authoritative ETH Supertrend workflow [44693535437](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44693535437). All 53 official archive checksums passed; 47,424 contiguous bars were reconstructed. Development: 332 trades, PF 0.789, -24.25R, DD -28.58R, 13-loss streak. Validation: 75 trades, PF 0.748, -8.26R, DD -18.42R, 11-loss streak. Both gates failed; final 15% holdout remains retired/not evaluated. Full report and normalized result tables are committed under `quant_discovery/`.
 - No API order/alert routes, strategy engines, paper state or production rules changed.
+
+
+## 2026-11-20 — ETH funding schedule caveat recorded
+
+- Corrected the ETH Supertrend result metadata/report: the earlier 00:00/08:00/16:00 UTC exclusion was only an assumed default-8h grid, not a verified historical ETHUSDT settlement schedule. Binance USD-M can switch settlement frequency; exact historical funding records expose `fundingTime`, `fundingRate` and `markPrice`.
+- The 543 excluded / 500 remaining signal counts are now explicitly conditional on that proxy. The negative price-cost development/validation findings remain recorded, but no funding-aware PnL is claimed.
+- Added a frozen funding-cashflow audit preregistration. It is an accounting correction only: same signal rules, no parameter tuning, no OOS, no promotion.

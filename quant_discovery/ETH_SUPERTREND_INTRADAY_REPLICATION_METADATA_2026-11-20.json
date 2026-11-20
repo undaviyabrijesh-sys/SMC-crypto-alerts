@@ -1,5 +1,5 @@
 {
-  "status": "completed_validation_gates_failed_holdout_retired",
+  "status": "completed_price_cost_replay_default_funding_grid_unverified_holdout_retired",
   "symbol": "ETHUSDT",
   "asset": "ETH",
   "venue": "Binance USD-M",
@@ -49,16 +49,26 @@
     "separate_spread_slippage_market_impact": false
   },
   "funding_policy": {
-    "settlement_hours_utc": [
+    "model": "assumed_default_8h_grid_exclusion_proxy",
+    "settlement_hours_utc_assumed": [
       0,
       8,
       16
     ],
-    "excluded_raw_signals": 543,
+    "actual_historical_schedule_verified": false,
+    "excluded_raw_signals_under_assumed_grid": 543,
     "raw_signals": 1043,
-    "eligible_after_funding_exclusion": 500,
+    "remaining_after_assumed_grid_screen": 500,
     "excluded_fraction": 0.5206136146,
     "cashflows_applied": false,
+    "note": "This is not an actual funding-safe classification. Binance USD-M funding intervals may change to hourly or four-hour schedules; use actual historical fundingTime records and associated markPrice for cashflow attribution.",
+    "official_history_fields": [
+      "fundingTime",
+      "fundingRate",
+      "markPrice"
+    ],
+    "official_history_url": "https://developers.binance.info/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data",
+    "interval_change_notice_url": "https://www.binance.com/en/square/post/23518010224298",
     "excluded_entry_hours_utc": {
       "4": 27,
       "5": 29,
@@ -138,11 +148,12 @@
       "stop_gap_fills": 0
     }
   },
-  "decision": "rejected_exact_frozen_definition",
+  "decision": "do_not_promote_default_8h_grid_proxy; actual_funding_cashflow_diagnostic_pending",
   "limitations": [
     "Funding exclusion removes 52.06% of raw flips and changes session composition",
     "Flat costs do not model separate spread, variable slippage or market impact",
     "R is not account return or equity drawdown",
-    "Final 15% holdout is retired and not evaluated"
+    "Final 15% holdout is retired and not evaluated",
+    "The 00:00/08:00/16:00 UTC funding exclusion is only an assumed default-8h grid. Binance USD-M funding intervals can change; 543 excluded and 500 remaining signals are not verified actual-settlement counts."
   ]
 }
