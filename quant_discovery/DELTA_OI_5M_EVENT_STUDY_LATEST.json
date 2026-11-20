@@ -1,0 +1,458 @@
+{
+  "classification": "descriptive event study only; not an executable strategy backtest",
+  "venue": "Delta Exchange India OI-prefixed historical candles and traded-price candles",
+  "period": {
+    "requested_start_utc": "2024-11-20T03:55:00+00:00",
+    "requested_end_exclusive_utc": "2026-11-20T15:55:00+00:00"
+  },
+  "symbols": [
+    "BTCUSD",
+    "ETHUSD"
+  ],
+  "data": {
+    "BTC_oi_5m": {
+      "api_symbol": "OI:BTCUSD",
+      "resolution": "5m",
+      "step_seconds": 300,
+      "rows": 210374,
+      "first_open_utc": "2024-11-20T03:55:00+00:00",
+      "last_open_utc": "2026-11-20T15:50:00+00:00",
+      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "gap_intervals": 4,
+      "irregular_intervals": 4,
+      "largest_gap_seconds": 2400,
+      "csv_sha256": "83a5fe31d5ddf3fd55916e7f84e9c6162ccdbef6b02e4b398010a69b06589284",
+      "response_bytes_sha256": "329115184a0270dfc72b12189b4961623c13220e5826b34417f146c9f7d36517",
+      "quarantined_nonpositive_oi_rows": 2,
+      "quarantine_csv_path": "results/oi-5m-event-study/data/BTC_oi_5m_quarantined_nonpositive_oi.csv",
+      "quarantine_csv_sha256": "b966f64f36809a1cef8ee920c90222fe5aa262eb75fbc56c4f194078718a7588",
+      "quarantined_timestamp_examples_utc": [
+        "2026-04-12T21:10:00+00:00",
+        "2026-05-19T13:20:00+00:00"
+      ],
+      "request_count": 117,
+      "csv_path": "results/oi-5m-event-study/data/BTC_oi_5m.csv"
+    },
+    "BTC_price_5m": {
+      "api_symbol": "BTCUSD",
+      "resolution": "5m",
+      "step_seconds": 300,
+      "rows": 210384,
+      "first_open_utc": "2024-11-20T03:55:00+00:00",
+      "last_open_utc": "2026-11-20T15:50:00+00:00",
+      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "gap_intervals": 0,
+      "irregular_intervals": 0,
+      "largest_gap_seconds": 300,
+      "csv_sha256": "d9d2796acb84375386d6af1a4eecee6d1d6c6f9b5550ab0b0fa7ea7e1bcfd731",
+      "response_bytes_sha256": "92ccdc513bd8990807f7f9581250b1135ea3c9291696e52b9a3f3ae46e03fbe5",
+      "quarantined_nonpositive_oi_rows": 0,
+      "quarantine_csv_path": null,
+      "quarantine_csv_sha256": null,
+      "quarantined_timestamp_examples_utc": [],
+      "request_count": 117,
+      "csv_path": "results/oi-5m-event-study/data/BTC_price_5m.csv"
+    },
+    "BTC_oi_1h": {
+      "api_symbol": "OI:BTCUSD",
+      "resolution": "1h",
+      "step_seconds": 3600,
+      "rows": 17530,
+      "first_open_utc": "2024-11-20T03:00:00+00:00",
+      "last_open_utc": "2026-11-20T14:00:00+00:00",
+      "last_close_utc": "2026-11-20T15:00:00+00:00",
+      "gap_intervals": 2,
+      "irregular_intervals": 2,
+      "largest_gap_seconds": 7200,
+      "csv_sha256": "0907467804ca090418859bc853a31a7f89dbfdcb609c94fc4f33a9a6048946b8",
+      "response_bytes_sha256": "d335c82dc9e4b280ce6d6b7234fbf02bd06919c0a0f525d3952ef104dcb51016",
+      "quarantined_nonpositive_oi_rows": 2,
+      "quarantine_csv_path": "results/oi-5m-event-study/data/BTC_oi_1h_quarantined_nonpositive_oi.csv",
+      "quarantine_csv_sha256": "d9f69482a815530f8a50882f64d8a3a7f47a62a04e2f9771fbc9246d29578179",
+      "quarantined_timestamp_examples_utc": [
+        "2026-04-12T21:00:00+00:00",
+        "2026-05-19T13:00:00+00:00"
+      ],
+      "request_count": 10,
+      "csv_path": "results/oi-5m-event-study/data/BTC_oi_1h.csv"
+    },
+    "ETH_oi_5m": {
+      "api_symbol": "OI:ETHUSD",
+      "resolution": "5m",
+      "step_seconds": 300,
+      "rows": 210381,
+      "first_open_utc": "2024-11-20T03:55:00+00:00",
+      "last_open_utc": "2026-11-20T15:50:00+00:00",
+      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "gap_intervals": 3,
+      "irregular_intervals": 3,
+      "largest_gap_seconds": 600,
+      "csv_sha256": "52326fe7334c91d3484bc4af18cbb7a5d24f522e5da278616ef2a0307386f68a",
+      "response_bytes_sha256": "d395c7d2169f95a8f01580788287b66a57dfc1af85b76ff01cda2c8fbf4fa2b5",
+      "quarantined_nonpositive_oi_rows": 2,
+      "quarantine_csv_path": "results/oi-5m-event-study/data/ETH_oi_5m_quarantined_nonpositive_oi.csv",
+      "quarantine_csv_sha256": "f21e3d1d64f5774556f178f10b0e87ee06a66a0f34ee63af96d2a44df29b68c1",
+      "quarantined_timestamp_examples_utc": [
+        "2026-04-12T21:10:00+00:00",
+        "2026-05-19T13:20:00+00:00"
+      ],
+      "request_count": 117,
+      "csv_path": "results/oi-5m-event-study/data/ETH_oi_5m.csv"
+    },
+    "ETH_price_5m": {
+      "api_symbol": "ETHUSD",
+      "resolution": "5m",
+      "step_seconds": 300,
+      "rows": 210384,
+      "first_open_utc": "2024-11-20T03:55:00+00:00",
+      "last_open_utc": "2026-11-20T15:50:00+00:00",
+      "last_close_utc": "2026-11-20T15:55:00+00:00",
+      "gap_intervals": 0,
+      "irregular_intervals": 0,
+      "largest_gap_seconds": 300,
+      "csv_sha256": "57f276bc5ba89c0c6370dbb264683236d9228ec7b6caa85354a1e0e8b82b166a",
+      "response_bytes_sha256": "3ccdc0562a369a08610b9e86f131f3f45c0555efbf5e40fb0831366c108b5c31",
+      "quarantined_nonpositive_oi_rows": 0,
+      "quarantine_csv_path": null,
+      "quarantine_csv_sha256": null,
+      "quarantined_timestamp_examples_utc": [],
+      "request_count": 117,
+      "csv_path": "results/oi-5m-event-study/data/ETH_price_5m.csv"
+    },
+    "ETH_oi_1h": {
+      "api_symbol": "OI:ETHUSD",
+      "resolution": "1h",
+      "step_seconds": 3600,
+      "rows": 17530,
+      "first_open_utc": "2024-11-20T03:00:00+00:00",
+      "last_open_utc": "2026-11-20T14:00:00+00:00",
+      "last_close_utc": "2026-11-20T15:00:00+00:00",
+      "gap_intervals": 2,
+      "irregular_intervals": 2,
+      "largest_gap_seconds": 7200,
+      "csv_sha256": "9644c74c417bdedbc5fcacd565399deebcaa1ee2bb3b1ea856968dac716a4e79",
+      "response_bytes_sha256": "af5f889dc98f39ad34bfce46e8e4fc136bd203277104f71a4f286951c17e3c41",
+      "quarantined_nonpositive_oi_rows": 2,
+      "quarantine_csv_path": "results/oi-5m-event-study/data/ETH_oi_1h_quarantined_nonpositive_oi.csv",
+      "quarantine_csv_sha256": "16e51c88e68357efe89a0eae1065db2c68faabc37180e12007ffa65f0ccbd128",
+      "quarantined_timestamp_examples_utc": [
+        "2026-04-12T21:00:00+00:00",
+        "2026-05-19T13:00:00+00:00"
+      ],
+      "request_count": 10,
+      "csv_path": "results/oi-5m-event-study/data/ETH_oi_1h.csv"
+    }
+  },
+  "data_quality": {
+    "BTC": {
+      "oi_5m_rows": 210374,
+      "price_5m_rows": 210384,
+      "oi_1h_rows": 17530,
+      "oi_5m_gaps": 4,
+      "price_5m_gaps": 0,
+      "oi_1h_gaps": 2,
+      "five_to_one_hour_aggregation": {
+        "complete_5m_hours": 17526,
+        "hourly_api_rows": 17530,
+        "common_hours": 17526,
+        "matches_within_0_1pct": 17510,
+        "match_fraction_pct": 99.909,
+        "examples": [
+          {
+            "hour_open_utc": "2024-11-20T04:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T05:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T06:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T07:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T08:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T10:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T11:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T12:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T13:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T14:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          }
+        ]
+      }
+    },
+    "ETH": {
+      "oi_5m_rows": 210381,
+      "price_5m_rows": 210384,
+      "oi_1h_rows": 17530,
+      "oi_5m_gaps": 3,
+      "price_5m_gaps": 0,
+      "oi_1h_gaps": 2,
+      "five_to_one_hour_aggregation": {
+        "complete_5m_hours": 17528,
+        "hourly_api_rows": 17530,
+        "common_hours": 17528,
+        "matches_within_0_1pct": 17505,
+        "match_fraction_pct": 99.869,
+        "examples": [
+          {
+            "hour_open_utc": "2024-11-20T04:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T05:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T06:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T07:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2024-11-20T08:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T10:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T11:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T12:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T13:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          },
+          {
+            "hour_open_utc": "2026-11-20T14:00:00+00:00",
+            "relative_difference_pct": {
+              "open": 0.0,
+              "high": 0.0,
+              "low": 0.0,
+              "close": 0.0
+            },
+            "match_within_0_1pct": true
+          }
+        ]
+      }
+    }
+  },
+  "splits": {
+    "BTC": {
+      "train_end_available_utc": "2026-04-15T12:20:30+00:00",
+      "validation_end_available_utc": "2026-08-03T02:07:45+00:00",
+      "first_oos_available_utc": "2026-08-03T02:12:45+00:00",
+      "first_available_utc": "2024-11-20T04:00:00+00:00",
+      "last_available_utc": "2026-11-20T15:55:00+00:00",
+      "feature_rows": 210374
+    },
+    "ETH": {
+      "train_end_available_utc": "2026-04-15T12:20:30+00:00",
+      "validation_end_available_utc": "2026-08-03T02:07:45+00:00",
+      "first_oos_available_utc": "2026-08-03T02:12:45+00:00",
+      "first_available_utc": "2024-11-20T04:00:00+00:00",
+      "last_available_utc": "2026-11-20T15:55:00+00:00",
+      "feature_rows": 210381
+    }
+  },
+  "event_method": {
+    "signal_availability": "5m candle open + 5 minutes; only completed OI and traded-price bars",
+    "thresholds_abs_oi_change_pct": [
+      1.0,
+      2.0,
+      5.0,
+      10.0
+    ],
+    "cooldowns_minutes": [
+      60,
+      480
+    ],
+    "main_spec": "absolute 5m OI close-to-close change >=5%, 60-minute cooldown; expansion/contraction separated",
+    "zscore_context": "prior 288 completed 5m changes, current observation excluded; descriptive only",
+    "outcomes": "future traded-price and OI close changes at 5m/15m/1h/4h; no outcome crosses a gap",
+    "matching": "nearest non-event controls in same split, same 5m price direction, same prior-24h regime and training-defined absolute-return decile; no reuse; within +/-24h"
+  },
+  "cross_venue": {
+    "BTC_matched_control": {
+      "matched_pairs": 2753,
+      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls without replacement",
+      "mean_event_minus_control_15m_pct": 0.01151792430740077,
+      "event_beats_control_15m_fraction_pct": 51.18053033054849,
+      "mean_event_minus_control_1h_pct": 0.002067912405102054,
+      "event_beats_control_1h_fraction_pct": 50.708318198329096,
+      "mean_event_minus_control_4h_pct": 0.0016528665432962413,
+      "event_beats_control_4h_fraction_pct": 50.52669814747548
+    },
+    "BTC_cross_venue": {
+      "status": "unavailable",
+      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+    },
+    "ETH_matched_control": {
+      "matched_pairs": 2965,
+      "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls without replacement",
+      "mean_event_minus_control_15m_pct": 0.016664437084314,
+      "event_beats_control_15m_fraction_pct": 51.36593591905565,
+      "mean_event_minus_control_1h_pct": 0.02074666482446683,
+      "event_beats_control_1h_fraction_pct": 51.70320404721753,
+      "mean_event_minus_control_4h_pct": 0.0348246203302527,
+      "event_beats_control_4h_fraction_pct": 52.54637436762226
+    },
+    "ETH_cross_venue": {
+      "status": "unavailable",
+      "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+    }
+  },
+  "binance_errors": {
+    "BTC": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500",
+    "ETH": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792684800000&endTime=1794481200000&limit=500"
+  },
+  "limitations": [
+    "Binance USD-M OI statistics retain only the latest month; cross-venue control is recent-period context, not two-year history.",
+    "Delta OI values are treated as base-asset OI based on prior ticker/candle reconciliation; venue-specific OI is not economically identical to Binance aggregate OI.",
+    "This is conditional forward behaviour, not a strategy test; no entries, stops, fees, funding, R, PF or trading drawdown.",
+    "Matched controls are descriptive and may retain unobserved confounding.",
+    "Historical Delta OI sampling remains exchange-specific despite prior live ticker and 5m/1h reconciliation."
+  ]
+}
