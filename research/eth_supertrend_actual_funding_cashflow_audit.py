@@ -533,6 +533,8 @@ def run(parent_artifact: Path, funding_path: Path, output_dir: Path) -> dict:
         "cost_sensitivity_bps_round_trip": list(COSTS_BPS),
         "data_quality": {
             "source_candle_rows": int(len(data)),
+            "source_start_utc": data.index[0].isoformat(),
+            "source_end_utc": data.index[-1].isoformat(),
             "source_candle_sha256": source_digest,
             "complete_4h_bars": int(len(hourly)),
             "funding_rows": int(len(funding)),
