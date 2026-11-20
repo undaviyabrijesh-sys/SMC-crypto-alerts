@@ -35,6 +35,7 @@ MIN_TRAIN_TRADES = 40
 MIN_VALIDATION_TRADES = 20
 MIN_PF = 1.05
 MIN_POSITIVE_MONTH_FRACTION = 0.50
+OOS_EVALUATION_ENABLED = False  # reserved 15% segment was accessed during local preflight
 SETTLEMENT_HOURS = (0, 8, 16)
 
 
@@ -174,7 +175,8 @@ def split_gates(train: dict, validation: dict) -> dict:
     return {
         "train_pass": bool(train_pass),
         "validation_pass": bool(validation_pass),
-        "oos_eligible": bool(train_pass and validation_pass),
+        "development_validation_pass": bool(train_pass and validation_pass),
+        "oos_eligible": False,
     }
 
 
@@ -230,10 +232,16 @@ def self_test() -> list[str]:
     for left, right in ((atr_a, atr_b), (line_a, line_b)):
         assert np.allclose(left.iloc[:350], right.iloc[:350], equal_nan=True)
     assert np.array_equal(direction_a[:350], direction_b[:350])
+    assert OOS_EVALUATION_ENABLED is False
+    assert split_gates(
+        {"trades": 0, "net_R": 0, "profit_factor": None, "max_drawdown_R": 0, "positive_month_fraction": 0},
+        {"trades": 0, "net_R": 0, "profit_factor": None, "max_drawdown_R": 0, "positive_month_fraction": 0},
+    )["oos_eligible"] is False
     return [
         "funding_boundary_entry_exclusion",
         "cost_R_conversion",
         "supertrend_future_perturbation_invariance",
+        "contaminated_holdout_evaluation_disabled",
     ]
 
 
@@ -289,11 +297,11 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
         for sample, trades in trade_sets.items()
     }
     gates = split_gates(metrics_primary["development"], metrics_primary["validation"])
-    if gates["oos_eligible"]:
-        trade_sets["final_holdout"] = st.simulate(data, signals, config, *segments["final_holdout"], gap_mask)
-        metrics_primary["final_holdout"] = sample_metrics(trade_sets["final_holdout"], PRIMARY_COST_BPS)
-    else:
-        metrics_primary["final_holdout"] = None
+    # The reserved 15% segment was inadvertently materialized during a local
+    # preflight split-loop before the promotion gates were applied. Retire it:
+    # never evaluate or report its performance from this study.
+    metrics_primary["final_holdout"] = None
+    oos_status = "retired_contaminated_by_local_preflight_access"
 
     regime_sets = {}
     for sample, trades in trade_sets.items():
@@ -341,11 +349,12 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
         "final_holdout_last_bar_open": data.index[-1].isoformat(),
         "row_fractions": {
             "development": TRAIN_FRACTION, "validation": VALIDATION_FRACTION,
-            "final_holdout": 1 - TRAIN_FRACTION - VALIDATION_FRACTION,
+            "retired_holdout": 1 - TRAIN_FRACTION - VALIDATION_FRACTION,
         },
+        "retired_holdout_status": "not_evaluated_contaminated_by_local_preflight_access",
     }
     summary = {
-        "status": "completed" if gates["oos_eligible"] else "completed_no_oos_gate",
+        "status": "completed_validation_gates_passed_holdout_retired" if gates["development_validation_pass"] else "completed_validation_gates_failed_holdout_retired",
         "symbol": "ETHUSDT", "strategy": "15m Supertrend flip continuation",
         "configuration": config, "max_hold_bars": MAX_HOLD_BARS, "max_hold_hours": 4,
         "primary_cost_bps_round_trip": PRIMARY_COST_BPS, "cost_sensitivity_bps_round_trip": list(COSTS_BPS),
@@ -358,7 +367,9 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
         "data_quality": data_quality, "splits": split_metadata,
         "signal_count_before_funding_exclusion": len(signals_all),
         "train_gate": gates["train_pass"], "validation_gate": gates["validation_pass"],
-        "oos_evaluated": gates["oos_eligible"], "metrics_at_primary_cost": metrics_primary,
+        "development_validation_pass": gates["development_validation_pass"],
+        "oos_evaluated": False, "oos_status": oos_status,
+        "metrics_at_primary_cost": metrics_primary,
         "ambiguity_audit": ambiguity, "self_tests": self_test(),
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
@@ -376,7 +387,10 @@ def run(output_dir: Path, csv_path: Path | None = None) -> dict:
     for sample in ("development", "validation", "final_holdout"):
         result = metrics_primary.get(sample)
         if result is None:
-            report.append(f"- {sample}: not evaluated; the preregistered promotion gate was not met.")
+            if sample == "final_holdout":
+                report.append("- final_holdout: retired and not evaluated; the reserved segment was accidentally materialized during a local preflight before gates were applied. It must not be used for OOS claims.")
+            else:
+                report.append(f"- {sample}: not evaluated; the preregistered promotion gate was not met.")
             continue
         report.append(
             f"- {sample}: {result['trades']} trades, {result['profitable_pct']:.2f}% profitable, "
