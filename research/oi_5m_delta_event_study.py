@@ -459,6 +459,8 @@ def cluster_bootstrap_mean_ci(pairs: pd.DataFrame, column: str,
 
 def matched_control_bootstrap(pairs: pd.DataFrame, asset: str,
                               n_boot: int = 5000) -> list[dict]:
+    if pairs.empty:
+        return []
     rows = []
     for split, group in pairs.groupby("split", sort=True):
         for horizon in ("15m", "1h", "4h"):
@@ -742,13 +744,13 @@ def self_test() -> None:
     assert og.loc[idx[349] + pd.Timedelta(minutes=5), "segment"] != og.loc[idx[351] + pd.Timedelta(minutes=5), "segment"]
     assert pd.isna(og.loc[idx[349] + pd.Timedelta(minutes=5), "fwd_price_1h_pct"])
     # Matched-control forward windows must not overlap any event or each other.
-    mt = pd.date_range("2025-01-01T00:00:00Z", periods=1200, freq="5min")
+    mt = pd.date_range("2025-01-01T00:00:00Z", periods=2400, freq="5min")
     mf = pd.DataFrame(index=mt)
-    mf["split"] = np.where(np.arange(1200) < 500, "train",
-        np.where(np.arange(1200) < 850, "validation", "oos"))
+    mf["split"] = np.where(np.arange(2400) < 1000, "train",
+        np.where(np.arange(2400) < 1700, "validation", "oos"))
     mf["split_safe_4h"] = True
     mf["oi_pct"] = 0.0
-    event_times = mt[[600, 1000]]
+    event_times = mt[[1300, 2050]]
     mf.loc[event_times, "oi_pct"] = 0.06
     mf["price_ret_5m"] = 0.001
     mf["regime24h"] = "range"

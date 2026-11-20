@@ -2292,3 +2292,10 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Add deterministic regression tests for control/event and control/control non-overlap and bootstrap reproducibility. The full historical rerun is triggered only by a commit beginning RUN_OI_5M_EVENT_STUDY:. Do not treat the previous overlapping-control estimates as valid.
 - Cross-venue Binance OI comparison in the prior run was unavailable because the USD-M OI endpoint returned HTTP 451 from the runner. Delta OI remains venue-specific base-asset OI per the 2026-11-12 unit audit; large jumps must not be described as market-wide crowding.
 - No strategy promotion, live alert, paper-state mutation, exchange order, main-branch change or deployment.
+
+
+### 2026-11-21 — corrected matched-control self-test fixture
+
+- The first overlap-correction commit [68ffea0ef7b2dc2cd149e58712b118cd7bad7adc](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/commit/68ffea0ef7b2dc2cd149e58712b118cd7bad7adc) compiled but its synthetic non-overlap self-test failed before historical download. No new market result was produced.
+- Expanded the deterministic fixture to 2,400 five-minute rows with longer train/validation/OOS blocks and two interior test events. Added an empty-pair guard to the bootstrap summary helper. The matching rule itself is unchanged.
+- Rerun the deterministic tests and full two-year study; report only after the workflow and artifact are inspected.

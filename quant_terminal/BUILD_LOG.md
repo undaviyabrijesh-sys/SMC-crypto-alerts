@@ -208,3 +208,10 @@
 - Full two-year historical rerun is triggered by this commit. No new OI event-study result is claimed until the workflow completes and the artifact is inspected.
 - Existing full repository CI had passed before this methodology correction; new script tests and full historical rerun remain pending.
 - No strategy promotion, production rule, paper state, live alert, exchange order, main branch or deployment changed.
+
+
+### 2026-11-21 — OI matched-control test fixture correction
+
+- The first non-overlap correction commit compiled, but the synthetic test fixture did not yield the expected two matched pairs; the workflow correctly stopped before downloading market data. No result was published.
+- Expanded the fixture to 2,400 bars with larger chronological blocks and moved test events away from split edges. Added a defensive empty-pair return in the bootstrap summarizer.
+- The 4h05 non-overlap matching rule, cluster bootstrap and historical event definitions are unchanged. The next workflow run must pass all deterministic tests before historical acquisition proceeds.
