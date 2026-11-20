@@ -714,6 +714,25 @@ export default function Home() {
                       {artifact.columns?.length ? (
                         <p className="backtest-columns">CSV columns: {artifact.columns.join(" · ")}</p>
                       ) : null}
+                      {artifact.columns?.length && artifact.rows?.length ? (
+                        <details className="backtest-csv-preview">
+                          <summary>Last {artifact.rows.length} persisted CSV rows · preview only</summary>
+                          <div className="backtest-csv-table-wrap">
+                            <table className="backtest-csv-table">
+                              <thead>
+                                <tr>{artifact.columns.map((column) => <th key={column}>{column.replace(/_/g, " ")}</th>)}</tr>
+                              </thead>
+                              <tbody>
+                                {artifact.rows.map((row, rowIndex) => (
+                                  <tr key={rowIndex}>
+                                    {artifact.columns!.map((column) => <td key={column}>{row[column] ?? "—"}</td>)}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </details>
+                      ) : null}
                       {artifact.metadata_status === "unreadable" || artifact.data_status === "unreadable" ? (
                         <p className="backtest-warning">The file exists, but its metadata or sample rows could not be parsed.</p>
                       ) : null}
