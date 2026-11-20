@@ -188,3 +188,11 @@
 - The indexed record is explicitly `completed_rejected`: 576 nominal configurations, zero training-eligible, zero validation passes, OOS not evaluated. The full matrix and raw trades remain in the GitHub Actions artifact; the committed CSVs are bounded summaries.
 - Metadata records the source hashes, workflow/artifact IDs, chronological boundaries, primary assumed cost and the conditional funding-avoidance caveat. No UI-side metric calculation or strategy promotion.
 - Existing frontend/API implementation is unchanged. This is data indexing only; no paper-state, order, alert or production rule mutation.
+
+
+## 2026-11-20 — BTC/ETH train-only cointegration diagnostic indexed in Quant Terminal
+
+- Added normalized train-only Engle–Granger report, metadata JSON, five-test Holm-adjusted results CSV, ADF precondition CSV and lagged rolling-beta stability CSV under quant_discovery/.
+- The existing read-only Backtesting artifact index discovers these persisted files; the Strategy Research page also receives the updated research ledger entry. No new API route, frontend-side statistical calculation or trading engine was added.
+- The diagnostic is explicitly train-only, statistical (not a backtest), and classified no_full_train_cointegration_evidence. It records that validation/OOS data were not downloaded or evaluated.
+- Full workflow artifact: 14645822140, SHA-256 0375c84a337b9821397452e020833ae99352ef746ab08695fc46b0dbae2ad975. No strategy promotion, paper-state mutation, order/alert route or production rule change.

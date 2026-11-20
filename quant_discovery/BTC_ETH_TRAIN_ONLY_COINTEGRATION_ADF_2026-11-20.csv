@@ -1,0 +1,5 @@
+series,transform,observations,adf_statistic,p_value,used_lag,test_observations,critical_1pct,critical_5pct,critical_10pct
+BTC,log_level,29443,-1.163964,0.688902,7,29435,-3.430572,-2.861638,-2.566822
+ETH,log_level,29443,-1.314647,0.622445,5,29437,-3.430572,-2.861638,-2.566822
+BTC,first_difference_of_log_level,29442,-66.113001,0.000000,6,29435,-3.430572,-2.861638,-2.566822
+ETH,first_difference_of_log_level,29442,-76.778353,0.000000,4,29437,-3.430572,-2.861638,-2.566822
