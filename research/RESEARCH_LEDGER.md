@@ -2313,3 +2313,36 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - The second self-test diagnostic showed zero matches despite a valid synthetic fixture. Inspection identified a pandas 3.1 datetime-resolution mismatch: DatetimeIndex.asi8 can be microseconds while Timedelta.value is nanoseconds. Comparing these integers silently rejected every control as too close.
 - Added explicit DatetimeIndex.as_unit("ns") conversion for event/control timestamps and made the regression fixture intentionally use microsecond-resolution timestamps. This directly tests the cross-version failure mode.
 - Matching rule remains 4h05 non-overlap. No historical market data was downloaded or evaluated by the failed runs [44800653783](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44800653783), [44800874439](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44800874439), and [44801096312](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44801096312).
+
+
+## 2026-11-21 — Delta BTC/ETH 5m OI matched-control rerun v2 — completed; no predictive edge established
+
+### Methodology correction
+- Audit of the original 5m OI event study found that the nearest-control selector allowed overlapping four-hour forward-return windows: 89.03% of BTC pairs and 89.61% of ETH pairs had a control within four hours of its event. Original matched-control lift estimates are superseded and must not be cited.
+- Corrected matching keeps the frozen same-split, same 5m price-direction, same prior-24h regime and training-defined absolute-return-decile strata, nearest control within +/-24h, no control reuse, and requires every selected control to be at least 4h05 from every main event and every other selected control.
+- Added post-match fail-closed assertions against event/control overlap, control reuse, control/control overlap, split mismatch and four-hour horizon crossing. Bootstrap seed namespace changed to matched-control-v2 so results are reproducible under the corrected method.
+- Timestamp distance checks explicitly normalize DatetimeIndex values to nanoseconds to avoid pandas 3.1 microsecond/nanosecond resolution mismatch.
+- The authoritative workflow passed all 10 OI causality, gap, aggregation, non-overlap matching and bootstrap deterministic tests before downloading market data.
+
+### Data and execution
+- Authoritative workflow [44836001648](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44836001648) completed successfully on code commit 1ff39ecf8f3c307b403102da0a97df790e4be404. It downloaded the two-year Delta series, ran the corrected event study, published the summary and uploaded artifact [14676839997](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44836001648/artifacts/14676839997), 74,570,936 bytes, SHA-256 808461b5f1d346c4f1ed87b67f9dacfc05f1c1c5edac6904c2a50d275efebcdb.
+- Window: 2024-11-20 11:20 UTC to 2026-11-20 23:20 UTC. BTC and ETH each: 210,382 5m OI rows, 210,384 5m traded-price rows, 17,530 hourly OI rows; 2 OI5m gaps, 0 price5m gaps, 2 OI1h gaps.
+- 5m-to-1h OI OHLC aggregation matches within 0.1% for 17,511/17,529 common BTC hours (99.897%) and 17,506/17,529 ETH hours (99.869%). Two non-positive 5m OI rows per asset were quarantined. Chronological split boundaries are recorded in metadata; OOS begins 2026-08-03 09:37:45 UTC.
+- Frozen primary threshold 5.0%, cooldown 60 minutes: BTC events train/validation/OOS 2,385/276/204; ETH 2,651/195/213. OOS 1h directional continuation hit rates were BTC 52.45% (204 events, only 9 expansions) and ETH 43.19% (213 events, only 9 expansions). These are raw event-direction statistics, not trading win rates or PnL.
+- Monthly 1h continuation hit rate exceeded 50% in 15/25 BTC asset-month-direction rows and 12/25 ETH rows. This is descriptive monthly instability, not an edge or a strategy metric.
+
+### Corrected matched-control results
+- Total matched pairs: BTC 685 (train 476, validation 120, OOS 89); ETH 627 (train 433, validation 94, OOS 100). Every selected control is at least 245 minutes from every main event and from other selected controls. No control is reused.
+- 5,000-replicate UTC event-day cluster bootstrap intervals are descriptive only and are not adjusted across the threshold/cooldown grid.
+- BTC OOS paired lift: 15m +1.08 bps (95% CI -8.43 to +10.42; 89 pairs/64 event days); 1h +10.58 bps (-8.39 to +28.71); 4h +14.10 bps (-17.24 to +48.27). Event beat-control rates were 51.7%, 50.6% and 49.4% respectively.
+- ETH OOS paired lift: 15m -5.90 bps (95% CI -19.59 to +6.96; 100 pairs/68 event days); 1h -11.95 bps (-35.37 to +12.61); 4h -22.65 bps (-63.40 to +22.01). Event beat-control rates were 47.0%, 48.0% and 47.0%.
+- All BTC and ETH OOS confidence intervals cross zero. BTC's 4h training lift was negative (-17.05 bps; 95% CI -28.55 to -5.64), while validation and OOS were inconclusive, not a stable positive effect. ETH training/validation/OOS intervals also cross zero.
+
+### Decision and limitations
+- Decision: reject/close this exact OI >=5% impulse as a demonstrated predictive edge. The corrected independent-control OOS evidence is inconclusive for BTC and negative in point estimate for ETH; it does not justify an execution backtest.
+- Binance USD-M historical OI cross-venue context was unavailable in this runner (HTTP 451 for BTCUSDT and ETHUSDT). Delta OI is venue-specific and must not be interpreted as global market positioning.
+- This is a descriptive event study only. It does not apply transaction costs or funding cashflows and has no entry/stop/target trade rules; win rate, PF, net R, trading drawdown and losing streak are not applicable. No strategy was promoted.
+- Published files: `quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md`, matching JSON metadata, event-summary/monthly/regime CSVs and matched-control-bootstrap CSV. The existing read-only Quant Terminal artifact index discovers them automatically; no new endpoint or engine was added.
+- Push and PR deterministic repository CI passed (runs [44836012213](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44836012213) and [44836001600](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44836001600)); Quant Terminal API [44836011897](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44836011897), frontend [44836011790](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44836011790), and the existing ETH Supertrend research regression [44836011946](https://github.com/undaviyabrishesh-sys/SMC-crypto-alerts/actions/runs/44836011946) also passed on the same code head.
+- Next research step: audit historical availability and semantics for a distinct BTC perpetual premium/index-basis dislocation event study. Prior-art search found the existing funding-sentiment work uses funding rates, not premium-index basis. Do not preregister or run a strategy until the exact USD-M premium-index history endpoint, spot/index alignment, coverage and costs are verified. No parameter tuning of the rejected OI event study.
+
