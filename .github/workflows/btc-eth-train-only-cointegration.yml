@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: btc-eth-train-only-cointegration-${{ github.ref }}}
+  group: btc-eth-train-only-cointegration
   cancel-in-progress: true
 
 jobs:
@@ -93,7 +93,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-eth-train-only-cointegration-${{ github.run_id }}}
+          name: btc-eth-train-only-cointegration
           path: |
             historical_data/cointegration_train_only/BTC_15m.csv
             historical_data/cointegration_train_only/ETH_15m.csv
