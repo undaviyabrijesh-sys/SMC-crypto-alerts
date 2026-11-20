@@ -4696,14 +4696,6 @@
           "close": 0.7001,
           "volume": 226967.3
         },
-        "latest_completed_15m": {
-          "timestamp_utc": "2026-11-20T07:45:00Z",
-          "open": 0.6974,
-          "high": 0.6996,
-          "low": 0.6974,
-          "close": 0.6984,
-          "volume": 0
-        },
         "terminal_status": "stop_touched_before_entry_zone",
         "paper_fill_confirmed": false,
         "realized_r": null,
@@ -5190,14 +5182,6 @@
             "low": 0.6993,
             "close": 0.7001,
             "volume": 226967.3
-          },
-          "latest_completed_15m": {
-            "timestamp_utc": "2026-11-20T07:45:00Z",
-            "open": 0.6974,
-            "high": 0.6996,
-            "low": 0.6974,
-            "close": 0.6984,
-            "volume": 0
           },
           "terminal_status": "stop_touched_before_entry_zone",
           "paper_fill_confirmed": false,
