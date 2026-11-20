@@ -6,31 +6,31 @@ Classification: descriptive event study only; not a strategy or executable backt
 - Absolute 5m OI close-to-close change >=5%; 60-minute cooldown.
 - Event timestamp is candle open + 5m (close availability).
 - Outcomes: future traded-price and OI changes at 5m/15m/1h/4h; gaps are never filled.
-- Matched controls: same split/direction/regime and training-only absolute-return decile; nearest within +/-24h.
+- Matched controls: same split/direction/regime and training-only absolute-return decile; nearest within +/-24h; controls are at least 4h05 from every main event and from other selected controls; post-match invariants are asserted.
 
 ## Data quality
 - **BTC:** OI5m 210,382; traded price5m 210,384; OI1h 17,530; quarantined non-positive OI5m rows 2; 5m/1h OI match 17511/17529 common hours (99.897%); gaps OI5m 2, price5m 0, OI1h 2.
 - **ETH:** OI5m 210,382; traded price5m 210,384; OI1h 17,530; quarantined non-positive OI5m rows 2; 5m/1h OI match 17506/17529 common hours (99.869%); gaps OI5m 2, price5m 0, OI1h 2.
 
 ## Event summaries
-- BTC train abs-OI>=2.0%: 6150 events; mean 1h forward price 0.004374133592130499; 1h continuation hit 48.762618039726476%; mean 1h OI change 0.8831542082263062%.
-- BTC validation abs-OI>=2.0%: 935 events; mean 1h forward price 0.009845136344170648; 1h continuation hit 44.81283422459893%; mean 1h OI change 1.0961971188649107%.
-- BTC oos abs-OI>=2.0%: 799 events; mean 1h forward price 0.004622771146568663; 1h continuation hit 44.11027568922306%; mean 1h OI change 0.9890838407131859%.
-- BTC train abs-OI>=5.0%: 2386 events; mean 1h forward price 0.0032727610364170633; 1h continuation hit 46.49601342845153%; mean 1h OI change 1.7248665837751609%.
-- BTC validation abs-OI>=5.0%: 276 events; mean 1h forward price 0.0015602476853580618; 1h continuation hit 42.7536231884058%; mean 1h OI change 2.0594278808700364%.
-- BTC oos abs-OI>=5.0%: 203 events; mean 1h forward price 0.03820110878672358; 1h continuation hit 52.70935960591133%; mean 1h OI change 2.156392176895959%.
-- ETH train abs-OI>=2.0%: 6979 events; mean 1h forward price -0.005380045143015633; 1h continuation hit 47.901092581943644%; mean 1h OI change 0.7712573050859718%.
-- ETH validation abs-OI>=2.0%: 772 events; mean 1h forward price 0.0031597261348745454; 1h continuation hit 46.43320363164721%; mean 1h OI change 0.8886997515044874%.
-- ETH oos abs-OI>=2.0%: 736 events; mean 1h forward price 0.004103234112866732; 1h continuation hit 43.673469387755105%; mean 1h OI change 1.1131683408109132%.
-- ETH train abs-OI>=5.0%: 2650 events; mean 1h forward price 0.012826275824882216; 1h continuation hit 47.27891156462585%; mean 1h OI change 1.8666770220822388%.
-- ETH validation abs-OI>=5.0%: 196 events; mean 1h forward price -0.0036834443959970022; 1h continuation hit 42.78350515463917%; mean 1h OI change 2.433838923612589%.
-- ETH oos abs-OI>=5.0%: 211 events; mean 1h forward price 0.04038915732095048; 1h continuation hit 43.127962085308056%; mean 1h OI change 2.6122480356662767%.
+- BTC train abs-OI>=2.0%: 6150 events; mean 1h forward price 0.004189280255337594; 1h continuation hit 48.74633669814393%; mean 1h OI change 0.8857041535847939%.
+- BTC validation abs-OI>=2.0%: 933 events; mean 1h forward price 0.009857454753352804; 1h continuation hit 45.01607717041801%; mean 1h OI change 1.1198633507513807%.
+- BTC oos abs-OI>=2.0%: 802 events; mean 1h forward price 0.002217238306023641; 1h continuation hit 44.06991260923846%; mean 1h OI change 0.9776556106083868%.
+- BTC train abs-OI>=5.0%: 2385 events; mean 1h forward price 0.0028707594121467127; 1h continuation hit 46.51553316540722%; mean 1h OI change 1.7037433726298705%.
+- BTC validation abs-OI>=5.0%: 276 events; mean 1h forward price 0.0005518095734054605; 1h continuation hit 43.11594202898551%; mean 1h OI change 2.093847047993386%.
+- BTC oos abs-OI>=5.0%: 204 events; mean 1h forward price 0.040444475494120044; 1h continuation hit 52.450980392156865%; mean 1h OI change 2.1247121548630807%.
+- ETH train abs-OI>=2.0%: 6978 events; mean 1h forward price -0.0053740162157145; 1h continuation hit 47.86484543493889%; mean 1h OI change 0.7715833145097816%.
+- ETH validation abs-OI>=2.0%: 770 events; mean 1h forward price 0.002340376397017612; 1h continuation hit 46.42392717815345%; mean 1h OI change 0.9149294668452725%.
+- ETH oos abs-OI>=2.0%: 738 events; mean 1h forward price 0.0006910127771233752; 1h continuation hit 43.69063772048847%; mean 1h OI change 1.114889126104491%.
+- ETH train abs-OI>=5.0%: 2651 events; mean 1h forward price 0.012874029802506709; 1h continuation hit 47.298828862863616%; mean 1h OI change 1.8672332328289665%.
+- ETH validation abs-OI>=5.0%: 195 events; mean 1h forward price 0.0004302739696879981; 1h continuation hit 43.005181347150256%; mean 1h OI change 2.5377824679319914%.
+- ETH oos abs-OI>=5.0%: 213 events; mean 1h forward price 0.04111412236641021; 1h continuation hit 43.1924882629108%; mean 1h OI change 2.6049507386967887%.
 
 ## Matched controls and cross-venue
 {
   "BTC_matched_control": {
     "matched_pairs": 685,
-    "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse",
+    "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse; post-match non-overlap and split-safety invariants asserted",
     "minimum_forward_window_separation_minutes": 245,
     "mean_event_minus_control_15m_pct": 0.012155556283276622,
     "event_beats_control_15m_fraction_pct": 52.846715328467155,
@@ -48,8 +48,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 1.078000664273567,
         "median_lift_bps": 0.07336946600156047,
         "event_beats_control_pct": 51.68539325842697,
-        "ci_low_bps": -8.812794284640523,
-        "ci_high_bps": 10.555386072703849,
+        "ci_low_bps": -8.430059117470101,
+        "ci_high_bps": 10.418554220429199,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -62,8 +62,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 10.575602155942509,
         "median_lift_bps": 0.9380154909077731,
         "event_beats_control_pct": 50.56179775280899,
-        "ci_low_bps": -7.893834255389887,
-        "ci_high_bps": 29.163238723913615,
+        "ci_low_bps": -8.393221118448345,
+        "ci_high_bps": 28.70830446169735,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -76,8 +76,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 14.100363816597335,
         "median_lift_bps": -1.010636439566781,
         "event_beats_control_pct": 49.43820224719101,
-        "ci_low_bps": -16.932114005893194,
-        "ci_high_bps": 49.542165053172894,
+        "ci_low_bps": -17.242632235768337,
+        "ci_high_bps": 48.2695829280483,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -90,8 +90,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 1.0987369753101435,
         "median_lift_bps": 0.6496105378317463,
         "event_beats_control_pct": 51.05042016806722,
-        "ci_low_bps": -2.4722358635751727,
-        "ci_high_bps": 4.6460050882127835,
+        "ci_low_bps": -2.470103536041816,
+        "ci_high_bps": 4.677963082224673,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -104,8 +104,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -3.8437755637473154,
         "median_lift_bps": -4.35901076281664,
         "event_beats_control_pct": 46.42857142857143,
-        "ci_low_bps": -9.624931686954566,
-        "ci_high_bps": 2.1577702720528045,
+        "ci_low_bps": -9.733856113733802,
+        "ci_high_bps": 2.1006010217426185,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -118,8 +118,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -17.045150109475564,
         "median_lift_bps": -9.026523351967075,
         "event_beats_control_pct": 45.79831932773109,
-        "ci_low_bps": -28.35008889312008,
-        "ci_high_bps": -5.72554901051544,
+        "ci_low_bps": -28.55480486155864,
+        "ci_high_bps": -5.643569937430045,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -132,8 +132,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 1.7809562169706084,
         "median_lift_bps": 4.474365548310377,
         "event_beats_control_pct": 60.83333333333333,
-        "ci_low_bps": -6.969301529806722,
-        "ci_high_bps": 10.08262544564327,
+        "ci_low_bps": -7.1262196839083,
+        "ci_high_bps": 10.015355900486195,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -146,8 +146,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 1.6706998880471706,
         "median_lift_bps": 2.4223253093397235,
         "event_beats_control_pct": 51.66666666666667,
-        "ci_low_bps": -11.265307943948685,
-        "ci_high_bps": 15.213384409673928,
+        "ci_low_bps": -11.719435017437196,
+        "ci_high_bps": 14.66410064560466,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -160,8 +160,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -5.744647926167726,
         "median_lift_bps": -11.174660410621652,
         "event_beats_control_pct": 47.5,
-        "ci_low_bps": -25.85465726531524,
-        "ci_high_bps": 15.581463672016207,
+        "ci_low_bps": -26.772174800442244,
+        "ci_high_bps": 15.251903934979696,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       }
@@ -170,18 +170,18 @@ Classification: descriptive event study only; not a strategy or executable backt
   },
   "BTC_cross_venue": {
     "status": "unavailable",
-    "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500"
+    "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&startTime=1792710000000&endTime=1794506400000&limit=500"
   },
   "ETH_matched_control": {
     "matched_pairs": 627,
-    "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse",
+    "matching": "same split, same 5m price direction, same prior-24h regime, same training-defined absolute-return decile; nearest within +/-24h; controls at least 4h05 from every main-event timestamp; selected control windows at least 4h05 apart; no control reuse; post-match non-overlap and split-safety invariants asserted",
     "minimum_forward_window_separation_minutes": 245,
-    "mean_event_minus_control_15m_pct": -0.003871525393534209,
-    "event_beats_control_15m_fraction_pct": 49.601275917065394,
-    "mean_event_minus_control_1h_pct": -0.04664267011694411,
+    "mean_event_minus_control_15m_pct": -0.003644765343347485,
+    "event_beats_control_15m_fraction_pct": 49.760765550239235,
+    "mean_event_minus_control_1h_pct": -0.04589936342337302,
     "event_beats_control_1h_fraction_pct": 48.963317384370015,
-    "mean_event_minus_control_4h_pct": -0.06860352498100594,
-    "event_beats_control_4h_fraction_pct": 49.441786283891545,
+    "mean_event_minus_control_4h_pct": -0.0656392364863764,
+    "event_beats_control_4h_fraction_pct": 49.601275917065394,
     "cluster_bootstrap": [
       {
         "asset": "ETH",
@@ -192,8 +192,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -5.896580221703018,
         "median_lift_bps": -0.9850666960786736,
         "event_beats_control_pct": 47.0,
-        "ci_low_bps": -20.29088444135984,
-        "ci_high_bps": 7.465797431686602,
+        "ci_low_bps": -19.593462221106105,
+        "ci_high_bps": 6.962351293280921,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -206,8 +206,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -11.953894831972235,
         "median_lift_bps": -8.499539128468125,
         "event_beats_control_pct": 48.0,
-        "ci_low_bps": -36.279833719645346,
-        "ci_high_bps": 12.453829239549608,
+        "ci_low_bps": -35.37462591965794,
+        "ci_high_bps": 12.61073655001727,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -220,8 +220,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -22.645326520449878,
         "median_lift_bps": -10.082710650224925,
         "event_beats_control_pct": 47.0,
-        "ci_low_bps": -64.10582502526884,
-        "ci_high_bps": 18.937339908211083,
+        "ci_low_bps": -63.40377842195238,
+        "ci_high_bps": 22.010068127015597,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -234,8 +234,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": 1.0872754191164178,
         "median_lift_bps": 0.19526539173808644,
         "event_beats_control_pct": 50.11547344110855,
-        "ci_low_bps": -5.097516110839,
-        "ci_high_bps": 7.229813403225892,
+        "ci_low_bps": -4.854416069001929,
+        "ci_high_bps": 7.4227466630955234,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -248,8 +248,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -5.320231747857486,
         "median_lift_bps": -2.175048854968775,
         "event_beats_control_pct": 48.72979214780601,
-        "ci_low_bps": -15.804863755507444,
-        "ci_high_bps": 5.459959135921759,
+        "ci_low_bps": -16.09436737345832,
+        "ci_high_bps": 5.228454948944729,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -262,8 +262,8 @@ Classification: descriptive event study only; not a strategy or executable backt
         "mean_lift_bps": -10.917176856114057,
         "median_lift_bps": -2.017046001325795,
         "event_beats_control_pct": 49.19168591224018,
-        "ci_low_bps": -28.97922199190471,
-        "ci_high_bps": 7.908213036524031,
+        "ci_low_bps": -30.310050188793937,
+        "ci_high_bps": 8.116662175017881,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -272,12 +272,12 @@ Classification: descriptive event study only; not a strategy or executable backt
         "split": "validation",
         "horizon": "15m",
         "pairs": 94,
-        "event_days": 65,
-        "mean_lift_bps": -1.3178391115074704,
-        "median_lift_bps": 0.9315601400439188,
-        "event_beats_control_pct": 50.0,
-        "ci_low_bps": -11.188565995071047,
-        "ci_high_bps": 8.61598685821562,
+        "event_days": 64,
+        "mean_lift_bps": -1.1665853333510068,
+        "median_lift_bps": 3.017188511419966,
+        "event_beats_control_pct": 51.06382978723404,
+        "ci_low_bps": -11.270500836794529,
+        "ci_high_bps": 8.837079687407877,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -286,12 +286,12 @@ Classification: descriptive event study only; not a strategy or executable backt
         "split": "validation",
         "horizon": "1h",
         "pairs": 94,
-        "event_days": 65,
-        "mean_lift_bps": 6.1122809966714815,
+        "event_days": 64,
+        "mean_lift_bps": 6.608082376319432,
         "median_lift_bps": 0.7399872784674688,
         "event_beats_control_pct": 51.06382978723404,
-        "ci_low_bps": -10.229018884327722,
-        "ci_high_bps": 23.081767699540155,
+        "ci_low_bps": -9.798878875131017,
+        "ci_high_bps": 23.900605261295276,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       },
@@ -300,12 +300,12 @@ Classification: descriptive event study only; not a strategy or executable backt
         "split": "validation",
         "horizon": "4h",
         "pairs": 94,
-        "event_days": 65,
-        "mean_lift_bps": 28.61945972801385,
-        "median_lift_bps": 2.8532711221945783,
-        "event_beats_control_pct": 53.191489361702125,
-        "ci_low_bps": -4.855926391263911,
-        "ci_high_bps": 65.51775175454951,
+        "event_days": 64,
+        "mean_lift_bps": 30.596703223899723,
+        "median_lift_bps": 4.97725751319511,
+        "event_beats_control_pct": 54.25531914893617,
+        "ci_low_bps": -4.290259595038356,
+        "ci_high_bps": 67.94703539679658,
         "bootstrap_replicates": 5000,
         "cluster": "UTC event day"
       }
@@ -314,7 +314,7 @@ Classification: descriptive event study only; not a strategy or executable backt
   },
   "ETH_cross_venue": {
     "status": "unavailable",
-    "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792695600000&endTime=1794492000000&limit=500"
+    "error": "HTTPError: 451 Client Error:  for url: https://fapi.binance.com/futures/data/openInterestHist?symbol=ETHUSDT&period=1h&startTime=1792710000000&endTime=1794506400000&limit=500"
   }
 }
 
