@@ -20,7 +20,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  unit:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deterministic test dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Compile audit and reused engines
+        run: |
+          python -m py_compile \
+            research/eth_supertrend_actual_funding_cashflow_audit.py \
+            research/eth_supertrend_intraday_replication.py \
+            research/binance_ethusdt_ema20_cross_exchange_replication.py \
+            research/supertrend_intraday_backtest.py
+      - name: Run deterministic funding accounting tests
+        run: python research/eth_supertrend_actual_funding_cashflow_audit.py --self-test
+
   audit:
+    needs: unit
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_ETH_SUPERTREND_FUNDING_AUDIT:'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
