@@ -1,6 +1,6 @@
 # Salty Quant Research Ledger
 
-Last updated: 2026-11-19 (UTC)
+Last updated: 2026-11-20 (UTC)
 
 This ledger records reproducible experiments only. "Completed" means the workflow actually finished and outputs were inspected. No experiment here changes live signals or production rules.
 
