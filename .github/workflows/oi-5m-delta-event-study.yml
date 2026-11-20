@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: oi-5m-delta-event-study-\${{ github.ref }}
+  group: oi-5m-delta-event-study-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
       - name: Publish latest reproducible summary to research branch
         if: success()
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p quant_discovery
           cp results/oi-5m-event-study/report/summary.md quant_discovery/DELTA_OI_5M_EVENT_STUDY_LATEST.md
@@ -69,7 +69,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: delta-oi-5m-event-study-\${{ github.run_id }}
+          name: delta-oi-5m-event-study-${{ github.run_id }}
           path: results/oi-5m-event-study/
           if-no-files-found: warn
           retention-days: 30
