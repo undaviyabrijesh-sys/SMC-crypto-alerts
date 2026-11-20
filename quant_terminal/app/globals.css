@@ -178,3 +178,13 @@ button{cursor:pointer}
 .risk-readiness-grid small{display:block;margin-top:8px;color:#7e9099;font-size:8px;line-height:1.55}
 @media(max-width:850px){.analyst-grid{grid-template-columns:1fr}.analyst-guardrails{grid-template-columns:1fr}}
 @media(max-width:560px){.analyst-evidence-list>div{grid-template-columns:minmax(100px,1fr) auto}.risk-readiness-grid{grid-template-columns:1fr}.risk-position-list{padding:3px 9px}}
+
+/* Bounded read-only preview of persisted backtest CSV rows */
+.backtest-csv-preview{margin-top:11px;border-top:1px solid #1b2932;padding-top:9px;min-width:0}
+.backtest-csv-preview summary{cursor:pointer;color:#88c9ba;font-size:9px}
+.backtest-csv-table-wrap{margin-top:9px;max-width:100%;overflow:auto;border:1px solid #22323b;border-radius:6px}
+.backtest-csv-table{border-collapse:collapse;min-width:max-content;width:100%;font:8px 'DM Mono';color:#b9c8cd}
+.backtest-csv-table th,.backtest-csv-table td{padding:8px 10px;border-bottom:1px solid #1b2932;text-align:left;white-space:nowrap}
+.backtest-csv-table th{position:sticky;top:0;background:#111c23;color:#81969f;text-transform:uppercase;letter-spacing:.35px}
+.backtest-csv-table td{color:#c1d0d4}
+.backtest-csv-table tbody tr:last-child td{border-bottom:0}
