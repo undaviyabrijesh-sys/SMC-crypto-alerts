@@ -539,7 +539,7 @@ class StudyTests(unittest.TestCase):
         self.assertGreater(mean_distance_reduction(-10.0, -5.0, 0.0), 0)
         self.assertGreater(mean_distance_reduction(5.0, -2.0, 0.0), 0)
         self.assertLess(mean_distance_reduction(5.0, -8.0, 0.0), 0)
-        self.assertAlmostEqual(mean_distance_reduction(10.0, 7.0, 5.0), 1.0)
+        self.assertAlmostEqual(mean_distance_reduction(10.0, 7.0, 5.0), 3.0)
 
     def test_control_nonoverlap_and_no_reuse(self):
         n, z = 500, [None] * 500
