@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: btc-premium-basis-event-study-\${{ github.ref }}
+  group: btc-premium-basis-event-study-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -76,7 +76,7 @@ jobs:
           cp results/btc-premium-basis-event-study/matched_pairs.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_MATCHED_PAIRS_LATEST.csv
           cp results/btc-premium-basis-event-study/events.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_EVENTS_LATEST.csv
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_*
           if ! git diff --cached --quiet; then
             git commit -m "Publish BTC premium-basis event study results"
@@ -86,7 +86,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: btc-premium-basis-event-study-\${{ github.run_id }}
+          name: btc-premium-basis-event-study-${{ github.run_id }}
           path: results/btc-premium-basis-event-study/
           if-no-files-found: warn
           retention-days: 30
