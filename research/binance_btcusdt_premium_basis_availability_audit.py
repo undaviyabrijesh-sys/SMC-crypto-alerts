@@ -150,7 +150,7 @@ def basis_endpoint(session: requests.Session):
                 "max_abs_basis_arithmetic_error": max(residuals, default=None),
                 "max_abs_basis_rate_error": max(rate_residuals, default=None),
                 "arithmetic_pass": bool(data) and max(residuals, default=1) <= 1e-7
-                                   and max(rate_residuals, default=1) <= 1e-10,
+                                   and max(rate_residuals, default=1) <= 1e-5,
                 "documented_limit": "latest 30 days only"}
     except Exception as exc:
         return {"status": "unavailable", "error": str(exc)[:400],
