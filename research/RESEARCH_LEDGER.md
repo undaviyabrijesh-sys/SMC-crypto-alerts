@@ -2393,3 +2393,11 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Added a preregistered, deterministic source-repair addendum: only if all missing timestamps form complete UTC day(s), retrieve the exact matching daily archive for that same series and verify its sibling SHA-256, ZIP CRC, exact 288 rows, exact first/last timestamps, no gaps/duplicates and no overlap. After patch, the full month must be continuous and exactly complete. Partial-day gaps still fail; no interpolation/manual data is permitted.
 - Added a full-day-versus-partial-day deterministic test. The event threshold, prior-only 30-day z-score, 4h05 cooldown, 60/20/20 splits, control matching, 1h primary outcome and decision gate are unchanged.
 - The failed run did not publish artifacts and did not evaluate events. Rerun is pending after the correction.
+
+
+### 2026-11-21 — BTC premium-basis outcome-definition correction before accepting results
+
+- During code review, identified that the z-score side is relative to the preceding 30-day mean, not the absolute sign of basis. Labels implying absolute perp richness/cheapness were therefore incorrect.
+- The first outcome formula also measured directional movement and could report positive "reversion" after an overshoot that ended farther from the reference mean.
+- Before accepting any performance output, corrected the primary outcome to the reduction in absolute distance from the fixed event-time prior-only 30-day mean: abs(basis_event - prior_mean_event) - abs(basis_future - prior_mean_event). Matched controls use their own event-time prior mean. Mark/index and native premium-index secondary distance measures use their own event-time prior means.
+- Event threshold, lookback, cooldown, chronological splits, matching strata, horizons and decision gate are unchanged. The earlier signed-change outcome version is superseded. No results from that version may be used.
