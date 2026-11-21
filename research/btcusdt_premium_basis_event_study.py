@@ -110,6 +110,10 @@ def regime_of(ret24):
         return "bull"
     return "neutral"
 
+def utc_iso_ms(timestamp_ms):
+    return datetime.fromtimestamp(timestamp_ms / 1000.0, tz=timezone.utc).isoformat()
+
+
 def select_events(zscores, ret24, rv24, start, end):
     events, last = [], -10**12
     for i in range(start, max(start, end - HORIZONS["4h"])):
@@ -410,8 +414,8 @@ def run_study(out):
     for name, start, end in splits:
         split_meta.append({
             "split": name,
-            "start_utc": datetime.fromtimestamp(timestamps[start] / 1000, tz=timezone.utc).isoformat(),
-            "end_exclusive_utc": datetime.fromtimestamp(timestamps[end - 1] / 1000 + STEP_MS, tz=timezone.utc).isoformat(),
+            "start_utc": utc_iso_ms(timestamps[start]),
+            "end_exclusive_utc": utc_iso_ms(timestamps[end - 1] + STEP_MS),
             "bars": end - start,
         })
     manifest = {
@@ -553,6 +557,10 @@ class StudyTests(unittest.TestCase):
         self.assertGreaterEqual(abs(c1 - 100), 49)
         self.assertGreaterEqual(abs(c2 - 300), 49)
         self.assertGreaterEqual(abs(c2 - c1), 49)
+
+    def test_split_end_exclusive_uses_milliseconds_correctly(self):
+        start = archive_audit.utc_ms("2026-06-08")
+        self.assertEqual(utc_iso_ms(start + STEP_MS), "2026-06-08T00:05:00+00:00")
 
     def test_exact_split_sizes(self):
         bounds = split_bounds(1000, 105120)
