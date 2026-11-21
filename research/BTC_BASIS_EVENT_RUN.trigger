@@ -1,1 +1,1 @@
-RUN_BTC_BASIS_EVENT: retry frozen BTCUSDT premium-basis event study after numeric self-test correction
+RUN_BTC_BASIS_EVENT: rerun 12-month BTC basis event study with checksum-verified daily full-day repair
