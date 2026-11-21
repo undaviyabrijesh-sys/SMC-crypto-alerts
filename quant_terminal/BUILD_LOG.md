@@ -228,3 +228,10 @@
 - The synthetic matched-control test exposed a real resolution mismatch: pandas 3.1 may expose DatetimeIndex.asi8 in microseconds, while Timedelta.value is nanoseconds. This caused the 4h05 distance guard to reject all candidate controls.
 - Added an explicit datetime_index_ns conversion using DatetimeIndex.as_unit("ns") and changed the regression fixture to microsecond-resolution timestamps so the test covers the failure mode.
 - The previous two test failures stopped before historical data download. No OI market result was generated. The next run must pass the new regression test before the two-year replay proceeds.
+
+
+## 2026-11-21 — BTC premium/index-basis data availability audit preregistered
+
+- Added a separate read-only research audit for four Binance USD-M 5m BTCUSDT series: contract, index, mark and premium-index klines.
+- The audit verifies monthly/daily archive checksums, ZIP CRC, schema, UTC timestamp alignment, coverage gaps, and—where public REST is reachable—archive/REST parity. It also checks the recent basis endpoint's arithmetic without treating its 30-day window as long history.
+- The audit intentionally does not calculate signals or strategy performance. The existing Backtesting artifact index will discover the resulting report/metadata/CSV files after the workflow completes.
