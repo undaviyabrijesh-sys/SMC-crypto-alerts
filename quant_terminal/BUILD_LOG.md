@@ -263,3 +263,11 @@
 - First full 12-month attempt passed all eight deterministic tests but stopped at the source-integrity gate: Binance USD-M indexPriceKlines monthly archive 2026-06 contained 8,352/8,640 rows and one internal gap. No event calculations or market results were produced.
 - Added a narrowly scoped repair policy: only complete missing UTC day(s) may be sourced from the matching daily archive, with its own SHA-256, ZIP CRC, exact 288-row count, exact first/last timestamps, no gaps/duplicates and no overlap. Partial-day gaps still fail closed; no interpolation or manual fill.
 - Added a deterministic full-day-versus-partial-day gap test. Signal/event rules, sample window, splits, matching and decision gates are unchanged.
+
+
+## 2026-11-21 — BTC basis full-year archive integrity and methodology corrections
+
+- The 12-month archive reconstruction completed in workflow 44880219010: 105,120 aligned analysis bars, 52 monthly archive files plus three checksum-verified daily patches for 2026-06-29 (index, mark and premium-index).
+- Its initial event calculation is superseded: the first outcome formula measured signed directional movement rather than actual distance reduction from the event-time rolling mean. The z-score side was also corrected to above/below the prior mean, not absolute basis sign.
+- A split-report timestamp conversion bug was fixed; exact 60/20/20 bar counts and index-based outcome boundaries were correct, but displayed end-exclusive UTC timestamps were shifted. A unit regression test now covers this.
+- Old LATEST CSVs were removed from the artifact index; the prior raw run artifact remains available for audit. Corrected event calculation is pending.
