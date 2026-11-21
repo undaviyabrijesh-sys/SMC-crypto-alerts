@@ -53,10 +53,10 @@ def full_day_patch_dates(missing_timestamps):
     return result
 
 
-def rolling_prior_zscores(values, lookback):
-    """Each z[i] uses values[i-lookback:i], excluding the current observation."""
+def rolling_prior_stats(values, lookback):
+    """Return z-score and mean; both use values[i-lookback:i], excluding current."""
     n = len(values)
-    out = [None] * n
+    zscores, means = [None] * n, [None] * n
     sums, sums2 = [0.0] * (n + 1), [0.0] * (n + 1)
     for i, x in enumerate(values):
         sums[i + 1] = sums[i] + x
@@ -65,10 +65,14 @@ def rolling_prior_zscores(values, lookback):
         total = sums[i] - sums[i - lookback]
         total2 = sums2[i] - sums2[i - lookback]
         mean = total / lookback
+        means[i] = mean
         sd = math.sqrt(max(0.0, total2 / lookback - mean * mean))
         if sd > 1e-12:
-            out[i] = (values[i] - mean) / sd
-    return out
+            zscores[i] = (values[i] - mean) / sd
+    return zscores, means
+
+def rolling_prior_zscores(values, lookback):
+    return rolling_prior_stats(values, lookback)[0]
 
 def prior_24h_context(prices):
     n = len(prices)
@@ -141,8 +145,9 @@ def nearest_control(event_idx, split_start, split_end, side, zscores,
             return c
     return None
 
-def signed_reversion(start_value, future_value, side):
-    return -side * (future_value - start_value)
+def signed_reversion(start_value, future_value, reference_mean):
+    """Positive means absolute distance to the fixed event-time mean decreased."""
+    return abs(start_value - reference_mean) - abs(future_value - reference_mean)
 
 def cluster_bootstrap_ci(pair_rows, seed, reps=BOOTSTRAP_REPS):
     groups = defaultdict(list)
@@ -256,7 +261,9 @@ def run_study(out):
     mark = [r["mark_index_premium_bps"] for r in rows]
     prem = [r["premium_index_close"] for r in rows]
     index = [r["index_close"] for r in rows]
-    z = rolling_prior_zscores(basis, LOOKBACK)
+    z, basis_mean = rolling_prior_stats(basis, LOOKBACK)
+    _, mark_mean = rolling_prior_stats(mark, LOOKBACK)
+    _, premium_mean = rolling_prior_stats(prem, LOOKBACK)
     ret24, rv24 = prior_24h_context(index)
     splits = split_bounds(a0, count)
     train_start, train_end = splits[0][1], splits[0][2]
@@ -290,9 +297,10 @@ def run_study(out):
         event = {
             "asset": SYMBOL, "split": split_name, "event_time_utc": event_time,
             "event_day": day, "month": month,
-            "side": "positive_basis" if side > 0 else "negative_basis",
-            "zscore": z[i], "basis_bps": basis[i],
-            "mark_index_premium_bps": mark[i], "premium_index_native": prem[i],
+            "side": "above_trailing_mean" if side > 0 else "below_trailing_mean",
+            "zscore": z[i], "basis_bps": basis[i], "basis_trailing_mean_bps": basis_mean[i],
+            "mark_index_premium_bps": mark[i], "mark_index_trailing_mean_bps": mark_mean[i],
+            "premium_index_native": prem[i], "premium_index_trailing_mean": premium_mean[i],
             "prior_24h_index_return": ret24[i], "prior_24h_realized_vol": rv24[i],
             "return_decile": ret_b[i], "volatility_quartile": vol_b[i],
             "regime": regimes[i], "matched": c is not None,
@@ -304,19 +312,20 @@ def run_study(out):
             used_controls.add(c)
             mark_neighborhood(blocked, c)
             for horizon, bars in HORIZONS.items():
-                er = signed_reversion(basis[i], basis[i + bars], side)
-                cr = signed_reversion(basis[c], basis[c + bars], side)
-                mr = signed_reversion(mark[i], mark[i + bars], side)
-                pi_change = -side * (prem[i + bars] - prem[i]) * 10000.0
+                er = signed_reversion(basis[i], basis[i + bars], basis_mean[i])
+                cr = signed_reversion(basis[c], basis[c + bars], basis_mean[c])
+                mr = signed_reversion(mark[i], mark[i + bars], mark_mean[i])
+                pi_reversion = signed_reversion(prem[i], prem[i + bars], premium_mean[i]) * 10000.0
                 pair_rows.append({
                     "asset": SYMBOL, "split": split_name, "horizon": horizon, "bars": bars,
                     "event_time_utc": event_time, "event_day": day, "month": month,
                     "control_time_utc": timestamps[c] + STEP_MS,
                     "side": event["side"], "zscore": z[i],
-                    "event_basis_bps": basis[i], "control_basis_bps": basis[c],
+                    "event_basis_bps": basis[i], "event_basis_trailing_mean_bps": basis_mean[i],
+                    "control_basis_bps": basis[c], "control_basis_trailing_mean_bps": basis_mean[c],
                     "event_reversion_bps": er, "control_reversion_bps": cr,
-                    "lift_bps": er - cr, "mark_index_signed_reversion_bps": mr,
-                    "premium_index_signed_change_x10000": pi_change,
+                    "lift_bps": er - cr, "mark_index_mean_distance_reduction_bps": mr,
+                    "premium_index_mean_distance_reduction_x10000": pi_reversion,
                     "regime": regimes[i], "return_decile": ret_b[i],
                     "volatility_quartile": vol_b[i],
                 })
@@ -455,9 +464,9 @@ def run_study(out):
         "- Series: contract, index, mark and premium-index klines; derived features remain distinct.", "",
         "## Frozen rules", "",
         f"- Event: absolute prior-only 30-day rolling z-score of contract/index basis >= {EVENT_Z:.1f}.",
-        "- Positive event means perpetual rich; negative event means perpetual cheap.",
+        "- Positive z event means basis above its prior 30-day mean; negative z means below that mean. It does not imply absolute positive/negative basis.",
         "- Event cooldown: 245 minutes; no overlapping 4h event horizons.",
-        "- Primary outcome: signed basis reversion; positive means movement toward zero.",
+        "- Primary outcome: reduction in absolute distance from the fixed event-time prior-only 30-day basis mean; positive means closer to that reference mean.",
         "- Primary horizon: 1h; 15m and 4h are secondary descriptive horizons.",
         "- Controls match split, basis side, development-defined 24h return decile, development-defined 24h realized-volatility quartile and fixed prior-24h regime.",
         "- Nearest eligible control within +/-24h; at least 245 minutes from every event and selected control; no reuse.",
@@ -481,7 +490,7 @@ def run_study(out):
         "", "## Data integrity and limitations", "",
         "- All 52 monthly archive ZIPs and sibling SHA-256 checksums are verified. If a monthly archive has only complete missing UTC days, the exact corresponding daily archive is checksum/CRC/schema/row/boundary verified and used as a deterministic patch; partial-day gaps fail closed. Final month grids and four-series alignment must be complete.",
         "- October 2025 is warmup only; event sample begins 1 November 2025.",
-        "- Premium-index close is not assumed equal to contract/index basis or mark/index premium.",
+        "- Premium-index close is not assumed equal to contract/index basis or mark/index premium. Its secondary distance-reduction measure uses its own event-time prior-only mean.",
         "- Binance REST cross-check is unavailable from the prior runner due HTTP 451; no REST parity claim is made.",
         "- Matching controls observable context but does not prove causality; cluster intervals may not remove all serial dependence.",
         "- No threshold/lookback/cooldown/horizon grid was run; definitions were frozen before the full download.",
@@ -518,10 +527,12 @@ class StudyTests(unittest.TestCase):
         z[100], z[140], z[149] = 3.0, 3.0, 3.0
         self.assertEqual(select_events(z, ret, rv, 0, 400), [100, 149])
 
-    def test_signed_reversion(self):
-        self.assertGreater(signed_reversion(10.0, 5.0, 1), 0)
-        self.assertGreater(signed_reversion(-10.0, -5.0, -1), 0)
-        self.assertLess(signed_reversion(10.0, 12.0, 1), 0)
+    def test_mean_distance_reduction_handles_overshoot(self):
+        self.assertGreater(signed_reversion(10.0, 5.0, 0.0), 0)
+        self.assertGreater(signed_reversion(-10.0, -5.0, 0.0), 0)
+        self.assertGreater(signed_reversion(5.0, -2.0, 0.0), 0)
+        self.assertLess(signed_reversion(5.0, -8.0, 0.0), 0)
+        self.assertAlmostEqual(signed_reversion(10.0, 7.0, 5.0), 1.0)
 
     def test_control_nonoverlap_and_no_reuse(self):
         n, z = 500, [None] * 500
