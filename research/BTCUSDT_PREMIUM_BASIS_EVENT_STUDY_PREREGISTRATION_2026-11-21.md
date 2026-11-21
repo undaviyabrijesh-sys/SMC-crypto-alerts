@@ -44,8 +44,9 @@ Population standard deviation is used. A zero/near-zero standard deviation yield
 
 ## Frozen event definition
 
-- Positive-basis event: z_t >= +2.5 (perpetual rich relative to index).
-- Negative-basis event: z_t <= −2.5 (perpetual cheap relative to index).
+- Above-mean event: z_t >= +2.5 (basis is high relative to its preceding 30-day mean).
+- Below-mean event: z_t <= −2.5 (basis is low relative to its preceding 30-day mean).
+- The sign of z_t does not assert that the absolute contract/index basis is positive or negative.
 - Event is timestamped when the 5m bar closes and the value becomes observable.
 - One event maximum per 4h05 (49 bars), regardless of direction. This prevents event-event overlap at the 4h horizon.
 - Event must have the full 4h outcome inside its own chronological split.
@@ -56,9 +57,9 @@ No threshold, lookback, cooldown or horizon grid is permitted.
 
 For event side s = +1 for positive basis and s = −1 for negative basis:
 
-signed_basis_reversion_h = −s × (basis[t+h] − basis[t])
+basis_distance_reduction_h = abs(basis_t − prior_mean_t) − abs(basis_{t+h} − prior_mean_t)
 
-Positive values mean the basis moved toward zero.
+The reference is frozen at the event-time prior-only 30-day mean. Positive values mean the future basis is closer to that reference; a move that overshoots and ends farther away is negative.
 
 - Primary horizon: 1h (12 bars).
 - Secondary descriptive horizons: 15m (3 bars) and 4h (48 bars).
@@ -77,7 +78,7 @@ Every event and matched-control outcome must remain entirely inside its own spli
 ## Matched controls
 
 For each event, select at most one non-event control from the same split and within ±24h, using the nearest eligible timestamp. A control must:
-- Have the same positive/negative basis side.
+- Have the same above/below-trailing-mean z-score side.
 - Have the same prior-24h index-return decile, with decile cutpoints computed from development only.
 - Have the same prior-24h realized-volatility quartile, with quartile cutpoints computed from development only.
 - Have the same fixed prior-24h regime: bear <= −0.50%, neutral between −0.50% and +0.50%, bull >= +0.50%.
@@ -89,7 +90,7 @@ Events without an eligible control remain in the event ledger but are excluded f
 
 ## Inference and decision rule
 
-- Primary comparison: mean paired 1h signed-basis-reversion lift (event minus matched control).
+- Primary comparison: mean paired 1h reduction-in-distance lift (event minus matched control).
 - Report event mean, control mean, paired mean/median lift, event-beats-control fraction and UTC event-day cluster bootstrap 95% descriptive interval.
 - Bootstrap 5,000 replicates, fixed seed namespace, resampling UTC event-day cluster means. These intervals are descriptive, not p-values and not proof of causality.
 - 15m and 4h are secondary descriptive horizons; no threshold or horizon selection after viewing OOS.
@@ -118,3 +119,14 @@ The first 12-month execution found the Binance USD-M indexPriceKlines monthly ar
 To avoid interpolating or silently dropping a day, the preregistration now permits one narrowly defined source repair: if and only if all missing timestamps for a monthly series form complete UTC day(s), download the exact corresponding daily archive(s) for that same series. Each daily patch must pass its own SHA-256 checksum, ZIP CRC, exact 288 rows, exact first/last 5m timestamps, no gaps/duplicates, and zero overlap with the monthly archive. After patching, the full month must have exactly the expected rows and a continuous 5m grid. Any partial-day gap or failed daily archive still stops the run.
 
 This changes only deterministic data reconstruction; event threshold, lookback, cooldown, outcomes, matching, splits, bootstrap and decision gates remain frozen. The missing 2026-06 date is not inferred or manually filled; it is discovered from the archive timestamps at runtime and sourced only from the matching public daily archive.
+
+
+## 2026-11-21 outcome-definition addendum — fixed event-time mean distance
+
+Before accepting any event-study output, the outcome was audited against the actual z-score definition. The z-score sign describes whether contract/index basis is above or below its preceding 30-day mean; it does not establish that the absolute basis itself is positive/negative or that the perpetual is absolutely rich/cheap. The initial signed-change formula could also label a large overshoot through the reference mean as positive reversion even when the final distance increased.
+
+The outcome is therefore corrected, before accepting any performance results, to:
+
+abs(basis_at_event − prior_mean_at_event) − abs(basis_at_horizon − prior_mean_at_event)
+
+The event-time prior-only 30-day mean is held fixed for the full horizon. Positive values mean the later basis is closer to that event-time reference; negative values mean it is farther away. Matched controls use their own fixed event-time prior-only mean. The mark/index and native premium-index secondary distance measures use their own event-time prior-only means. Event threshold, lookback, cooldown, horizons, split boundaries, matching rules and decision gate are unchanged. The earlier signed-change version is superseded and must not be used.
