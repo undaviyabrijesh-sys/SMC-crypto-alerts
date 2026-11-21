@@ -2385,3 +2385,11 @@ Do not tune funding thresholds or inspect OOS. Preregister a lower-turnover, wid
 - Deterministic tests cover 13-month archive range, expected month sizes, prior-only z-score invariance, event cooldown, signed reversion, non-overlapping/no-reuse controls, exact split sizes, bootstrap reproducibility and distinct feature definitions. The workflow compiles and runs tests before downloading archives.
 - Run is triggered by the explicit RUN_BTC_BASIS_EVENT commit prefix. No historical result is claimed until all 52 archives, checksum/schema/boundary/alignment checks, event calculations, summaries and artifact upload complete and are inspected.
 - No main/production/live-alert/paper-state/order/deployment changes.
+
+
+### 2026-11-21 — BTC premium-basis first archive run stopped safely; daily patch rule added
+
+- First full run [44880062827](https://github.com/undaviyabrijesh-sys/SMC-crypto-alerts/actions/runs/44880062827) passed Python compilation and all 8 deterministic tests, then stopped before event calculation because the Binance USD-M indexPriceKlines 2026-06 monthly archive contained 8,352/8,640 rows and one internal gap. No event results or strategy metrics were produced.
+- Added a preregistered, deterministic source-repair addendum: only if all missing timestamps form complete UTC day(s), retrieve the exact matching daily archive for that same series and verify its sibling SHA-256, ZIP CRC, exact 288 rows, exact first/last timestamps, no gaps/duplicates and no overlap. After patch, the full month must be continuous and exactly complete. Partial-day gaps still fail; no interpolation/manual data is permitted.
+- Added a full-day-versus-partial-day deterministic test. The event threshold, prior-only 30-day z-score, 4h05 cooldown, 60/20/20 splits, control matching, 1h primary outcome and decision gate are unchanged.
+- The failed run did not publish artifacts and did not evaluate events. Rerun is pending after the correction.
