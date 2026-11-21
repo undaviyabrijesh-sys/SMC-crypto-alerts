@@ -1,1 +1,1 @@
-RUN_BTC_BASIS_EVENT: corrected 12-month BTC basis distance-reduction event study with full-day archive patches and UTC split fix
+RUN_BTC_BASIS_EVENT: rerun corrected fixed-mean basis distance study after test expectation fix
