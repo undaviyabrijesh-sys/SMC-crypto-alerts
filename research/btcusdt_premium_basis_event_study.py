@@ -504,8 +504,8 @@ class StudyTests(unittest.TestCase):
         contract, index, mark, premium = 101.0, 100.0, 100.5, 0.0002
         basis = 10000.0 * (contract / index - 1.0)
         mark_premium_bps = 10000.0 * (mark / index - 1.0)
-        self.assertEqual(basis, 100.0)
-        self.assertEqual(mark_premium_bps, 50.0)
+        self.assertAlmostEqual(basis, 100.0, places=8)
+        self.assertAlmostEqual(mark_premium_bps, 50.0, places=8)
         self.assertNotEqual(basis, premium * 10000.0)
 
 def main():
