@@ -697,6 +697,8 @@ export default function Home() {
                       </div>
                       <div className="backtest-artifact-meta">
                         <div><span>FILE SIZE</span><strong>{formatArtifactBytes(artifact.bytes)}</strong></div>
+                        <div><span>RESEARCH TYPE</span><strong>{formatArtifactValue(artifact.metadata?.research_type ?? artifact.metadata?.artifact_type ?? artifact.metadata?.data_classification)}</strong></div>
+                        <div><span>VALIDATION STATE</span><strong>{formatArtifactValue(artifact.metadata?.validation_state)}</strong></div>
                         <div><span>SYMBOL / ASSET</span><strong>{formatArtifactValue(artifact.metadata?.symbol ?? artifact.metadata?.asset)}</strong></div>
                         <div><span>STRATEGY</span><strong>{formatArtifactValue(artifact.metadata?.strategy ?? artifact.metadata?.strategy_id)}</strong></div>
                         <div><span>RECORDED TRADES</span><strong>{formatArtifactValue(artifact.metadata?.trade_count)}</strong></div>
