@@ -55,7 +55,7 @@ No threshold, lookback, cooldown or horizon grid is permitted.
 
 ## Outcome definitions
 
-For event side s = +1 for positive basis and s = −1 for negative basis:
+The event side is the sign of the basis z-score (above or below its preceding 30-day mean); no sign multiplier is applied to the distance outcome.
 
 basis_distance_reduction_h = abs(basis_t − prior_mean_t) − abs(basis_{t+h} − prior_mean_t)
 
@@ -63,8 +63,7 @@ The reference is frozen at the event-time prior-only 30-day mean. Positive value
 
 - Primary horizon: 1h (12 bars).
 - Secondary descriptive horizons: 15m (3 bars) and 4h (48 bars).
-- Secondary mark/index corroboration uses the same sign convention.
-- Premium-index native-unit changes are reported separately and are not called basis PnL.
+- Secondary mark/index and premium-index distance reductions use their own fixed event-time prior-only 30-day means. Premium-index remains in native units (scaled by 10,000 for display) and is not called basis PnL.
 
 ## Chronological splits
 
