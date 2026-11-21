@@ -1,13 +1,13 @@
 {
   "alignment": {
     "daily": {
-      "common_coverage_pct_of_expected": 100.0,
+      "common_coverage_pct_of_expected": 100,
       "common_rows": 288,
       "rows_missing_from_at_least_one_series": 0,
       "union_rows": 288
     },
     "monthly": {
-      "common_coverage_pct_of_expected": 100.0,
+      "common_coverage_pct_of_expected": 100,
       "common_rows": 8928,
       "rows_missing_from_at_least_one_series": 0,
       "union_rows": 8928
@@ -223,5 +223,10 @@
   },
   "source_commit": "e9522a43217003efbfb736ec30af7c87c87bcf9c",
   "symbol": "BTCUSDT",
-  "workflow_run_id": 44860668392
+  "workflow_run_id": 44860668392,
+  "research_type": "data_availability_audit",
+  "data_classification": "market_data_quality",
+  "validation_state": "not_applicable",
+  "oos_evaluated": false,
+  "decision": "data_availability_audit_only"
 }
