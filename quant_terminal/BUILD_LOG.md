@@ -256,3 +256,10 @@
 - The existing Backtesting artifact index will discover the normalized report/manifest/CSV outputs after the workflow publishes them. No frontend or API engine was duplicated or changed in this increment.
 - Deterministic tests cover prior-only feature causality, event cooldown, non-overlapping controls, exact split sizes, bootstrap reproducibility and feature distinction. Full archive run is triggered only by the explicit RUN_BTC_BASIS_EVENT commit prefix or manual dispatch; no result is claimed until the workflow and artifact are inspected.
 - No main-branch, production, paper-state, live-alert, exchange-order or deployment changes.
+
+
+## 2026-11-21 — BTC premium-basis archive gap handling
+
+- First full 12-month attempt passed all eight deterministic tests but stopped at the source-integrity gate: Binance USD-M indexPriceKlines monthly archive 2026-06 contained 8,352/8,640 rows and one internal gap. No event calculations or market results were produced.
+- Added a narrowly scoped repair policy: only complete missing UTC day(s) may be sourced from the matching daily archive, with its own SHA-256, ZIP CRC, exact 288-row count, exact first/last timestamps, no gaps/duplicates and no overlap. Partial-day gaps still fail closed; no interpolation or manual fill.
+- Added a deterministic full-day-versus-partial-day gap test. Signal/event rules, sample window, splits, matching and decision gates are unchanged.
