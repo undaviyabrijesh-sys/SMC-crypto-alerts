@@ -177,7 +177,9 @@ def audit(out: Path):
     session = requests.Session()
     session.headers.update({"User-Agent": "salty-quant-premium-basis-audit/1.0"})
     archives, manifest = {}, {"audit": "BTCUSDT USD-M premium/index-basis availability",
-        "symbol": SYMBOL, "interval": INTERVAL, "monthly_period": MONTH,
+        "research_type": "data_availability_audit", "data_classification": "market_data_quality",
+        "validation_state": "not_applicable", "oos_evaluated": False,
+        "decision": "data_availability_audit_only", "symbol": SYMBOL, "interval": INTERVAL, "monthly_period": MONTH,
         "daily_period": DAY, "series": {}, "rest_checks": {}}
     for kind in SERIES:
         archives[kind], manifest["series"][kind] = {}, {}
@@ -219,6 +221,8 @@ def audit(out: Path):
                         1 for t in common_rest if abs(rest_map[t]-archive_map[t]["close"]) <= 1e-10)
                 manifest["rest_checks"][kind] = check
     manifest["basis_endpoint"] = basis_endpoint(session)
+    if not aligned:
+        raise AssertionError("no common timestamps across contract, index, mark and premium archives")
     basis = [r["perp_index_basis_bps"] for r in aligned]
     mark = [r["mark_index_premium_bps"] for r in aligned]
     prem_bps = [r["premium_index_close"]*10000.0 for r in aligned]
