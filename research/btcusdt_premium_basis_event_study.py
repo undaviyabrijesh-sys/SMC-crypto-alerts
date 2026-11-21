@@ -425,8 +425,11 @@ def run_study(out):
         "event_cooldown_bars": EVENT_COOLDOWN, "primary_horizon": PRIMARY,
         "secondary_horizons": ["15m", "4h"], "horizons_bars": HORIZONS,
         "regime_threshold_abs_24h_return": REGIME_CUTOFF,
+        "outcome_reference": "fixed event-time prior-only 30-day rolling mean",
+        "outcome_definition": "abs(start_value-reference_mean)-abs(future_value-reference_mean)",
+        "event_side_definition": "z-score above/below prior rolling mean; not absolute basis sign",
         "matching": {
-            "same_split": True, "same_basis_side": True,
+            "same_split": True, "same_basis_zscore_side": True,
             "same_development_defined_24h_index_return_decile": True,
             "same_development_defined_24h_realized_volatility_quartile": True,
             "same_fixed_24h_regime": True, "nearest_control_within_hours": 24,
