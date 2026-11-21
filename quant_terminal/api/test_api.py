@@ -111,6 +111,9 @@ class ReadOnlyApiTests(unittest.TestCase):
         metadata = self.discovery_dir / "ETH_TEST_METADATA.json"
         metadata.write_text(json.dumps({
             "status": "completed_inconclusive",
+            "research_type": "descriptive_event_study",
+            "data_classification": "event_study_only",
+            "validation_state": "inconclusive",
             "symbol": "ETHUSDT",
             "strategy": "EMA20 pullback event study",
             "run_id": "test-run",
@@ -129,6 +132,9 @@ class ReadOnlyApiTests(unittest.TestCase):
         self.assertEqual(result["status"], "available")
         artifacts = {item["name"]: item for item in result["artifacts"]}
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["status"], "completed_inconclusive")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["research_type"], "descriptive_event_study")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["data_classification"], "event_study_only")
+        self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["validation_state"], "inconclusive")
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["symbol"], "ETHUSDT")
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["oos_evaluated"], False)
         self.assertEqual(artifacts["ETH_TEST_METADATA.json"]["metadata"]["decision"], "no_promotion")
