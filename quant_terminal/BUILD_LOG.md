@@ -271,3 +271,12 @@
 - Its initial event calculation is superseded: the first outcome formula measured signed directional movement rather than actual distance reduction from the event-time rolling mean. The z-score side was also corrected to above/below the prior mean, not absolute basis sign.
 - A split-report timestamp conversion bug was fixed; exact 60/20/20 bar counts and index-based outcome boundaries were correct, but displayed end-exclusive UTC timestamps were shifted. A unit regression test now covers this.
 - Old LATEST CSVs were removed from the artifact index; the prior raw run artifact remains available for audit. Corrected event calculation is pending.
+
+
+## 2026-11-21 — Corrected BTC premium-basis event study published
+
+- Workflow 44880534521 completed successfully after 10 deterministic tests. It reconstructed 105,120 aligned 5m BTCUSDT analysis bars from 52 monthly archives plus three checksum-verified daily patches (2026-06-29 index, mark and premium-index).
+- Corrected outcome is absolute distance reduction from the fixed event-time prior-only 30-day basis mean. The superseded signed-directional version is marked in the LATEST report/metadata and its raw artifact remains audit-only.
+- Primary 1h paired lift: development +4.015 bps (197 pairs; CI +3.506 to +4.321), validation +2.984 (81; +2.707 to +3.455), OOS +3.470 (66; +2.980 to +4.209). OOS has 47 event-day clusters. Monthly and regime stability tables are published.
+- The event-study gate passes for a separate execution-feasibility investigation, not strategy validation. The paired sample covers 38.6% of development and OOS raw events. No entries, spot/perp legs, execution costs, borrow or funding cashflows were simulated.
+- Quant Terminal's existing read-only artifact index now exposes the normalized report, manifest and result CSVs; no new engine/API endpoint or deployment.
