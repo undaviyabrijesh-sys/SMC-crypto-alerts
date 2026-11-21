@@ -235,3 +235,11 @@
 - Added a separate read-only research audit for four Binance USD-M 5m BTCUSDT series: contract, index, mark and premium-index klines.
 - The audit verifies monthly/daily archive checksums, ZIP CRC, schema, UTC timestamp alignment, coverage gaps, and—where public REST is reachable—archive/REST parity. It also checks the recent basis endpoint's arithmetic without treating its 30-day window as long history.
 - The audit intentionally does not calculate signals or strategy performance. The existing Backtesting artifact index will discover the resulting report/metadata/CSV files after the workflow completes.
+
+
+## 2026-11-21 — BTC premium/index-basis availability audit completed
+
+- Eight official Binance USD-M 5m archive files (contract, index, mark, premium-index; October monthly and 19 November daily) passed SHA-256 and ZIP CRC checks.
+- All expected bars were present: 8,928 monthly and 288 daily per series; all four series aligned exactly for 9,216 timestamps.
+- The Backtesting metadata API now projects research_type, artifact_type, data_classification and validation_state. The UI displays research type and validation state separately from the generic FILE ONLY label; missing fields remain unavailable.
+- The premium/basis report and coverage tables are committed under quant_discovery/. The REST comparison is unavailable in GitHub runners due HTTP 451; archive integrity remains verified.
