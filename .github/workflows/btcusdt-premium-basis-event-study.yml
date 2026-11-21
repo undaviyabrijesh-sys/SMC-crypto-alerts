@@ -8,6 +8,7 @@ on:
       - "research/btcusdt_premium_basis_event_study.py"
       - "research/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_PREREGISTRATION_2026-11-21.md"
       - "research/RESEARCH_LEDGER.md"
+      - "research/BTC_BASIS_EVENT_RUN.trigger"
       - ".github/workflows/btcusdt-premium-basis-event-study.yml"
   workflow_dispatch:
 
