@@ -22,7 +22,7 @@ This is a descriptive event study. It is not an executable strategy, trade simul
 - Four series: contract klines, indexPriceKlines, markPriceKlines and premiumIndexKlines.
 - Expected rows per monthly archive: calendar days × 288.
 - Verify sibling SHA-256 checksum, ZIP CRC, 12-column schema, UTC 5m grid, row count, no duplicates/gaps, monthly boundary continuity and exact four-series timestamp intersection.
-- No missing bars are filled or interpolated. Any archive failure, checksum mismatch, unexpected row count, gap, duplicate or alignment mismatch fails the run.
+- No missing bars are interpolated. A monthly archive may be repaired only when its missing timestamps form one or more complete UTC day(s); each corresponding daily archive must independently pass sibling SHA-256, ZIP CRC, exact 288-row count, exact day boundaries, no gaps/duplicates and no overlap with monthly rows. Partial-day gaps, extra timestamps, checksum/schema failures or unavailable daily patches fail the run. All monthly and daily-patch hashes are retained.
 
 ## Feature definitions
 
@@ -109,3 +109,12 @@ No positions, entries, stops, targets or execution are simulated. Fees, spread, 
 - Branch: ai-quant-rebuild only.
 
 No main-branch, production, alert, paper-state, exchange-order or deployment changes.
+
+
+## 2026-11-21 data-integrity addendum — deterministic full-day archive repair
+
+The first 12-month execution found the Binance USD-M indexPriceKlines monthly archive for 2026-06 contained 8,352 rows instead of 8,640, with one internal gap. The deterministic self-tests had passed, but the archive-integrity gate correctly stopped the run before any event calculations. No market-performance result was produced.
+
+To avoid interpolating or silently dropping a day, the preregistration now permits one narrowly defined source repair: if and only if all missing timestamps for a monthly series form complete UTC day(s), download the exact corresponding daily archive(s) for that same series. Each daily patch must pass its own SHA-256 checksum, ZIP CRC, exact 288 rows, exact first/last 5m timestamps, no gaps/duplicates, and zero overlap with the monthly archive. After patching, the full month must have exactly the expected rows and a continuous 5m grid. Any partial-day gap or failed daily archive still stops the run.
+
+This changes only deterministic data reconstruction; event threshold, lookback, cooldown, outcomes, matching, splits, bootstrap and decision gates remain frozen. The missing 2026-06 date is not inferred or manually filled; it is discovered from the archive timestamps at runtime and sourced only from the matching public daily archive.
