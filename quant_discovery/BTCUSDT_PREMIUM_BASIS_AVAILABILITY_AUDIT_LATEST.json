@@ -1,0 +1,227 @@
+{
+  "alignment": {
+    "daily": {
+      "common_coverage_pct_of_expected": 100.0,
+      "common_rows": 288,
+      "rows_missing_from_at_least_one_series": 0,
+      "union_rows": 288
+    },
+    "monthly": {
+      "common_coverage_pct_of_expected": 100.0,
+      "common_rows": 8928,
+      "rows_missing_from_at_least_one_series": 0,
+      "union_rows": 8928
+    }
+  },
+  "audit": "BTCUSDT USD-M premium/index-basis availability",
+  "basis_endpoint": {
+    "documented_limit": "latest 30 days only",
+    "error": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+    "http_status": 451,
+    "status": "unavailable",
+    "url": "https://fapi.binance.com/futures/data/basis?pair=BTCUSDT&contractType=PERPETUAL&period=5m&limit=500"
+  },
+  "branch": "ai-quant-rebuild",
+  "daily_period": "2026-11-19",
+  "derived_feature_summary": {
+    "aligned_rows": 9216,
+    "descriptive_corr_premium_index_x10000_vs_mark_index_bps": 0.8609343062596732,
+    "mark_index_premium_bps": {
+      "max": 3.6887218485115447,
+      "median": -4.328241530420218,
+      "min": -9.627466350532465,
+      "p05": -5.942852015806133,
+      "p95": -2.261084933198043
+    },
+    "perp_index_basis_bps": {
+      "max": 8.031388861915456,
+      "median": -4.548035314508869,
+      "min": -18.74299081835118,
+      "p05": -6.525176736607852,
+      "p95": -2.247160864564668
+    },
+    "premium_index_native": {
+      "max": 0.00050647,
+      "median": -0.000453035,
+      "min": -0.00175046
+    },
+    "warning": "Premium-index close is not asserted to equal mark/index or contract/index basis."
+  },
+  "interval": "5m",
+  "monthly_period": "2026-10",
+  "rest_checks": {
+    "contract": {
+      "error": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+      "http_status": 451,
+      "status": "unavailable",
+      "url": "https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=5m&startTime=1795046400000&endTime=1795132799999&limit=1500"
+    },
+    "index": {
+      "error": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+      "http_status": 451,
+      "status": "unavailable",
+      "url": "https://fapi.binance.com/fapi/v1/indexPriceKlines?pair=BTCUSDT&interval=5m&startTime=1795046400000&endTime=1795132799999&limit=1500"
+    },
+    "mark": {
+      "error": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+      "http_status": 451,
+      "status": "unavailable",
+      "url": "https://fapi.binance.com/fapi/v1/markPriceKlines?symbol=BTCUSDT&interval=5m&startTime=1795046400000&endTime=1795132799999&limit=1500"
+    },
+    "premium": {
+      "error": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+      "http_status": 451,
+      "status": "unavailable",
+      "url": "https://fapi.binance.com/fapi/v1/premiumIndexKlines?symbol=BTCUSDT&interval=5m&startTime=1795046400000&endTime=1795132799999&limit=1500"
+    }
+  },
+  "series": {
+    "contract": {
+      "daily": {
+        "bytes": 14065,
+        "checksum_url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-11-19.csv",
+        "duplicate_count": 0,
+        "expected_rows": 288,
+        "expected_sha256": "f117faafd86bc4a078e4c91ab47d366cf1650451ebdc8061047c93395e3d790c",
+        "first_open_time": 1795046400000,
+        "gap_count": 0,
+        "last_open_time": 1795132500000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "rows": 288,
+        "sha256": "f117faafd86bc4a078e4c91ab47d366cf1650451ebdc8061047c93395e3d790c",
+        "url": "https://data.binance.vision/data/futures/um/daily/klines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "zip_crc": "passed"
+      },
+      "monthly": {
+        "bytes": 400552,
+        "checksum_url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-10.csv",
+        "duplicate_count": 0,
+        "expected_rows": 8928,
+        "expected_sha256": "31dcc9c67516101f495ef9e290d271dd87b592d323dcb9aba50a5535c50d1d8d",
+        "first_open_time": 1790812800000,
+        "gap_count": 0,
+        "last_open_time": 1793490900000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "rows": 8928,
+        "sha256": "31dcc9c67516101f495ef9e290d271dd87b592d323dcb9aba50a5535c50d1d8d",
+        "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "zip_crc": "passed"
+      }
+    },
+    "index": {
+      "daily": {
+        "bytes": 8236,
+        "checksum_url": "https://data.binance.vision/data/futures/um/daily/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-11-19.csv",
+        "duplicate_count": 0,
+        "expected_rows": 288,
+        "expected_sha256": "1892f89eed08d2b4946e50ad45b06497601890e36d726c7e7e053e820bb25781",
+        "first_open_time": 1795046400000,
+        "gap_count": 0,
+        "last_open_time": 1795132500000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/daily/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "rows": 288,
+        "sha256": "1892f89eed08d2b4946e50ad45b06497601890e36d726c7e7e053e820bb25781",
+        "url": "https://data.binance.vision/data/futures/um/daily/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "zip_crc": "passed"
+      },
+      "monthly": {
+        "bytes": 226055,
+        "checksum_url": "https://data.binance.vision/data/futures/um/monthly/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-10.csv",
+        "duplicate_count": 0,
+        "expected_rows": 8928,
+        "expected_sha256": "c31c55be9701f400ebf98c1424bb6b43f12f25d1d1d6683a62194a69183ff310",
+        "first_open_time": 1790812800000,
+        "gap_count": 0,
+        "last_open_time": 1793490900000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/monthly/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "rows": 8928,
+        "sha256": "c31c55be9701f400ebf98c1424bb6b43f12f25d1d1d6683a62194a69183ff310",
+        "url": "https://data.binance.vision/data/futures/um/monthly/indexPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "zip_crc": "passed"
+      }
+    },
+    "mark": {
+      "daily": {
+        "bytes": 8085,
+        "checksum_url": "https://data.binance.vision/data/futures/um/daily/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-11-19.csv",
+        "duplicate_count": 0,
+        "expected_rows": 288,
+        "expected_sha256": "7bc9ee418b040c63ec0d6fe4005719076fac5c77dea691b32654e01f8511cf9a",
+        "first_open_time": 1795046400000,
+        "gap_count": 0,
+        "last_open_time": 1795132500000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/daily/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "rows": 288,
+        "sha256": "7bc9ee418b040c63ec0d6fe4005719076fac5c77dea691b32654e01f8511cf9a",
+        "url": "https://data.binance.vision/data/futures/um/daily/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "zip_crc": "passed"
+      },
+      "monthly": {
+        "bytes": 224312,
+        "checksum_url": "https://data.binance.vision/data/futures/um/monthly/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-10.csv",
+        "duplicate_count": 0,
+        "expected_rows": 8928,
+        "expected_sha256": "78c6c5d7e7891a0162f159d387708d4ec9add56aabf99baba32f6635a4f965c4",
+        "first_open_time": 1790812800000,
+        "gap_count": 0,
+        "last_open_time": 1793490900000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/monthly/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "rows": 8928,
+        "sha256": "78c6c5d7e7891a0162f159d387708d4ec9add56aabf99baba32f6635a4f965c4",
+        "url": "https://data.binance.vision/data/futures/um/monthly/markPriceKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "zip_crc": "passed"
+      }
+    },
+    "premium": {
+      "daily": {
+        "bytes": 6393,
+        "checksum_url": "https://data.binance.vision/data/futures/um/daily/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-11-19.csv",
+        "duplicate_count": 0,
+        "expected_rows": 288,
+        "expected_sha256": "da964179a5e9af74c317d6775a3dad1d7bc4c6caec8aa597bc1632c1c1433505",
+        "first_open_time": 1795046400000,
+        "gap_count": 0,
+        "last_open_time": 1795132500000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/daily/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "rows": 288,
+        "sha256": "da964179a5e9af74c317d6775a3dad1d7bc4c6caec8aa597bc1632c1c1433505",
+        "url": "https://data.binance.vision/data/futures/um/daily/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-11-19.zip",
+        "zip_crc": "passed"
+      },
+      "monthly": {
+        "bytes": 179503,
+        "checksum_url": "https://data.binance.vision/data/futures/um/monthly/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip.CHECKSUM",
+        "csv_member": "BTCUSDT-5m-2026-10.csv",
+        "duplicate_count": 0,
+        "expected_rows": 8928,
+        "expected_sha256": "31f5c38ede86a651ca0dca562e1f8a00ef6021a398304d631eb10c67708b1623",
+        "first_open_time": 1790812800000,
+        "gap_count": 0,
+        "last_open_time": 1793490900000,
+        "missing_expected_rows": 0,
+        "relative_path": "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "rows": 8928,
+        "sha256": "31f5c38ede86a651ca0dca562e1f8a00ef6021a398304d631eb10c67708b1623",
+        "url": "https://data.binance.vision/data/futures/um/monthly/premiumIndexKlines/BTCUSDT/5m/BTCUSDT-5m-2026-10.zip",
+        "zip_crc": "passed"
+      }
+    }
+  },
+  "source_commit": "e9522a43217003efbfb736ec30af7c87c87bcf9c",
+  "symbol": "BTCUSDT",
+  "workflow_run_id": 44860668392
+}
