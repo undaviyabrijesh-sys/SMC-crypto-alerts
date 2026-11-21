@@ -921,5 +921,59 @@
   "validation_state": "not_a_strategy",
   "venue": "Binance USD-M perpetual",
   "warmup_start_utc": "2025-10-01",
-  "workflow_run_id": 44880534521
+  "workflow_run_id": 44880534521,
+  "archive_count": 55,
+  "monthly_archives_verified": 52,
+  "daily_patch_archives_verified": 3,
+  "daily_patch_summary": [
+    {
+      "series": "index",
+      "date": "2026-06-29",
+      "rows": 288,
+      "sha256": "3e013d9db506e6327a8d0f40504517ede0303d8c46618665d727f6f82559de1a"
+    },
+    {
+      "series": "mark",
+      "date": "2026-06-29",
+      "rows": 288,
+      "sha256": "eef21086c97542d63dcc88d311e9c3835d107f9d4b4497f6b488e32640e778c7"
+    },
+    {
+      "series": "premium",
+      "date": "2026-06-29",
+      "rows": 288,
+      "sha256": "5782d08ac0400a38001b0c33785ac838f49595f32a4f71eb1115a945696d69b1"
+    }
+  ],
+  "matched_coverage_primary_horizon": {
+    "development": {
+      "raw_events": 511,
+      "matched_pairs": 197,
+      "coverage_fraction": 0.38551859099804303
+    },
+    "validation": {
+      "raw_events": 136,
+      "matched_pairs": 81,
+      "coverage_fraction": 0.5955882352941176
+    },
+    "oos": {
+      "raw_events": 171,
+      "matched_pairs": 66,
+      "coverage_fraction": 0.38596491228070173
+    }
+  },
+  "primary_oos_summary": {
+    "horizon": "1h",
+    "matched_pairs": 66,
+    "event_day_clusters": 47,
+    "event_reversion_mean_bps": 3.5129770824949,
+    "control_reversion_mean_bps": 0.043055140606389715,
+    "paired_lift_mean_bps": 3.46992194188851,
+    "paired_lift_median_bps": 3.327368414445348,
+    "event_beats_control_fraction": 0.9545454545454546,
+    "cluster_bootstrap_ci_low_bps": 2.979952165069821,
+    "cluster_bootstrap_ci_high_bps": 4.208909517811665
+  },
+  "cost_feasibility_status": "not_evaluated",
+  "execution_backtest_status": "not_run"
 }
