@@ -1,0 +1,92 @@
+name: BTCUSDT premium-basis dislocation event study
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/btcusdt_premium_basis_event_study.py"
+      - "research/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_PREREGISTRATION_2026-11-21.md"
+      - "research/RESEARCH_LEDGER.md"
+      - ".github/workflows/btcusdt-premium-basis-event-study.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btc-premium-basis-event-study-\${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  event-study:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_BTC_BASIS_EVENT:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install archive dependency
+        run: python -m pip install --disable-pip-version-check "requests>=2.31"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/btcusdt_premium_basis_event_study.py
+          python research/btcusdt_premium_basis_event_study.py --self-test
+      - name: Download and analyze 13 months of checksum-verified archives
+        run: |
+          python research/btcusdt_premium_basis_event_study.py \
+            --out results/btc-premium-basis-event-study
+      - name: Add report to job summary
+        if: always()
+        run: |
+          if [ -f results/btc-premium-basis-event-study/REPORT.md ]; then
+            cat results/btc-premium-basis-event-study/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No event-study report was produced. Inspect archive download/checksum logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Add workflow provenance
+        if: success()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("results/btc-premium-basis-event-study/manifest.json")
+          m=json.loads(p.read_text())
+          m["workflow_run_id"]=int(os.environ["GITHUB_RUN_ID"])
+          m["source_commit"]=os.environ["GITHUB_SHA"]
+          m["branch"]="ai-quant-rebuild"
+          p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+          PY
+      - name: Publish normalized summaries to research branch
+        if: success()
+        run: |
+          git fetch origin ai-quant-rebuild
+          git rebase origin/ai-quant-rebuild
+          cp results/btc-premium-basis-event-study/REPORT.md quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_LATEST.md
+          cp results/btc-premium-basis-event-study/manifest.json quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_LATEST.json
+          cp results/btc-premium-basis-event-study/summary.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_SUMMARY_LATEST.csv
+          cp results/btc-premium-basis-event-study/monthly.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_MONTHLY_LATEST.csv
+          cp results/btc-premium-basis-event-study/regime.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_REGIME_LATEST.csv
+          cp results/btc-premium-basis-event-study/matched_pairs.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_MATCHED_PAIRS_LATEST.csv
+          cp results/btc-premium-basis-event-study/events.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_EVENTS_LATEST.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+users.noreply.github.com"
+          git add quant_discovery/BTCUSDT_PREMIUM_BASIS_EVENT_STUDY_*
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish BTC premium-basis event study results"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain source data and complete results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-premium-basis-event-study-\${{ github.run_id }}
+          path: results/btc-premium-basis-event-study/
+          if-no-files-found: warn
+          retention-days: 30
