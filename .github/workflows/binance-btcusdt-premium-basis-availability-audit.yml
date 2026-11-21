@@ -1,0 +1,90 @@
+name: BTCUSDT premium-index and basis data availability audit
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/binance_btcusdt_premium_basis_availability_audit.py"
+      - "research/BINANCE_BTCUSDT_PREMIUM_BASIS_DATA_AVAILABILITY_PREREGISTRATION_2026-11-21.md"
+      - ".github/workflows/binance-btcusdt-premium-basis-availability-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btc-premium-basis-availability-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_PREMIUM_BASIS_AUDIT:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install audit dependency
+        run: python -m pip install --disable-pip-version-check "requests>=2.31"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/binance_btcusdt_premium_basis_availability_audit.py
+          python research/binance_btcusdt_premium_basis_availability_audit.py --self-test
+      - name: Download and reconcile checksum-verified BTC archives
+        run: |
+          python research/binance_btcusdt_premium_basis_availability_audit.py \
+            --out results/btc-premium-basis-availability
+      - name: Add report to job summary
+        if: always()
+        run: |
+          if [ -f results/btc-premium-basis-availability/REPORT.md ]; then
+            cat results/btc-premium-basis-availability/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No audit report was produced. Inspect archive download/checksum logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Add workflow provenance to manifest
+        if: success()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("results/btc-premium-basis-availability/manifest.json")
+          m=json.loads(p.read_text())
+          m["workflow_run_id"]=int(os.environ["GITHUB_RUN_ID"])
+          m["source_commit"]=os.environ["GITHUB_SHA"]
+          m["branch"]="ai-quant-rebuild"
+          p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+          PY
+      - name: Publish normalized data-audit artifacts to research branch
+        if: success()
+        run: |
+          mkdir -p quant_discovery
+          cp results/btc-premium-basis-availability/REPORT.md quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_LATEST.md
+          cp results/btc-premium-basis-availability/manifest.json quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_LATEST.json
+          cp results/btc-premium-basis-availability/coverage.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_COVERAGE_LATEST.csv
+          cp results/btc-premium-basis-availability/aligned_features.csv quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_ALIGNED_FEATURES_LATEST.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_LATEST.md \
+            quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_LATEST.json \
+            quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_COVERAGE_LATEST.csv \
+            quant_discovery/BTCUSDT_PREMIUM_BASIS_AVAILABILITY_AUDIT_ALIGNED_FEATURES_LATEST.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish BTC premium basis data availability audit"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain audit inputs and outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-premium-basis-availability-${{ github.run_id }}
+          path: results/btc-premium-basis-availability/
+          if-no-files-found: warn
+          retention-days: 30
