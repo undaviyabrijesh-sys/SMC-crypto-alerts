@@ -243,3 +243,16 @@
 - All expected bars were present: 8,928 monthly and 288 daily per series; all four series aligned exactly for 9,216 timestamps.
 - The Backtesting metadata API now projects research_type, artifact_type, data_classification and validation_state. The UI displays research type and validation state separately from the generic FILE ONLY label; missing fields remain unavailable.
 - The premium/basis report and coverage tables are committed under quant_discovery/. The REST comparison is unavailable in GitHub runners due HTTP 451; archive integrity remains verified.
+
+
+## 2026-11-21 — BTC premium/index-basis dislocation event study preregistered
+
+- Added a BTCUSDT USD-M 5m descriptive event-study implementation under research/btcusdt_premium_basis_event_study.py. It reuses the existing checksum/ZIP/schema parser from the prior premium-basis availability audit; it does not add another data downloader or trading engine.
+- Frozen source window: October 2025 monthly archive for warmup plus November 2025–October 2026 for 12 complete analysis months; contract, index, mark and premium-index series; 52 monthly archive files with sibling SHA-256 checksums.
+- Frozen event: prior-only 30-day contract/index-basis z-score >= +2.5 or <= -2.5, one event per 4h05. Primary outcome is signed basis reversion at 1h; 15m/4h are secondary.
+- Matched controls use development-only 24h index-return deciles and realized-volatility quartiles, fixed 24h regime, same split and basis side, nearest eligible non-event within 24h, no reuse, and at least 4h05 separation from all events and selected controls.
+- Chronological split is exact 60/20/20 of 105,120 analysis bars. All event/control outcomes must stay within their split. Five-thousand-replicate UTC event-day cluster bootstrap intervals are descriptive, not p-values.
+- No positions are simulated; fees/funding and trading metrics are not applicable. A separate execution study is allowed only if the preregistered primary 1h gate passes in all three splits and the OOS cluster interval lower bound is positive.
+- The existing Backtesting artifact index will discover the normalized report/manifest/CSV outputs after the workflow publishes them. No frontend or API engine was duplicated or changed in this increment.
+- Deterministic tests cover prior-only feature causality, event cooldown, non-overlapping controls, exact split sizes, bootstrap reproducibility and feature distinction. Full archive run is triggered only by the explicit RUN_BTC_BASIS_EVENT commit prefix or manual dispatch; no result is claimed until the workflow and artifact are inspected.
+- No main-branch, production, paper-state, live-alert, exchange-order or deployment changes.
