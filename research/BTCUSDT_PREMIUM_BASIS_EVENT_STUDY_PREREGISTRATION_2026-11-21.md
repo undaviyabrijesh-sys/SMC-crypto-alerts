@@ -129,3 +129,8 @@ The outcome is therefore corrected, before accepting any performance results, to
 abs(basis_at_event − prior_mean_at_event) − abs(basis_at_horizon − prior_mean_at_event)
 
 The event-time prior-only 30-day mean is held fixed for the full horizon. Positive values mean the later basis is closer to that event-time reference; negative values mean it is farther away. Matched controls use their own fixed event-time prior-only mean. The mark/index and native premium-index secondary distance measures use their own event-time prior-only means. Event threshold, lookback, cooldown, horizons, split boundaries, matching rules and decision gate are unchanged. The earlier signed-change version is superseded and must not be used.
+
+
+## 2026-11-21 split-timestamp reporting correction
+
+The first full archive replay's index-based split sizes were exactly 63,072 / 21,024 / 21,024 bars and every outcome remained inside its split. Its human-readable end-exclusive split timestamps had a unit-conversion bug (milliseconds were added after conversion to seconds), shifting displayed ends by 300,000 seconds. The calculation boundaries themselves were index-based and correct, but the report metadata was not. The implementation now adds the 5-minute millisecond interval before converting to UTC seconds and includes a regression test. The superseded report is not used; corrected replay will publish the corrected timestamps.
