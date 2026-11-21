@@ -150,8 +150,12 @@ def load_aligned_months(out):
         per_series, expected = {}, expected_month_rows(month)
         for name, spec in archive_audit.SERIES.items():
             rows, meta = archive_audit.download_archive(session, spec["archive"], "monthly", month)
+            month_start = archive_audit.utc_ms(month + "-01")
+            expected_last = month_start + expected * STEP_MS - STEP_MS
             if len(rows) != expected or meta["gap_count"] or meta["duplicate_count"]:
                 raise AssertionError(f"{name} {month}: rows={len(rows)}/{expected}, gaps={meta['gap_count']}, duplicates={meta['duplicate_count']}")
+            if rows[0]["open_time"] != month_start or rows[-1]["open_time"] != expected_last:
+                raise AssertionError(f"{name} {month}: monthly first/last timestamps do not match the calendar boundary")
             per_series[name] = {r["open_time"]: r for r in rows}
             archive_manifest.append({
                 "series": name, "month": month, "rows": len(rows), "expected_rows": expected,
@@ -269,6 +273,15 @@ def run_study(out):
                     "volatility_quartile": vol_b[i],
                 })
         event_rows.append(event)
+
+    event_indices = [item[0] for item in events]
+    ordered_controls = sorted(used_controls)
+    if any(abs(c - e) <= CONTROL_RADIUS for c in ordered_controls for e in event_indices):
+        raise AssertionError("selected control overlaps a main-event forward window")
+    if any(b - a <= CONTROL_RADIUS for a, b in zip(ordered_controls, ordered_controls[1:])):
+        raise AssertionError("selected control forward windows overlap")
+    if len(ordered_controls) != sum(1 for row in event_rows if row["matched"]):
+        raise AssertionError("matched-control count and unique control count differ")
 
     summary = []
     for split_name, _, _ in splits:
