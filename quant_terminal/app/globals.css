@@ -117,7 +117,7 @@ button{cursor:pointer}
 .backtest-artifact-title{min-width:0;flex:1}
 .backtest-artifact-title strong{display:block;color:#dce8e9;font:600 10px 'DM Mono';overflow-wrap:anywhere;line-height:1.55}
 .backtest-artifact-title small{display:block;margin-top:5px;color:#758791;font:8px 'DM Mono';overflow-wrap:anywhere}
-.backtest-artifact-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}
+.backtest-artifact-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
 .backtest-artifact-meta>div{min-width:0;padding:9px;border:1px solid #22323b;background:#0c151b;border-radius:6px}
 .backtest-artifact-meta span{display:block;color:#748792;font:8px 'DM Mono';letter-spacing:.45px;margin-bottom:6px;text-transform:uppercase}
 .backtest-artifact-meta strong{display:block;color:#d9e6e8;font:10px 'DM Mono';overflow-wrap:anywhere}
