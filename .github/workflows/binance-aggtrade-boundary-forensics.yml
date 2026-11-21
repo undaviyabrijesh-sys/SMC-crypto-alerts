@@ -1,0 +1,61 @@
+name: Binance aggTrade 5m-boundary forensic audit
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/binance_aggtrade_boundary_forensics.py"
+      - "research/BINANCE_AGGTRADE_BOUNDARY_FORENSICS_PREREGISTRATION_2026-11-18.md"
+      - ".github/workflows/binance-aggtrade-boundary-forensics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aggtrade-boundary-forensics-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  forensic-audit:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_AGGTRADE_BOUNDARY_FORENSICS:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/binance_aggtrade_boundary_forensics.py
+          python research/binance_aggtrade_boundary_forensics.py --self-test
+      - name: Download and audit raw trades, aggTrades and 5m klines
+        run: |
+          python research/binance_aggtrade_boundary_forensics.py \
+            --date 2026-09-03 \
+            --symbol BTCUSDT \
+            --output-dir results/aggtrade-boundary-forensics \
+            --work-dir /tmp/aggtrade-boundary-forensics
+      - name: Add forensic report to job summary
+        if: always()
+        run: |
+          if [ -f results/aggtrade-boundary-forensics/report.md ]; then
+            cat results/aggtrade-boundary-forensics/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No forensic report was produced; inspect the failed step and retained artifact." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain compact forensic outputs only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btcusdt-aggtrade-boundary-forensics-2026-09-03
+          path: results/aggtrade-boundary-forensics/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 30

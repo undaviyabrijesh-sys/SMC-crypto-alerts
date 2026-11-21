@@ -1,0 +1,71 @@
+{
+  "workflow_run_id": 44451403028,
+  "artifact_id": 14496285405,
+  "artifact_sha256": "aaf3d5502895be6b89628f2b04ac672451e0882b2b27e1e50eef18b0b4a89623",
+  "source_5m_sha256": "62f01bab9589eec20d7db9e202ef67ea466b3269288e9b507671be67f47599a1",
+  "funding_sha256": "1fd908846d2a6b3ba5f0078292cd7f36e89c850793484ca80d7891c3ef53dca9",
+  "venue": "Binance USD-M BTCUSDT",
+  "source": "Binance official monthly 5m klines and monthly fundingRate archives; all archive SHA-256 CHECKSUMs verified",
+  "kline_archives": 23,
+  "funding_archives": 13,
+  "checksum_verified_archives": 36,
+  "rows_5m": 191160,
+  "gaps_5m": 0,
+  "complete_1h_rows": 8814,
+  "gaps_1h": 0,
+  "funding_rows": 1102,
+  "funding_overlap_trades": 0,
+  "funding_cashflow_applied": false,
+  "eval_start": "2025-09-08T12:00:00Z",
+  "development_end_exclusive": "2026-07-07T13:00:00Z",
+  "validation_end_exclusive": "2026-09-10T06:00:00Z",
+  "data_buffer_end": "2026-09-10T18:00:00Z",
+  "oos_evaluated": false,
+  "config": {
+    "ema_fast": 20,
+    "ema_slow": 50,
+    "atr": "Wilder ATR14",
+    "stop_multiple": 1.5,
+    "target_R": 3,
+    "filter": "none",
+    "directions": [
+      "long",
+      "short"
+    ]
+  },
+  "costs_bps_round_trip": [
+    4,
+    7,
+    10,
+    20
+  ],
+  "primary_cost_bps": 10,
+  "development": {
+    "trades": 94,
+    "win_rate_pct": 40.43,
+    "PF": 0.933,
+    "net_R": -2.27,
+    "avg_R": -0.024,
+    "max_DD_R": -10.8,
+    "max_losing_streak": 7,
+    "positive_months": "6/11",
+    "TP": 2,
+    "SL": 19,
+    "TIME": 73
+  },
+  "validation": {
+    "trades": 24,
+    "win_rate_pct": 62.5,
+    "PF": 2.953,
+    "net_R": 8.57,
+    "avg_R": 0.357,
+    "max_DD_R": -1.57,
+    "max_losing_streak": 4,
+    "positive_months": "2/3",
+    "TP": 1,
+    "SL": 1,
+    "TIME": 22
+  },
+  "decision": "reject_for_promotion",
+  "limitation": "Cross-exchange same-date replication; not independent temporal OOS. Funding cashflow not applied; positions exit before settlements. Flat cost assumptions only."
+}

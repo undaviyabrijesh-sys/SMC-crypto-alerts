@@ -1,0 +1,47 @@
+name: quant-terminal-frontend
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "quant_terminal/app/**"
+      - "quant_terminal/package.json"
+      - "quant_terminal/next.config.ts"
+      - "quant_terminal/tsconfig.json"
+      - ".github/workflows/quant-terminal-frontend.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "quant_terminal/app/**"
+      - "quant_terminal/package.json"
+      - "quant_terminal/next.config.ts"
+      - "quant_terminal/tsconfig.json"
+      - ".github/workflows/quant-terminal-frontend.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quant-terminal-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: quant_terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check frontend
+        run: npm run typecheck
+      - name: Build Next.js application
+        run: npm run build

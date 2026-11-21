@@ -1,0 +1,28 @@
+{
+  "workflow_run": 43491328896,
+  "workflow_conclusion": "success",
+  "artifact_id": 14068778457,
+  "artifact_sha256": "b6dd3a9947da842166f1a69a51435e0fe4625971a89b5fcf1538bcd901e353b",
+  "dataset_rows": 70079,
+  "dataset_start": "2024-11-13T19:30:00Z",
+  "dataset_end": "2026-11-13T19:00:00Z",
+  "dataset_sha256": "0b03ee0d34fba7b84b522d85ff4a57d6716f05c9f48f4228dee2ddfb9397d8b0",
+  "gaps": 0,
+  "configurations": 1152,
+  "train_eligible": 0,
+  "shortlisted": 0,
+  "validation_passes": 0,
+  "oos_evaluated": false,
+  "primary_cost_bps": 12,
+  "cost_sensitivity_bps": [
+    6,
+    12,
+    20
+  ],
+  "limitations": [
+    "Funding excluded",
+    "Separate spread/market impact not modeled",
+    "07-19 UTC session ignores DST",
+    "No ETH replication"
+  ]
+}

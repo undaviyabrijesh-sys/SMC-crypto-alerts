@@ -1,0 +1,232 @@
+name: Historical OHLCV archive (one-time)
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - .github/workflows/historical-archive.yml
+      - bootstrap_historical_data.py
+      - quant_discovery/initial_screen.py
+      - quant_discovery/expanded_screen.py
+      - quant_discovery/strategy_discovery.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: historical-ohlcv-archive-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_HISTORICAL_ARCHIVE:')
+    name: Download and verify 3-year market history
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Download BTC, ETH and XAUT history
+        run: >-
+          python bootstrap_historical_data.py
+          --years 3
+          --output-dir historical_data
+          --request-delay 0.25
+          --retries 6
+
+      - name: Verify all 18 CSV datasets and hashes
+        id: verify
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("historical_data")
+          manifest_path = root / "manifest.json"
+          if not manifest_path.is_file():
+              raise SystemExit("manifest.json was not produced")
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          datasets = manifest.get("datasets", {})
+          import config
+          expected = {(symbol, timeframe) for symbol in config.SYMBOLS
+                      for timeframe in ("5m", "15m", "1h", "4h", "1d", "1w")}
+          found = set()
+          report_rows = []
+          errors = []
+
+          for key, item in datasets.items():
+              pair = (item.get("symbol_alias"), item.get("timeframe"))
+              found.add(pair)
+              path = root / item.get("csv_path", "")
+              if not path.is_file():
+                  errors.append(f"{key}: CSV missing")
+                  continue
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if digest != item.get("sha256"):
+                  errors.append(f"{key}: SHA-256 mismatch")
+              with path.open("r", newline="", encoding="utf-8") as handle:
+                  row_count = max(0, sum(1 for _ in csv.reader(handle)) - 1)
+              if row_count != item.get("row_count"):
+                  errors.append(f"{key}: manifest row count does not match CSV")
+              report_rows.append({
+                  "dataset": key,
+                  "rows": row_count,
+                  "first_candle_utc": item.get("first_candle_utc"),
+                  "last_candle_open_utc": item.get("last_candle_open_utc"),
+                  "requested_coverage_pct_estimate": item.get("requested_coverage_pct_estimate"),
+                  "observed_coverage_pct": item.get("observed_coverage_pct"),
+                  "gap_count": item.get("gap_count"),
+                  "largest_gap_seconds": item.get("largest_gap_seconds"),
+                  "sha256": digest,
+              })
+
+          missing = sorted(expected - found)
+          unexpected = sorted(found - expected)
+          if missing:
+              errors.append(f"Missing datasets: {missing}")
+          if unexpected:
+              errors.append(f"Unexpected datasets: {unexpected}")
+          if len(datasets) != 18:
+              errors.append(f"Expected 18 datasets, found {len(datasets)}")
+
+          report = {
+              "status": "passed" if not errors else "failed",
+              "expected_dataset_count": 18,
+              "actual_dataset_count": len(datasets),
+              "total_candles": sum(row["rows"] for row in report_rows),
+              "datasets": report_rows,
+              "errors": errors,
+          }
+          (root / "archive_validation.json").write_text(
+              json.dumps(report, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(report, indent=2))
+          if errors:
+              raise SystemExit("Historical archive validation failed")
+          PY
+
+      - name: Run EXP-001 baseline strategy screen
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/initial_screen.py
+          --data-dir historical_data
+          --output-dir quant_discovery/results/exp001
+
+      - name: Run EXP-002 expanded seven-family screen
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/expanded_screen.py
+          --data-dir historical_data
+          --output-dir quant_discovery/results/exp002
+
+      - name: Run EXP-003 prequential online strategy selector
+        if: steps.verify.outcome == 'success'
+        run: >-
+          python quant_discovery/strategy_discovery.py
+          --input-csv quant_discovery/results/exp002/exp002_oos_trades.csv
+          --output-dir quant_discovery/results/exp003
+
+      - name: Summarize strategy research tables
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import csv
+          from pathlib import Path
+
+          print("# Strategy research")
+          for label, path in (
+              ("EXP-001 baseline", Path("quant_discovery/results/exp001/oos_summary.csv")),
+              ("EXP-002 expanded", Path("quant_discovery/results/exp002/exp002_oos_summary.csv")),
+          ):
+              print(f"## {label}")
+              if not path.is_file():
+                  print("- Results not produced; inspect the corresponding workflow step.")
+                  continue
+              with path.open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.DictReader(handle))
+              rows.sort(key=lambda row: float(row.get("expectancy_net_R") or -1e9), reverse=True)
+              print(f"- OOS strategy rows: {len(rows)}")
+              for row in rows[:10]:
+                  print(
+                      f"- {row.get('asset', row.get('symbol'))} "
+                      f"{row.get('timeframe')} {row.get('strategy')}: "
+                      f"n={row.get('n', row.get('trades'))}, "
+                      f"expectancy={row.get('expectancy_net_R', row.get('net_expectancy_R'))}R, "
+                      f"PF={row.get('profit_factor')}"
+                  )
+          exp003_path = Path("quant_discovery/results/exp003/exp003_summary.csv")
+          print("## EXP-003 online strategy selector")
+          if exp003_path.is_file():
+              with exp003_path.open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.DictReader(handle))
+              rows = [r for r in rows if r.get("asset") == "ALL" and r.get("cost_bps_round_trip") == "10.0"]
+              for r in rows:
+                  print(f"- {r.get('policy')}: n={r.get('n')}, expectancy={r.get('expectancy_net_R')}R, "
+                        f"PF={r.get('profit_factor')}, max DD={r.get('max_drawdown_R')}R, "
+                        f"max loss-event streak={r.get('max_consecutive_losses')}")
+          else:
+              print("- EXP-003 results not produced; inspect its workflow step.")
+          print("- EXP-001/002/003 remain research-only; no result is automatically promoted.")
+          PY
+
+      - name: Add archive result to run summary
+        if: always()
+        run: |
+          if [ -f historical_data/archive_validation.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report = json.loads(Path("historical_data/archive_validation.json").read_text())
+          print("# Historical OHLCV archive")
+          print(f"- Status: **{report['status']}**")
+          print(f"- Datasets: {report['actual_dataset_count']}/{report['expected_dataset_count']}")
+          print(f"- Candles: {report['total_candles']:,}")
+          for row in report["datasets"]:
+              print(f"- {row['dataset']}: {row['rows']:,} rows, "
+                    f"{row['observed_coverage_pct']}% observed coverage, "
+                    f"{row['gap_count']} gaps")
+          for error in report["errors"]:
+              print(f"- ERROR: {error}")
+          PY
+          elif [ -f historical_data/manifest.json ]; then
+            echo "Archive stopped before final validation; partial manifest will be retained." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Downloader did not produce a manifest." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Retain complete or partial archive for analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-historical-ohlcv-3y-${{ github.run_id }}
+          path: historical_data/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14
+
+      - name: Retain EXP-001, EXP-002 and EXP-003 result tables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-quant-strategy-research-${{ github.run_id }}
+          path: quant_discovery/results/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

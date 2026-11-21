@@ -1,0 +1,16 @@
+{
+  "audit": "PASS",
+  "aggtrade_sha256": "252e92894886c2f752744656e4f1d7a278a75e1456aa32442451b07ee9703b80",
+  "kline_sha256": "3a2d163a2bd28ca614fa0840a92ecbcde0d9c4962b278dd619d5bf81a9918e26",
+  "feature_bars": 8640,
+  "price_level_rows": 8510392,
+  "aggtrade_records_reconciled": 36036629,
+  "profile_bars_checked": 8640,
+  "minimum_5m_value_area_coverage": 0.7000000000000001,
+  "event_rows": 186,
+  "event_summary_rows": 8,
+  "bootstrap_rows": 8,
+  "daily_profiles": 30,
+  "daily_brackets_min": 48,
+  "daily_brackets_max": 48
+}

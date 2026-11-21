@@ -1,0 +1,100 @@
+{
+  "run_date": "2026-11-17",
+  "status": "not_validated",
+  "rule": "15m EMA20 pullback/reclaim in completed 4h EMA50/EMA200 regime; next 15m open; 8h global cooldown; 1h/4h fixed horizons",
+  "BTC": {
+    "source_rows": 210239,
+    "missing_5m_intervals": 0,
+    "zero_volume_rows": 334,
+    "events": 23,
+    "matched": 17,
+    "match_rate": 0.7391,
+    "1h": {
+      "win_rate": 0.353,
+      "descriptive_pf": 0.753,
+      "event_mean_net_bps": -2.893,
+      "median_net_bps": -9.915,
+      "control_mean_net_bps": -1.862,
+      "paired_lift_bps": -1.03,
+      "lift_ci95_bps": [
+        -20.24,
+        19.61
+      ],
+      "positive_months": "2/9",
+      "positive_folds": "2/5",
+      "event_sequence_dd_bps": -103.85,
+      "max_losing_streak": 4
+    },
+    "4h": {
+      "win_rate": 0.412,
+      "descriptive_pf": 2.892,
+      "event_mean_net_bps": 29.6,
+      "median_net_bps": -4.09,
+      "control_mean_net_bps": 0.315,
+      "paired_lift_bps": 29.285,
+      "lift_ci95_bps": [
+        4.89,
+        55.72
+      ],
+      "event_mean_ci95_bps": [
+        -12.18,
+        81.29
+      ],
+      "positive_months": "5/9",
+      "positive_folds": "3/5",
+      "event_sequence_dd_bps": -166.98,
+      "max_losing_streak": 5
+    }
+  },
+  "ETH": {
+    "source_rows": 70127,
+    "missing_15m_intervals": 0,
+    "zero_volume_rows": 85,
+    "events": 17,
+    "matched": 15,
+    "match_rate": 0.8824,
+    "1h": {
+      "win_rate": 0.4,
+      "descriptive_pf": 0.718,
+      "event_mean_net_bps": -9.398,
+      "median_net_bps": -20.925,
+      "control_mean_net_bps": -2.17,
+      "paired_lift_bps": -7.229,
+      "lift_ci95_bps": [
+        -71.23,
+        44.69
+      ],
+      "positive_months": "3/9",
+      "positive_folds": "2/5",
+      "event_sequence_dd_bps": -458.62,
+      "max_losing_streak": 4
+    },
+    "4h": {
+      "win_rate": 0.467,
+      "descriptive_pf": 2.283,
+      "event_mean_net_bps": 35.509,
+      "median_net_bps": -5.126,
+      "control_mean_net_bps": -6.488,
+      "paired_lift_bps": 41.997,
+      "lift_ci95_bps": [
+        -22.31,
+        113.22
+      ],
+      "event_mean_ci95_bps": [
+        -21.36,
+        104.06
+      ],
+      "positive_months": "4/9",
+      "positive_folds": "3/5",
+      "event_sequence_dd_bps": -328.28,
+      "max_losing_streak": 5
+    }
+  },
+  "limitations": [
+    "event study, not stop/target backtest; R not applicable",
+    "BTC native 15m vs 5m-derived bars had 19/70015 OHLC mismatches; BTC used 5m-derived",
+    "ETH native 15m not reconciled against ETH 5m",
+    "funding cashflows not applied; crossing-settlement events excluded",
+    "final four months untouched"
+  ]
+}

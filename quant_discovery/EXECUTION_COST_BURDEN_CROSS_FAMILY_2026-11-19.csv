@@ -1,0 +1,11 @@
+family,configuration,split,trades,gross_mean_R,median_stop_risk_bps,median_cost_R_10bps,p90_cost_R_10bps,share_cost_gt_0_5R_pct,share_cost_gt_1R_pct,net_mean_R_10bps,net_PF_10bps
+BTC 5m CRT-style,close0.25_next_bar_break_range,development,3001,-0.0056,17.091,0.585,1.604,58.747,23.459,-0.862,0.287
+BTC 5m CRT-style,close0.25_next_bar_break_range,validation,659,0.0119,14.234,0.703,1.886,68.285,29.439,-0.937,0.278
+BTC 1h EMA crossover,ema20_50_atr1.5_tp3.0_none,development,106,0.105,93.291,0.107,0.210,0,0,-0.018,0.950
+BTC 1h EMA crossover,ema20_50_atr1.5_tp3.0_none,validation,27,0.437,79.533,0.126,0.215,0,0,0.296,2.338
+BTC 15m Donchian breakout,DC55_prior10_3R_ema0,development,289,0.069,121.444,0.082,0.185,0.346,0,-0.033,0.957
+BTC 15m Donchian breakout,DC55_prior10_3R_ema0,validation,62,-0.112,126.338,0.079,0.159,0,0,-0.209,0.745
+BTC 15m RSI(2),RSI2_5_EMA200_1_STOP_2.0_TARGET_2.0,development,1001,-0.003,61.132,0.164,0.319,1.798,0,-0.192,0.752
+BTC 15m RSI(2),RSI2_5_EMA200_1_STOP_2.0_TARGET_2.0,validation,231,0.065,54.136,0.185,0.341,1.299,0,-0.145,0.810
+BTCUSDT true VP,delta_confirmed,September post-hoc diagnostic,20,0.032,14.813,0.677,1.012,70,10,-0.699,0.440
+BTCUSDT true VP,price_only,September post-hoc diagnostic,42,0.023,14.218,0.703,1.330,76.190,19.048,-0.746,0.374

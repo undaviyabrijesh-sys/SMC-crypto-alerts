@@ -1,0 +1,43 @@
+name: quant-terminal-read-only-api
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "quant_terminal/api/**"
+      - "quant_terminal/README.md"
+      - "requirements.txt"
+      - ".github/workflows/quant-terminal-api.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "quant_terminal/api/**"
+      - "quant_terminal/README.md"
+      - "requirements.txt"
+      - ".github/workflows/quant-terminal-api.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quant-terminal-api-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install repository dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile API package
+        run: python -m compileall -q quant_terminal/api
+      - name: Run read-only API contract tests
+        run: python -m unittest quant_terminal.api.test_api -v

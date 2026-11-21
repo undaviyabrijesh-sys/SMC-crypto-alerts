@@ -1,0 +1,59 @@
+name: ETHUSDT Supertrend Intraday Cross-Asset Replication
+run-name: ETH Supertrend — authoritative archive replay
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/eth_supertrend_intraday_replication.py"
+      - "research/ETHUSDT_SUPERTREND_INTRADAY_REPLICATION_PREREGISTRATION_2026-11-20.md"
+      - ".github/workflows/eth-supertrend-intraday-replication.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "research/eth_supertrend_intraday_replication.py"
+      - "research/ETHUSDT_SUPERTREND_INTRADAY_REPLICATION_PREREGISTRATION_2026-11-20.md"
+      - ".github/workflows/eth-supertrend-intraday-replication.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eth-supertrend-intraday-replication-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Compile wrapper and reused research engines
+        run: python -m py_compile research/eth_supertrend_intraday_replication.py research/supertrend_intraday_backtest.py research/binance_ethusdt_ema20_cross_exchange_replication.py
+      - name: Run deterministic tests
+        run: python research/eth_supertrend_intraday_replication.py --self-test
+      # Full official archive download/backtest is opt-in. Ordinary pushes and PRs
+      # run only the deterministic tests.
+      - name: Download verified ETH archives and run frozen replication
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-eth-supertrend]'))
+        run: python research/eth_supertrend_intraday_replication.py --out eth_supertrend_intraday_results
+      - name: Upload reproducible replication artifact
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-eth-supertrend]')))
+        uses: actions/upload-artifact@v4
+        with:
+          name: ethusdt-supertrend-intraday-replication-2026-11-20
+          path: eth_supertrend_intraday_results/
+          if-no-files-found: error
+          retention-days: 30

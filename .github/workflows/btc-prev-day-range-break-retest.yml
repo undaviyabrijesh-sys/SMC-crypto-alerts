@@ -1,0 +1,72 @@
+name: BTC prior-day range break and retest backtest
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/btc_prev_day_range_break_retest_backtest.py"
+      - "research/BTC_PREV_DAY_RANGE_BREAK_RETEST_PREREGISTRATION_2026-11-16.md"
+      - ".github/workflows/btc-prev-day-range-break-retest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btc-prev-day-range-break-retest
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check pandas numpy requests
+      - name: Compile and run deterministic synthetic tests
+        run: |
+          python -m py_compile research/btc_prev_day_range_break_retest_backtest.py
+          python research/btc_prev_day_range_break_retest_backtest.py --self-test
+      - name: Download two years of BTC 5m candles and run frozen backtest
+        run: python research/btc_prev_day_range_break_retest_backtest.py --output-dir results/btc-pdrt
+      - name: Publish result summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          import pandas as pd
+          p=Path("results/btc-pdrt")
+          print("# BTC prior-day range break/retest")
+          m=p/"metadata.json"
+          if not m.exists():
+              print("No market metadata produced; inspect the failed step logs.")
+          else:
+              x=json.loads(m.read_text())
+              d=x.get("dataset", {})
+              print(f"- Valid 5m bars: {d.get('valid_rows')}")
+              print(f"- Coverage: {d.get('start_utc')} to {d.get('end_utc')}")
+              print(f"- Gaps: {d.get('gap_count')}; zero-volume bars: {d.get('zero_volume_bars')}")
+              print(f"- Data SHA-256: {d.get('sha256')}")
+              print(f"- Candidate entries: {x.get('candidate_count')}")
+              print(f"- OOS evaluated: {x.get('split', {}).get('oos_evaluated')}")
+              print(f"- Decision: {x.get('decision')}")
+          s=p/"pdrt_summary.csv"
+          if s.exists():
+              print("\n## Performance and cost sensitivity")
+              print(pd.read_csv(s).to_string(index=False))
+          PY
+      - name: Retain reproducible backtest outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-prev-day-range-break-retest
+          path: results/btc-pdrt/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

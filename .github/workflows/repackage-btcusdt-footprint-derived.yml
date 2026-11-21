@@ -1,0 +1,45 @@
+name: Repackage BTCUSDT true footprint derived data
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - ".github/workflows/repackage-btcusdt-footprint-derived.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  repackage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Download validated feature-build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: binance-btcusdt-true-footprint-2026-09
+          run-id: 44296385185
+          github-token: ${{ github.token }}
+          path: source-artifact
+      - name: Select derived data only
+        run: |
+          set -euo pipefail
+          mkdir -p derived
+          for f in             footprint_5m_price_levels.csv.gz             daily_true_vp_tpo_by_price.csv.gz             daily_true_vp_tpo_summary.csv             bar_delta_5m.csv             reconciliation_5m.csv             metadata.json             report.md; do
+            found="$(find source-artifact -type f -name "$f" -print -quit)"
+            test -n "$found"
+            cp "$found" "derived/$f"
+          done
+          du -sh source-artifact derived
+          ls -lh derived
+      - name: Upload compact derived-data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-btcusdt-true-footprint-derived-2026-09
+          path: derived/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

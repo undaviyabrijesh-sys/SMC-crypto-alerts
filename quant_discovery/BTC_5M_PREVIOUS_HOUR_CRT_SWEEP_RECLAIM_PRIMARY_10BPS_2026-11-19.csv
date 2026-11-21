@@ -1,0 +1,17 @@
+split,variant,close_threshold,confirmation,target_mode,cost_bps,trades,win_rate_pct,profit_factor,net_R,avg_R,max_drawdown_R,max_losing_streak,positive_month_fraction,positive_months,active_months,sum_net_return_pct
+development,close0.25_immediate_range,0.25,immediate,range,10,4067,29.24,0.312,-3265.682,-0.803,-3267.201,21,0,0,18,-418.815
+development,close0.25_immediate_2R,0.25,immediate,2R,10,4333,31.5,0.293,-3322.088,-0.7667,-3323.205,19,0,0,18,-447.532
+development,close0.25_next_bar_break_range,0.25,next_bar_break,range,10,3001,28.56,0.287,-2586.739,-0.862,-2588.857,23,0,0,18,-326.757
+development,close0.25_next_bar_break_2R,0.25,next_bar_break,2R,10,3506,30.6,0.26,-2654.742,-0.7572,-2656.267,23,0,0,18,-381.106
+development,close0.40_immediate_range,0.4,immediate,range,10,4596,28.2,0.306,-3941.094,-0.8575,-3942.45,21,0,0,18,-465.218
+development,close0.40_immediate_2R,0.4,immediate,2R,10,4845,30.53,0.269,-4057.627,-0.8375,-4058.581,19,0,0,18,-511.872
+development,close0.40_next_bar_break_range,0.4,next_bar_break,range,10,3347,28.53,0.294,-2850.197,-0.8516,-2850.197,21,0,0,18,-352.278
+development,close0.40_next_bar_break_2R,0.4,next_bar_break,2R,10,3847,30.34,0.254,-2959.277,-0.7692,-2959.778,23,0,0,18,-430.628
+validation,close0.25_immediate_range,0.25,immediate,range,10,853,28.02,0.268,-755.155,-0.8853,-755.155,15,0,0,4,-93.562
+validation,close0.25_immediate_2R,0.25,immediate,2R,10,911,30.19,0.244,-776.904,-0.8528,-776.904,14,0,0,4,-102.437
+validation,close0.25_next_bar_break_range,0.25,next_bar_break,range,10,659,25.8,0.278,-617.59,-0.9372,-617.59,16,0,0,4,-77.708
+validation,close0.25_next_bar_break_2R,0.25,next_bar_break,2R,10,744,25.4,0.177,-695.997,-0.9355,-695.997,17,0,0,4,-97.377
+validation,close0.40_immediate_range,0.4,immediate,range,10,964,28.63,0.293,-861.644,-0.8938,-861.644,16,0,0,4,-97.668
+validation,close0.40_immediate_2R,0.4,immediate,2R,10,1018,31.53,0.252,-883.027,-0.8674,-884.499,15,0,0,4,-105.633
+validation,close0.40_next_bar_break_range,0.4,next_bar_break,range,10,728,26.1,0.277,-681.237,-0.9358,-681.237,18,0,0,4,-82.958
+validation,close0.40_next_bar_break_2R,0.4,next_bar_break,2R,10,809,26.95,0.2,-725.537,-0.8968,-725.537,16,0,0,4,-98.527

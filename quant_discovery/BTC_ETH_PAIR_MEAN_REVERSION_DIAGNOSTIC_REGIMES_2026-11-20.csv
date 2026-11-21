@@ -1,0 +1,7 @@
+candidate,split,btc_regime_1h,count,net_R,mean_R
+best_validation_candidate_min20,train,bear,95,-17.832851,-0.187714
+best_validation_candidate_min20,train,bull,55,-15.597998,-0.283600
+best_validation_candidate_min20,train,range_or_unavailable,56,-5.471065,-0.097698
+best_validation_candidate_min20,validation,bear,4,-2.488212,-0.622053
+best_validation_candidate_min20,validation,bull,21,0.261501,0.012452
+best_validation_candidate_min20,validation,range_or_unavailable,9,0.592116,0.065791

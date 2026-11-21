@@ -1,0 +1,9 @@
+sample,cost_bps,trades,gross_R,net_R,avg_net_R
+development,4,94,10.93,4.53,0.048
+development,7,94,10.93,1.13,0.012
+development,10,94,10.93,-2.27,-0.024
+development,20,94,10.93,-13.59,-0.145
+validation,4,24,13.58,10.58,0.441
+validation,7,24,13.58,9.57,0.399
+validation,10,24,13.58,8.57,0.357
+validation,20,24,13.58,5.20,0.217

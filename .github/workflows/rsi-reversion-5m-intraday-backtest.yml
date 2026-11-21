@@ -1,0 +1,35 @@
+name: Intraday BTCUSD 5m RSI reversion research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/rsi_reversion_5m_intraday_backtest.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile RSI mean-reversion research
+        run: python -m py_compile research/rsi_reversion_5m_intraday_backtest.py
+      - name: Run RSI mean-reversion matrix
+        run: python research/rsi_reversion_5m_intraday_backtest.py
+      - name: Upload RSI research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intraday-btcusd-5m-rsi-reversion-research
+          path: rsi_reversion_5m_results/
+          if-no-files-found: warn
+          retention-days: 30

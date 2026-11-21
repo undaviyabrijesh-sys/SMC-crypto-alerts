@@ -1,0 +1,5 @@
+sample,side,trades,win_rate_pct,profit_factor,net_R,avg_R,max_drawdown_R,max_losing_streak,positive_months,active_months,TP,SL,TIME
+development,long,46,39.13,1.108,1.68,0.036,-6.34,6,6,11,1,9,36
+development,short,48,41.67,0.782,-3.94,-0.082,-7.68,8,4,10,1,10,37
+validation,long,11,63.64,2.380,3.66,0.332,-2.04,1,2,3,1,1,9
+validation,short,13,61.54,3.829,4.91,0.378,-1.03,3,3,3,0,0,13

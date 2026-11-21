@@ -1,0 +1,7 @@
+sample,cost_bps_round_trip,trades,profitable_pct,profit_factor,net_R,avg_R,max_drawdown_R,max_losing_streak,TP,SL,TIME,positive_month_fraction,long_trades,short_trades
+development,6.0,332,43.98,0.907,-9.93,-0.030,-17.34,13,22,58,252,0.333,151,181
+development,12.0,332,43.07,0.789,-24.25,-0.073,-28.58,13,22,58,252,0.167,151,181
+development,20.0,332,39.16,0.657,-43.34,-0.131,-44.54,13,22,58,252,0.167,151,181
+validation,6.0,75,40.00,0.851,-4.52,-0.060,-15.29,11,6,18,51,0.333,39,36
+validation,12.0,75,37.33,0.748,-8.26,-0.110,-18.42,11,6,18,51,0.333,39,36
+validation,20.0,75,36.00,0.634,-13.24,-0.177,-22.59,11,6,18,51,0.333,39,36

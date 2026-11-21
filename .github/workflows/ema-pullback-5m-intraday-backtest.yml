@@ -1,0 +1,35 @@
+name: Intraday BTCUSD 5m EMA pullback research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/ema_pullback_5m_intraday_backtest.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile 5m EMA pullback research
+        run: python -m py_compile research/ema_pullback_5m_intraday_backtest.py
+      - name: Run 5m EMA pullback matrix
+        run: python research/ema_pullback_5m_intraday_backtest.py
+      - name: Upload 5m EMA pullback outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intraday-btcusd-5m-ema-pullback-research
+          path: ema_pullback_5m_results/
+          if-no-files-found: warn
+          retention-days: 30

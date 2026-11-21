@@ -1,0 +1,9 @@
+variant,dev_trades,val_trades,dev_pf,val_pf,dev_net_R,val_net_R,dev_positive_month_fraction,val_positive_month_fraction,gate_pass
+close0.25_immediate_range,4067,853,0.312,0.268,-3265.682,-755.155,0,0,false
+close0.25_immediate_2R,4333,911,0.293,0.244,-3322.088,-776.904,0,0,false
+close0.25_next_bar_break_range,3001,659,0.287,0.278,-2586.739,-617.590,0,0,false
+close0.25_next_bar_break_2R,3506,744,0.260,0.177,-2654.742,-695.997,0,0,false
+close0.40_immediate_range,4596,964,0.306,0.293,-3941.094,-861.644,0,0,false
+close0.40_immediate_2R,4845,1018,0.269,0.252,-4057.627,-883.027,0,0,false
+close0.40_next_bar_break_range,3347,728,0.294,0.277,-2850.197,-681.237,0,0,false
+close0.40_next_bar_break_2R,3847,809,0.254,0.200,-2959.277,-725.537,0,0,false

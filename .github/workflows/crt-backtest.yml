@@ -1,0 +1,36 @@
+name: CRT Delta BTC backtest
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/crt_backtest.py"
+      - ".github/workflows/crt-backtest.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: crt-delta-backtest
+  cancel-in-progress: false
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Download Delta BTCUSD history and run CRT variants
+        run: python research/crt_backtest.py
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crt-delta-btc-backtest
+          path: crt_results/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,9 @@
+record,candidate,split,cost_bps_per_leg_round_trip,trades,win_rate_pct,profit_factor,net_R,avg_R,max_drawdown_R,max_losing_streak,positive_month_fraction,TP,SL,TIME,FUNDING_FLAT,configuration
+matrix_best_train,best_train_by_net_R,train,12,139,53.9568,0.9073,-2.2481,-0.0162,-4.9233,6,0.4000,63,12,11,53,"beta=2880;z=672;entry=1.5;stop=4.0;target=0.5;hold=24;direction=long_spread_only"
+matrix_best_train,best_train_by_net_R,validation,12,21,38.0952,0.5178,-2.1730,-0.1035,-2.6807,4,0.0000,7,2,4,8,"beta=2880;z=672;entry=1.5;stop=4.0;target=0.5;hold=24;direction=long_spread_only"
+validation_diagnostic,best_validation_min20,train,12,206,40.2913,0.4879,-38.9019,-0.1888,-38.9019,8,0.0909,45,48,28,85,"beta=960;z=672;entry=2.0;stop=4.0;target=0.5;hold=24;direction=both"
+validation_diagnostic,best_validation_min20,validation,12,34,44.1176,0.8025,-1.6346,-0.0481,-4.8727,5,0.3333,8,5,5,16,"beta=960;z=672;entry=2.0;stop=4.0;target=0.5;hold=24;direction=both"
+diagnostic_cost_sensitivity,best_validation_min20,train,6,206,49.0291,0.6928,-19.9078,-0.0966,-21.8523,8,0.0909,45,48,28,85,"same diagnostic candidate; cost scaled from 12bp ledger"
+diagnostic_cost_sensitivity,best_validation_min20,train,20,206,33.0097,0.3072,-64.2274,-0.3118,-64.2274,11,0.0909,45,48,28,85,"same diagnostic candidate; cost scaled from 12bp ledger"
+diagnostic_cost_sensitivity,best_validation_min20,validation,6,34,55.8824,1.1827,1.2452,0.0366,-3.5916,2,0.3333,8,5,5,16,"same diagnostic candidate; cost scaled from 12bp ledger"
+diagnostic_cost_sensitivity,best_validation_min20,validation,20,34,35.2941,0.4833,-5.4743,-0.1610,-6.9579,7,0.3333,8,5,5,16,"same diagnostic candidate; cost scaled from 12bp ledger"

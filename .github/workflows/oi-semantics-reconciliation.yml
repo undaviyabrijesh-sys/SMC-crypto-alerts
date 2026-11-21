@@ -1,0 +1,67 @@
+name: Delta OI series semantics reconciliation
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oi-semantics-reconciliation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_OI_SEMANTICS_RECONCILIATION:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install HTTP dependency
+        run: python -m pip install --disable-pip-version-check "requests>=2.31"
+      - name: Compile and run deterministic tests
+        run: |
+          python -m compileall -q research/oi_semantics_reconciliation.py
+          python research/oi_semantics_reconciliation.py --self-test
+      - name: Reconcile Delta historical OI candles with live ticker fields
+        run: |
+          python research/oi_semantics_reconciliation.py --output-dir results/oi-semantics --symbols BTCUSD,ETHUSD
+      - name: Add audit summary to job report
+        if: always()
+        run: |
+          if [ -f results/oi-semantics/summary.md ]; then
+            cat results/oi-semantics/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "OI reconciliation did not produce a summary." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish reproducible audit to research branch
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p quant_discovery
+          cp results/oi-semantics/reconciliation.json quant_discovery/OI_SEMANTICS_RECONCILIATION_LATEST.json
+          cp results/oi-semantics/summary.md quant_discovery/OI_SEMANTICS_RECONCILIATION_LATEST.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quant_discovery/OI_SEMANTICS_RECONCILIATION_LATEST.json quant_discovery/OI_SEMANTICS_RECONCILIATION_LATEST.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Record Delta OI semantics reconciliation"
+            git push origin HEAD:ai-quant-rebuild
+          fi
+      - name: Retain raw snapshots and audit outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-oi-semantics-${{ github.run_id }}
+          path: results/oi-semantics/
+          if-no-files-found: warn
+          retention-days: 30

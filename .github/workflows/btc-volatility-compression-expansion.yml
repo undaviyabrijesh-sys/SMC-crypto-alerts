@@ -1,0 +1,88 @@
+name: BTC realized volatility compression expansion event study
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/btc_volatility_compression_expansion_event_study.py
+      - .github/workflows/btc-volatility-compression-expansion.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btc-volatility-compression-expansion-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  study:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_VOL_EXPANSION:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic causal tests
+        run: |
+          python -m py_compile research/btc_volatility_compression_expansion_event_study.py
+          python research/btc_volatility_compression_expansion_event_study.py --self-test
+      - name: Download two years of BTC traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC compression expansion event study
+        run: |
+          python research/btc_volatility_compression_expansion_event_study.py \
+            --csv historical_data/BTC_15m.csv \
+            --output-dir results/btc-vol-expansion
+      - name: Publish verified summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p=Path("results/btc-vol-expansion/report.json")
+          print("# BTC realized-volatility compression to expansion")
+          if not p.exists():
+              print("No report produced; inspect the failed workflow step.")
+          else:
+              r=json.loads(p.read_text())
+              print(f"- Status: {r['status']}; events: {r['event_count']}; matched controls: {r['matched_control_count']}/{r['event_count']}")
+              print(f"- Data: {r['data_quality']['rows']:,} BTC 15m bars, gaps={r['data_quality']['gap_count']}, "
+                    f"{r['data_quality']['start_utc']} to {r['data_quality']['end_utc']}")
+              for period,groups in r['periods'].items():
+                  print(f"\n## {period}")
+                  for group in ("all","long","short"):
+                      print(f"### {group}")
+                      for h,m in groups[group].items():
+                          if "paired_n" in m:
+                              print(f"- {h}: n={m['paired_n']}, event net12={m['event_mean_net_12bps_pct']}%, "
+                                    f"control={m['control_mean_net_12bps_pct']}%, lift={m['paired_lift_pct']}%, "
+                                    f"lift CI={m['paired_lift_95pct_block_bootstrap_ci']}")
+              print("- Event study only; no stop/target, PF, R or executable-PnL claim.")
+          PY
+      - name: Retain BTC inputs and event-study outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-volatility-compression-expansion-${{ github.run_id }}
+          path: |
+            historical_data/BTC_15m.csv
+            historical_data/manifest.json
+            historical_data/coverage.csv
+            results/btc-vol-expansion/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

@@ -1,0 +1,181 @@
+name: BTC liquidity MSS FVG retracement research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/liquidity_sweep_mss_fvg_retrace_intraday_backtest.py"
+      - "research/liquidity_sweep_mss_displacement_intraday_backtest.py"
+      - "research/liquidity_sweep_mss_intraday_backtest.py"
+      - "research/test_liquidity_fvg_causality.py"
+      - ".github/workflows/liquidity-sweep-mss-fvg-retrace.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile FVG retracement research and regression tests
+        run: python -m py_compile research/liquidity_sweep_mss_fvg_retrace_intraday_backtest.py research/liquidity_sweep_mss_displacement_intraday_backtest.py research/liquidity_sweep_mss_intraday_backtest.py research/test_liquidity_fvg_causality.py
+      - name: Run causal pivot and execution-fill regression tests
+        run: python research/test_liquidity_fvg_causality.py
+      - name: Run preregistered FVG retracement matrix
+        run: python research/liquidity_sweep_mss_fvg_retrace_intraday_backtest.py
+      - name: Upload FVG retracement research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-liquidity-mss-fvg-retracement
+          path: liquidity_fvg_retrace_results/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish auditable run summary to research branch
+        if: always()
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import math
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path("liquidity_fvg_retrace_results")
+          def read_json(path):
+              return json.loads(path.read_text()) if path.exists() else None
+          def read_csv(path):
+              if not path.exists():
+                  return []
+              with path.open(newline="") as handle:
+                  return list(csv.DictReader(handle))
+          def number(row, key, default=0.0):
+              try:
+                  value = float(row.get(key, default))
+                  return value if math.isfinite(value) else default
+              except (TypeError, ValueError):
+                  return default
+          def row_summary(row):
+              if row is None:
+                  return None
+              keys = ("config_id", "trades", "win_rate_pct", "profit_factor",
+                      "net_R", "avg_R", "max_drawdown_R", "max_losing_streak",
+                      "positive_month_fraction", "TP", "SL", "TIME")
+              out = {}
+              for key in keys:
+                  value = row.get(key)
+                  if value in (None, ""):
+                      out[key] = None
+                  elif key in ("config_id",):
+                      out[key] = value
+                  elif key in ("trades", "max_losing_streak", "TP", "SL", "TIME"):
+                      out[key] = int(float(value))
+                  else:
+                      out[key] = float(value)
+              return out
+
+          metadata = read_json(root / "methodology.json")
+          rows = read_csv(root / "summary.csv")
+          primary = [r for r in rows if int(number(r, "cost_bps")) == 12]
+          train = [r for r in primary if r.get("sample") == "train"]
+          validation = [r for r in primary if r.get("sample") == "validation"]
+          train_nonzero = [r for r in train if number(r, "trades") > 0]
+          validation_nonzero = [r for r in validation if number(r, "trades") > 0]
+          eligible = [
+              r for r in train
+              if number(r, "trades") >= 40 and number(r, "net_R") > 0
+              and number(r, "profit_factor", -1) >= 1.05
+              and number(r, "max_drawdown_R") >= -25
+              and number(r, "positive_month_fraction") >= 0.50
+          ]
+          eligible.sort(
+              key=lambda r: number(r, "net_R") /
+              (abs(number(r, "max_drawdown_R")) + 1), reverse=True
+          )
+          shortlist = eligible[:10]
+          passes = []
+          for candidate in shortlist:
+              match = next((r for r in validation
+                            if r.get("config_id") == candidate.get("config_id")), None)
+              if match and number(match, "trades") >= 20 and number(match, "net_R") > 0                   and number(match, "profit_factor", -1) >= 1.05                   and number(match, "max_drawdown_R") >= -15                   and number(match, "positive_month_fraction") >= 0.50:
+                  passes.append((candidate, match))
+          best_train = max(train_nonzero, key=lambda r: number(r, "net_R")) if train_nonzero else None
+          best_validation = max(validation_nonzero, key=lambda r: number(r, "net_R")) if validation_nonzero else None
+          selected_train = shortlist[0] if shortlist else None
+          selected_match = next((r for r in validation
+                                 if selected_train and r.get("config_id") == selected_train.get("config_id")), None)
+          selected_id = selected_train.get("config_id") if selected_train else None
+          costs = {}
+          if selected_id:
+              for bps in (6, 12, 20):
+                  costs[str(bps)] = {}
+                  for sample in ("train", "validation"):
+                      match = next((r for r in rows if r.get("config_id") == selected_id
+                                    and r.get("sample") == sample
+                                    and int(number(r, "cost_bps")) == bps), None)
+                      costs[str(bps)][sample] = row_summary(match)
+          monthly = [r for r in read_csv(root / "monthly_summary.csv")
+                     if selected_id and r.get("config_id") == selected_id
+                     and r.get("sample") in ("train", "validation")
+                     and int(number(r, "cost_bps")) == 12]
+          regime = [r for r in read_csv(root / "regime_summary.csv")
+                    if selected_id and r.get("config_id") == selected_id
+                    and r.get("sample") in ("train", "validation")
+                    and int(number(r, "cost_bps")) == 12]
+          result = {
+              "status": "outputs_available" if metadata and rows else "outputs_missing_or_incomplete",
+              "job_status": os.environ.get("JOB_STATUS"),
+              "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "workflow_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "workflow_run_url": f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}",
+              "commit_sha": os.environ.get("GITHUB_SHA"),
+              "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+              "methodology": metadata,
+              "train_nonzero_best_by_net_R": row_summary(max(train_nonzero, key=lambda r: number(r, "net_R"))) if train_nonzero else None,
+              "validation_nonzero_best_by_net_R": row_summary(best_validation),
+              "train_eligible_count": len(eligible),
+              "shortlisted_count": len(shortlist),
+              "validation_pass_count": len(passes),
+              "top_shortlisted_train_candidate": row_summary(selected_train),
+              "matching_validation": row_summary(selected_match),
+              "selected_candidate_cost_sensitivity": costs,
+              "selected_candidate_monthly_12bp": monthly,
+              "selected_candidate_regime_12bp": regime,
+              "oos_status": (root / "oos_status.txt").read_text().strip() if (root / "oos_status.txt").exists() else "No OOS status file.",
+          }
+          Path("/tmp/liquidity_fvg_retrace_latest.json").write_text(
+              json.dumps(result, indent=2, sort_keys=True) + "\n"
+          )
+          print(json.dumps({
+              "status": result["status"],
+              "run_id": result["workflow_run_id"],
+              "train_eligible": result["train_eligible_count"],
+              "shortlisted": result["shortlisted_count"],
+              "validation_pass": result["validation_pass_count"],
+              "oos_status": result["oos_status"],
+          }, indent=2))
+          PY
+          git fetch origin ai-quant-rebuild
+          git switch -C ai-quant-rebuild origin/ai-quant-rebuild
+          cp /tmp/liquidity_fvg_retrace_latest.json research/liquidity_fvg_retrace_latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/liquidity_fvg_retrace_latest.json
+          git commit -m "Record FVG retracement research run ${GITHUB_RUN_ID}"
+          git push origin HEAD:ai-quant-rebuild

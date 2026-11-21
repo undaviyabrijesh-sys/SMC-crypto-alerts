@@ -1,26 +1,57 @@
+"""Small persistent state for duplicate prevention and paper trade lifecycle."""
 import json
 import os
+from pathlib import Path
 
 PATH = os.environ.get("STATE_PATH", "state.json")
 
 
 def load():
+    """Load state without silently discarding an unreadable trading history."""
     try:
-        with open(PATH) as f:
-            s = json.load(f)
-    except Exception:
-        s = {}
-    s.setdefault("watches", {})
-    s.setdefault("positions", {})
-    s.setdefault("trade_history", [])
-    s.setdefault("rearm", {})
-    s.setdefault("seen", [])
-    s.setdefault("log", [])
-    return s
+        with open(PATH, encoding="utf-8") as handle:
+            state = json.load(handle)
+    except FileNotFoundError:
+        state = {}
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            f"Cannot safely load trading state at {PATH}; refusing to start with empty state"
+        ) from exc
+
+    if not isinstance(state, dict):
+        raise RuntimeError(
+            f"Trading state at {PATH} must contain a JSON object; refusing to reset it"
+        )
+
+    state.setdefault("positions", {})
+    state.setdefault("pending_alerts", {})
+    state.setdefault("pending_visual_alerts", {})
+    state.setdefault("pending_outcomes", {})
+    state.setdefault("trade_history", [])
+    state.setdefault("last_ai_candle", {})
+    state.setdefault("last_visual_candle", {})
+    state.setdefault("visual_ai_cooldown_until", None)
+    state.setdefault("last_analysis_at", None)
+    state.setdefault("last_market_commentary", "")
+    state.setdefault("daily_reports_sent", [])
+    state.setdefault("pending_daily_reports", {})
+    return state
 
 
-def save(s):
-    s["seen"] = s["seen"][-300:]
-    s["log"] = s["log"][-1000:]
-    with open(PATH, "w") as f:
-        json.dump(s, f, indent=1)
+def save(state):
+    """Atomically persist state so an interrupted write cannot truncate the live file."""
+    state["trade_history"] = state.get("trade_history", [])[-2000:]
+    path = Path(PATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(path.name + ".tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8") as handle:
+            json.dump(state, handle, indent=2, ensure_ascii=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, path)
+    finally:
+        try:
+            temp_path.unlink()
+        except FileNotFoundError:
+            pass

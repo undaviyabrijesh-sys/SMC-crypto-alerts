@@ -1,0 +1,74 @@
+name: Delta BTC ETH funding settlement semantics audit
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/funding_settlement_semantics_audit.py
+      - .github/workflows/funding-semantics-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: funding-semantics-audit-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_FUNDING_SEMANTICS_AUDIT:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Run deterministic semantics tests
+        run: python research/funding_settlement_semantics_audit.py --self-test
+      - name: Download two years of BTC and ETH funding history
+        run: >-
+          python bootstrap_derivatives_history.py
+          --years 2
+          --symbols BTC ETH
+          --series funding
+          --output-dir historical_data/derivatives
+          --request-delay 0.2
+          --retries 6
+      - name: Audit historical rate update cadence and current product specs
+        run: >-
+          python research/funding_settlement_semantics_audit.py
+          --data-dir historical_data/derivatives
+          --output-dir research/results/funding_semantics
+      - name: Publish audit summary
+        if: always()
+        run: |
+          if [ -f research/results/funding_semantics/report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/results/funding_semantics/report.json").read_text())
+          print("# Delta funding settlement semantics audit")
+          print(f"- Transition: {r['mechanism_transition_utc']} UTC")
+          print(f"- Candidate current settlement grid: {', '.join(r['candidate_current_settlement_grid_utc'])} UTC")
+          for asset,v in r['assets'].items():
+              print(f"## {asset}")
+              for period in ("pre_transition","post_transition"):
+                  s=v[period]
+                  print(f"- {period}: rows={s['rows']}, flat 8h blocks={s['flat_full_8h_blocks']}/{s['full_8h_blocks']}, off-grid rate changes={s['off_grid_rate_change_count_excluding_transition']}, rate range={s['rate_value_min']} to {s['rate_value_max']}")
+              print(f"- current product interval: {v['current_product_specs'].get('rate_exchange_interval_seconds')}")
+          print("- No funding PnL applied; pre-transition cashflow normalization and rate-to-settlement mapping remain unresolved.")
+          PY
+          else
+            echo "Audit report missing; inspect failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: delta-funding-semantics-audit-${{ github.run_id }}
+          path: |
+            research/results/funding_semantics/
+            historical_data/derivatives/*_funding_1h.csv
+          if-no-files-found: warn
+          retention-days: 30

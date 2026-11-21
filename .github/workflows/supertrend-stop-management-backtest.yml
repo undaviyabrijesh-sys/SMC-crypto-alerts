@@ -1,0 +1,56 @@
+name: BTC Supertrend stop-management sensitivity
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/supertrend_stop_management_backtest.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile research engines
+        run: |
+          python -m py_compile research/supertrend_intraday_backtest.py research/supertrend_stop_management_backtest.py
+      - name: Run deterministic gap and execution tests
+        run: python research/supertrend_stop_management_backtest.py --self-test
+      - name: Download data and run stop-management matrix
+        run: python research/supertrend_stop_management_backtest.py
+      - name: Add verified summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p=Path("supertrend_stop_sensitivity_results/metadata.json")
+          print("# BTC Supertrend stop-management sensitivity")
+          if not p.exists():
+              print("No metadata produced; inspect the failed step and logs.")
+          else:
+              m=json.loads(p.read_text())
+              print(f"- Rows: {m['rows']:,}; gaps: {m['gaps']}; segments: {m['segments']}")
+              print(f"- Configurations: {m['configurations']}; train eligible: {m['train_eligible']}; validation passes: {m['validation_pass']}")
+              print(f"- OOS evaluated: {m['oos_evaluated']}")
+              print(f"- Split: train end {m['train_end_utc']}; validation end {m['validation_end_utc']}")
+              print(f"- Cost: {m['primary_cost_bps']}bp assumed round trip; 6/12/20bp sensitivity")
+          PY
+      - name: Upload reproducible inputs and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-supertrend-stop-sensitivity-${{ github.run_id }}
+          path: supertrend_stop_sensitivity_results/
+          if-no-files-found: warn
+          retention-days: 30

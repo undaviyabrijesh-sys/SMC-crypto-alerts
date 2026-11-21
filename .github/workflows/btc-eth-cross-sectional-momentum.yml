@@ -1,0 +1,88 @@
+name: BTC ETH cross-sectional relative momentum
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - research/btc_eth_cross_sectional_momentum_backtest.py
+      - .github/workflows/btc-eth-cross-sectional-momentum.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btc-eth-cross-sectional-momentum-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pair-momentum:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_BTC_ETH_MOMENTUM:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/btc_eth_cross_sectional_momentum_backtest.py
+          python research/btc_eth_cross_sectional_momentum_backtest.py --self-test
+      - name: Download two years of BTC and ETH traded 15m candles
+        run: >-
+          python bootstrap_historical_data.py
+          --years 2
+          --symbols BTC ETH
+          --timeframes 15m
+          --output-dir historical_data
+          --request-delay 0.2
+          --retries 6
+      - name: Run preregistered BTC ETH relative momentum study
+        run: |
+          python research/btc_eth_cross_sectional_momentum_backtest.py \
+            --btc-csv historical_data/BTC_15m.csv \
+            --eth-csv historical_data/ETH_15m.csv \
+            --output-dir results/btc-eth-momentum
+      - name: Publish results summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p=Path("results/btc-eth-momentum/metadata.json")
+          print("# BTC/ETH cross-sectional momentum")
+          if not p.exists():
+              print("No result metadata produced; inspect the failed workflow step.")
+          else:
+              r=json.loads(p.read_text())
+              print(f"- Status: {r['status']}; decisions: {r['decision_count']}; active: {r['active_decision_count']}")
+              print(f"- BTC/ETH aligned rows: {r['data_quality']['aligned']['rows']}")
+              print(f"- Data coverage: {r['data_quality']['aligned']['start_utc']} to {r['data_quality']['aligned']['end_utc']}")
+              for period,s in r['periods'].items():
+                  print(f"\n## {period}")
+                  for name in ("active_pair","active_strong_only","always_btc_short_eth","always_eth_short_btc"):
+                      m=s[name]
+                      print(f"- {name}: n={m['trades']}, win={m['win_rate_pct']}%, PF={m['profit_factor']}, "
+                            f"net compound={m['compounded_net_return_pct']}%, DD={m['max_drawdown_pct']}%, "
+                            f"positive months={m['positive_month_fraction']}")
+              print("- R is not applicable: no stop-defined risk unit. Funding and slippage remain excluded.")
+          PY
+      - name: Retain raw inputs and reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-eth-cross-sectional-momentum-${{ github.run_id }}
+          path: |
+            historical_data/BTC_15m.csv
+            historical_data/ETH_15m.csv
+            historical_data/manifest.json
+            historical_data/coverage.csv
+            results/btc-eth-momentum/
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 14

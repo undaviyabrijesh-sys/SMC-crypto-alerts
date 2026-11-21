@@ -1,0 +1,215 @@
+name: ETHUSDT Supertrend Actual Funding Cashflow Audit
+run-name: ETH Supertrend — actual funding events and cashflow bounds
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/eth_supertrend_actual_funding_cashflow_audit.py"
+      - "research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv"
+      - ".github/workflows/eth-supertrend-funding-cashflow-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: eth-supertrend-funding-cashflow-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deterministic test dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+      - name: Compile audit and reused engines
+        run: |
+          python -m py_compile \
+            research/eth_supertrend_actual_funding_cashflow_audit.py \
+            research/eth_supertrend_intraday_replication.py \
+            research/binance_ethusdt_ema20_cross_exchange_replication.py \
+            research/supertrend_intraday_backtest.py
+      - name: Run deterministic funding accounting tests
+        run: python research/eth_supertrend_actual_funding_cashflow_audit.py --self-test
+
+  audit:
+    needs: unit
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'RUN_ETH_SUPERTREND_FUNDING_AUDIT:'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas requests
+
+      - name: Download immutable parent Supertrend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ethusdt-supertrend-intraday-replication-2026-11-20
+          path: parent_artifact
+          repository: ${{ github.repository }}
+          run-id: 44693535437
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile audit and reused engines
+        run: |
+          python -m py_compile \
+            research/eth_supertrend_actual_funding_cashflow_audit.py \
+            research/eth_supertrend_intraday_replication.py \
+            research/binance_ethusdt_ema20_cross_exchange_replication.py \
+            research/supertrend_intraday_backtest.py
+
+      - name: Run deterministic funding accounting tests
+        run: python research/eth_supertrend_actual_funding_cashflow_audit.py --self-test
+
+      - name: Verify committed official funding snapshot
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          p=Path("research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv")
+          d=pd.read_csv(p)
+          assert len(d)==1483, f"expected 1483 funding events, got {len(d)}"
+          assert d.symbol.eq("ETHUSDT").all()
+          assert d.fundingTime.is_monotonic_increasing
+          assert not d.fundingTime.duplicated().any()
+          assert d.markPrice.notna().all() and (d.markPrice.astype(float)>0).all()
+          print(f"PASS official funding snapshot: {len(d)} rows")
+          print(f"first={d.fundingTime.iloc[0]} last={d.fundingTime.iloc[-1]}")
+          PY
+
+      - name: Replay every raw flip with actual funding cashflows
+        run: |
+          python research/eth_supertrend_actual_funding_cashflow_audit.py \
+            --parent-artifact parent_artifact \
+            --funding-csv research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv \
+            --out eth_supertrend_funding_audit_results
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          if [ -f eth_supertrend_funding_audit_results/REPORT.md ]; then
+            cat eth_supertrend_funding_audit_results/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Funding cashflow audit did not produce REPORT.md; inspect the failed step logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Create normalized Quant Terminal metadata
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("eth_supertrend_funding_audit_results")
+          s=json.loads((p/"summary.json").read_text())
+          a=s["results_12bps"]["all_raw_signals/development"]["lower"]["trades"]
+          b=s["results_12bps"]["all_raw_signals/validation"]["lower"]["trades"]
+          m={
+            "status":"completed_rejected",
+            "symbol":"ETHUSDT",
+            "strategy":"15m Supertrend actual funding cashflow audit",
+            "run_id":int(os.environ["GITHUB_RUN_ID"]),
+            "start_utc":s["data_quality"]["source_start_utc"],
+            "end_utc":s["split_boundaries"]["validation_last_bar_open"],
+            "configurations":1,
+            "trade_count":a+b,
+            "validation_passes":False,
+            "oos_evaluated":False,
+            "parent_workflow_run_id":s["parent_workflow_run_id"],
+            "funding_records":s["data_quality"]["funding_rows"],
+            "funding_sha256":s["data_quality"]["funding_sha256"],
+            "primary_cost_bps_round_trip":s["primary_cost_bps_round_trip"],
+            "decision":s["decision"]
+          }
+          (p/"terminal_metadata.json").write_text(json.dumps(m,indent=2)+"\n")
+          print(json.dumps(m,indent=2))
+          PY
+
+      - name: Commit reproducible results and ledger updates to research branch
+        if: success()
+        run: |
+          mkdir -p quant_discovery
+          cp eth_supertrend_funding_audit_results/REPORT.md quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_RESULTS_2026-11-20.md
+          cp eth_supertrend_funding_audit_results/summary.json quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_SUMMARY_2026-11-20.json
+          cp eth_supertrend_funding_audit_results/terminal_metadata.json quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_METADATA_2026-11-20.json
+          cp eth_supertrend_funding_audit_results/funding_manifest.json quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_FUNDING_MANIFEST_2026-11-20.json
+          cp eth_supertrend_funding_audit_results/funding_coverage.json quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_COVERAGE_2026-11-20.json
+          cp eth_supertrend_funding_audit_results/monthly_bounds.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_MONTHLY_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/regime_bounds.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_REGIME_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/side_bounds.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_SIDE_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/cost_sensitivity_bounds.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_COST_SENSITIVITY_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/ambiguous_settlements.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_AMBIGUOUS_SETTLEMENTS_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/risk_guard_excluded_signals.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_RISK_GUARD_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/all_raw_signals_development_funding_trades.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_ALL_RAW_DEVELOPMENT_TRADES_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/all_raw_signals_validation_funding_trades.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_ALL_RAW_VALIDATION_TRADES_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/parent_default_grid_subset_development_funding_trades.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_PARENT_GRID_DEVELOPMENT_TRADES_2026-11-20.csv
+          cp eth_supertrend_funding_audit_results/parent_default_grid_subset_validation_funding_trades.csv quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_PARENT_GRID_VALIDATION_TRADES_2026-11-20.csv
+
+          cat >> research/RESEARCH_LEDGER.md <<'EOF'
+
+          ### ETHUSDT Supertrend actual funding cashflow audit — 2026-11-20
+          - Funding source: Binance USD-M historical funding history, retrieved through the connected Binance public-data action; committed snapshot research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv.
+          - 1,483 records with fundingTime, fundingRate, associated markPrice and rateType; SHA-256 23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6. Coverage starts 2025-03-08 00:00 UTC and includes the first post-window settlement at 2026-07-15 00:00:00.005 UTC.
+          - All 1,482 observed intervals round to 8 hours; minimum/maximum interval 28,799,984 / 28,800,016 ms. No missing or duplicate funding timestamps in the snapshot.
+          - Reused the exact parent ETHUSDT 15m source (47,424 bars; SHA-256 9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59), existing Supertrend signal generator and existing trade simulator. Replayed all 1,043 raw flips without the fixed-clock funding exclusion. Development/validation split boundaries match the parent replay. The contaminated final 15% holdout remains retired and was not evaluated.
+          - All-raw-signal replay at 12 bps round trip: development 658 trades, win rate 43.01%, PF 0.8824, -26.7718R, max DD -36.3054R, 12-loss streak, 5/12 positive months; validation 148 trades, win rate 36.49%, PF 0.7925, -11.9967R, max DD -16.8476R, 10-loss streak, 1/3 positive months.
+          - Cost sensitivity: at 6 bps development +1.8518R / PF 1.0088, but validation -4.9448R / PF 0.9071; at 20 bps development -64.9366R and validation -21.3993R. No cost level passes both chronological samples.
+          - Definite/ambiguous settlements: development 269 / 37; validation 65 / 7. Definite funding effect -0.1008R development and +0.0524R validation. Conservative funding-R bounds are -0.1688 to -0.0412 development and +0.0512 to +0.0852 validation.
+          - The original fixed-grid-selected parent subset (332 development / 75 validation trades) had zero definite settlements and only 16 / 4 ambiguous boundary events. The 00:00/08:00/16:00 grid happened to match the observed 8h ETH schedule, but its full-4h-horizon exclusion was over-conservative: it removed many trades that actually exited before a funding event. The all-signal replay still fails both samples.
+          - Funding attribution uses actual markPrice and side-aware cashflow, with a 1-second entry boundary and lower/upper bounds for TP/SL exit-candle ambiguity. Costs remain assumed, not account-tier verified; no separate spread/variable slippage/market impact. R is per initial stop risk, not account return.
+          - Decision: reject this exact Supertrend baseline; no strategy promotion. Script research/eth_supertrend_actual_funding_cashflow_audit.py; workflow eth-supertrend-funding-cashflow-audit.yml; report/summary/trade ledgers and monthly/regime/side/cost tables committed under quant_discovery/.
+          - Next step: do not tune this baseline. Move to a distinct BTC market-structure hypothesis only after prior-art audit; preserve funding-aware accounting for all perpetual research.
+          EOF
+
+          cat >> quant_terminal/BUILD_LOG.md <<'EOF'
+
+          ## 2026-11-20 — Actual ETH funding cashflow results indexed for Backtesting
+          - Added the 1,483-row official ETHUSDT funding snapshot and reproducible actual-funding audit outputs to the research branch.
+          - Committed normalized metadata, funding-aware trade ledgers, monthly/regime/side summaries, cost sensitivity and ambiguous-settlement rows under quant_discovery/. The existing read-only Backtesting artifact index discovers these CSV/metadata/report files; it does not recompute them.
+          - The audit is explicitly research-only and rejected; no strategy promotion, paper-state mutation, live order or alert route was added.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_CASHFLOW_AUDIT_* quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_ALL_RAW_* quant_discovery/ETH_SUPERTREND_ACTUAL_FUNDING_PARENT_GRID_*
+          git add -f research/RESEARCH_LEDGER.md
+          git add quant_terminal/BUILD_LOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Record ETH actual funding cashflow audit results"
+            git push origin HEAD:ai-quant-rebuild
+          else
+            echo "No new result files to commit"
+          fi
+
+      - name: Upload reproducible funding audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ethusdt-supertrend-actual-funding-cashflow-audit-${{ github.run_id }}
+          path: |
+            eth_supertrend_funding_audit_results/
+          if-no-files-found: warn
+          retention-days: 30

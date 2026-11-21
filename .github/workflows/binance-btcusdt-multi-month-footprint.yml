@@ -1,0 +1,91 @@
+name: Binance BTCUSDT multi-month true footprint reconstruction
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/BINANCE_BTCUSDT_TRUE_FOOTPRINT_MULTI_MONTH_EXTENSION_PREREGISTRATION_2026-11-19.md"
+      - "research/binance_btcusdt_true_footprint_build.py"
+      - ".github/workflows/binance-btcusdt-multi-month-footprint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binance-btcusdt-multi-month-footprint
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        month:
+          - "2026-06"
+          - "2026-07"
+          - "2026-08"
+          - "2026-09"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install feature-build dependencies
+        run: python -m pip install --disable-pip-version-check "numpy>=1.26" "pandas>=2.1" "requests>=2.31"
+      - name: Compile and run deterministic feature tests
+        run: |
+          python -m py_compile research/binance_btcusdt_true_footprint_build.py
+          python research/binance_btcusdt_true_footprint_build.py --self-test
+      - name: Download and build exact-price monthly features
+        id: build_run
+        continue-on-error: true
+        env:
+          MONTH: ${{ matrix.month }}
+        run: |
+          python research/binance_btcusdt_true_footprint_build.py \
+            --month "$MONTH" \
+            --output-dir "results/binance-true-footprint-$MONTH"
+      - name: Add monthly report to job summary
+        if: always()
+        env:
+          MONTH: ${{ matrix.month }}
+        run: |
+          REPORT="results/binance-true-footprint-$MONTH/report.md"
+          if [ -f "$REPORT" ]; then
+            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No monthly report produced for $MONTH; inspect the build logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain source archives and derived monthly tables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-btcusdt-true-footprint-${{ matrix.month }}
+          path: results/binance-true-footprint-${{ matrix.month }}/
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
+      - name: Require all monthly validation gates
+        if: always()
+        env:
+          MONTH: ${{ matrix.month }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          month = os.environ["MONTH"]
+          path = Path(f"results/binance-true-footprint-{month}/metadata.json")
+          if not path.exists():
+              raise SystemExit(f"No metadata.json produced for {month}.")
+          metadata = json.loads(path.read_text())
+          print(month, "feature build status:", metadata.get("status"))
+          if metadata.get("month") != month or metadata.get("status") != "PASS":
+              raise SystemExit(f"Monthly feature validation failed for {month}.")
+          PY

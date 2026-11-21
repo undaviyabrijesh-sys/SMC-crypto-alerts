@@ -1,0 +1,35 @@
+name: Intraday BTCUSD Bollinger Keltner squeeze breakout research
+
+on:
+  push:
+    branches: [ai-quant-rebuild]
+    paths:
+      - "research/squeeze_breakout_intraday_backtest.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: python -m pip install --upgrade pip pandas numpy requests
+      - name: Compile squeeze breakout research
+        run: python -m py_compile research/squeeze_breakout_intraday_backtest.py
+      - name: Run intraday squeeze breakout matrix
+        run: python research/squeeze_breakout_intraday_backtest.py
+      - name: Upload intraday squeeze breakout outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intraday-btcusd-squeeze-breakout-research
+          path: squeeze_breakout_results/
+          if-no-files-found: warn
+          retention-days: 30

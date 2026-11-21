@@ -1,0 +1,244 @@
+{
+  "status": "completed_accounting_audit_no_strategy_promotion",
+  "parent_workflow_run_id": 44693535437,
+  "symbol": "ETHUSDT",
+  "venue": "Binance USD-M",
+  "frozen_configuration": {
+    "config_id": "hl2_atr10_x3_2R_both_all_4h",
+    "source": "hl2",
+    "atr_length": 10,
+    "atr_multiplier": 3.0,
+    "target_r": 2.0,
+    "filter": "none",
+    "direction": "both",
+    "session": "all",
+    "max_hold_bars": 16,
+    "inherited_max_initial_stop_risk_pct_of_entry": 5.0
+  },
+  "primary_cost_bps_round_trip": 12.0,
+  "cost_sensitivity_bps_round_trip": [
+    6.0,
+    12.0,
+    20.0
+  ],
+  "data_quality": {
+    "source_candle_rows": 47424,
+    "source_candle_sha256": "9f6379bb53003daa04779960095af65065127aa89f9ed46f4016d8cd28c50f59",
+    "complete_4h_bars": 11856,
+    "funding_rows": 1483,
+    "funding_sha256": "23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6",
+    "raw_supertrend_flips": 1043,
+    "inherited_risk_guard_exclusions": 6,
+    "funding_schedule": {
+      "source": "Binance USD-M GET /fapi/v1/fundingRate via connected Binance public-data connector; fields fundingTime, fundingRate, markPrice, rateType",
+      "symbol": "ETHUSDT",
+      "rows": 1483,
+      "first_funding_time_utc": "2025-03-08T00:00:00+00:00",
+      "last_funding_time_utc": "2026-07-15T00:00:00.005000+00:00",
+      "interval_hours_rounded": {
+        "8": 1482
+      },
+      "minimum_interval_ms": 28799984,
+      "maximum_interval_ms": 28800016,
+      "rate_type_counts": {
+        "Regular": 1483
+      },
+      "funding_rate_min": -0.00036526,
+      "funding_rate_max": 0.0001,
+      "mark_price_min": 1459.71,
+      "mark_price_max": 4829.83,
+      "sha256": "23d7d5796e5d5691ff5ee93e8280f18d15c5235bbb7b50533be545c41abb53d6",
+      "path": "research/data/ETHUSDT_BINANCE_USDM_FUNDING_2025-03-08_2026-07-15.csv",
+      "retrieval_window_start_ms_inclusive": 1741392000000,
+      "retrieval_window_end_ms_inclusive": 1784102400000,
+      "page_limits": [
+        1000,
+        1000
+      ],
+      "retrieved_via": "connected Binance USD-M public funding history action",
+      "all_observed_intervals_within_8h_maximum": true
+    },
+    "coverage": {
+      "first_trade_entry_utc": "2025-03-08T12:30:00+00:00",
+      "last_trade_exit_close_utc": "2026-04-30T13:30:00+00:00",
+      "first_funding_event_utc": "2025-03-08T00:00:00+00:00",
+      "last_funding_event_utc": "2026-07-15T00:00:00.005000+00:00",
+      "coverage_start_pass": true,
+      "coverage_end_pass": true
+    }
+  },
+  "split_boundaries": {
+    "development_last_bar_open": "2026-02-16T18:45:00+00:00",
+    "validation_first_bar_open": "2026-02-16T19:00:00+00:00",
+    "validation_last_bar_open": "2026-05-01T21:15:00+00:00",
+    "retired_holdout_first_bar_open": "2026-05-01T21:30:00+00:00",
+    "retired_holdout_evaluated": false
+  },
+  "results_12bps": {
+    "all_raw_signals/development": {
+      "lower": {
+        "trades": 658,
+        "win_rate_pct": 43.01,
+        "profit_factor": 0.8824,
+        "net_R": -26.7718,
+        "avg_R": -0.04069,
+        "max_drawdown_R": -36.3054,
+        "max_losing_streak": 12,
+        "positive_months": 5,
+        "active_months": 12,
+        "positive_month_fraction": 0.4167,
+        "TP": 48,
+        "SL": 125,
+        "TIME": 485
+      },
+      "upper": {
+        "trades": 658,
+        "win_rate_pct": 43.01,
+        "profit_factor": 0.883,
+        "net_R": -26.6442,
+        "avg_R": -0.04049,
+        "max_drawdown_R": -36.2029,
+        "max_losing_streak": 12,
+        "positive_months": 5,
+        "active_months": 12,
+        "positive_month_fraction": 0.4167,
+        "TP": 48,
+        "SL": 125,
+        "TIME": 485
+      },
+      "funding_events_definite": 269,
+      "funding_events_ambiguous": 37,
+      "funding_R_definite_total": -0.10075612517959347,
+      "funding_R_lower_total": -0.16881045136881606,
+      "funding_R_upper_total": -0.041211798347463004,
+      "funding_paid_quote_definite_per_eth": 23.646269043898098,
+      "funding_received_quote_definite_per_eth": 18.548055934376904
+    },
+    "all_raw_signals/validation": {
+      "lower": {
+        "trades": 148,
+        "win_rate_pct": 36.49,
+        "profit_factor": 0.7925,
+        "net_R": -11.9967,
+        "avg_R": -0.08106,
+        "max_drawdown_R": -16.8476,
+        "max_losing_streak": 10,
+        "positive_months": 1,
+        "active_months": 3,
+        "positive_month_fraction": 0.3333,
+        "TP": 13,
+        "SL": 29,
+        "TIME": 106
+      },
+      "upper": {
+        "trades": 148,
+        "win_rate_pct": 36.49,
+        "profit_factor": 0.7929,
+        "net_R": -11.9627,
+        "avg_R": -0.08083,
+        "max_drawdown_R": -16.8217,
+        "max_losing_streak": 10,
+        "positive_months": 1,
+        "active_months": 3,
+        "positive_month_fraction": 0.3333,
+        "TP": 13,
+        "SL": 29,
+        "TIME": 106
+      },
+      "funding_events_definite": 65,
+      "funding_events_ambiguous": 7,
+      "funding_R_definite_total": 0.05236690981358539,
+      "funding_R_lower_total": 0.051161186280371515,
+      "funding_R_upper_total": 0.08524065774507804,
+      "funding_paid_quote_definite_per_eth": 1.9961398339588405,
+      "funding_received_quote_definite_per_eth": 3.3617013562396783
+    },
+    "parent_default_grid_subset/development": {
+      "lower": {
+        "trades": 332,
+        "win_rate_pct": 43.07,
+        "profit_factor": 0.7884,
+        "net_R": -24.2695,
+        "avg_R": -0.0731,
+        "max_drawdown_R": -28.599,
+        "max_losing_streak": 13,
+        "positive_months": 2,
+        "active_months": 12,
+        "positive_month_fraction": 0.1667,
+        "TP": 22,
+        "SL": 58,
+        "TIME": 252
+      },
+      "upper": {
+        "trades": 332,
+        "win_rate_pct": 43.07,
+        "profit_factor": 0.7888,
+        "net_R": -24.2146,
+        "avg_R": -0.07294,
+        "max_drawdown_R": -28.5494,
+        "max_losing_streak": 13,
+        "positive_months": 2,
+        "active_months": 12,
+        "positive_month_fraction": 0.1667,
+        "TP": 22,
+        "SL": 58,
+        "TIME": 252
+      },
+      "funding_events_definite": 0,
+      "funding_events_ambiguous": 16,
+      "funding_R_definite_total": 0.0,
+      "funding_R_lower_total": -0.023024863919785893,
+      "funding_R_upper_total": 0.03191549269598864,
+      "funding_paid_quote_definite_per_eth": 0.0,
+      "funding_received_quote_definite_per_eth": 0.0
+    },
+    "parent_default_grid_subset/validation": {
+      "lower": {
+        "trades": 75,
+        "win_rate_pct": 37.33,
+        "profit_factor": 0.7479,
+        "net_R": -8.2598,
+        "avg_R": -0.11013,
+        "max_drawdown_R": -18.4183,
+        "max_losing_streak": 11,
+        "positive_months": 1,
+        "active_months": 3,
+        "positive_month_fraction": 0.3333,
+        "TP": 6,
+        "SL": 18,
+        "TIME": 51
+      },
+      "upper": {
+        "trades": 75,
+        "win_rate_pct": 37.33,
+        "profit_factor": 0.7485,
+        "net_R": -8.2308,
+        "avg_R": -0.10974,
+        "max_drawdown_R": -18.3936,
+        "max_losing_streak": 11,
+        "positive_months": 1,
+        "active_months": 3,
+        "positive_month_fraction": 0.3333,
+        "TP": 6,
+        "SL": 18,
+        "TIME": 51
+      },
+      "funding_events_definite": 0,
+      "funding_events_ambiguous": 4,
+      "funding_R_definite_total": 0.0,
+      "funding_R_lower_total": 0.0,
+      "funding_R_upper_total": 0.028982112141443375,
+      "funding_paid_quote_definite_per_eth": 0.0,
+      "funding_received_quote_definite_per_eth": 0.0
+    }
+  },
+  "ambiguity_event_rows": 64,
+  "self_tests": [
+    "funding_rate_sign_long_short",
+    "entry_and_exit_boundary_bounds",
+    "time_exit_settlement_charged_before_close",
+    "multiple_settlements_supported",
+    "millisecond_settlement_timestamp_jitter"
+  ],
+  "decision": "no_promotion; funding accounting correction only; retired holdout not evaluated"
+}

@@ -1,0 +1,5 @@
+candidate,split,cost_bps,trades,win_rate_pct,profit_factor,net_R,max_drawdown_R,max_losing_streak,positive_months,months,TP,SL,TIME,train_gate_pass,validation_gate_evaluated,validation_gate_pass
+best_train_net,train,12,34,41.17647058823529,1.0288835154446234,0.8636445343389683,-11.68151246448252,5,7,15,11,20,3,false,false,
+best_train_net,validation_diagnostic,12,8,12.5,0.233741276252461,-7.453027114016946,-9.72651518741144,7,1,4,1,7,0,false,false,
+best_validation_net_min20,train,12,118,33.89830508474576,0.3410748706025033,-89.95995001609377,-89.95995001609377,11,3,18,42,75,1,false,false,
+best_validation_net_min20,validation,12,21,42.85714285714285,0.4718220417082133,-10.808298583887735,-10.808298583887735,3,0,4,10,11,0,false,false,

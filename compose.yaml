@@ -1,0 +1,15 @@
+services:
+  salty-quant-paper-desk:
+    build: .
+    container_name: salty-quant-paper-desk
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /data/market_data
+      STATE_PATH: /data/state.json
+      QUANT_RESEARCH_PATH: /data/research/quant_signals.jsonl
+      HEARTBEAT_PATH: /data/worker_heartbeat.json
+      WORKER_INTERVAL_SECONDS: "300"
+    volumes:
+      - ./salty_data:/data

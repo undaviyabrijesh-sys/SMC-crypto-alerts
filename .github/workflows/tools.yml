@@ -1,37 +1,92 @@
-name: tools
+name: quant-desk-tools
+
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: "What to run"
+        description: "Select a task"
         type: choice
         options:
-          - zones-report
-          - replay-50-days
-        default: zones-report
+          - visual-tests
+          - visual-desk-run
+        default: visual-tests
+      confirm_visual_paper:
+        description: "Explicitly confirm one visual PAPER analysis cycle (no exchange orders)"
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: quant-desk-tools
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -r requirements.txt
-      - name: Zones report
-        if: ${{ inputs.task == 'zones-report' }}
-        run: python show_zones.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore rolling analysis state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            salty-quant-state-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Restore rolling OHLCV and research data
+        uses: actions/cache@v4
+        with:
+          path: |
+            market_data/
+            research/
+          key: salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            salty-quant-market-${{ runner.os }}-${{ github.ref_name }}-
+      - name: Run offline visual pipeline tests
+        if: ${{ inputs.task == 'visual-tests' }}
+        run: python test_visual_pipeline.py && python test_visual_first.py
+      - name: Run one confirmed AI visual paper cycle
+        if: ${{ inputs.task == 'visual-desk-run' }}
+        shell: bash
+        run: |
+          if [ "${{ inputs.confirm_visual_paper }}" != "true" ]; then
+            echo "Visual paper lane not run: explicitly set confirm_visual_paper=true in manual dispatch."
+            exit 0
+          fi
+          ENABLE_VISUAL_PAPER=true python visual_worker.py
         env:
-          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_REASONING_EFFORT: high
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
-      - name: Replay last 50 days
-        if: ${{ inputs.task == 'replay-50-days' }}
-        run: python replay.py --days 50
-        env:
-          DISCORD_ZONES_WEBHOOK: ${{ secrets.DISCORD_ZONES_WEBHOOK }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_WATCH_WEBHOOK: ${{ secrets.DISCORD_WATCH_WEBHOOK }}
+          DISCORD_TRIGGER_WEBHOOK: ${{ secrets.DISCORD_TRIGGER_WEBHOOK }}
+          DATA_DIR: market_data
+          STATE_PATH: state.json
+          VISUAL_FIRST_RESEARCH_PATH: research/visual_first_decisions.jsonl
+          VISUAL_FIRST_CHART_DIR: visual_artifacts
+
+      - name: Upload visual-first decision log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-first-decisions-${{ github.run_id }}
+          path: research/visual_first_decisions.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload raw visual charts and watermark manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salty-visual-charts-${{ github.run_id }}
+          path: visual_artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

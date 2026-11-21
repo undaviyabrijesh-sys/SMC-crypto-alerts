@@ -1,0 +1,42 @@
+{
+  "status": "COMPLETED",
+  "workflow_run_id": 44553749894,
+  "feature_build_run_id": 44513565570,
+  "source_months": [
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "source_artifacts": {
+    "2026-06": 14524680968,
+    "2026-07": 14525415431,
+    "2026-08": 14524786744,
+    "2026-09": 14525551088
+  },
+  "event_artifacts": {
+    "2026-06": 14545065024,
+    "2026-07": 14543678870,
+    "2026-08": 14543528989,
+    "2026-09": 14543544154,
+    "pooled": 14543313409
+  },
+  "totals": {
+    "five_minute_bars": 35136,
+    "aggregate_trade_rows": 163919944,
+    "exact_price_rows": 33356915,
+    "alignment_eligible_bars": 34310,
+    "alignment_excluded_bars": 826,
+    "unique_events": 741,
+    "event_horizon_rows": 1482
+  },
+  "alignment_tolerance": 0.001,
+  "round_trip_cost_bps": 10,
+  "bootstrap_reps_per_pooled_group": 10000,
+  "strategy_backtest_run": false,
+  "stop_target_modeled": false,
+  "funding_modeled": false,
+  "spread_slippage_market_impact_modeled": false,
+  "parameter_search": false,
+  "decision": "reject exact fixed-horizon absorption and continuation definitions; no strategy promotion"
+}

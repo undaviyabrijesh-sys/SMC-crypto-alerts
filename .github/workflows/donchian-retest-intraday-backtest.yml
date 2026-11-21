@@ -1,0 +1,70 @@
+name: BTC Donchian breakout-retest intraday backtest
+
+on:
+  push:
+    branches:
+      - ai-quant-rebuild
+    paths:
+      - "research/donchian_retest_intraday_backtest.py"
+      - ".github/workflows/donchian-retest-intraday-backtest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: donchian-retest-research
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'RUN_DONCHIAN_RETEST_BACKTEST:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-quant-rebuild
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile and run deterministic tests
+        run: |
+          python -m py_compile research/donchian_retest_intraday_backtest.py
+          python research/donchian_retest_intraday_backtest.py --self-test
+      - name: Download two years of BTCUSD traded 15m candles
+        run: |
+          python bootstrap_historical_data.py \
+            --years 2 \
+            --symbols BTC \
+            --timeframes 15m \
+            --output-dir historical_data \
+            --request-delay 0.2 \
+            --retries 6
+      - name: Run Donchian breakout-retest matrix
+        run: |
+          python research/donchian_retest_intraday_backtest.py \
+            --price-csv historical_data/BTC_15m.csv \
+            --output-dir results/donchian-retest
+      - name: Add verified summary to job output
+        if: always()
+        run: |
+          if [ -f results/donchian-retest/summary.md ]; then
+            cat results/donchian-retest/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No Donchian retest summary was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain reproducible data and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-donchian-retest
+          path: |
+            results/donchian-retest/
+            historical_data/BTC_15m.csv
+            historical_data/manifest.json
+          if-no-files-found: warn
+          retention-days: 30
