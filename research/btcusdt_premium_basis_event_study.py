@@ -149,7 +149,7 @@ def nearest_control(event_idx, split_start, split_end, side, zscores,
             return c
     return None
 
-def signed_reversion(start_value, future_value, reference_mean):
+def mean_distance_reduction(start_value, future_value, reference_mean):
     """Positive means absolute distance to the fixed event-time mean decreased."""
     return abs(start_value - reference_mean) - abs(future_value - reference_mean)
 
@@ -316,10 +316,10 @@ def run_study(out):
             used_controls.add(c)
             mark_neighborhood(blocked, c)
             for horizon, bars in HORIZONS.items():
-                er = signed_reversion(basis[i], basis[i + bars], basis_mean[i])
-                cr = signed_reversion(basis[c], basis[c + bars], basis_mean[c])
-                mr = signed_reversion(mark[i], mark[i + bars], mark_mean[i])
-                pi_reversion = signed_reversion(prem[i], prem[i + bars], premium_mean[i]) * 10000.0
+                er = mean_distance_reduction(basis[i], basis[i + bars], basis_mean[i])
+                cr = mean_distance_reduction(basis[c], basis[c + bars], basis_mean[c])
+                mr = mean_distance_reduction(mark[i], mark[i + bars], mark_mean[i])
+                pi_reversion = mean_distance_reduction(prem[i], prem[i + bars], premium_mean[i]) * 10000.0
                 pair_rows.append({
                     "asset": SYMBOL, "split": split_name, "horizon": horizon, "bars": bars,
                     "event_time_utc": event_time, "event_day": day, "month": month,
@@ -535,11 +535,11 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(select_events(z, ret, rv, 0, 400), [100, 149])
 
     def test_mean_distance_reduction_handles_overshoot(self):
-        self.assertGreater(signed_reversion(10.0, 5.0, 0.0), 0)
-        self.assertGreater(signed_reversion(-10.0, -5.0, 0.0), 0)
-        self.assertGreater(signed_reversion(5.0, -2.0, 0.0), 0)
-        self.assertLess(signed_reversion(5.0, -8.0, 0.0), 0)
-        self.assertAlmostEqual(signed_reversion(10.0, 7.0, 5.0), 1.0)
+        self.assertGreater(mean_distance_reduction(10.0, 5.0, 0.0), 0)
+        self.assertGreater(mean_distance_reduction(-10.0, -5.0, 0.0), 0)
+        self.assertGreater(mean_distance_reduction(5.0, -2.0, 0.0), 0)
+        self.assertLess(mean_distance_reduction(5.0, -8.0, 0.0), 0)
+        self.assertAlmostEqual(mean_distance_reduction(10.0, 7.0, 5.0), 1.0)
 
     def test_control_nonoverlap_and_no_reuse(self):
         n, z = 500, [None] * 500
