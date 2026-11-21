@@ -38,6 +38,21 @@ def expected_month_rows(month):
     y, m = map(int, month.split("-"))
     return calendar.monthrange(y, m)[1] * 288
 
+def full_day_patch_dates(missing_timestamps):
+    """Accept only complete missing UTC days; partial-day holes fail closed."""
+    groups = defaultdict(set)
+    for ts in missing_timestamps:
+        day_start = (int(ts) // 86_400_000) * 86_400_000
+        groups[day_start].add(int(ts))
+    result = []
+    for day_start, observed in sorted(groups.items()):
+        expected = set(range(day_start, day_start + 86_400_000, STEP_MS))
+        if observed != expected:
+            raise AssertionError(f"partial-day archive gap at UTC day {day_start}")
+        result.append(day_start)
+    return result
+
+
 def rolling_prior_zscores(values, lookback):
     """Each z[i] uses values[i-lookback:i], excluding the current observation."""
     n = len(values)
@@ -152,17 +167,50 @@ def load_aligned_months(out):
             rows, meta = archive_audit.download_archive(session, spec["archive"], "monthly", month)
             month_start = archive_audit.utc_ms(month + "-01")
             expected_last = month_start + expected * STEP_MS - STEP_MS
-            if len(rows) != expected or meta["gap_count"] or meta["duplicate_count"]:
-                raise AssertionError(f"{name} {month}: rows={len(rows)}/{expected}, gaps={meta['gap_count']}, duplicates={meta['duplicate_count']}")
-            if rows[0]["open_time"] != month_start or rows[-1]["open_time"] != expected_last:
-                raise AssertionError(f"{name} {month}: monthly first/last timestamps do not match the calendar boundary")
-            per_series[name] = {r["open_time"]: r for r in rows}
+            expected_times = set(range(month_start, month_start + expected * STEP_MS, STEP_MS))
+            present = {r["open_time"] for r in rows}
+            extra = present - expected_times
+            missing = expected_times - present
+            if extra or meta["duplicate_count"]:
+                raise AssertionError(f"{name} {month}: out-of-month timestamps or duplicates")
             archive_manifest.append({
-                "series": name, "month": month, "rows": len(rows), "expected_rows": expected,
-                "gaps": meta["gap_count"], "duplicates": meta["duplicate_count"],
-                "sha256": meta["sha256"], "zip_crc": meta["zip_crc"],
-                "relative_path": meta["relative_path"], "bytes": meta["bytes"],
+                "series": name, "period": "monthly", "date": month, "month": month,
+                "rows": len(rows), "expected_rows": expected,
+                "gaps_in_monthly_archive": meta["gap_count"], "missing_rows_before_patch": len(missing),
+                "duplicates": meta["duplicate_count"], "sha256": meta["sha256"],
+                "zip_crc": meta["zip_crc"], "relative_path": meta["relative_path"],
+                "bytes": meta["bytes"],
             })
+            if missing:
+                # Deterministic source repair: only whole missing UTC days may be
+                # restored from the matching checksum-verified daily archive.
+                for day_start in full_day_patch_dates(missing):
+                    date_key = datetime.fromtimestamp(day_start / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+                    patch_rows, patch_meta = archive_audit.download_archive(
+                        session, spec["archive"], "daily", date_key
+                    )
+                    day_expected = set(range(day_start, day_start + 86_400_000, STEP_MS))
+                    patch_times = {r["open_time"] for r in patch_rows}
+                    if (len(patch_rows) != 288 or patch_meta["gap_count"] or patch_meta["duplicate_count"]
+                            or patch_times != day_expected or present.intersection(patch_times)):
+                        raise AssertionError(f"{name} {date_key}: daily archive patch failed exact-day integrity")
+                    rows.extend(patch_rows)
+                    present.update(patch_times)
+                    archive_manifest.append({
+                        "series": name, "period": "daily_patch", "date": date_key, "month": month,
+                        "rows": len(patch_rows), "expected_rows": 288,
+                        "gaps_in_monthly_archive": 0, "missing_rows_before_patch": 0,
+                        "duplicates": patch_meta["duplicate_count"], "sha256": patch_meta["sha256"],
+                        "zip_crc": patch_meta["zip_crc"], "relative_path": patch_meta["relative_path"],
+                        "bytes": patch_meta["bytes"],
+                    })
+            rows.sort(key=lambda r: r["open_time"])
+            times = [r["open_time"] for r in rows]
+            if (len(rows) != expected or len(present) != expected or
+                    any(b - a != STEP_MS for a, b in zip(times, times[1:])) or
+                    times[0] != month_start or times[-1] != expected_last):
+                raise AssertionError(f"{name} {month}: month remains incomplete after exact-day patching")
+            per_series[name] = {r["open_time"]: r for r in rows}
         common = set.intersection(*(set(m) for m in per_series.values()))
         union = set.union(*(set(m) for m in per_series.values()))
         if len(common) != expected or len(union) != expected:
@@ -431,7 +479,7 @@ def run_study(out):
         "", "## Costs and trading metrics", "",
         "No position, entry, stop, target or execution is simulated. Fees, spread, slippage and funding are not applicable. Win rate, PF, net R, trading drawdown and losing streak are not applicable. Any later execution strategy requires a separate preregistration with actual funding, fees/slippage and conservative intrabar handling.",
         "", "## Data integrity and limitations", "",
-        "- All 52 monthly archive ZIPs and sibling SHA-256 checksums are verified; ZIP CRC, schema, expected row counts, UTC 5m grid, duplicate/gap checks, monthly boundaries and four-series timestamp alignment are fail-closed.",
+        "- All 52 monthly archive ZIPs and sibling SHA-256 checksums are verified. If a monthly archive has only complete missing UTC days, the exact corresponding daily archive is checksum/CRC/schema/row/boundary verified and used as a deterministic patch; partial-day gaps fail closed. Final month grids and four-series alignment must be complete.",
         "- October 2025 is warmup only; event sample begins 1 November 2025.",
         "- Premium-index close is not assumed equal to contract/index basis or mark/index premium.",
         "- Binance REST cross-check is unavailable from the prior runner due HTTP 451; no REST parity claim is made.",
@@ -448,6 +496,13 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(month_keys()[-1], "2026-10")
         self.assertEqual(expected_month_rows("2025-11"), 8640)
         self.assertEqual(expected_month_rows("2026-10"), 8928)
+
+    def test_full_day_patch_policy(self):
+        day = archive_audit.utc_ms("2026-06-30")
+        complete = list(range(day, day + 86_400_000, STEP_MS))
+        self.assertEqual(full_day_patch_dates(complete), [day])
+        with self.assertRaises(AssertionError):
+            full_day_patch_dates(complete[:-1])
 
     def test_prior_zscore_is_causal(self):
         values = [float(i % 17) for i in range(200)]
