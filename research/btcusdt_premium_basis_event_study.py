@@ -456,8 +456,8 @@ class StudyTests(unittest.TestCase):
         self.assertLess(signed_reversion(10.0, 12.0, 1), 0)
 
     def test_control_nonoverlap_and_no_reuse(self):
-        n, z = 500, [0.2] * 500
-        z[100], z[300], z[350] = 3.0, -3.0, -0.3
+        n, z = 500, [None] * 500
+        z[50], z[100], z[200], z[300], z[350] = 0.2, 3.0, 0.3, -3.0, -0.3
         rb, vb, rg = [0] * n, [0] * n, ["neutral"] * n
         blocked = [False] * n
         mark_neighborhood(blocked, 100)
